@@ -3,7 +3,7 @@
         class="timeline-caret absolute z-controls flex flex-col items-center"
         :style="{
             left: `${position}%`,
-            top: 'calc(50% + var(--timeline-caret-offset, var(--caret-offset)))',
+            top: 'calc(100% + var(--timeline-caret-gap, 0.25rem))',
             transform: edgeTransform,
         }"
     >
@@ -181,11 +181,11 @@ const edgeTransform = computed(() =>
 
 /**
  * C-9's contract, stated at the node that carries it (there were zero comments
- * at any of the three): this caret hangs BELOW the rail's centre line by
- * `--timeline-caret-offset` — a clearance the rail computes per expansion state
- * (D-19/D-17) — and its EDIT INPUT (`h-5`) hangs ≈11px into the rail's own
- * `margin-bottom`, which is why the ancestor chain is provisioned
- * `overflow-y-visible`. The 10px label's ~1px overhang is NOT a Card-clip
+ * at any of the three): this caret hangs BELOW the rail — the lane's full
+ * block size plus `--timeline-caret-gap` (KFA-173; it used to hang from the
+ * centre line by a fixed offset and straddled the rail's border) — and it sits
+ * in the rail's own `margin-bottom`, which is why the ancestor chain is
+ * provisioned `overflow-y-visible`. The 10px label's ~1px overhang is NOT a Card-clip
  * truncation (that mechanism was killed, #13). `z-controls` is the other half
  * of D-17: the marker carries the same layer, so without it the diamond won
  * paint AND the hit test over the caret it occludes, whatever the DOM order.

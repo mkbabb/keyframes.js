@@ -81,6 +81,10 @@ function equip(rail: HTMLElement): void {
             y: 0,
             toJSON: () => ({}),
         }) as DOMRect;
+    // X.KF.W13X.timeline (KFA-173) — the marks, and so the pointer
+    // projection, live on the rail's inset LANE; it takes the same geometry.
+    const lane = rail.querySelector<HTMLElement>(".timeline-lane");
+    if (lane) lane.getBoundingClientRect = rail.getBoundingClientRect;
     const captured = new Set<number>();
     rail.setPointerCapture = (id: number) => void captured.add(id);
     rail.releasePointerCapture = (id: number) => void captured.delete(id);

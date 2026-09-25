@@ -178,7 +178,7 @@
         <div
             v-show="state.keyframes.length >= 2"
             ref="previewStage"
-            class="timeline-preview-stage relative h-24 overflow-clip [contain:paint] rounded-lg border border-border bg-muted/30"
+            class="timeline-preview-stage relative h-24 overflow-clip [contain:paint] rounded-[var(--radius-media)] border border-border bg-muted/30"
             aria-hidden="true"
         ></div>
 
@@ -255,10 +255,9 @@
                 <Separator />
 
                 <div class="flex items-center justify-between">
+                    <!-- UIA-KF-178 — the selected percent is said ONCE, by its
+                         caret on the rail; the header is the label alone. -->
                     <div class="flex items-center gap-2">
-                        <span class="text-mono-caption font-semibold tabular-nums"
-                            >{{ Math.round(selectedKeyframe.percent) }}%</span
-                        >
                         <!-- D-9 + M8 (+ the D-18 pass) — the user's OWN label, in a
                              register that does not rewrite it. The chip register
                              this Input wore force-uppercased typed content, held

@@ -13,7 +13,7 @@
          gate asks for in its own words ("the rail has an accessible
          container"). The nested-slider structure that drift leaves behind is
          DECLARED, not silently inherited: see the note at the rail below. -->
-    <div class="flex flex-col gap-3" role="group" aria-label="Keyframe timeline">
+    <div class="flex flex-col" role="group" aria-label="Keyframe timeline">
         <!-- Zoom / pan row. The row is ALWAYS MOUNTED and reserves its height
              (D-11): it used to appear on `zoomLevel > 1`, and `zoomLevel` is
              continuous through 1.0 in both directions, so the ~32px row
@@ -33,8 +33,18 @@
              and therefore caps the ratio below any theme's reach. This row RIDES
              D-7's residue row for its painted figures and is never measured
              separately (the single-measurement-site lock). -->
+        <!-- UIA-KF-180 — at zoom 1 the row held a ~22px dead band between the
+             stage and the tick labels in every resting frame. It now COLLAPSES
+             (grid rows 0fr → 1fr, eased), so there is no reserved space when
+             there is nothing to pan, and it still never pops in mid-gesture:
+             it eases open instead of materialising (D-11's concern). -->
         <div
-            class="timeline-pan-row flex items-center gap-2 transition-opacity duration-fast"
+            class="timeline-pan-collapse grid transition-[grid-template-rows] duration-fast ease-standard"
+            :class="zoomLevel > 1 ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'"
+        >
+        <div class="min-h-0 overflow-hidden">
+        <div
+            class="timeline-pan-row flex items-center gap-2 pb-3 transition-opacity duration-fast"
             :class="zoomLevel > 1 ? 'opacity-100' : 'opacity-0'"
             :aria-hidden="zoomLevel > 1 ? undefined : 'true'"
         >
@@ -76,6 +86,8 @@
                  cured here. -->
             <span class="timeline-zoom-readout text-mono-caption text-muted-foreground shrink-0 tabular-nums">{{ zoomLevel.toFixed(1) }}x</span>
         </div>
+        </div>
+        </div>
 
         <!-- Timeline Track.
              D-7 (KeyframeTimeline) — THE RAIL'S BOUNDARY, cured at the file the
@@ -98,7 +110,7 @@
              from the AT tree; separating the two would mean moving the playhead
              role off `.timeline-track` (which `timeline-mount-keyboard.test.ts`
              pins) or lifting the markers out of the element whose scoped block
-             declares `--timeline-hit-floor` and `--timeline-caret-offset` for
+             declares `--timeline-hit-floor` and `--timeline-caret-gap` for
              them. Neither is this gate's cure and neither is spent here. -->
 
         <div
@@ -106,7 +118,7 @@
             ref="trackEl"
             :data-expanded="expanded ? 'true' : undefined"
             :class="[
-                'kf-focus-ring timeline-track relative rounded-lg border border-muted-foreground bg-muted/50 hover:bg-muted/70 transition-colors duration-fast cursor-pointer select-none overflow-x-clip overflow-y-visible touch-pan-y',
+                'kf-focus-ring timeline-track relative rounded-[var(--radius-field)] border border-muted-foreground bg-muted/50 hover:bg-muted/70 transition-colors duration-fast cursor-pointer select-none overflow-x-clip overflow-y-visible touch-pan-y',
                 expanded ? 'h-32' : 'h-12',
             ]"
             role="slider"
@@ -128,154 +140,172 @@
             @touchmove.passive="onTouchMove"
             @touchend.passive="onTouchEnd"
         >
-            <!-- Tick marks. The label hangs ABOVE the rail by exactly the
-                 margin the rail reserves for it — one constant, declared once
-                 in this file's scoped block and read by both (D-14/i-1: the two
-                 were the same magic number 174 lines apart with nothing stating
-                 the coupling). C-9's contract, said at the node that needs it:
-                 the labels are why this subtree is provisioned
-                 `overflow-y-visible` while the rail clips in x.
-                 RR-A missed-1's second attribute — THE GRADUATIONS ARE
-                 DECORATION AND ARE HIDDEN. Un-hidden, the ladder interleaved
-                 ~5-15 bare percent strings ("0%", "10%", …) into the AT tree
-                 between the markers, as CONTENT; they carry no information the
-                 rail and its markers do not already announce through
-                 `aria-valuetext`, and their count changes with zoom, so a
-                 browse-mode reader paid for a ruler by hearing it read out. -->
+            <!-- KFA-173 / UIA-KF-187 — THE LANE. Every mark (ticks, playhead,
+                 diamonds, carets) is placed on this inner box, inset from the
+                 rail by half a (selected) diamond, so the 0% and 100% diamonds
+                 and their labels sit INSIDE the rail instead of half outside
+                 its border. Pointer → percent reads this box too, so the
+                 projection and the paint share one geometry. -->
             <div
-                v-for="tick in visibleTicks"
-                :key="tick"
-                class="absolute top-0 h-full border-l border-border/30"
-                :style="{ left: `${percentToPosition(tick)}%` }"
-                aria-hidden="true"
+                ref="laneEl"
+                class="timeline-lane absolute inset-y-0"
             >
-                <span
-                    class="timeline-tick-label text-mono-caption tabular-nums absolute left-0 text-muted-foreground whitespace-nowrap"
-                    :class="edgeClass(percentToPosition(tick))"
-                >{{ tick }}%</span>
-            </div>
-
-            <!-- Playhead -->
-            <div
-                class="absolute top-0 h-full w-0.5 bg-primary z-content pointer-events-none"
-                :style="{ left: `${percentToPosition(scrubT * 100)}%` }"
-            ></div>
-
-            <!-- Keyframe markers — ONE PER STOP (KF.W7 G5: the partition the
-                 engine compiles from; keyframes sharing a selector are one rule
-                 in the animation, so they are one marker that SAYS how many it
-                 holds). Each a keyboard-accessible slider (the SpringTarget
-                 role="slider" template): drag OR arrow-key the stop along the
-                 0–100% track. The visible diamond keeps its 16/24px size; an
-                 invisible ≥24px hit pad (::before) meets the touch-target
-                 minimum without moving a pixel of the diamond. Keyed by the
-                 stop's head id, which is stable across a drag.
-                 D-20 (KeyframeTimeline) — ONE FOCUS VOCABULARY. These three
-                 bespoke hosts (the rail `role="slider"`, the pan
-                 `role="scrollbar"` and every marker) are all keyboard-reachable
-                 and all took the UA ring, a fourth dialect standing beside the
-                 glass Buttons one card up that carry the house one. No global
-                 `:focus-visible` rule ships in this demo, so "the UA ring" was
-                 never a choice anyone made. All three now wear the demo's ring,
-                 which is also the only one of the four that paints under
-                 forced-colors. -->
-            <Tooltip v-for="stop in stops" :key="stop.keyframes[0].id">
-                <!-- D-10 (KeyframeTimeline) — ONE CAPTURE SEAM, BOTH
-                     MODALITIES. The capture was armed on the marker's
-                     `@mouseenter` ALONE, while the tooltip opens on FOCUS too
-                     (reka's `TooltipTrigger` wires `focus` straight to
-                     `onOpen`). A keyboard user therefore opened the panel and
-                     got the ghost branch forever — the preview entry for their
-                     keyframe was never requested, by anything. Hover and focus
-                     now ask the same question; the emit NAME is kept, because
-                     renaming it is not the cure. -->
-                <TooltipTrigger as-child>
-                    <div
-                        :class="[
-                            'kf-focus-ring keyframe-marker absolute top-1/2 -translate-y-1/2 z-controls',
-                            edgeClass(percentToPosition(stop.percent)),
-                            expanded ? 'w-6 h-6' : 'w-4 h-4',
-                            'rotate-45 rounded-sm cursor-grab',
-                            'border-2',
-                            isStopSelected(stop)
-                                ? 'bg-primary border-primary scale-125 hover:ring-2 hover:ring-primary/40'
-                                : 'bg-background border-foreground/50 hover:border-primary scale-on-hover',
-                        ]"
-                        :id="`timeline-marker-${stop.keyframes[0].id}`"
-                        role="slider"
-                        :aria-label="stopLabel(stop)"
-                        :aria-valuenow="Math.round(stop.percent)"
-                        :aria-valuetext="`${Math.round(stop.percent)}%`"
-                        aria-valuemin="0"
-                        aria-valuemax="100"
-                        :data-state="isStopSelected(stop) ? 'selected' : undefined"
-                        tabindex="0"
-                        :style="{ left: `${percentToPosition(stop.percent)}%` }"
-                        @pointerdown.stop="onMarkerPointerDown($event, stop)"
-                        @keydown="onMarkerKeydown($event, stop)"
-                    >
-                        <!-- Said so: a multi-member stop wears its count. -->
-                        <span
-                            v-if="stop.keyframes.length > 1"
-                            class="stop-count absolute -top-2.5 -right-3 -rotate-45 rounded-full bg-primary px-1 text-mono-caption leading-none tabular-nums text-primary-foreground"
-                            aria-hidden="true"
-                            >×{{ stop.keyframes.length }}</span
-                        >
-                    </div>
-                </TooltipTrigger>
-                <!-- m-17 (W6-I; G-W6-9's VARIANT member): the caller's `p-2`
-                     is gone — merged LAST through the package's tailwind-merge
-                     it flattened the tooltip's designed 1.272 block/inline
-                     optical padding ratio (`px-(--overlay-pad-inline)
-                     py-(--overlay-pad-block)`) to 1.0. The width cap stays
-                     (`max-w-72` since UIA-KF-279) and collides with nothing
-                     the primitive declares. Pairs with THP D-11 (`.e`,
-                     RETAINED). -->
-                <!-- MISSED-1 + M7 — THE PANEL'S NAME IS PASSED, NEVER SCRAPED.
-                     `TooltipContentImpl.js:87` builds the accessible
-                     description as `props.ariaLabel || currentElement.value
-                     ?.textContent`. With nothing passed, the second arm won:
-                     an UNTRACKED DOM read, taken ONCE at first mount, of a
-                     panel whose `<img alt>` `textContent` cannot see and whose
-                     block boundaries it runs together — so an AT user got one
-                     unpunctuated stylesheet, frozen before the capture landed,
-                     and on the focus path (D-10) frozen on the ghost that has
-                     no name at all. Passing the prop takes the FIRST arm, and
-                     because the prop is a `computed`-shaped expression over the
-                     keyframe and its preview source, reka's own `computed`
-                     re-evaluates whenever either changes. It is also M7's cure
-                     at the only place it matters for AT: a prop is a string, so
-                     no `text-transform` register can reach it and the property
-                     values arrive in the case the author typed them. -->
-                <!-- UIA-KF-183 — the panel opens BELOW the rail, away from
-                     the card's own toolbar and tick labels it used to cover.
-                     UIA-KF-279 — the declarations are the content: the cap is
-                     wide enough for common values, and a long one wraps. -->
-                <TooltipContent
-                    side="bottom"
-                    :side-offset="8"
-                    class="max-w-72"
-                    :aria-label="describeStop(stop)"
+                <!-- Tick marks. The label hangs ABOVE the rail by exactly the
+                     margin the rail reserves for it — one constant, declared once
+                     in this file's scoped block and read by both (D-14/i-1: the two
+                     were the same magic number 174 lines apart with nothing stating
+                     the coupling). C-9's contract, said at the node that needs it:
+                     the labels are why this subtree is provisioned
+                     `overflow-y-visible` while the rail clips in x.
+                     RR-A missed-1's second attribute — THE GRADUATIONS ARE
+                     DECORATION AND ARE HIDDEN. Un-hidden, the ladder interleaved
+                     ~5-15 bare percent strings ("0%", "10%", …) into the AT tree
+                     between the markers, as CONTENT; they carry no information the
+                     rail and its markers do not already announce through
+                     `aria-valuetext`, and their count changes with zoom, so a
+                     browse-mode reader paid for a ruler by hearing it read out. -->
+                <div
+                    v-for="tick in visibleTicks"
+                    :key="tick"
+                    class="absolute top-0 h-full border-l border-border/30"
+                    :style="{ left: `${percentToPosition(tick)}%` }"
+                    aria-hidden="true"
                 >
-                    <TimelineHoverPreview
-                        :keyframe="stop.keyframes[0]"
-                        :source="previewSource ?? null"
-                    />
-                </TooltipContent>
-            </Tooltip>
+                    <!-- UIA-KF-178 — a graduation that coincides with a stop
+                         is not labelled twice: the stop's caret says it. -->
+                    <span
+                        v-if="!stopAtTick(tick)"
+                        class="timeline-tick-label text-mono-caption tabular-nums absolute left-0 text-muted-foreground whitespace-nowrap"
+                        :class="edgeClass(percentToPosition(tick))"
+                    >{{ tick }}%</span>
+                </div>
 
-            <!-- Timeline Carets — one per stop, same partition -->
-            <TimelineCaret
-                v-for="stop in stops"
-                :key="'caret-' + stop.keyframes[0].id"
-                :keyframe-id="stop.keyframes[0].id"
-                :percent="stop.percent"
-                :position="percentToPosition(stop.percent)"
-                :edge="edgeOf(percentToPosition(stop.percent))"
-                :is-selected="isStopSelected(stop)"
-                @commit-percent="(p) => moveStop(stop.keyframes.map((kf) => kf.id), p)"
-                @select="emit('select', selectionIdFor(stop))"
-            />
+                <!-- Playhead. KFA-172 — placed by a WHOLE-PIXEL translate, not
+                     a sub-pixel `left: %`, so it no longer alternates crisp and
+                     soft while it moves. -->
+                <div
+                    class="timeline-playhead absolute top-0 left-0 h-full w-0.5 bg-primary z-content pointer-events-none"
+                    :style="{ transform: `translateX(${playheadPx}px)` }"
+                ></div>
+
+                <!-- Keyframe markers — ONE PER STOP (KF.W7 G5: the partition the
+                     engine compiles from; keyframes sharing a selector are one rule
+                     in the animation, so they are one marker that SAYS how many it
+                     holds). Each a keyboard-accessible slider (the SpringTarget
+                     role="slider" template): drag OR arrow-key the stop along the
+                     0–100% track. The visible diamond keeps its 16/24px size; an
+                     invisible ≥24px hit pad (::before) meets the touch-target
+                     minimum without moving a pixel of the diamond. Keyed by the
+                     stop's head id, which is stable across a drag.
+                     D-20 (KeyframeTimeline) — ONE FOCUS VOCABULARY. These three
+                     bespoke hosts (the rail `role="slider"`, the pan
+                     `role="scrollbar"` and every marker) are all keyboard-reachable
+                     and all took the UA ring, a fourth dialect standing beside the
+                     glass Buttons one card up that carry the house one. No global
+                     `:focus-visible` rule ships in this demo, so "the UA ring" was
+                     never a choice anyone made. All three now wear the demo's ring,
+                     which is also the only one of the four that paints under
+                     forced-colors. -->
+                <Tooltip v-for="stop in stops" :key="stop.keyframes[0].id">
+                    <!-- D-10 (KeyframeTimeline) — ONE CAPTURE SEAM, BOTH
+                         MODALITIES. The capture was armed on the marker's
+                         `@mouseenter` ALONE, while the tooltip opens on FOCUS too
+                         (reka's `TooltipTrigger` wires `focus` straight to
+                         `onOpen`). A keyboard user therefore opened the panel and
+                         got the ghost branch forever — the preview entry for their
+                         keyframe was never requested, by anything. Hover and focus
+                         now ask the same question; the emit NAME is kept, because
+                         renaming it is not the cure. -->
+                    <TooltipTrigger as-child>
+                        <div
+                            :class="[
+                                'kf-focus-ring keyframe-marker absolute top-1/2 -translate-y-1/2 -translate-x-1/2 z-controls',
+                                expanded ? 'w-6 h-6' : 'w-4 h-4',
+                                'rotate-45 rounded-sm cursor-grab',
+                                'border-2',
+                                isStopSelected(stop)
+                                    ? 'bg-primary border-primary scale-125 hover:ring-2 hover:ring-primary/40'
+                                    : 'bg-background border-foreground/50 hover:border-primary scale-on-hover',
+                            ]"
+                            :id="`timeline-marker-${stop.keyframes[0].id}`"
+                            role="slider"
+                            :aria-label="stopLabel(stop)"
+                            :aria-valuenow="Math.round(stop.percent)"
+                            :aria-valuetext="`${Math.round(stop.percent)}%`"
+                            aria-valuemin="0"
+                            aria-valuemax="100"
+                            :data-state="isStopSelected(stop) ? 'selected' : undefined"
+                            tabindex="0"
+                            :style="{ left: `${percentToPosition(stop.percent)}%` }"
+                            @pointerdown.stop="onMarkerPointerDown($event, stop)"
+                            @keydown="onMarkerKeydown($event, stop)"
+                        >
+                            <!-- Said so: a multi-member stop wears its count. -->
+                            <!-- UIA-KF-181 — the count is a glass Badge, not a
+                                 hand-rolled rounded-full chip. -->
+                            <Badge
+                                v-if="stop.keyframes.length > 1"
+                                size="sm"
+                                class="stop-count absolute -top-2.5 -right-3 -rotate-45 tabular-nums"
+                                aria-hidden="true"
+                                >×{{ stop.keyframes.length }}</Badge
+                            >
+                        </div>
+                    </TooltipTrigger>
+                    <!-- m-17 (W6-I; G-W6-9's VARIANT member): the caller's `p-2`
+                         is gone — merged LAST through the package's tailwind-merge
+                         it flattened the tooltip's designed 1.272 block/inline
+                         optical padding ratio (`px-(--overlay-pad-inline)
+                         py-(--overlay-pad-block)`) to 1.0. The width cap stays
+                         (`max-w-72` since UIA-KF-279) and collides with nothing
+                         the primitive declares. Pairs with THP D-11 (`.e`,
+                         RETAINED). -->
+                    <!-- MISSED-1 + M7 — THE PANEL'S NAME IS PASSED, NEVER SCRAPED.
+                         `TooltipContentImpl.js:87` builds the accessible
+                         description as `props.ariaLabel || currentElement.value
+                         ?.textContent`. With nothing passed, the second arm won:
+                         an UNTRACKED DOM read, taken ONCE at first mount, of a
+                         panel whose `<img alt>` `textContent` cannot see and whose
+                         block boundaries it runs together — so an AT user got one
+                         unpunctuated stylesheet, frozen before the capture landed,
+                         and on the focus path (D-10) frozen on the ghost that has
+                         no name at all. Passing the prop takes the FIRST arm, and
+                         because the prop is a `computed`-shaped expression over the
+                         keyframe and its preview source, reka's own `computed`
+                         re-evaluates whenever either changes. It is also M7's cure
+                         at the only place it matters for AT: a prop is a string, so
+                         no `text-transform` register can reach it and the property
+                         values arrive in the case the author typed them. -->
+                    <!-- UIA-KF-183 — the panel opens BELOW the rail, away from
+                         the card's own toolbar and tick labels it used to cover.
+                         UIA-KF-279 — the declarations are the content: the cap is
+                         wide enough for common values, and a long one wraps. -->
+                    <TooltipContent
+                        side="bottom"
+                        :side-offset="8"
+                        class="max-w-72"
+                        :aria-label="describeStop(stop)"
+                    >
+                        <TimelineHoverPreview
+                            :keyframe="stop.keyframes[0]"
+                            :source="previewSource ?? null"
+                        />
+                    </TooltipContent>
+                </Tooltip>
+
+                <!-- Timeline Carets — one per stop, same partition -->
+                <TimelineCaret
+                    v-for="stop in stops"
+                    :key="'caret-' + stop.keyframes[0].id"
+                    :keyframe-id="stop.keyframes[0].id"
+                    :percent="stop.percent"
+                    :position="percentToPosition(stop.percent)"
+                    :edge="edgeOf(percentToPosition(stop.percent))"
+                    :is-selected="isStopSelected(stop)"
+                    @commit-percent="(p) => moveStop(stop.keyframes.map((kf) => kf.id), p)"
+                    @select="emit('select', selectionIdFor(stop))"
+                />
+            </div>
         </div>
     </div>
 </template>
@@ -283,6 +313,8 @@
 <script setup lang="ts">
 import { computed, shallowRef, useId, useTemplateRef } from "vue";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@mkbabb/glass-ui/tooltip";
+import { Badge } from "@mkbabb/glass-ui/badge";
+import { useElementSize } from "@vueuse/core";
 import { clamp } from "@mkbabb/value.js/math";
 import { useZoomPan } from "../composables/useZoomPan";
 import TimelineCaret from "../TimelineCaret.vue";
@@ -309,6 +341,9 @@ const emit = defineEmits<{
 }>();
 
 const trackEl = useTemplateRef<HTMLElement>("trackEl");
+/** The inset lane every mark is placed on — and the box a pointer projects onto. */
+const laneEl = useTemplateRef<HTMLElement>("laneEl");
+const { width: laneWidth } = useElementSize(laneEl);
 const panBarEl = useTemplateRef<HTMLElement>("panBarEl");
 /** The rail's id — what the pan scrollbar declares it controls. */
 const railId = useId();
@@ -402,7 +437,16 @@ const {
     onTouchStart,
     onTouchMove,
     onTouchEnd,
-} = useZoomPan(trackEl);
+} = useZoomPan(laneEl);
+
+/** KFA-172 — the playhead's whole-pixel offset along the lane. */
+const playheadPx = computed(() =>
+    Math.round((percentToPosition(props.scrubT * 100) / 100) * laneWidth.value),
+);
+
+/** UIA-KF-178 — whether a stop already labels this graduation. */
+const stopAtTick = (tick: number): boolean =>
+    stops.value.some((stop) => Math.round(stop.percent) === tick);
 
 // L-D8/C-4(a) + D-7 + MISSED-4 — `getGhostStyle` lived HERE, in the geometry
 // component, computing a required prop for a leaf that had every input it
@@ -418,21 +462,11 @@ const {
  * `0` — when the rail is not mounted: a failed projection scrubs nowhere.
  */
 const getPercentFromPointer = (event: PointerEvent): number | null => {
-    const rail = trackEl.value;
-    if (!rail) return null;
-    // ONE BOX FOR BOTH MAPS (RR-B missed-5 / banked D-20). `left: N%` on every
-    // mark resolves against the rail's PADDING box, while
-    // `getBoundingClientRect` returns its BORDER box — so pointer→percent and
-    // percent→pixel disagreed by a fixed one-border origin and two-border span
-    // skew that grows with any border change. The borders are measured, not
-    // assumed, so the maps stay agreed whatever the token says.
-    const rect = rail.getBoundingClientRect();
-    const style = getComputedStyle(rail);
-    const borderLeft = parseFloat(style.borderLeftWidth) || 0;
-    const borderRight = parseFloat(style.borderRightWidth) || 0;
-    const width = rect.width - borderLeft - borderRight;
-    if (width <= 0) return null;
-    const posPercent = ((event.clientX - rect.left - borderLeft) / width) * 100;
+    const lane = laneEl.value;
+    if (!lane) return null;
+    const rect = lane.getBoundingClientRect();
+    if (rect.width <= 0) return null;
+    const posPercent = ((event.clientX - rect.left) / rect.width) * 100;
     return clamp(positionToPercent(posPercent), 0, 100);
 };
 
@@ -719,22 +753,26 @@ const onMarkerKeydown = (event: KeyboardEvent, stop: TimelineStop) => {
        room for them. ONE constant, read by both (D-14/i-1). */
     --timeline-tick-label-offset: 1.25rem;
 
-    /* The caret's clearance below the mark's centre line, re-derived at the
-       bytes (OP-3 / D-19). The global `--caret-offset` is 14px, which clears
-       NOTHING when the diamond is expanded: at `h-32` the padding box is 126px,
-       its centre line 63px, and a selected (`scale-125`) 24px diamond reaches
-       63 + 24·√2÷2·1.25 = 84.21px — 7.21px BELOW the caret's top. Collapsed it
-       is a 0.14px hairline overlap. These two values clear the worst case by
-       ~1.8px in both states; `layout.css` owns the global token and is not
-       touched. */
-    --timeline-caret-offset: 16px;
+    /* KFA-173 / UIA-KF-178 — the carets hang BELOW the rail. They were
+       placed at the rail's centre line plus a fixed 16px/23px, so on the 48px
+       rail every readout sat on the bottom border ("0% / 50% / 100%" struck
+       through). Their offset is now the rail's own block size plus a gap, so
+       it cannot straddle whatever height the rail takes. */
+    --timeline-caret-gap: 0.25rem;
+    /* The visible diamond; the lane is inset by half its SELECTED diagonal
+       (√2⁄2 × scale-125 = 0.8839), so an end stop sits inside the rail. */
+    --timeline-diamond: 1rem;
 
     margin-top: var(--timeline-tick-label-offset);
-    margin-bottom: 1rem;
+    margin-bottom: 1.5rem;
 }
 
 .timeline-track[data-expanded] {
-    --timeline-caret-offset: 23px;
+    --timeline-diamond: 1.5rem;
+}
+
+.timeline-lane {
+    inset-inline: calc(var(--timeline-diamond) * 0.8839);
 }
 
 .timeline-tick-label {
