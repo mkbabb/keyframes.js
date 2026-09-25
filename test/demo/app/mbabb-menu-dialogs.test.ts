@@ -204,3 +204,35 @@ describe("UIA-KF-138 — one subtitle, one identity row", () => {
         wrapper.unmount();
     });
 });
+
+describe("A2-KE-L2-17 — the short layout keeps the command rows only", () => {
+    it("(8) under (max-width:1023px) and (max-height:500px) the brand rows leave the menu; elsewhere they stay", async () => {
+        const short = vi.spyOn(window, "matchMedia").mockImplementation(
+            (query: string) =>
+                ({
+                    matches: /max-height:\s*500px/.test(query),
+                    media: query,
+                    onchange: null,
+                    addListener() {},
+                    removeListener() {},
+                    addEventListener() {},
+                    removeEventListener() {},
+                    dispatchEvent: () => false,
+                }) as unknown as MediaQueryList,
+        );
+        const a = mountHost();
+        await activate(a.trigger.element);
+        expect(row("Clear all")).toBeTruthy();
+        expect(row("ppmycota")).toBeFalsy();
+        expect(row("@mbabb")).toBeFalsy();
+        a.wrapper.unmount();
+        short.mockRestore();
+        await vi.waitFor(() => expect(menu()).toBeNull());
+
+        const b = mountHost();
+        await activate(b.trigger.element);
+        expect(row("ppmycota")).toBeTruthy();
+        expect(row("@mbabb")).toBeTruthy();
+        b.wrapper.unmount();
+    });
+});

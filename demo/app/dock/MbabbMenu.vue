@@ -98,82 +98,93 @@
 
             <DropdownMenuSeparator />
 
-            <!-- ppmycota logo — toggles pp mode.
-                 [X.KF.W13R.m — MM-4 DISCHARGED at glass 10.0.0: every library
-                 style rule now sits in `@layer components` (MIGRATION §10.0.0),
-                 `.menu__item`/`.glass-menu-row` included, so the utility class
-                 paints and the inline `:style` came out — the migration the
-                 note below names as the whole of it. The history is kept.]
-                 MM-4 INTERIM, AND IT IS LABELLED AS ONE. glass-ui emits
-                 `.dropdown-menu__item` OUTSIDE its single `@layer components`
-                 block (byte 29523 against the block's 2531–18827), and an
-                 unlayered rule beats a layered one whatever the source order —
-                 so `cursor-pointer` on a row that has an `@click` never paints
-                 and the row reads as inert. The DURABLE fix is the producer's
-                 (wrap `dropdown-menu/styles.css` + the `_shared/menu.css` tail
-                 in `layer(components)`; sent as O-26 R-1 BEFORE this interim was
-                 written, per §Sequencing 7). Until it lands, the paint is
-                 declared inline — the file's OWN idiom for portalled content,
-                 documented five lines below for the brand colour — because an
-                 inline declaration outranks any stylesheet rule on either side
-                 of the layer question and needs no `:deep` (banned) and no
-                 global block. When the producer sheet is layered the class
-                 takes over and the `:style` comes out; the class is kept
-                 alongside precisely so that removal is the whole migration.
-                 MM-44: this file is the demo's ONLY DropdownMenu consumer, so
-                 the interim's blast radius is this component. -->
-            <!-- MM-18 — `scale-on-hover` is gone from the 28px logo: the press
-                 covers the whole ~272×44 row, so a scale on the child pointed
-                 the affordance at the wrong object. The row's own hover chrome
-                 is the affordance, as on every other row. -->
-            <!-- MM-5 — a persisted boolean is a CHECKBOX row: `menuitemcheckbox` +
-                 `aria-checked` + the indicator seat, from the design system's own
-                 `DropdownMenuCheckboxItem` (the exported seam; no copied selector).
-                 `@select.prevent` keeps the menu open, so the mark IS the feedback.
-                 MM-1/MM-6 (≡ KF-APP-1 · kf-CubeScene C-14) — the ONE writer binds the
-                 plain store bucket directly (no `.value` off a non-ref: the old
-                 `togglePpMode` threw on every click), and it binds the `cube` bucket —
-                 the only reader (`CubeScene` → `CubeTarget :pp-mode`) keys by
-                 `CUBE_SCENE_ID` on every scene, home included, so writing the ACTIVE
-                 scene's bucket was inert on 6 of 7 scenes. CubeScene's `setPPMode`
-                 twin died with the unmounted header render fn (KF-APP-17, delete arm). -->
-            <DropdownMenuCheckboxItem :model-value="cubeControls.ppMode ?? false" @update:model-value="(checked: boolean) => (cubeControls.ppMode = checked)" @select.prevent text-value="ppmycota" class="gap-2.5 px-1.5 py-1 cursor-pointer">
-                <div class="ppmycota-logo-sm w-7 h-7 shrink-0"></div>
-                <div class="flex-1 min-w-0">
-                    <!-- MM-21 — the brand colour is a UTILITY, and the old
-                         five-line case for an inline style was mechanically
-                         false: `--ppmycota-primary` is a `:root` global, so it
-                         inherits into the portal like every other token this
-                         content reads through a utility. `text-[var(…)]` emits
-                         `color:` on the span itself (no MM-4 layer contest —
-                         the unlayered rule is on the ITEM, and a declared
-                         colour on the child beats inheritance), and unlike the
-                         highest-priority inline style it can be re-tinted.
+            <!-- X.KF.W13X.dock · A2-KE-L2-17 — the brand rows (ppmycota, the
+                 identity) leave the menu in the SHORT layout (the controls
+                 pane's own query: max-width 1023px and max-height 500px). There
+                 the menu is capped at the band above the transport (232 px at
+                 844x390) and the 44 px coarse rows ran 332 px, so Clear all and
+                 the identity hid below a scroll with no affordance; the command
+                 rows alone fit (226 px). `v-if`, not a hidden class, so the
+                 menu's roving focus never lands on an absent row. The glass half
+                 (a scroll fade on overflowing menu content) stays relay-only. -->
+            <template v-if="!isShortLayout">
+                <!-- ppmycota logo — toggles pp mode.
+                     [X.KF.W13R.m — MM-4 DISCHARGED at glass 10.0.0: every library
+                     style rule now sits in `@layer components` (MIGRATION §10.0.0),
+                     `.menu__item`/`.glass-menu-row` included, so the utility class
+                     paints and the inline `:style` came out — the migration the
+                     note below names as the whole of it. The history is kept.]
+                     MM-4 INTERIM, AND IT IS LABELLED AS ONE. glass-ui emits
+                     `.dropdown-menu__item` OUTSIDE its single `@layer components`
+                     block (byte 29523 against the block's 2531–18827), and an
+                     unlayered rule beats a layered one whatever the source order —
+                     so `cursor-pointer` on a row that has an `@click` never paints
+                     and the row reads as inert. The DURABLE fix is the producer's
+                     (wrap `dropdown-menu/styles.css` + the `_shared/menu.css` tail
+                     in `layer(components)`; sent as O-26 R-1 BEFORE this interim was
+                     written, per §Sequencing 7). Until it lands, the paint is
+                     declared inline — the file's OWN idiom for portalled content,
+                     documented five lines below for the brand colour — because an
+                     inline declaration outranks any stylesheet rule on either side
+                     of the layer question and needs no `:deep` (banned) and no
+                     global block. When the producer sheet is layered the class
+                     takes over and the `:style` comes out; the class is kept
+                     alongside precisely so that removal is the whole migration.
+                     MM-44: this file is the demo's ONLY DropdownMenu consumer, so
+                     the interim's blast radius is this component. -->
+                <!-- MM-18 — `scale-on-hover` is gone from the 28px logo: the press
+                     covers the whole ~272×44 row, so a scale on the child pointed
+                     the affordance at the wrong object. The row's own hover chrome
+                     is the affordance, as on every other row. -->
+                <!-- MM-5 — a persisted boolean is a CHECKBOX row: `menuitemcheckbox` +
+                     `aria-checked` + the indicator seat, from the design system's own
+                     `DropdownMenuCheckboxItem` (the exported seam; no copied selector).
+                     `@select.prevent` keeps the menu open, so the mark IS the feedback.
+                     MM-1/MM-6 (≡ KF-APP-1 · kf-CubeScene C-14) — the ONE writer binds the
+                     plain store bucket directly (no `.value` off a non-ref: the old
+                     `togglePpMode` threw on every click), and it binds the `cube` bucket —
+                     the only reader (`CubeScene` → `CubeTarget :pp-mode`) keys by
+                     `CUBE_SCENE_ID` on every scene, home included, so writing the ACTIVE
+                     scene's bucket was inert on 6 of 7 scenes. CubeScene's `setPPMode`
+                     twin died with the unmounted header render fn (KF-APP-17, delete arm). -->
+                <DropdownMenuCheckboxItem :model-value="cubeControls.ppMode ?? false" @update:model-value="(checked: boolean) => (cubeControls.ppMode = checked)" @select.prevent text-value="ppmycota" class="gap-2.5 px-1.5 py-1 cursor-pointer">
+                    <div class="ppmycota-logo-sm w-7 h-7 shrink-0"></div>
+                    <div class="flex-1 min-w-0">
+                        <!-- MM-21 — the brand colour is a UTILITY, and the old
+                             five-line case for an inline style was mechanically
+                             false: `--ppmycota-primary` is a `:root` global, so it
+                             inherits into the portal like every other token this
+                             content reads through a utility. `text-[var(…)]` emits
+                             `color:` on the span itself (no MM-4 layer contest —
+                             the unlayered rule is on the ITEM, and a declared
+                             colour on the child beats inheritance), and unlike the
+                             highest-priority inline style it can be re-tinted.
 
-                         MM-12, RECORDED HERE AND CURED NOWHERE IN THIS WAVE
-                         (bounds, not oversight). This label follows the theme —
-                         `--ppmycota-primary` is `--accent-kf`, a `light-dark()`
-                         pair — while the MARK beside it is repainted by
-                         `--filter-brand-color`, a single static filter chain
-                         (`brand.css:30` reads it; `style.css:178` declares it)
-                         with NO `.dark` arm: `.dark` re-declares only
-                         `--accent-red`, `--accent-red-foreground` and
-                         `--primary`. So mark and label diverge in dark mode BY
-                         CONSTRUCTION. The two lawful cures both live outside
-                         every writable set in this wave's plan — a `.dark`
-                         `--filter-brand-color` arm in `style.css`, or a
-                         mask/inline-SVG mark on `currentColor` in `brand.css` —
-                         and inventing a filter chain at this call site would be
-                         a third, worse dialect. Declared, never silently
-                         dropped; perceptual magnitude is SS-13's. -->
-                    <span class="text-small text-[var(--ppmycota-primary)]">ppmycota</span>
-                </div>
-                <!-- UIA-KF-138 · UIA-KF-246 — the site is a trailing glyph, not a
-                     second line (the one subtitle left in this menu is Clear all's). -->
-                <a href="https://ppmycota.com" target="_blank" rel="noopener noreferrer" aria-label="ppmycota.com" title="ppmycota.com" class="text-muted-foreground hover:text-foreground" @click.stop><ExternalLink class="w-4 h-4" aria-hidden="true" /></a>
-            </DropdownMenuCheckboxItem>
+                             MM-12, RECORDED HERE AND CURED NOWHERE IN THIS WAVE
+                             (bounds, not oversight). This label follows the theme —
+                             `--ppmycota-primary` is `--accent-kf`, a `light-dark()`
+                             pair — while the MARK beside it is repainted by
+                             `--filter-brand-color`, a single static filter chain
+                             (`brand.css:30` reads it; `style.css:178` declares it)
+                             with NO `.dark` arm: `.dark` re-declares only
+                             `--accent-red`, `--accent-red-foreground` and
+                             `--primary`. So mark and label diverge in dark mode BY
+                             CONSTRUCTION. The two lawful cures both live outside
+                             every writable set in this wave's plan — a `.dark`
+                             `--filter-brand-color` arm in `style.css`, or a
+                             mask/inline-SVG mark on `currentColor` in `brand.css` —
+                             and inventing a filter chain at this call site would be
+                             a third, worse dialect. Declared, never silently
+                             dropped; perceptual magnitude is SS-13's. -->
+                        <span class="text-small text-[var(--ppmycota-primary)]">ppmycota</span>
+                    </div>
+                    <!-- UIA-KF-138 · UIA-KF-246 — the site is a trailing glyph, not a
+                         second line (the one subtitle left in this menu is Clear all's). -->
+                    <a href="https://ppmycota.com" target="_blank" rel="noopener noreferrer" aria-label="ppmycota.com" title="ppmycota.com" class="text-muted-foreground hover:text-foreground" @click.stop><ExternalLink class="w-4 h-4" aria-hidden="true" /></a>
+                </DropdownMenuCheckboxItem>
 
-            <DropdownMenuSeparator />
+                <DropdownMenuSeparator />
+            </template>
 
             <!-- T.C2 — Clear all & reload (relocated from the transport dock: a
                  destructive storage reset is a settings action). Confirm-guarded —
@@ -196,28 +207,30 @@
                 </div>
             </DropdownMenuItem>
 
-            <DropdownMenuSeparator />
+            <template v-if="!isShortLayout">
+                <DropdownMenuSeparator />
 
-            <!-- X.KF.W13X.dock · UIA-KF-138 — the identity is ONE row: avatar +
-                 "@mbabb · GitHub", a single item whose select opens the source.
-                 It was a three-line label (handle, tagline, "View the source on
-                 GitHub") repeating the trigger's handle, with two anchors nested
-                 in it. MM-39 — `w-7 h-7` is a necessary escape hatch (every
-                 design-system avatar size is ≥40px, and no `sm` rung ships);
-                 MM-16 — a fallback plate, and no referrer leak to GitHub. -->
-            <DropdownMenuItem text-value="GitHub" class="gap-2.5 px-1.5 py-1" @select="openSource">
-                <span class="w-7 shrink-0 flex justify-center">
-                    <Avatar decorative class="w-7 h-7">
-                        <AvatarImage
-                            src="https://avatars.githubusercontent.com/u/2848617?v=4"
-                            referrer-policy="no-referrer"
-                        ></AvatarImage>
-                        <AvatarFallback>MB</AvatarFallback>
-                    </Avatar>
-                </span>
-                <span class="flex-1 min-w-0 text-small text-foreground"><span class="font-mono" data-register="code">@mbabb</span> · GitHub</span>
-                <ExternalLink class="w-4 h-4 text-muted-foreground" aria-hidden="true" />
-            </DropdownMenuItem>
+                <!-- X.KF.W13X.dock · UIA-KF-138 — the identity is ONE row: avatar +
+                     "@mbabb · GitHub", a single item whose select opens the source.
+                     It was a three-line label (handle, tagline, "View the source on
+                     GitHub") repeating the trigger's handle, with two anchors nested
+                     in it. MM-39 — `w-7 h-7` is a necessary escape hatch (every
+                     design-system avatar size is ≥40px, and no `sm` rung ships);
+                     MM-16 — a fallback plate, and no referrer leak to GitHub. -->
+                <DropdownMenuItem text-value="GitHub" class="gap-2.5 px-1.5 py-1" @select="openSource">
+                    <span class="w-7 shrink-0 flex justify-center">
+                        <Avatar decorative class="w-7 h-7">
+                            <AvatarImage
+                                src="https://avatars.githubusercontent.com/u/2848617?v=4"
+                                referrer-policy="no-referrer"
+                            ></AvatarImage>
+                            <AvatarFallback>MB</AvatarFallback>
+                        </Avatar>
+                    </span>
+                    <span class="flex-1 min-w-0 text-small text-foreground"><span class="font-mono" data-register="code">@mbabb</span> · GitHub</span>
+                    <ExternalLink class="w-4 h-4 text-muted-foreground" aria-hidden="true" />
+                </DropdownMenuItem>
+            </template>
         </DropdownMenuContent>
     </DropdownMenu>
 
@@ -268,6 +281,7 @@
 // not asserted, in `test/demo/app/dock-context-slot-resolution.test.ts`).
 // ─────────────────────────────────────────────────────────────────────────────
 import { onBeforeUnmount, ref, useTemplateRef, watch } from "vue";
+import { useMediaQuery } from "@vueuse/core";
 import { SharePopover } from "@components/instrument/shell";
 // MM-24 — one subpath discipline: the menu family from `./menu`, the
 // dialog from `./dialog`, the button from `./button`. `Avatar*` alone stays on
@@ -344,6 +358,9 @@ onBeforeUnmount(() => {
 // the flag's only reader is CubeScene, which keys by `CUBE_SCENE_ID` wherever it
 // mounts (home's backdrop included) — C-14's split resolved at the writer.
 const cubeControls = getStoredAnimationGroupControlOptions(CUBE_SCENE_ID);
+
+// A2-KE-L2-17 — the short layout (see the template), the controls pane's own query.
+const isShortLayout = useMediaQuery("(max-width: 1023px) and (max-height: 500px)");
 
 // A2-KE-L2-13 · UIA-KF-137 — the theme row's one writer. `toggleDark` (not a bare
 // write to `isDark`) so the flip keeps the controller's transition suppression.
