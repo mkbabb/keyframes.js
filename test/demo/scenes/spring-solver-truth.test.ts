@@ -9,7 +9,7 @@
  *     stale chase. Born state: every solver settled at its target, the target
  *     at the ball, the readouts flushed from the solvers.
  */
-import { beforeAll, describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it, vi } from "vitest";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
@@ -152,3 +152,17 @@ describe("(7) A2-KE-L3-8 — Re-seat sits beside its rail, not on a lone ribbon 
         expect(tpl).toMatch(/id="spring-rail-hint"[\s\S]{0,400}demo\.toggleTarget\(\)/);
     });
 });
+
+describe("(8) KFA-211 — the solver's marks are 'live' only while the solver moves", () => {
+    it("isLive reads the solver's settled state and the derby, never the sweep transport; the sampler has its own gate", () => {
+        const src = sfc("SpringTarget.vue");
+        const live = src.match(/const isLive = computed\(([\s\S]*?)\);/)?.[1] ?? "";
+        expect(live, "isLive present").not.toBe("");
+        expect(live).toMatch(/liveSettled/);
+        expect(live).not.toMatch(/isPlaying/);
+        const css = styleOf(src);
+        expect(css).not.toMatch(/\.spring-target--live \.sampler-carriage/);
+        expect(css).toMatch(/\.spring-target--sweeping \.sampler-carriage/);
+    });
+});
+

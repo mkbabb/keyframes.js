@@ -21,7 +21,7 @@
     <Card
         :shadow="false"
         class="spring-target relative flex flex-col items-center gap-8 h-full w-full px-6 lg:px-8 overflow-x-hidden overflow-y-auto"
-        :class="{ 'spring-target--live': isLive }"
+        :class="{ 'spring-target--live': isLive, 'spring-target--sweeping': demo.isPlaying.value }"
     >
         <!-- Header readout.
              J.W7a S2 (D7 / TYP-2, SP-2) — the scene name lifts to the
@@ -303,12 +303,14 @@ const demo = inject(SPRING_DEMO_KEY)!;
 // Settling — the one discrete fact — is published by the status region instead.
 const targetValueText = computed(() => `target ${demo.target.value.toFixed(2)} of 1`);
 
-/** i-16 — the one state that means "these marks are about to move": the transport
- *  is playing, the field is still travelling, or the derby is up. It gates the
- *  compositor promotion, which used to be unconditional. */
-const isLive = computed(
-    () => demo.isPlaying.value || !demo.liveSettled.value || demo.derbyActive.value,
-);
+/** i-16 — the one state that means "the SOLVER's marks are about to move": the
+ *  field is still travelling, or the derby is up. It gates the compositor
+ *  promotion of the live ball, the fill and the lanes, which used to be
+ *  unconditional. X.KF.W13X.spring (KFA-211) — it read the sweep transport too,
+ *  so the live ball kept `will-change` and `--live` through a whole Sweep
+ *  playback while the badge read "settled" and nothing on the rail moved; the
+ *  sweep's own moving mark (the sampler) is gated by `--sweeping` instead. */
+const isLive = computed(() => !demo.liveSettled.value || demo.derbyActive.value);
 
 /** The instrument's one discrete, high-salience state (D-14), and the derby's
  *  only announcement channel (gesture spec 6 — the lane overlay is aria-hidden
@@ -723,9 +725,9 @@ const onKeydown = (e: KeyboardEvent) => {
    one state that means "these are about to move": the transport is playing, the
    field is still travelling, or the derby is up. */
 .spring-target--live .spring-carriage,
-.spring-target--live .sampler-carriage,
 .spring-target--live .spring-fill,
-.spring-target--live .derby-lane-ball {
+.spring-target--live .derby-lane-ball,
+.spring-target--sweeping .sampler-carriage {
     will-change: transform;
 }
 
