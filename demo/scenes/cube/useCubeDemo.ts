@@ -148,7 +148,16 @@ export function useCubeDemo(
         if (prefersReduced) {
             graphEl.style.transform = graphAttitudeCss();
         } else {
-            changeGraphPerspectiveAnim.play();
+            // KFA-81 (the settle limb) · KFA-204 — the sweep's clock starts on
+            // the FIRST FRAME, not at mount. Played at mount, its clock ran
+            // through the entry's main-thread stall before the first paint, so
+            // the first painted frames showed the flat identity and the next
+            // jumped to the settle's tail (served: identity ×2, then ~33° in one
+            // 17 ms frame). A frame callback runs after that stall, so the whole
+            // ease-out-back settle plays from its authored identity.
+            requestAnimationFrame(() => {
+                if (graphEl.isConnected) changeGraphPerspectiveAnim.play();
+            });
         }
     };
 
