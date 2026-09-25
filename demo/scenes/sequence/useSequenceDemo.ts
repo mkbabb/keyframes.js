@@ -182,7 +182,7 @@ export function useSequenceDemo() {
     // `isPlaying` read-only off `machine.status` and routes play/pause/togglePlay
     // (+ the `resume = () => play()` alias) to dispatch — the single authority.
     const machine = useSceneMachine();
-    const { isPlaying, pause } = useSceneTransport(machine);
+    const { isPlaying, play, pause } = useSceneTransport(machine);
 
     // T.B1 STAGE 1 — the decoy opacity-only contract-group host is DELETED.
     // The Sequence IS the transport (its own `RAFPlayback` loop drives the balls);
@@ -261,6 +261,11 @@ export function useSequenceDemo() {
             sequence.resume();
         } else {
             // Settled (at the origin or the end) → a fresh play from the origin.
+            // KFA-160, ruled INTENDED (the row's own fix shape (b)): Play from
+            // the settled end is the transport's RESTART — the clock returns to
+            // 0 at the press, as on every scene's transport — so the balls leave
+            // the end in the press's frame. A rewind tween would move the clock's
+            // start off the press and make this scene's Play unlike the others'.
             void sequence.play();
         }
         reflectNaturalEnd(sequence.finished);
@@ -288,6 +293,8 @@ export function useSequenceDemo() {
     /** Stop the Sequence engine loop + mirror WITHOUT rewinding (genuine suspend
      *  — the snapshot already captured the playhead). */
     const stopLoop = () => {
+        // A pause (or any stop) while the reel runs cancels the held resume.
+        playHeldByReel = false;
         sequence.pause();
         stopMirror();
         syncFromSequence();
@@ -389,75 +396,125 @@ export function useSequenceDemo() {
     // ── EE-SEQ-1 "the reel" (H.W12.S6 / I3 egg) ──────────────────────────────
     // A hidden trigger replays the five balls as a cascading Mexican-wave
     // overshoot, IGNORING the master clock once — pure delight, dogfooding the
-    // engine: each child is re-driven with an exaggerated overshoot spring on its
-    // OWN RAFPlayback, fired in a tight stagger (the wave), then the storyboard
-    // re-settles to the live playhead. Reuses the existing child animations (no
-    // new engine code, inv ζ).
+    // engine: each ball runs its own standalone reel (engine keyframes, one
+    // curve per phase), fired in a tight stagger (the wave).
+    //
+    // THE REEL'S SHAPE (X.KF.W13X.sequence — KFA-107 · KFA-108): the reel starts
+    // and ends where the master put the ball, so it never cuts. Each ball's reel
+    // is three phases, each its own two-stop animation on its own curve, read
+    // off the ball's master pose `pre` (the child's own `at()` at the master's
+    // current local time):
+    //   rewind  pre → origin, eased, `REWIND_MS × p` long (zero at the origin);
+    //   glide   origin → end on the under-damped overshoot spring (the wave);
+    //   return  end → pre on the row's own spring, `RETURN_MS × (1 − p)` long.
+    // The former reel re-played the child from 0% (a backward teleport from a
+    // mid-rail master, KFA-108) and handed back with `sequence.seek` (every ball
+    // cut from the far end to the playhead in one frame, KFA-107). The children
+    // are no longer borrowed, so their `managed`/`started`/`startTime` triple is
+    // never touched and nothing has to be restored.
     //
     // THE REEL'S OWNERSHIP STORY (kf-SequenceTarget L-5 · ST-7 · ST-6; kf-
-    // SequenceScene D7 · SC-3 · L-8 · L-9) — one paragraph, four rules:
+    // SequenceScene D7 · SC-3 · L-8 · L-9):
     //   1. It is DECORATIVE, so it declines under `prefers-reduced-motion` (the
     //      same JS guard the boot uses); the essential glide is untouched.
     //   2. While it runs it OWNS the balls: the master transport is LOCKED —
     //      a re-time, a master scrub or a machine-routed PLAY during the reel
-    //      is refused (one guard, `isReeling`), and a PLAY intent that arrived
-    //      mid-reel is honoured the moment the reel settles. The Reel button's
-    //      `loading` state is the user-visible form of this lock.
-    //   3. A child's ownership triple (`managed`/`started`/`startTime`) is
-    //      CAPTURED before the standalone play and RESTORED after it — never
-    //      forced to `true` (a never-played or reset sequence must not be left
-    //      with children flagged as owned by an orchestrator not driving them;
-    //      a merely-paused master must get its `startTime = at` anchors back).
-    //   4. Its five wake timers are RETAINED and cleared on scope dispose, and
-    //      any child still mid-glide is stopped — nothing outlives the scene.
+    //      is refused (one guard, `isReeling`). A play that was running when the
+    //      reel fired, or a PLAY that arrived mid-reel, resumes the moment the
+    //      reel settles (KFA-162: firing the reel mid-play used to leave the
+    //      master stopped); a PAUSE mid-reel cancels that resume. The Reel
+    //      button's `loading` state is the user-visible form of this lock and
+    //      the header's reel status (KFA-220).
+    //   3. Its five wake timers are RETAINED and cleared on scope dispose, and
+    //      any reel still mid-flight is stopped — nothing outlives the scene.
     const isReeling = ref(false);
     const REEL_STAGGER = 90; // ms between each ball's wake (the wave spacing)
+    const REWIND_MS = 240; // a full-rail rewind; scaled by the ball's progress
+    const RETURN_MS = 420; // a full-rail return; scaled by the distance back
     const reelOvershoot = springTimingFunction({
         response: 0.42,
         dampingFraction: 0.34, // under-damped → a pronounced overshoot bounce
     });
     const reelTimers: number[] = [];
+    const reelAnims: CSSKeyframesAnimationT<BallVars>[] = [];
     let playHeldByReel = false;
+    /** The ball's master pose: the child's own sample at the master's local time. */
+    const masterPose = (i: number): BallVars => {
+        const local = clamp((sequence.time - delays.value[i]!) / ROW_DURATION, 0, 1);
+        const v = childAnims[i]!.at(local);
+        return {
+            "--ball-p": Number(v["--ball-p"]),
+            opacity: Number(v.opacity),
+            scale: Number(v.scale),
+        };
+    };
+    /** One reel phase: the ball from `from` to `to` on its own curve (the
+     *  engine's public keyframes path, which binds the CSS writer). */
+    const reelPhase = (
+        i: number,
+        from: BallVars,
+        to: BallVars,
+        duration: number,
+        timingFunction: typeof reelOvershoot | "ease-in-out",
+    ): CSSKeyframesAnimationT<BallVars> => {
+        const anim = new CSSKeyframesAnimation<BallVars>({ duration, fillMode: "forwards", timingFunction });
+        anim.fromKeyframes({ "0%": from, "100%": to });
+        const el = childAnims[i]!.targets[0];
+        if (el) anim.setTargets(el);
+        return markRaw(anim);
+    };
+    /** Bumped on dispose: a reel loop that wakes into a newer epoch stops. */
+    let reelEpoch = 0;
+    /** One ball's reel: rewind → overshoot glide → return, phase after phase. */
+    const runBallReel = async (i: number, epoch: number) => {
+        const pre = masterPose(i);
+        const p = clamp(pre["--ball-p"], 0, 1);
+        const origin = sequenceRowKeyframes()["0%"];
+        const end = sequenceRowKeyframes()["100%"];
+        const phases: [BallVars, BallVars, number, typeof reelOvershoot | "ease-in-out"][] = [];
+        if (p > 1e-3) phases.push([pre, origin, REWIND_MS * p, "ease-in-out"]);
+        phases.push([origin, end, ROW_DURATION, reelOvershoot]);
+        if (1 - p > 1e-3) phases.push([end, pre, RETURN_MS * (1 - p), rowGlideEase]);
+        for (const [from, to, ms, ease] of phases) {
+            if (epoch !== reelEpoch) return;
+            const anim = reelPhase(i, from, to, ms, ease);
+            reelAnims[i] = anim;
+            await anim.play();
+        }
+    };
     const playReel = () => {
         if (isReeling.value) return;
         if (prefersReducedMotion()) return; // decorative — declined, not snapped
-        // Pause the master transport so the reel owns the balls for its run.
-        if (isPlaying.value) pause();
+        // Pause the master so the reel owns the balls; remember a running play
+        // AFTER the pause (the pause's own stopLoop clears the hold).
+        const wasPlaying = isPlaying.value;
+        if (wasPlaying) pause();
         sequence.pause();
         isReeling.value = true;
-        playHeldByReel = false;
+        playHeldByReel = wasPlaying;
 
         let settled = 0;
         reelTimers.length = 0;
+        reelAnims.length = 0;
         for (let i = 0; i < ROW_COUNT; i++) {
-            const child = childAnims[i]!;
             reelTimers.push(
                 window.setTimeout(() => {
-                    // Capture the master's ownership of this child, drive it
-                    // standalone with the overshoot curve for one glide, then
-                    // hand it back exactly as it was.
-                    const prior = {
-                        managed: child.managed,
-                        started: child.started,
-                        startTime: child.startTime,
-                    };
-                    child.managed = false;
-                    child.setTimingFunction(reelOvershoot);
-                    void child.play().finally(() => {
-                        child.setTimingFunction(rowGlideEase);
-                        child.managed = prior.managed;
-                        child.started = prior.started;
-                        child.startTime = prior.startTime;
+                    const epoch = reelEpoch;
+                    void runBallReel(i, epoch).finally(() => {
+                        if (epoch !== reelEpoch) return;
                         if (++settled >= ROW_COUNT) {
                             isReeling.value = false;
-                            // Re-place every ball against the live master playhead.
-                            sequence.seek(sequence.progress * sequence.duration);
+                            reelAnims.length = 0;
+                            // Every reel ended ON its ball's master pose, so this
+                            // repaint writes the values already on screen.
+                            sequence.seek(sequence.time);
                             syncFromSequence();
-                            // A PLAY intent that arrived during the reel runs now.
-                            if (playHeldByReel && machine.status.value === "playing") {
-                                startLoop();
-                            }
+                            const resume = playHeldByReel;
                             playHeldByReel = false;
+                            if (resume) {
+                                if (isPlaying.value) startLoop();
+                                else play();
+                            }
                         }
                     });
                 }, i * REEL_STAGGER),
@@ -465,15 +522,41 @@ export function useSequenceDemo() {
         }
     };
     /** Tear the reel down on scope dispose: clear every unfired wake timer and
-     *  stop any child still mid-glide on its own loop. */
+     *  stop any reel still mid-flight on its own loop. */
     const disposeReel = () => {
         for (const id of reelTimers) window.clearTimeout(id);
         reelTimers.length = 0;
+        reelEpoch++;
         if (isReeling.value) {
-            for (const child of childAnims) child.stop();
+            for (const reel of reelAnims) reel?.stop();
+            reelAnims.length = 0;
             isReeling.value = false;
         }
     };
+
+    // ── The travel geometry the stage paints (UIA-KF-214 · KFA-48) ───────────
+    // A lane is TIME, the same axis the Timeline pane's lanes draw: a ball rests
+    // on its start gate (`at / duration`) and arrives at its own end time
+    // (`(at + ROW_DURATION) / duration`), so `--ball-p` spans `ROW_DURATION /
+    // duration` of the lane, never the rest of the rail (the former mapping ran
+    // every ball to the rail end and misstated time, UIA-KF-214).
+    const rowSpan = computed(() => ROW_DURATION / duration.value);
+    // Both springs overshoot `--ball-p` past 1 (the row glide ~1.08, the reel
+    // ~1.32), and the last lane ends exactly at the rail end, so a ball's
+    // crest lands past it: the reel threw each ball through the stage border
+    // into the card's clip (KFA-48). The stage reserves that room inside the
+    // lane — read off the two curves and the live offsets, never a literal:
+    // the time column is `1 / (1 + room)` of the lane and the crest fits the rest.
+    const peakOf = (e: { fn: (t: number) => number }) => {
+        let peak = 1;
+        for (let k = 0; k <= 480; k++) peak = Math.max(peak, e.fn(k / 480));
+        return peak;
+    };
+    const TRAVEL_PEAK = Math.max(peakOf(rowGlideEase), peakOf(reelOvershoot));
+    const overshootRoom = computed(() => {
+        const crest = Math.max(...delays.value.map((at) => at + TRAVEL_PEAK * ROW_DURATION));
+        return Math.max(0, crest / duration.value - 1);
+    });
 
     // ── The raw-rAF ScenePlayback adapter (WV-W1-HIGH-3) ──────────────────────
     // Round-trips progress/isPlaying through the contract — these temporal scenes
@@ -570,6 +653,8 @@ export function useSequenceDemo() {
         STAGGER_MAX,
         /** The canonical clock's span (ms) — the ruler's terminal label. */
         duration,
+        rowSpan,
+        overshootRoom,
         reseatRow,
         bindRowTarget,
         paintCurrent,

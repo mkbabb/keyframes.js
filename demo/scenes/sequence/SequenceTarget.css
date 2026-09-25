@@ -2,12 +2,12 @@
    sources this file). Carved at the ⑨/⑩ ceiling tripwire: the style tier is the
    component's natural concern seam (the ControlsPaneWrapper/AnimationControlsGroup
    sourced-stylesheet precedent, S.D2/S.A0). */
-/* The MASTER tone (the scrubber ball, the playhead and the readout accent all
+/* The MASTER tone (the readout accent and the scrub glow
    read ONE authority — `--color-progress`, the page's `--accent-kf`); the rows
    OVERRIDE it per-row with their spectrum stop. */
 .seq-target {
     --ball-tone: var(--color-progress);
-    /* L.W11 S7 — --seq-glow: the ONE intensity the playhead comet + lane balls share. */
+    /* L.W11 S7 — --seq-glow: the ONE intensity the lane balls share while the pane scrubs. */
     --seq-glow: 0;
 }
 
@@ -25,83 +25,39 @@
     initial-value: 0;
 }
 
-/* KF.W6 R.F8 rider, re-cut at X.KF.W11.d — the annotation this comment IS.
-   `.seq-storyboard` declares no position, no z-index, no transform and no
-   containment, so it creates NO stacking context: `--z-seq-handle` is a
+/* STACKING — `.seq-storyboard` declares no position, no z-index, no transform and
+   no containment, so it creates NO stacking context: `--z-seq-handle` is a
    context-RELATIVE ordering, resolved inside `.seq-track`'s own containment
-   context (its `container-type` further down this file), where it orders the
-   handle and the traveller above the rail. The playhead's former rung
-   (`--z-seq-playhead`) is DELETED (kf-SequencePlayhead D-3/L-3, the one
-   deletion): a positioned rung on the playhead track painted it OVER the
-   handles the documented contract put it under, because the handles' rung
-   could never reach the playhead's context; tree order — the track precedes
-   `.seq-rows` — is what the documented relation actually rests on, and now the
-   only thing it rests on. The value stays demo-local (not an editor z-contract
-   rung). */
+   context, where it seats the traveller above the rail. Demo-local (not an
+   editor z-contract rung). */
 .seq-storyboard {
     --z-seq-handle: 2;
-    /* `--scrub-dir` (the cascade direction, +1 forward) is written INLINE on the
-       stage on every render by the target — a stylesheet default here could
-       never be observed (N-7), so none is declared. */
 }
 
-/* L.W11 S7 — IGNITION-CASCADE heat: scrubbing lifts the shared --seq-glow. */
-.seq-stage.is-scrubbing {
-    --seq-glow: 1;
-    border-color: color-mix(in srgb, var(--ball-tone) 30%, var(--border));
-}
-
-/* The contained timeline FRAME — a bounded, master-tinted rounded plate whose
-   grid OWNS the horizontal geometry of everything inside it: the ruler, the row
-   tracks and the playhead track all resolve their left edge from grid column 2
-   (§LABEL-subgrid), so the three rects agree BY CONSTRUCTION (kf-SequencePlayhead
-   D-1, ruling 1). The one gutter token is granted to the stage's OWN gap as well
-   as the row subgrid's, so the parent and subgrid gutters coincide and no
-   redistribution branch exists for the sub-units to disagree about. */
+/* THE STAGE — the lanes' grid (index column + one time column). X.KF.W13X.sequence
+   (UIA-KF-212 · UIA-KF-312): the Card is the ONLY frame. The former tinted,
+   bordered plate computed its radius as `calc(var(--radius-card) - 1rem)` = 0px
+   inside the 16px card (a hard-edged debug rectangle) and painted a muddy
+   tone-mixed wash in dark; glass 10.1.0 publishes no nested-radius relay
+   (`--radius-floor/--radius-ctx/--radius-inset`), so the plate is dropped, not
+   re-rounded by a local formula. The inline padding is the travellers' glow room
+   at both lane ends. */
 .seq-stage {
-    /* The label column is sized to its own content: the widest default row
-       label is `@1040ms` / `@1600ms` — 7 mono glyphs at the caption rung with
-       the caps tracking DROPPED on the sub-line (below) — 4.2em ≈ 60px at the
-       widest caption size, so 4rem holds it at every viewport (kf-SequenceTarget
-       D-6 / kf-SequenceScene D3). */
-    --label-col: 4rem;
+    /* The index column: one ordinal digit at the caption rung (A2-KE-L3-7 — the
+       lanes are unlabelled on the stage, an index at most; the `@ms` offsets are
+       the Timeline pane's). */
+    --label-col: 1.25rem;
     --col-gap: 0.75rem;
-
     position: relative;
     display: grid;
     grid-template-columns: var(--label-col) 1fr;
-    gap: 0.5rem var(--col-gap);
-    padding: 0.75rem 1rem 1rem;
-    /* Concentric with the Card it sits 1rem inside: inner radius = outer radius
-       minus the inset (kf-SequenceTarget ST-9). */
-    border-radius: calc(var(--radius-card) - 1rem);
-    border: 1px solid color-mix(in srgb, var(--ball-tone) 16%, var(--border));
-    /* The faint master-tinted vertical wash — a TRANSLUCENT inner plate on the
-       surface-tint register (the Card is glass; an opaque page-background plate
-       inside it was a different paper — D-22), kept low (§S4: the frame
-       AMPLIFIES the stage, never shouts). */
-    background:
-        linear-gradient(
-            to bottom,
-            color-mix(in srgb, var(--ball-tone) 5%, var(--surface-tint-4)),
-            color-mix(in srgb, var(--ball-tone) 2%, var(--surface-tint-4))
-        );
+    column-gap: var(--col-gap);
+    padding: 0.5rem 1rem;
 }
 
-/* The ruler's placement is the STAGE's concern (the owning side of the seam —
-   kf-SequenceAxis L-3/C-3/D-6b; kf-SequencePlayhead N-8): it spans the shared
-   track column so its labels resolve against the track width. The parent's
-   scoped selector reaches the child's root element by Vue's scope-id-on-root
-   behaviour — the same seam the boot wipe below already rides. */
-.seq-axis {
-    grid-column: 2;
-}
-
-/* ── The rows — a CSS subgrid so the label column is UNIFORM (§LABEL-subgrid) ── */
 .seq-rows {
     grid-column: 1 / -1;
     display: grid;
-    /* Same-cascade fallback (Baseline 2023) then subgrid. */
     grid-template-columns: var(--label-col) 1fr;
     grid-template-columns: subgrid;
     row-gap: 0.55rem;
@@ -115,94 +71,66 @@
     column-gap: var(--col-gap);
 }
 
-/* The row label — a stacked index + at:, right-aligned. It paints ABOVE the row
-   track in the stacking order: the 44px handle host overhangs the column gutter
-   by 22px at `at = 0`, and without this the transparent host would hit-test
-   above the label and turn the row's own `@0ms` caption into an unmarked drag
-   surface (kf-SequenceScene SC-8). */
-.seq-row-label {
-    position: relative;
-    z-index: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    line-height: 1.15;
-    text-align: right;
-}
-/* THE LABEL'S HIERARCHY (kf-SequenceTarget D-14 · D-3; kf-SequenceScene D2 +
-   kf-SequenceAxis SA-1 — one decision): the `at:` value is the ONE datum the
-   row exists to expose, so it reads at full weight and full opacity on the
-   caption rung; the ordinal — redundant with order and the tone spectrum — is
-   the quieter mark, a real Jakarta semibold (no synthesized weight) one rung
-   down from the subheading it used to shout at. Subordination is carried by
-   SIZE and WEIGHT, never by an alpha the AA-tuned token cannot absorb (the
-   former `opacity: 0.8` dropped the light arm to 3.82:1). */
+/* The lane's ordinal: redundant with order and the tone spectrum, so it is the
+   quiet mark — a real semibold, muted, right-aligned against the lane. */
 .seq-row-name {
     font-weight: var(--font-weight-semibold, 600);
-    font-size: var(--type-small);
+    color: var(--muted-foreground);
+    text-align: right;
     line-height: 1;
 }
-/* The `at:` sub-line: the caption rung it inherits, weight 500, NO caps
-   tracking (digits are not letter-spaced — kf-SequenceScrubber KF-SCR-4's
-   family) and NO `uppercase` (the SI unit is `ms`, never `MS` —
-   kf-SequenceScene D10). */
-.seq-row-at {
-    font-weight: 500;
-    letter-spacing: 0;
-    text-transform: none;
-}
 
-/* The per-row track — rail + traveller host (room for the traveller + glow). */
 .seq-track {
     grid-column: 2;
     height: 2rem;
     display: flex;
     align-items: center;
-    /* T.G4 — the traveller rides `translateX(<cqw>)`; `cqw` resolves against this
-       row track's inline size, so the engine-driven `--ball-p` sweep is
-       compositor-only (no per-frame `left` layout). */
+    /* The traveller and the rail resolve their `cqw` against THIS lane's inline
+       size, so the engine-driven `--ball-p` sweep is compositor-only. */
     container-type: inline-size;
 }
 
-/* The row start-handles moved to the Timeline pane's Sequence mode
-   (X.KF.W13V.s2 · §0cw): the stage row is the subject — rail + traveller. */
+/* THE TIME COLUMN (KFA-48): the lane is the time column [0, 1] plus the
+   overshoot room the springs' crest needs past the last end time (`--seq-room`,
+   read off the two curves and the live offsets by the composable). The rail
+   draws the time column only; the crest lands in the room after it, inside the
+   stage, never in the card's clip. UIA-KF-312: the rail reads at the tint the
+   Spring rail established for a visible lane (`SpringTarget.vue` `--rail-tint:
+   18%`), not the idiom's near-invisible 8%. */
+.seq-track .progress-rail {
+    width: calc(100cqw / (1 + var(--seq-room, 0)));
+    --rail-tint: 18%;
+}
 
-/* ── The per-row traveller (J.W7c C-SEQ-3, U6; J.WZ engine-target) ─────────────
-   The ball IS the child animation's TARGET (J.WZ): the engine writes --ball-p +
-   the fade-in opacity + the settle scale-pop onto THIS ball, so the pop scales
-   ONLY the ball — not the row track (the former track-as-target let `scale: 0.7`
-   shrink the whole row, dropping the 24px handle to 16.8px → target-size).
-   THE CASCADE: it RESTS at its start gate (--row-start = at/duration on the
-   canonical clock, inherited from .seq-row) and glides to the far end as the
-   sweep enters — so even at t=0 the balls draw a DIAGONAL CASCADE. Both
-   --row-start (inherited) + --ball-p (the engine's inline write) read via
-   `var(--x, fallback)`. */
+/* THE TRAVELLER. The ball IS the child animation's TARGET (J.WZ): the engine
+   writes --ball-p + the fade-in opacity + the settle scale-pop onto THIS ball, so
+   the pop scales ONLY the ball — not the lane.
+   THE LANE IS TIME (UIA-KF-214): the ball rests on its start gate (`--row-start`
+   = at / duration) and arrives at its own end time — `--ball-p` spans
+   `--row-span` (= ROW_DURATION / duration) of the time column, so at every
+   instant the five balls sit where the Timeline pane's bars say their rows are.
+   The former `row-start + ball-p·(1 − row-start)` ran every ball to the rail end
+   and put two meanings on one axis. The column is `100cqw / (1 + --seq-room)`
+   wide (the time column above).
+   The sweep rides the individual `translate` property (compositor-only, no
+   per-frame layout). KFA-3 (X.KF.W13V.k): NOT `transform: translateX` — the
+   engine's settle pop keyframes the individual `scale` property, and CSS composes
+   translate · rotate · scale · transform, so a travel on `transform` sat INSIDE
+   the scale and was multiplied by it. On `translate` the pop changes size only. */
 .seq-ball {
     --ball-size: 1.6rem;
-    /* ONE p→x map (kf-SequencePlayhead N-4): the ball is CENTRE-anchored on the
-       track column exactly as the handle and the playhead line are — its centre
-       sits at `f · 100cqw` with `f = row-start + ball-p·(1 − row-start)`, so at
-       `--ball-p: 0` it rests ON its gate (the handle's centre) by construction
-       and reaches the far end at 1. The engine's `--ball-p` sweep rides the
-       individual `translate` property (compositor-only, no per-frame layout).
-       KFA-3 (X.KF.W13V.k): NOT `transform: translateX` — the engine's settle
-       pop keyframes the individual `scale` property, and CSS composes
-       translate · rotate · scale · transform, so a travel on `transform` sat
-       INSIDE the scale and was multiplied by it (rows rested 22–90 px off their
-       gates at scale 0.7 and ran past the rail end at 1.12). On `translate` the
-       travel is applied outside the scale: the pop changes size only. */
     left: 0;
     margin-left: calc(var(--ball-size) / -2);
     translate: calc(
-            (var(--row-start, 0) + var(--ball-p, 0) * (1 - var(--row-start, 0))) *
-                100cqw
+            (var(--row-start, 0) + var(--ball-p, 0) * var(--row-span, 1)) * 100cqw /
+                (1 + var(--seq-room, 0))
         )
         0;
-    z-index: var(--z-seq-handle); /* the traveller rests ON its gate, above it */
+    z-index: var(--z-seq-handle); /* the traveller rests ON its gate, above the rail */
     will-change: translate, scale;
-    /* L.W11 S7 — THE IGNITION CASCADE (lane-detonate): kept ball/rail/rainbow STAY;
-       the glow scales with the engine's --ball-p so staggered lanes BLOOM in a
-       DIAGONAL cascade. One box-shadow calc() — no rAF (inv ζ). */
+    /* L.W11 S7 — THE IGNITION CASCADE (lane-detonate): the glow scales with the
+       engine's --ball-p so staggered lanes BLOOM in a DIAGONAL cascade. One
+       box-shadow calc() — no rAF (inv ζ). */
     box-shadow: 0 0
         calc(2px + var(--ball-p, 0) * 16px + var(--seq-glow, 0) * 6px)
         calc(var(--ball-p, 0) * 4px)
@@ -210,58 +138,47 @@
 }
 
 /* L.W11 S7 — the IGNITION-CASCADE host marker. `.cascade-chase` seats the
-   per-lane glow seam (--seq-glow, declared ONCE on `.seq-target` above and lifted
-   by the scrubber as the thumb sweeps — the former re-declaration here was dead,
-   N-15); the detonation is engine-driven (--ball-p, no rAF — inv ζ). */
+   per-lane glow seam (--seq-glow, declared ONCE on `.seq-target` and lifted
+   while the Timeline pane scrubs); the detonation is engine-driven (--ball-p,
+   no rAF — inv ζ). */
 .cascade-chase {
     will-change: transform;
 }
+.seq-stage.is-scrubbing {
+    --seq-glow: 1;
+}
 
-/* POWER-ON BOOT (~700ms): ruler clip-wipe → staggered lane drop → the master
-   playhead FADES UP LAST, after the rows it reads over have landed (N-20: the
-   line used to appear at frame zero, before the ruler it measures — the one
-   element of the stage the boot forgot). */
-.seq-stage.is-powering-on .seq-axis {
-    animation: seq-ruler-wipe 420ms ease-out both;
-}
+/* POWER-ON BOOT (~780ms): the staggered lane drop, demonstrating `stagger` on
+   load. The ruler wipe and the playhead fade-up left with the ruler and the
+   stage playhead (A2-KE-L3-7): timing is the Timeline pane's.
+   KFA-161: the fill is `backwards`, not `both`. The drop's end keyframe IS the
+   row's own style (opacity 1, no transform), so a forward fill held nothing but
+   the composited layer — and dropping that layer when the boot class came off
+   (up to 240 ms after a row landed) re-rasterised the settled rows in one
+   frame. Without the forward fill each row leaves its layer the frame it lands,
+   inside its own motion, and removing the class changes no pixel. */
 .seq-stage.is-powering-on .seq-row {
-    animation: seq-lane-drop 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation: seq-lane-drop 420ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
     animation-delay: calc(var(--row-index, 0) * 60ms + 120ms);
-}
-.seq-stage.is-powering-on .seq-playhead-track {
-    animation: seq-playhead-rise 260ms ease-out both;
-    animation-delay: 480ms;
-}
-@keyframes seq-ruler-wipe {
-    from { clip-path: inset(0 100% 0 0); opacity: 0; }
-    to { clip-path: inset(0 0 0 0); opacity: 1; }
 }
 @keyframes seq-lane-drop {
     from { opacity: 0; transform: translateY(-8px); }
     to { opacity: 1; transform: translateY(0); }
 }
-@keyframes seq-playhead-rise {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
 
 /* MANDATORY PRM degrade — the boot is decorative; held to the snapped still frame. */
 @media (prefers-reduced-motion: reduce) {
-    .seq-stage.is-powering-on .seq-axis,
-    .seq-stage.is-powering-on .seq-row,
-    .seq-stage.is-powering-on .seq-playhead-track {
+    .seq-stage.is-powering-on .seq-row {
         animation: none;
     }
 }
 
 /* MOBILE row-pitch compression (J.WZ a11y target-size): on 375×667 the 5 rows at
-   desktop pitch overflowed under the sheet grab-handle (target-size overlap), so
-   compress the pitch to fit all 5 rows above the peek band. The track keeps its
-   2rem height: a shorter track never changed the row pitch (the ~34px label sets
-   it under `align-items: center`) and only cost 8px of drag target (kf-
-   SequenceTarget D-13). Placed LAST to win the cascade; desktop unchanged. The
-   raw viewport literal is the breakpoint-token family's (kf-SequenceAxis D-9,
-   T.F's gate) — no token exists in the tree yet, so it is named, not invented. */
+   desktop pitch overflowed under the sheet grab-handle, so the pitch compresses
+   to fit all 5 rows above the peek band. The track keeps its 2rem height. Placed
+   LAST to win the cascade; desktop unchanged. The raw viewport literal is the
+   breakpoint-token family's (kf-SequenceAxis D-9, T.F's gate) — no token exists
+   in the tree yet, so it is named, not invented. */
 @media (max-width: 1023px) {
     .seq-storyboard {
         padding-block: 0.5rem;

@@ -25,10 +25,21 @@ export type BallVars = {
     scale: number;
 };
 
-/** One row's glide: `--ball-p` 0 → 1 along the rail, a fade-in, a settle pop. */
+/**
+ * One row's glide: `--ball-p` 0 → 1 along the rail, a fade-in, a settle pop.
+ *
+ * KFA-47 (X.KF.W13X.sequence): the travel is ONE segment. The engine eases
+ * each keyframe interval of each property on its own (CSS semantics,
+ * `interpolate.ts`), and the spring settles inside the first quarter of any
+ * interval it eases, so a `--ball-p` stop at 70% made every ball dash to 0.74,
+ * hold at 0.700 for ~450 ms and snap the last 30% in two frames. `--ball-p`
+ * therefore declares only its two ends, and the engine reconciles it into a
+ * single 0% → 100% segment under the spring; the fade and the pop keep their
+ * own stops (their 70% peak is the pop's crest, not a travel waypoint).
+ */
 export const sequenceRowKeyframes = () => ({
     "0%": { "--ball-p": 0, opacity: 0.25, scale: 0.7 },
-    "70%": { "--ball-p": 0.7, opacity: 1, scale: 1.12 },
+    "70%": { opacity: 1, scale: 1.12 },
     "100%": { "--ball-p": 1, opacity: 1, scale: 1 },
 });
 
