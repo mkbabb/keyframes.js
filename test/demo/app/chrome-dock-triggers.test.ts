@@ -85,3 +85,17 @@ describe("UIA-KF-237 — the two dock triggers share the dock's label rung", () 
         w.unmount();
     });
 });
+
+describe("UIA-KF-242 — opening the scene list warms every scene", () => {
+    it("(2) a keyboard open with NO row hovered or arrowed warms each scene once", async () => {
+        const warm = vi.fn();
+        const w = mountDock(warm);
+        const trig = w.find('[aria-label="Scene"]').element as HTMLElement;
+        trig.focus();
+        trig.dispatchEvent(new window.KeyboardEvent("keydown", { key: "Enter", bubbles: true, cancelable: true }));
+        await vi.waitFor(() => expect(document.querySelector("[role=listbox]")).toBeTruthy());
+        await nextTick();
+        expect(new Set(warm.mock.calls.map((c) => c[0]))).toEqual(new Set(SCENES.map((s) => s.id)));
+        w.unmount();
+    });
+});

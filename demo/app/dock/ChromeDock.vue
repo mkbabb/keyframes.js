@@ -262,6 +262,17 @@ function popupModel(key: PopupKey) {
 }
 const sceneSelectOpen = popupModel("scene");
 
+// X.KF.W13X.dock · UIA-KF-242 — warm on INTENT, and the intent is OPENING the
+// list: every scene's chunk is fetched as the list opens, so most picks resolve
+// with no pending window whatever the input. The per-row hover/focus warm this
+// replaces (X.KF.W13U.d5) never ran for touch (no hover precedes a tap) and ran
+// for the keyboard only on the rows it arrowed through. Latency only — the one
+// commit point in App.vue holds the chrome either way; a repeat warm is a
+// cached import.
+watch(sceneSelectOpen, (open) => {
+    if (open) for (const scene of props.scenes) emit("warmScene", scene.id);
+});
+
 // ── T.G9 — the Monaco keyframes-pane INTERACTION WARM, re-homed HERE ─────────
 // The interaction half of T.G9 used to hang off the in-panel pill strip's own
 // `@pointerenter`/`@focusin`. That strip never rendered — the App provides
@@ -425,16 +436,10 @@ watch(isSelectOpen, (open) => {
                                             <span :class="currentSceneId === homeScene.id ? 'font-bold' : ''">{{ homeScene.label }}</span>
                                         </span>
                                     </SelectItem>
-                                    <!-- Warm on INTENT (X.KF.W13U.d5): hovering OR keyboard-
-                                         focusing a row fetches its chunk, so most picks resolve
-                                         with no pending window. Latency only — the one commit
-                                         point in App.vue holds the chrome either way. -->
                                     <SelectItem
                                         v-for="scene in scenes"
                                         :key="scene.id"
                                         :value="scene.id"
-                                        @pointerenter="emit('warmScene', scene.id)"
-                                        @focus="emit('warmScene', scene.id)"
                                     >
                                         <span class="flex items-center gap-2">
                                             <component v-if="scene.icon" :is="scene.icon" class="dock-glyph" aria-hidden="true" />
