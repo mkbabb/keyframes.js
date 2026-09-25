@@ -38,29 +38,6 @@
                                 class="cube preserve-3d animation relative flex items-center justify-center justify-items-center"
                                 :class="{ 'cube--rolling': rolling }"
                             >
-                                <!-- KF.W6 #21 (≡ census S-6) — EVALUATED, SWAP DECLINED,
-                                     with the mechanism named rather than a preference.
-                                     glass-ui ships `Progress` with an `indeterminate`
-                                     prop, and it is a linear BAR: its only orientations
-                                     are horizontal and vertical, its variants are
-                                     default/gradient/liquid, and it has no spinner
-                                     affordance at all — so there is no like-for-like to
-                                     swap this centre-plane spinner onto. It would also
-                                     have to mount INSIDE the `preserve-3d` chain, adding
-                                     a DOM participant to the 3D subtree, which is the
-                                     same class of act that once flattened all six faces
-                                     (T.A1's `filter` finding, one file over). The
-                                     bespoke idiom is RETAINED; the ask that survives is
-                                     a producer-side indeterminate spinner, and it rides
-                                     the BH relay, never a demo-side re-authoring. -->
-                                <span
-                                    class="contents"
-                                    v-if="showLoader"
-                                >
-                                    <Loader2
-                                        class="absolute h-[var(--target-viewport-h)] w-[var(--target-viewport-w)] animate-spin"
-                                    ></Loader2>
-                                </span>
                                 <div
                                     v-for="(side, index) in cubeSides"
                                     :key="index"
@@ -135,7 +112,6 @@
 
 <script setup lang="ts">
 import { computed, onScopeDispose, reactive, ref, useTemplateRef } from "vue";
-import { Loader2 } from "@lucide/vue";
 import type { CSSKeyframesAnimation, Vars } from "@mkbabb/keyframes.js";
 import { loadAnimationEngine } from "@mkbabb/keyframes.js";
 import { useDoubleTap } from "@composables/useDoubleTap";
@@ -153,7 +129,6 @@ import {
 const props = defineProps<{
     isPlaying: boolean;
     ppMode: boolean;
-    showLoader: boolean;
 }>();
 
 const transform = defineModel<TransformState>("transform", { required: true });

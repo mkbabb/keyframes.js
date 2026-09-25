@@ -16,7 +16,6 @@
             ref="cubeTargetRef"
             :is-playing="isPlaying"
             :pp-mode="storedControls.ppMode ?? false"
-            :show-loader="!props.hideLoader && !storedControls.selectedAnimation"
             v-model:transform="transformSliderValues"
         />
     </div>

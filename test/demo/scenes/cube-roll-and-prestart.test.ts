@@ -432,7 +432,6 @@ describe("the Roll stack — #1 trigger · #2 paint · #5 continuity · #6 arbit
                 isPlaying: false,
                 isStarted: false,
                 ppMode: false,
-                showLoader: false,
                 transform: restTransform(),
             },
         });
