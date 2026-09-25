@@ -338,7 +338,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, ref, shallowRef, useTemplateRef, watch } from "vue";
+import { computed, reactive, ref, shallowRef, toRaw, useTemplateRef, watch } from "vue";
 import type { Ref } from "vue";
 import {
     Download,
@@ -408,7 +408,7 @@ const {
     redo,
     canUndo,
     canRedo,
-} = useTimeline(targetsRef, optionsRef);
+} = useTimeline(targetsRef, optionsRef, toRaw(props.targets));
 
 // --- The preview subject: what the engine paints (KF.W7 G2 / C-6) ---
 //

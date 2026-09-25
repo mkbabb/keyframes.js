@@ -1,4 +1,4 @@
-import { computed, ref } from "vue";
+import { computed, effectScope, ref, shallowRef, watch } from "vue";
 import type { Ref } from "vue";
 import { useRefHistory, debounceFilter } from "@vueuse/core";
 import type { InputAnimationOptions } from "@mkbabb/keyframes.js";
@@ -15,7 +15,7 @@ import { useTimelineOps } from "./useTimelineOps";
  * scrub, capture, CSS import/export) and {@link useTimelineOps} (keyframe-array
  * CRUD). The public surface is unchanged; this file is the entry seam.
  */
-export function useTimeline(
+function createTimelineSession(
     targets: Ref<HTMLElement[]>,
     options?: Ref<InputAnimationOptions>,
 ) {
@@ -124,4 +124,55 @@ export function useTimeline(
         canUndo,
         canRedo,
     };
+}
+
+export type TimelineSession = ReturnType<typeof createTimelineSession>;
+
+/**
+ * KFA-58 (X.KF.W13X.timeline) — the timeline's keyframes, engine and undo
+ * history belong to the CHANNEL, not to the component that happens to render
+ * them. The pane mounts `KeyframeTimeline` under a `v-if` + `:key` (the tab
+ * gate and the channel switch), so a session scoped to the component died on
+ * every Controls → Timeline round trip and took the user's keyframes, the
+ * built animation and the undo trail with it.
+ *
+ * With an `owner` (the channel's own targets array — one per channel, stable
+ * for the channel's life) the session is created ONCE in a detached effect
+ * scope and handed back to every later mount of the same channel. The scope
+ * and the session are reachable only through the `WeakMap` entry, so they are
+ * collected with the channel. Each mount feeds the session its live inputs
+ * while it is mounted. Without an `owner` the session is the caller's own, as
+ * before (tests, one-off mounts).
+ */
+const sessions = new WeakMap<
+    object,
+    {
+        session: TimelineSession;
+        targets: Ref<HTMLElement[]>;
+        options: Ref<InputAnimationOptions>;
+    }
+>();
+
+export function useTimeline(
+    targets: Ref<HTMLElement[]>,
+    options?: Ref<InputAnimationOptions>,
+    owner?: object,
+): TimelineSession {
+    if (!owner) return createTimelineSession(targets, options);
+    let entry = sessions.get(owner);
+    if (!entry) {
+        const liveTargets = shallowRef(targets.value);
+        const liveOptions = shallowRef(options?.value ?? { ...defaultAnimationOptions });
+        const session = effectScope(true).run(() =>
+            createTimelineSession(liveTargets, liveOptions),
+        )!;
+        entry = { session, targets: liveTargets, options: liveOptions };
+        sessions.set(owner, entry);
+    }
+    const live = entry;
+    watch(targets, (next) => (live.targets.value = next), { immediate: true });
+    if (options) {
+        watch(options, (next) => (live.options.value = next), { immediate: true });
+    }
+    return live.session;
 }
