@@ -231,6 +231,13 @@ defineExpose({
    centres in the stage region itself. The receded cube steps down one sizing
    rung (--home-cube-side, shared with the start screen's text rows). Desktop
    (≥lg) is untouched. */
+/* UIA-KF-259 — the home hero keeps the desktop rung its headline is composed
+   over; only the cube scene proper takes CubeTarget.css's raised hero rung. */
+@media (min-width: 1024px) {
+    .cube-stage--hero-recede :deep(.cube) {
+        --side-size: min(25vh, 25vw, 15rem);
+    }
+}
 @media (max-width: 1023px) {
     .cube-stage--hero-recede {
         padding-block-end: calc(

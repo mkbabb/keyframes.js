@@ -80,8 +80,16 @@
    former `height: calc(var(--side-size) * 2)` was double the die — it rendered
    by accident of outer centering). Size it to the true die footprint; the faces
    center inside it via `inset: 0; margin: auto` (below). */
+/* UIA-KF-259 — the desktop scene's die is the page's hero subject: its rung
+   rises from min(25vh, 25vw, 15rem) to min(30vh, 25vw, 18rem) (225 → 270 px
+   at 1440×900). 30vh is the ceiling the spin allows: a die seen corner-on
+   projects ~1.73× its side (×~1.15 perspective), and that diagonal must stay
+   inside the stage band between the top dock and the transport. The 25vw cap
+   keeps it clear of the controls pane at 1024. The HOME hero keeps the former
+   rung (CubeScene.vue: the headline is composed over the die there), and
+   phones keep their own rung below. */
 .cube {
-    --side-size: min(25vh, 25vw, 15rem);
+    --side-size: min(30vh, 25vw, 18rem);
     --side-offset: calc(var(--side-size) / 2);
     --rotationX: 360deg;
 
