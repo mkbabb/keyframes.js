@@ -354,17 +354,27 @@ const open = defineModel<boolean>("open", { default: false });
 // mounted outside a dock, which is the "optional" in the producer's name.
 const dock = useOptionalDockContext();
 
+// The two dialogs this menu opens (declared here because the hold below reads them;
+// their commands are further down).
+const confirmClearOpen = ref(false);
+const shortcutsOpen = ref(false);
+
 // One release per keepOpen, and never a release we did not take: the producer
 // clamps its counter at zero (`Math.max(0, …)`), and this pairing means we never
 // lean on that clamp. i-2's unpaired release — reachable only because the old
 // prop could arrive true at mount — dies here with the round-trip that fed it.
+//
+// X.KF.W13X.dock · KFA-113 — the hold is keyed on EVERY surface this menu opens,
+// not on the dropdown alone: selecting "Clear all" or "Keyboard shortcuts" closes
+// the dropdown as its dialog opens, and a hold keyed on `open` alone let the dock
+// collapse behind the open dialog and play its morph through the backdrop.
 let held = false;
 watch(
-    open,
-    (isOpen) => {
-        if (isOpen === held) return;
-        held = isOpen;
-        if (isOpen) dock?.keepOpen();
+    () => open.value || confirmClearOpen.value || shortcutsOpen.value,
+    (holds) => {
+        if (holds === held) return;
+        held = holds;
+        if (holds) dock?.keepOpen();
         else dock?.release();
     },
     { immediate: true },
@@ -393,7 +403,6 @@ const cubeControls = getStoredAnimationGroupControlOptions(CUBE_SCENE_ID);
 // its confirm runs the reset. MM-20 collapses with it: the inverted SSR guard
 // (no `window` ⇒ skip the confirm and run the destructive path) is gone because
 // there is no `window.confirm` left to guard.
-const confirmClearOpen = ref(false);
 
 // X.KF.W13U.d4 · ESC-d-3 — the Share row's select opens the popover through
 // the model SharePopover exposes (its owner, `useShareState`, keeps closing it
@@ -406,7 +415,6 @@ function openShare(): void {
 
 // X.KF.W13U.d · OA-33 — the shortcuts dialog's open state and its `?` shortcut,
 // with the one command that opens them (moved from ChromeDock's retired zone).
-const shortcutsOpen = ref(false);
 registerShortcut("?", () => { shortcutsOpen.value = !shortcutsOpen.value; }, { label: "Show shortcuts", group: "General" });
 
 // The menu closes as the dialog opens. Its close would hand focus back to the
