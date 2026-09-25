@@ -17,8 +17,16 @@
              Share popover) sat at 130 and DOM order decided. The moment glass
              layers its sheet (MM-4, relayed as O-26 R-1) the utility ARMS — and
              `z-modal` would then occlude the Share popover. Corrected BEFORE the
-             producer fix lands, which is exactly why it rides this motion. -->
-        <DropdownMenuContent align="end" :side-offset="8" class="z-popover min-w-[var(--dock-panel-width)] text-body p-1.5" @close-auto-focus="onMenuCloseAutoFocus">
+             producer fix lands, which is exactly why it rides this motion.
+             X.KF.W13X.dock · UIA-KF-113 + A2-KE-X-12 — `collision-padding`
+             16, the Select's own figure: the glass DropdownMenuContent places
+             with none, so where the end-aligned menu out-runs the viewport
+             (home at 360/390: a narrow dock, the trigger near the centre) the
+             collision shift parked it flush at x 0. The attribute falls
+             through to the primitive's floating content. The producer half —
+             a default padding on every floating content from
+             `--popover-viewport-pad` — stays relay-only (O-59). -->
+        <DropdownMenuContent align="end" :side-offset="8" :collision-padding="16" class="z-popover min-w-[var(--dock-panel-width)] text-body p-1.5" @close-auto-focus="onMenuCloseAutoFocus">
             <!-- Share.
                  MM-8 + MM-9, the one voice pass, applied at all FOUR of its
                  sites (here, the Clear-all sub-line, and the two @mbabb lines).

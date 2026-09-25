@@ -236,3 +236,15 @@ describe("A2-KE-L2-17 — the short layout keeps the command rows only", () => {
         b.wrapper.unmount();
     });
 });
+
+describe("UIA-KF-113 · A2-KE-X-12 — the menu keeps a viewport gutter", () => {
+    it("(9) the floating content is placed with a 16 px collision padding (the Select's), not flush to the edge", async () => {
+        const { wrapper, trigger } = mountHost();
+        await activate(trigger.element);
+        expect(menu()).toBeTruthy();
+        const popper = wrapper.findAllComponents({ name: "PopperContent" });
+        expect(popper.length).toBeGreaterThan(0);
+        expect(popper.map((c) => c.props("collisionPadding"))).toEqual(popper.map(() => 16));
+        wrapper.unmount();
+    });
+});
