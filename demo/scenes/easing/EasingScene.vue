@@ -1,5 +1,8 @@
 <template>
-    <div class="flex h-full w-full items-center justify-center">
+    <!-- A2-KE-L3-5 — the stage plate keeps the inline gutter the spring and
+         sequence plates keep (lg:px-8 beside the rail; the phone gutter is the
+         shell's), so the three views frame their plate alike. -->
+    <div class="flex h-full w-full items-center justify-center lg:px-8">
         <EasingTarget />
     </div>
 </template>
