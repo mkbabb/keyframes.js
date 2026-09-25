@@ -84,7 +84,13 @@ export function useSpringDemo() {
     const dampingFraction = ref(0.86);
 
     // Live target the interactive spring chases. 0 = left rail, 1 = right.
-    const target = ref(1);
+    // X.KF.W13X.spring (KFA-38 · UIA-KF-204) — the scene is BORN AT REST: every
+    // solver is built at `SPRING_BASE.initial` (0) and the target starts there,
+    // so the field is settled on its target and the badge, the readout and the
+    // marker agree. (It was born at 0 under a target of 1 with no chase armed:
+    // "tracking" at x 0.000, the marker at 1, nothing moving, and the first
+    // Play or facet write launched the stale chase.)
+    const target = ref(SPRING_BASE.initial);
 
     let liveSpring = markRaw(
         new SpringProgress({
@@ -104,13 +110,12 @@ export function useSpringDemo() {
                 dampingFraction: preset.dampingFraction,
             }),
         );
-        spring.target = 1;
         return {
             preset,
             spring,
             value: ref(0),
             velocity: ref(0),
-            settled: ref(false),
+            settled: ref(spring.settled),
         };
     });
 
@@ -134,6 +139,18 @@ export function useSpringDemo() {
         flushReadouts,
         maybeFlushReadouts,
     } = useSpringHotPath(tracks);
+    // The born rest reaches the readouts from the solvers themselves.
+    seatReadoutsFromSolvers();
+    flushReadouts();
+
+    function seatReadoutsFromSolvers(): void {
+        springLive.value = liveSpring.value;
+        springLive.velocity = liveSpring.velocity;
+        springLive.settled = liveSpring.settled;
+        for (let i = 0; i < tracks.length; i++) {
+            springLive.trackValues[i] = tracks[i]!.spring.value;
+        }
+    }
 
     // ── springTimingFunction sampler → NumericAnimation ──────────────
     // Sample the *same* (response, dampingFraction) the user is editing so the
@@ -473,23 +490,15 @@ export function useSpringDemo() {
      * refuses. Relayed, with the byte named, rather than faked.
      */
     const reset = () => {
-        liveSpring.reset(0);
-        target.value = 1;
-        liveSpring.target = 1;
-        for (const t of tracks) {
-            t.spring.reset(0);
-            t.spring.target = 1;
-        }
+        // The born rest (KFA-38): settled at the initial value, target on it.
+        liveSpring.reset(SPRING_BASE.initial);
+        target.value = SPRING_BASE.initial;
+        for (const t of tracks) t.spring.reset(SPRING_BASE.initial);
         // Re-seed the live snapshot + phase, then drive the readouts and the
         // painted balls to the reset state at once (a discrete event).
         springLive.phase = 0;
         springLive.simMs = 0;
-        springLive.value = liveSpring.value;
-        springLive.velocity = liveSpring.velocity;
-        springLive.settled = liveSpring.settled;
-        for (let i = 0; i < tracks.length; i++) {
-            springLive.trackValues[i] = tracks[i]!.spring.value;
-        }
+        seatReadoutsFromSolvers();
         springLive.sampled = samplerAnim.at(0).x;
         flushReadouts();
         repaintSprings();
