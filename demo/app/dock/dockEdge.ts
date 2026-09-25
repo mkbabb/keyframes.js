@@ -13,30 +13,30 @@ import { inject, provide, ref, watch, type InjectionKey, type Ref } from "vue";
  * dock, its second row. The offset that clears the host is the dock's bottom
  * minus the trigger's bottom, plus the gap, measured when the popup opens.
  *
- * The band is ChromeDock's own wrapper around the GlassDock (the demo's
- * element, sized to the dock), provided once and read by every popup trigger
- * in the dock's slot (MbabbMenu is App's slot content). The producer half —
+ * The plate is the GlassDock's own root element, reached through ChromeDock's
+ * component ref (no producer selector), provided once and read by every popup
+ * trigger in the dock's slot (MbabbMenu is App's slot content). The producer half —
  * floating content inside a dock offsets from the dock edge by itself —
  * stays relay-only (O-59).
  */
-const DOCK_BAND_KEY: InjectionKey<Readonly<Ref<HTMLElement | null>>> = Symbol("dock-band");
+const DOCK_PLATE_KEY: InjectionKey<Readonly<Ref<HTMLElement | null>>> = Symbol("dock-plate");
 
 /** The gap between the dock's edge and a popup it opens (the menu's former trigger offset). */
 export const DOCK_POPUP_GAP = 8;
 
-export function provideDockBand(band: Readonly<Ref<HTMLElement | null>>): void {
-    provide(DOCK_BAND_KEY, band);
+export function provideDockPlate(plate: Readonly<Ref<HTMLElement | null>>): void {
+    provide(DOCK_PLATE_KEY, plate);
 }
 
 /**
  * The `sideOffset` for a popup whose trigger is `trigger`, re-measured each
- * time `open` turns true. The band is the provided one (slot content) unless
+ * time `open` turns true. The plate is the provided one (slot content) unless
  * the provider itself passes its own. Outside a dock it is the gap alone.
  */
 export function useDockEdgeOffset(
     trigger: () => HTMLElement | null | undefined,
     open: Readonly<Ref<boolean>>,
-    band: Readonly<Ref<HTMLElement | null>> | null = inject(DOCK_BAND_KEY, null),
+    plate: Readonly<Ref<HTMLElement | null>> | null = inject(DOCK_PLATE_KEY, null),
 ): Readonly<Ref<number>> {
     const offset = ref(DOCK_POPUP_GAP);
     watch(
@@ -44,7 +44,7 @@ export function useDockEdgeOffset(
         (isOpen) => {
             if (!isOpen) return;
             const el = trigger();
-            const host = band?.value;
+            const host = plate?.value;
             const inset = el && host ? host.getBoundingClientRect().bottom - el.getBoundingClientRect().bottom : 0;
             offset.value = Math.max(0, inset) + DOCK_POPUP_GAP;
         },

@@ -15,6 +15,7 @@ import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { defineComponent, h, nextTick } from "vue";
 import { mount } from "@vue/test-utils";
 import { TooltipProvider } from "@mkbabb/glass-ui/tooltip";
+import { GlassDock } from "@mkbabb/glass-ui/dock";
 import ChromeDock from "@app/dock/ChromeDock.vue";
 import MbabbMenu from "@app/dock/MbabbMenu.vue";
 
@@ -115,9 +116,11 @@ describe("UIA-KF-108 — a scene row is marked once", () => {
 describe("UIA-KF-131 — a dock popup starts below the dock, not inside it", () => {
     it("(4) the scene list and the @mbabb menu are offset from the dock's bottom edge, not the trigger's", async () => {
         const w = mountDock();
-        const band = document.querySelector<HTMLElement>("[data-dock-tether=top] > div")!;
+        // the plate is the GlassDock's own root element (its wrapper div runs past it)
+        const plate = w.findComponent(GlassDock).element as HTMLElement;
         const rect = (bottom: number) => () => ({ x: 0, y: 0, top: bottom - 30, left: 0, right: 0, width: 0, height: 30, bottom, toJSON: () => ({}) }) as DOMRect;
-        band.getBoundingClientRect = rect(98);
+        plate.getBoundingClientRect = rect(98);
+        (document.querySelector("[data-dock-tether=top] > div") as HTMLElement).getBoundingClientRect = rect(105);
         const scene = w.find('[aria-label="Scene"]').element as HTMLElement;
         const mbabb = w.find('[aria-label="@mbabb menu"]').element as HTMLElement;
         scene.getBoundingClientRect = rect(90);

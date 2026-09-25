@@ -9,7 +9,7 @@ import {
     DockSeparator,
 } from "@mkbabb/glass-ui/dock";
 import { Button } from "@mkbabb/glass-ui/button";
-import { provideDockBand, useDockEdgeOffset } from "./dockEdge";
+import { provideDockPlate, useDockEdgeOffset } from "./dockEdge";
 // T.C1 — the elision RENDER consumes T.B5's AUTHORITATIVE cardinality model
 // (the DFA projection — ONE source of the count arithmetic, per lane 18's
 // dual-formula rule).
@@ -265,11 +265,13 @@ function popupModel(key: PopupKey) {
 const sceneSelectOpen = popupModel("scene");
 
 // X.KF.W13X.dock · UIA-KF-131 — the dock's popups open below the dock, not
-// inside it: the band (this file's wrapper, sized to the dock) is provided to
-// the slot's popup triggers (MbabbMenu), and the scene list reads it directly.
-const dockBand = useTemplateRef<HTMLElement>("dockBand");
-provideDockBand(dockBand);
-const sceneListOffset = useDockEdgeOffset(() => sceneTrigger.value?.$el, sceneSelectOpen, dockBand);
+// inside it: the plate (the GlassDock's own root element, through this file's
+// component ref) is provided to the slot's popup triggers (MbabbMenu), and the
+// scene list reads it directly. Not the wrapper div: it runs 6-7 px past the
+// plate (served 390: wrapper bottom 89, plate 83).
+const dockPlate = computed<HTMLElement | null>(() => (dockRef.value?.$el as HTMLElement | undefined) ?? null);
+provideDockPlate(dockPlate);
+const sceneListOffset = useDockEdgeOffset(() => sceneTrigger.value?.$el, sceneSelectOpen, dockPlate);
 
 // X.KF.W13X.dock · UIA-KF-242 — warm on INTENT, and the intent is OPENING the
 // list: every scene's chunk is fetched as the list opens, so most picks resolve
@@ -364,7 +366,7 @@ watch(isSelectOpen, (open) => {
         class="fixed left-0 right-0 z-dock flex items-center justify-center pointer-events-none"
         style="top: var(--dock-top-anchor);"
     >
-        <div ref="dockBand" class="pointer-events-auto">
+        <div class="pointer-events-auto">
             <!-- G.W12.S2: the :always-expanded="isMobile" occlusion-dodge mask is
                  REMOVED — glass-ui's rebuilt dock owns the no-occlusion
                  contract; the occlusion gate re-runs mask-free as the lock. The
