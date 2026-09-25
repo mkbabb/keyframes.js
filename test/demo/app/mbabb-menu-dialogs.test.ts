@@ -166,3 +166,22 @@ describe("UIA-KF-060 — the destructive row reads the canon's red, the confirm 
         wrapper.unmount();
     });
 });
+
+describe("A2-KE-L2-13 · UIA-KF-137 — the theme is a checkbox row, the ppmycota boolean's idiom", () => {
+    it("(6) the Dark mode row is a menuitemcheckbox and selecting the ROW flips the theme", async () => {
+        const { wrapper, trigger } = mountHost();
+        await activate(trigger.element);
+        const r = row("Dark mode")!;
+        expect(r.getAttribute("role")).toBe("menuitemcheckbox");
+        const before = document.documentElement.classList.contains("dark");
+        expect(r.getAttribute("aria-checked")).toBe(String(before));
+        await selectRow("Dark mode");
+        await vi.waitFor(() => expect(document.documentElement.classList.contains("dark")).toBe(!before));
+        // the menu stays open (the mark is the feedback), as on the ppmycota row
+        expect(menu()).toBeTruthy();
+        await vi.waitFor(() => expect(row("Dark mode")!.getAttribute("aria-checked")).toBe(String(!before)));
+        await selectRow("Dark mode");
+        await vi.waitFor(() => expect(document.documentElement.classList.contains("dark")).toBe(before));
+        wrapper.unmount();
+    });
+});

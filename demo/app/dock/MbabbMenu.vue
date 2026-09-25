@@ -65,32 +65,24 @@
                 </div>
             </DropdownMenuItem>
 
-            <!-- DarkModeToggle is the sole theme command. The menu row carries
-                 layout only; there is no second row-level actuation.
-                 EH-4 (second spend site of ONE row) — no `title`: the producer
-                 strips only `class`/`type` and spreads everything else onto the
-                 same <button> as its own state-aware `aria-label`, so a visible
-                 "Toggle dark mode" diverges from the accessible name (WCAG
-                 2.5.3). The adjacent "Dark mode" span is the row's visible
-                 label and names the command already.
-                 X.KF.W13U.d4 — Enter on this row stays inert: the keyboard form
-                 is the producer's (a DarkModeToggle menu-item form; installed
-                 glass 7.0.0 ships none), honest-RED `DARK-MENU-ITEM` (O-61 R-3). -->
-            <DropdownMenuItem @select.prevent text-value="Dark mode" class="gap-2.5 px-1.5 py-1">
-                <!-- MM-7 — the toggle is sized through its OWN `size` API.
-                     `class="aspect-square w-5"` could not work: the primitive
-                     sets BOTH axes in `@layer components`, so `w-5` won width
-                     alone and shipped a 20×36 button with a letterboxed glyph.
-                     `sm` is the 1.75rem rung (NOT `dock` — that resolves to
-                     40px outside `.glass-dock`, and this row is portalled). -->
-                <span class="w-7 shrink-0 flex justify-center"><DarkModeToggle size="sm" /></span>
-                <!-- MM-32 — the title-over-subtitle module now holds on this row
-                     too (it was the one row with no second line). -->
+            <!-- X.KF.W13X.dock · A2-KE-L2-13 + UIA-KF-137 — the theme is a
+                 persisted boolean, so it is a CHECKBOX row, the ppmycota row's
+                 idiom below: `menuitemcheckbox` + `aria-checked` + the indicator
+                 seat, bound to the one shared dark-mode controller
+                 (`useGlobalDark`, the instance every glass surface reads). The
+                 row was a layout-only item wrapping a 28 px DarkModeToggle: a
+                 tap or Enter on the 258 x 53 px row did nothing, and two
+                 booleans in one menu spoke two idioms. `@select.prevent` keeps
+                 the menu open, so the mark is the feedback. The producer's
+                 menu-item form of the toggle itself (DARK-MENU-ITEM, O-61 R-3)
+                 stays relay-only. -->
+            <DropdownMenuCheckboxItem :model-value="isDark" @update:model-value="setDark" @select.prevent text-value="Dark mode" class="gap-2.5 px-1.5 py-1">
+                <span class="w-7 shrink-0 flex justify-center"><Moon class="w-5 h-5" aria-hidden="true" /></span>
                 <div class="flex-1 min-w-0">
                     <span class="text-small text-foreground">Dark mode</span>
                     <p class="text-micro text-muted-foreground leading-tight">Light or dark theme</p>
                 </div>
-            </DropdownMenuItem>
+            </DropdownMenuCheckboxItem>
 
             <!-- X.KF.W13U.d · OA-33 (COHESION §0bi) — Keyboard shortcuts joins its
                  two siblings here: the dock's trailing zone is this menu's trigger
@@ -329,9 +321,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@mkbabb/glass-ui";
 import { Button } from "@mkbabb/glass-ui/button";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@mkbabb/glass-ui/dialog";
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuShortcut } from "@mkbabb/glass-ui/menu";
-import { DarkModeToggle } from "@mkbabb/glass-ui/dark-mode-toggle";
+import { useGlobalDark } from "@mkbabb/glass-ui/dark";
 import { DockTrigger, useOptionalDockContext } from "@mkbabb/glass-ui/dock";
-import { Keyboard, Trash } from "@lucide/vue";
+import { Keyboard, Moon, Trash } from "@lucide/vue";
 import { registerShortcut } from "@mkbabb/glass-ui/keyboard";
 import KeyboardShortcutsModal from "@components/instrument/shell/KeyboardShortcutsModal.vue";
 import { getStoredAnimationGroupControlOptions, resetAllStores } from "@state";
@@ -396,6 +388,13 @@ onBeforeUnmount(() => {
 // the flag's only reader is CubeScene, which keys by `CUBE_SCENE_ID` wherever it
 // mounts (home's backdrop included) — C-14's split resolved at the writer.
 const cubeControls = getStoredAnimationGroupControlOptions(CUBE_SCENE_ID);
+
+// A2-KE-L2-13 · UIA-KF-137 — the theme row's one writer. `toggleDark` (not a bare
+// write to `isDark`) so the flip keeps the controller's transition suppression.
+const { isDark, toggleDark } = useGlobalDark();
+function setDark(checked: boolean): void {
+    if (checked !== isDark.value) toggleDark();
+}
 
 // T.C2 — "Clear all & reload" RELOCATED from the transport dock into the @mbabb
 // settings menu (a destructive storage reset is a settings action, not transport
