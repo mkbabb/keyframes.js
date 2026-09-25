@@ -127,3 +127,15 @@ describe("(5) A2-KE-L3-12 — the preset readout wraps between its two quantitie
     });
 });
 
+describe("(6) A2-KE-L3-9 — the facet's action rides its section header (glass #actions)", () => {
+    it("the seed action is in a ConfiguratorLayer #actions slot, and no body row holds it", () => {
+        const src = sfc("SpringPhysicsFacet.vue");
+        const tpl = src.slice(src.indexOf("<template>"), src.lastIndexOf("</template>"));
+        const actions = tpl.match(/<ConfiguratorLayer[\s\S]*?<template #actions>([\s\S]*?)<\/template>/)?.[1] ?? "";
+        expect(actions, "a ConfiguratorLayer with an #actions slot").not.toBe("");
+        expect(actions).toMatch(/seedKeyframes\(\)/);
+        const outside = tpl.replace(actions, "");
+        expect(outside).not.toMatch(/seedKeyframes\(\)/);
+    });
+});
+

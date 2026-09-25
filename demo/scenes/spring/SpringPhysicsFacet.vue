@@ -13,97 +13,111 @@
          SPF-27 (KF.W6): this header was a tranche changelog naming files that
          no longer exist at any path; it now describes what mounts. -->
     <Card tier="quiet" class="cartoon-surface w-full overflow-visible">
-        <CardContent class="panel-content flex flex-col gap-3 px-4 py-3">
-            <!-- X.KF.W13V.y (OA-51; DESIGN-NOTE N-2) — the PARAM ROW idiom: the
-                 label and the live value share ONE line, the slider spans the
-                 row beneath (the default LabeledSlider stack; the value is an
-                 `<output>` seated on the label's line by the `.param-row` grid,
-                 design-idioms.css). The value is the readout — the slider
-                 carries no second one; the humane string reaches AT through
-                 the producer's `valueText`. -->
-            <div class="flex flex-col gap-3">
-                <div class="param-row">
-                    <LabeledSlider
-                        :model-value="demo.response.value"
-                        label="response"
-                        tooltip="Spring response time (s) — higher = slower"
-                        :min="RESPONSE_AXIS.min"
-                        :max="RESPONSE_AXIS.max"
-                        :step="PARAM_STEP"
-                        :value-text="(v: number) => `${v.toFixed(2)} seconds`"
-                        @update:model-value="(v) => { demo.response.value = v; }"
-                    />
-                    <output class="param-value" aria-hidden="true">{{ demo.response.value.toFixed(2) }} s</output>
+        <CardContent class="panel-content px-4 py-3">
+            <!-- X.KF.W13X.spring (A2-KE-L3-9; KF-W13 addendum (c), glass 10.1.0
+                 O-68) — the facet is ONE glass section, and its one action rides
+                 the section's `#actions` header slot, on the label's row: the
+                 "Write physics to keyframes" caption button no longer sits alone
+                 at the card's foot, away from the heading of what it acts on. -->
+            <ConfiguratorLayer label="Spring" default-open body-class="flex flex-col gap-3">
+                <template #actions>
+                    <!-- X.KF.W13V.s (OA-37/46/51) — NO inline keyframes editor. The
+                         Sweep channel's keyframes are edited in the SHARED Keyframes
+                         pane (the dock's Keyframes item), as on every scene. The
+                         facet keeps one ACTION: write the current physics into those
+                         keyframes (an explicit re-seed, never a reactive overwrite). -->
+                    <Tooltip>
+                        <TooltipTrigger as-child>
+                            <Button
+                                emphasis="quiet"
+                                size="sm"
+                                icon-only
+                                aria-label="Write physics to keyframes"
+                                @click.stop="demo.seedKeyframes()"
+                            >
+                                <RefreshCw aria-hidden="true" />
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Write physics to keyframes: replace the Sweep keyframes with stops sampled from this spring</TooltipContent>
+                    </Tooltip>
+                </template>
+                <!-- X.KF.W13V.y (OA-51; DESIGN-NOTE N-2) — the PARAM ROW idiom: the
+                     label and the live value share ONE line, the slider spans the
+                     row beneath (the default LabeledSlider stack; the value is an
+                     `<output>` seated on the label's line by the `.param-row` grid,
+                     design-idioms.css). The value is the readout — the slider
+                     carries no second one; the humane string reaches AT through
+                     the producer's `valueText`. -->
+                <div class="flex flex-col gap-3">
+                    <div class="param-row">
+                        <LabeledSlider
+                            :model-value="demo.response.value"
+                            label="response"
+                            tooltip="Spring response time (s) — higher = slower"
+                            :min="RESPONSE_AXIS.min"
+                            :max="RESPONSE_AXIS.max"
+                            :step="PARAM_STEP"
+                            :value-text="(v: number) => `${v.toFixed(2)} seconds`"
+                            @update:model-value="(v) => { demo.response.value = v; }"
+                        />
+                        <output class="param-value" aria-hidden="true">{{ demo.response.value.toFixed(2) }} s</output>
+                    </div>
+                    <div class="param-row">
+                        <LabeledSlider
+                            :model-value="demo.dampingFraction.value"
+                            label="damping"
+                            tooltip="Damping fraction (ζ) — <1 overshoots, ≥1 settles"
+                            :min="DAMPING_AXIS.min"
+                            :max="DAMPING_AXIS.max"
+                            :step="PARAM_STEP"
+                            :value-text="(v: number) => `damping ${v.toFixed(2)}`"
+                            @update:model-value="(v) => { demo.dampingFraction.value = v; }"
+                        />
+                        <output class="param-value" aria-hidden="true">ζ {{ demo.dampingFraction.value.toFixed(2) }}</output>
+                    </div>
                 </div>
-                <div class="param-row">
-                    <LabeledSlider
-                        :model-value="demo.dampingFraction.value"
-                        label="damping"
-                        tooltip="Damping fraction (ζ) — <1 overshoots, ≥1 settles"
-                        :min="DAMPING_AXIS.min"
-                        :max="DAMPING_AXIS.max"
-                        :step="PARAM_STEP"
-                        :value-text="(v: number) => `damping ${v.toFixed(2)}`"
-                        @update:model-value="(v) => { demo.dampingFraction.value = v; }"
-                    />
-                    <output class="param-value" aria-hidden="true">ζ {{ demo.dampingFraction.value.toFixed(2) }}</output>
-                </div>
-            </div>
-            <Separator />
-            <!-- ── P.W6 S3 — THE PARAMETER FIELD ─────────────────────────────
-                 The (response × damping) surface tinted by the EXACT analytic
-                 peak overshoot `exp(-ζπ/√(1-ζ²))`; clicking, sweeping or arrowing
-                 across it writes the live (response, damping) through the SAME
-                 two refs the rows above write. -->
-            <SpringHeatmap
-                v-model:response="demo.response.value"
-                v-model:damping-fraction="demo.dampingFraction.value"
-            />
-            <Separator />
-            <!-- X.KF.W13V.y (OA-51; DESIGN-NOTE N-2 · N-4) — the presets are ONE
-                 glass ToggleGroup of TILES on `--radius-field` (16 px — a tile
-                 holds two lines, so it is never a stadium): the preset's name and
-                 ONE mono line of its parameters. No rail, ball or mini-slider
-                 lives inside a tile (the four presets' live race is the stage's
-                 derby, SpringTarget). SPF-4 stands: four mutually-exclusive
-                 presets are ONE `type="single"` group — a labelled group, an
-                 exclusive model derived from the live params (a deselect is
-                 refused), roving focus; `aria-pressed` is the producer's. -->
-            <ToggleGroup
-                type="single"
-                class="preset-grid grid w-auto max-w-none grid-cols-2 items-stretch gap-2 rounded-none bg-transparent p-0 shadow-none backdrop-filter-none"
-                aria-label="Spring presets"
-                :model-value="activePresetName ?? NO_PRESET"
-                @update:model-value="onPresetSelect"
-            >
-                <ToggleGroupItem
-                    v-for="t in demo.tracks"
-                    :key="t.preset.name"
-                    :value="t.preset.name"
-                    :title="t.preset.blurb"
-                    class="preset-cell w-full min-w-0 flex-col items-start gap-0.5 px-3 py-2 font-medium leading-normal"
+                <Separator />
+                <!-- ── P.W6 S3 — THE PARAMETER FIELD ─────────────────────────────
+                     The (response × damping) surface tinted by the EXACT analytic
+                     peak overshoot `exp(-ζπ/√(1-ζ²))`; clicking, sweeping or arrowing
+                     across it writes the live (response, damping) through the SAME
+                     two refs the rows above write. -->
+                <SpringHeatmap
+                    v-model:response="demo.response.value"
+                    v-model:damping-fraction="demo.dampingFraction.value"
+                />
+                <Separator />
+                <!-- X.KF.W13V.y (OA-51; DESIGN-NOTE N-2 · N-4) — the presets are ONE
+                     glass ToggleGroup of TILES on `--radius-field` (16 px — a tile
+                     holds two lines, so it is never a stadium): the preset's name and
+                     ONE mono line of its parameters. No rail, ball or mini-slider
+                     lives inside a tile (the four presets' live race is the stage's
+                     derby, SpringTarget). SPF-4 stands: four mutually-exclusive
+                     presets are ONE `type="single"` group — a labelled group, an
+                     exclusive model derived from the live params (a deselect is
+                     refused), roving focus; `aria-pressed` is the producer's. -->
+                <ToggleGroup
+                    type="single"
+                    class="preset-grid grid w-auto max-w-none grid-cols-2 items-stretch gap-2 rounded-none bg-transparent p-0 shadow-none backdrop-filter-none"
+                    aria-label="Spring presets"
+                    :model-value="activePresetName ?? NO_PRESET"
+                    @update:model-value="onPresetSelect"
                 >
-                    <span class="text-small text-foreground capitalize">{{ t.preset.name }}</span>
-                    <!-- X.KF.W13X.spring (A2-KE-L3-12) — the line breaks BETWEEN
-                         its two quantities, never inside one: at a coarse phone the
-                         unbreakable 'r s · ζ z' ran into the tile's right edge. -->
-                    <span class="text-mono-caption text-muted-foreground tabular-nums"><span class="whitespace-nowrap">{{ t.preset.response }} s</span> · <span class="whitespace-nowrap">ζ {{ t.preset.dampingFraction }}</span></span>
-                </ToggleGroupItem>
-            </ToggleGroup>
-            <!-- X.KF.W13V.s (OA-37/46/51) — NO inline keyframes editor. The
-                 Sweep channel's keyframes are edited in the SHARED Keyframes
-                 pane (the dock's Keyframes item), as on every scene. The facet
-                 keeps one ACTION: write the current physics into those
-                 keyframes (an explicit re-seed, never a reactive overwrite). -->
-            <button
-                type="button"
-                class="reseed-btn inline-flex items-center gap-1.5 self-start rounded-md px-2 py-1 text-caption font-medium text-muted-foreground hover:text-foreground"
-                title="Replace the Sweep keyframes with stops sampled from the current spring"
-                @click="demo.seedKeyframes()"
-            >
-                <RefreshCw class="w-3 h-3" aria-hidden="true" />
-                <span>Write physics to keyframes</span>
-            </button>
+                    <ToggleGroupItem
+                        v-for="t in demo.tracks"
+                        :key="t.preset.name"
+                        :value="t.preset.name"
+                        :title="t.preset.blurb"
+                        class="preset-cell w-full min-w-0 flex-col items-start gap-0.5 px-3 py-2 font-medium leading-normal"
+                    >
+                        <span class="text-small text-foreground capitalize">{{ t.preset.name }}</span>
+                        <!-- X.KF.W13X.spring (A2-KE-L3-12) — the line breaks BETWEEN
+                             its two quantities, never inside one: at a coarse phone the
+                             unbreakable 'r s · ζ z' ran into the tile's right edge. -->
+                        <span class="text-mono-caption text-muted-foreground tabular-nums"><span class="whitespace-nowrap">{{ t.preset.response }} s</span> · <span class="whitespace-nowrap">ζ {{ t.preset.dampingFraction }}</span></span>
+                    </ToggleGroupItem>
+                </ToggleGroup>
+            </ConfiguratorLayer>
         </CardContent>
     </Card>
 </template>
@@ -111,6 +125,9 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { Card, CardContent, Separator } from "@mkbabb/glass-ui";
+import { Button } from "@mkbabb/glass-ui/button";
+import { ConfiguratorLayer } from "@mkbabb/glass-ui/configurator";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@mkbabb/glass-ui/tooltip";
 import { LabeledSlider } from "@mkbabb/glass-ui/labeled-field";
 import { ToggleGroup, ToggleGroupItem } from "@mkbabb/glass-ui/toggle-group";
 import { RefreshCw } from "@lucide/vue";
@@ -222,9 +239,5 @@ const onPresetSelect = (
     outline-color: color-mix(in srgb, var(--color-progress) 65%, transparent);
     border-color: transparent;
     box-shadow: none;
-}
-
-.reseed-btn {
-    line-height: 1.2;
 }
 </style>
