@@ -255,3 +255,31 @@ describe("(11) UIA-KF-308 — the field previews its hover, and the marker's pip
     });
 });
 
+describe("(12) KFA-154 — the field's own sweep streams from its first write to its release", () => {
+    it("the marker is streaming on the pointerdown's write and stays streaming through a stall", async () => {
+        const wrapper = mount(SpringHeatmap, { props: { response: 0.5, dampingFraction: 0.86 }, attachTo: document.body });
+        let clock = 5000;
+        const nowSpy = vi.spyOn(performance, "now").mockImplementation(() => clock);
+        try {
+            const el = wrapper.get('[role="application"]').element as HTMLElement;
+            vi.spyOn(el, "clientWidth", "get").mockReturnValue(220);
+            vi.spyOn(el, "clientHeight", "get").mockReturnValue(260);
+            vi.spyOn(el, "getBoundingClientRect").mockReturnValue({ left: 0, top: 0, width: 222, height: 262 } as DOMRect);
+            el.setPointerCapture = () => {};
+            el.releasePointerCapture = () => {};
+            const marker = () => wrapper.get(".spring-heatmap-marker");
+            el.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true, isPrimary: true, button: 0, pointerId: 1, clientX: 110, clientY: 130 }));
+            await wrapper.setProps({ response: 0.65, dampingFraction: 0.85 });
+            await nextTick();
+            expect(marker().classes(), "the first write of the sweep").toContain("is-streaming");
+            clock += 5000; // a stall mid-drag
+            el.dispatchEvent(new PointerEvent("pointermove", { bubbles: true, pointerId: 1, clientX: 30, clientY: 30 }));
+            await wrapper.setProps({ response: 0.25, dampingFraction: 1.35 });
+            await nextTick();
+            expect(marker().classes(), "after a stall, still the same sweep").toContain("is-streaming");
+        } finally {
+            nowSpy.mockRestore();
+            wrapper.unmount();
+        }
+    });
+});

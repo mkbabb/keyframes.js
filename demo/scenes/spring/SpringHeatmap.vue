@@ -329,7 +329,13 @@ const markerStyle = computed(() => {
 // field's own sweep) and is tracked 1:1; an isolated write glides. The glide's
 // duration is read ONCE from the marker's own computed style — the token's
 // value, never a duplicated literal. ────────────────────────────────────────────
+// X.KF.W13X.spring (KFA-154) — this field's OWN sweep is a stream from its
+// pointerdown to its release, declared by the gesture rather than inferred from
+// the clock: inferred, the sweep's first write glided (no previous write to be
+// within a glide of), the next switched to 1:1 and the marker jumped ~240 px,
+// and a stall mid-drag could flip it back to a glide.
 const streaming = ref(false);
+let gestureStreaming = false;
 let glideMs = 0;
 let lastWriteAt = Number.NEGATIVE_INFINITY;
 onMounted(() => {
@@ -339,7 +345,7 @@ onMounted(() => {
 });
 watch([response, dampingFraction], () => {
     const now = performance.now();
-    streaming.value = now - lastWriteAt < glideMs;
+    streaming.value = gestureStreaming || now - lastWriteAt < glideMs;
     lastWriteAt = now;
 });
 
@@ -419,6 +425,8 @@ function onPointerDown(e: PointerEvent): void {
     if (e.button !== 0 || !e.isPrimary || activePointer !== null) return;
     activePointer = e.pointerId;
     fieldEl.value?.setPointerCapture(e.pointerId);
+    gestureStreaming = true;
+    streaming.value = true;
     navigate(e);
     fieldEl.value?.focus();
 }
@@ -438,6 +446,7 @@ function onPointerMove(e: PointerEvent): void {
 function onPointerRelease(e: PointerEvent): void {
     if (e.pointerId !== activePointer) return;
     activePointer = null;
+    gestureStreaming = false;
 }
 
 function onPointerLeave(): void {
