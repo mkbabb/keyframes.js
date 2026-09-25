@@ -71,7 +71,7 @@
                  refused), roving focus; `aria-pressed` is the producer's. -->
             <ToggleGroup
                 type="single"
-                class="preset-grid grid w-auto max-w-none grid-cols-2 gap-2 rounded-none bg-transparent p-0 shadow-none backdrop-filter-none"
+                class="preset-grid grid w-auto max-w-none grid-cols-2 items-stretch gap-2 rounded-none bg-transparent p-0 shadow-none backdrop-filter-none"
                 aria-label="Spring presets"
                 :model-value="activePresetName ?? NO_PRESET"
                 @update:model-value="onPresetSelect"
@@ -84,7 +84,10 @@
                     class="preset-cell w-full min-w-0 flex-col items-start gap-0.5 px-3 py-2 font-medium leading-normal"
                 >
                     <span class="text-small text-foreground capitalize">{{ t.preset.name }}</span>
-                    <span class="text-mono-caption text-muted-foreground tabular-nums whitespace-nowrap">{{ t.preset.response }} s · ζ {{ t.preset.dampingFraction }}</span>
+                    <!-- X.KF.W13X.spring (A2-KE-L3-12) — the line breaks BETWEEN
+                         its two quantities, never inside one: at a coarse phone the
+                         unbreakable 'r s · ζ z' ran into the tile's right edge. -->
+                    <span class="text-mono-caption text-muted-foreground tabular-nums"><span class="whitespace-nowrap">{{ t.preset.response }} s</span> · <span class="whitespace-nowrap">ζ {{ t.preset.dampingFraction }}</span></span>
                 </ToggleGroupItem>
             </ToggleGroup>
             <!-- X.KF.W13V.s (OA-37/46/51) — NO inline keyframes editor. The

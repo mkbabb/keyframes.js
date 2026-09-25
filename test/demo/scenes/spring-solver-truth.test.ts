@@ -110,3 +110,20 @@ describe("(4) UIA-KF-307 — the heatmap well is a surface tint, not the page gr
         expect(mix).not.toMatch(/var\(--background\)/);
     });
 });
+
+describe("(5) A2-KE-L3-12 — the preset readout wraps between its two quantities", () => {
+    it("the params line is not one unbreakable run; each value keeps its unit", () => {
+        const src = sfc("SpringPhysicsFacet.vue");
+        const item = src.slice(src.indexOf("<ToggleGroupItem"), src.indexOf("</ToggleGroupItem>"));
+        const lineOpen = item.match(/<span class="([^"]*tabular-nums[^"]*)"/)?.[1] ?? "";
+        expect(lineOpen, "the params line").not.toBe("");
+        expect(lineOpen.split(/\s+/), "the whole line is never nowrap").not.toContain("whitespace-nowrap");
+        expect(item).toMatch(/whitespace-nowrap[^>]*>\s*\{\{\s*t\.preset\.response\s*\}\}\s*s/);
+        expect(item).toMatch(/whitespace-nowrap[^>]*>\s*ζ\s*\{\{\s*t\.preset\.dampingFraction\s*\}\}/);
+        // A wrapped tile and an unwrapped one share a row height (the track's
+        // own align-items would otherwise centre the shorter tile).
+        const grid = src.match(/class="(preset-grid[^"]*)"/)?.[1] ?? "";
+        expect(grid.split(/\s+/)).toContain("items-stretch");
+    });
+});
+
