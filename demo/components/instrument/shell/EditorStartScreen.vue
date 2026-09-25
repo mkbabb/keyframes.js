@@ -127,32 +127,41 @@
              phone column can stack it BELOW the cube (the headline sits
              above); on desktop the block flows exactly as the two lines did. -->
         <div class="hero-sub">
-            <h2 class="start-screen-prose hero-deck">
-                from the list
-                <!-- KF-EST-10 — the glyph is voiced as a WORD in a deck whose law is
-                     "no weight above 400": Lucide's default stroke scales with the
-                     box (2 units of a 24-unit viewBox → ≈2.19px at this 0.8em box)
-                     and out-weighed the serif's ≈1.8px stems. `absolute-stroke-width`
-                     is the icon's own one-attribute contract for a stroke that does
-                     not scale with size. -->
-                <List class="hero-deck-icon inline" aria-hidden="true" absolute-stroke-width />
-                below, then press Play.
-            </h2>
+            <!-- X.KF.W13X.mobile (A2-KE-L3-10 + A2-KE-L2-5) — the title-wave
+                 pause sits INLINE at the end of the deck line (it was alone on
+                 a row ~250px under the headline it controls), and it takes
+                 pointer input: the band is ink (`pointer-events: none`,
+                 inherited from the shell's start-screen wrapper), so the one
+                 control in it re-enables its own hit-testing, the TD-36 dock
+                 idiom — a tap flips aria-pressed on a phone. -->
+            <div class="hero-deck-line">
+                <h2 class="start-screen-prose hero-deck">
+                    from the list
+                    <!-- KF-EST-10 — the glyph is voiced as a WORD in a deck whose law is
+                         "no weight above 400": Lucide's default stroke scales with the
+                         box (2 units of a 24-unit viewBox → ≈2.19px at this 0.8em box)
+                         and out-weighed the serif's ≈1.8px stems. `absolute-stroke-width`
+                         is the icon's own one-attribute contract for a stroke that does
+                         not scale with size. -->
+                    <List class="hero-deck-icon inline" aria-hidden="true" absolute-stroke-width />
+                    below, then press Play.
+                </h2>
+                <Button
+                    size="sm"
+                    emphasis="quiet"
+                    icon-only
+                    class="hero-motion-toggle pointer-events-auto"
+                    aria-label="Pause the title animation"
+                    :aria-pressed="wavePaused"
+                    @click="wavePaused = !wavePaused"
+                >
+                    <Waves v-if="wavePaused" class="icon-md" aria-hidden="true" />
+                    <Pause v-else class="icon-md" aria-hidden="true" />
+                </Button>
+            </div>
             <h2 v-if="hint" class="start-screen-prose hero-hint">
                 {{ hint }}
             </h2>
-            <Button
-                size="sm"
-                emphasis="quiet"
-                icon-only
-                class="hero-motion-toggle"
-                aria-label="Pause the title animation"
-                :aria-pressed="wavePaused"
-                @click="wavePaused = !wavePaused"
-            >
-                <Waves v-if="wavePaused" class="icon-md" aria-hidden="true" />
-                <Pause v-else class="icon-md" aria-hidden="true" />
-            </Button>
         </div>
     </div>
 </template>
@@ -295,8 +304,14 @@ h1.hero-display {
    KF-EST-20 — the inert `w-full` utilities are gone from both `<h2>`s: a block
    element already fills its container's inline axis, and neither was overriding
    anything. */
-.hero-deck {
+.hero-deck-line {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
     margin-block-start: 0.75rem;
+}
+
+.hero-deck {
     font-family: var(--font-display);
     font-style: italic;
     font-weight: 400;
@@ -318,7 +333,7 @@ h1.hero-display {
 
 /* KFA-134 — the wave's pause sits under the hint, quiet, on its own line. */
 .hero-motion-toggle {
-    margin-block-start: 0.5rem;
+    flex-shrink: 0;
 }
 
 /* The engine-dogfooded ellipsis host: the THREE DOTS are one unbreakable
@@ -418,6 +433,41 @@ h1.hero-display {
 
     .hero-hint {
         font-size: clamp(1.5rem, 5.4cqi, var(--type-title));
+    }
+
+    .hero-deck-line {
+        justify-content: center;
+    }
+}
+
+/* X.KF.W13X.mobile (A2-KE-L2-4) — THE SHORT PHONE (landscape, block size
+   <= 500px). The one centred column needs three rows (headline, the cube's
+   footprint, deck) inside the stage band, and at 844x390 that band is 155px:
+   the rows resolved 0 / 203 / 0, the headline ran under the top dock and the
+   deck under the transport. On a short viewport the band is TWO columns
+   beside the cube instead — the headline in the left column, the deck + hint
+   in the right, the cube's footprint (bounded by the band's block size,
+   layout.css) kept clear between them — and the display rung is bounded by
+   the block size (dvh), because an inline-fluid rung cannot know the band is
+   short. */
+@media (max-width: 1023px) and (max-height: 500px) {
+    .hero-band {
+        grid-template-rows: minmax(0, 1fr);
+        grid-template-columns: minmax(0, 1fr) var(--home-cube-extent) minmax(0, 1fr);
+        column-gap: 0.5rem;
+    }
+    .hero-display {
+        grid-row: 1;
+        grid-column: 1;
+        font-size: clamp(1.5rem, 11dvh, var(--type-display-4, var(--type-title)));
+    }
+    .hero-sub {
+        grid-row: 1;
+        grid-column: 3;
+    }
+    .hero-deck,
+    .hero-hint {
+        font-size: clamp(1rem, 5.5dvh, var(--type-title));
     }
 }
 </style>

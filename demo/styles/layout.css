@@ -48,7 +48,16 @@
        the idle pose's projected footprint (a rotated die projects past its
        side), the band the text rows keep clear of. The stage insets are the
        mobile stage cell's own (the stable top band; the transport band). */
-    --home-cube-side: min(40vh, 40vw, 16rem);
+    /* X.KF.W13X.mobile (A2-KE-L2-4) — the side is also bounded by the stage
+       band's block size (its footprint, x1.3, must fit between the two dock
+       bands): at 844x390 the band is 155px and the unbounded 203px footprint
+       ran the home rows under both docks. */
+    --home-cube-side: min(
+        40vh,
+        40vw,
+        16rem,
+        calc((100dvh - var(--stage-top-inset) - var(--stage-bottom-inset)) / 1.3)
+    );
     --home-cube-extent: calc(var(--home-cube-side) * 1.3);
     --stage-top-inset: var(--dock-top-band-reserve-stable, var(--dock-top-band-reserve));
     --stage-bottom-inset: calc(
