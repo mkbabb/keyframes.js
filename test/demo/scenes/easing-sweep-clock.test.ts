@@ -13,6 +13,12 @@
  * machine + the scene's own ScenePlayback adapter (the App's path), pauses on
  * each leg, resumes, and asserts the first resumed frame is continuous with
  * the paused value AND keeps the paused direction.
+ *
+ * KFA-100 — Reverse reaches the race. MEASURED (same logs): with the sweep
+ * playing, the ribbon's Reverse left the linear tile ball moving the same way
+ * (`flipped: false` ×2 at 1440 light + dark) — the scene flipped only the
+ * preview animation's `reversed` flag, which the tile clock never read. The
+ * case reverses mid-sweep and asserts the value turns where it stands.
  */
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { createApp, defineComponent, h } from "vue";
@@ -116,5 +122,28 @@ describe("the easing sweep clock", () => {
 
         expect(Math.abs(first - paused)).toBeLessThan(CONTINUOUS);
         expect(later).toBeLessThan(first);
+    });
+
+    it("KFA-100 · Reverse turns the sweep where it stands, and a second Reverse turns it back", () => {
+        const demo = mountDemo();
+        play(demo);
+        vi.advanceTimersByTime(600); // p ≈ 0.4, rising
+        const before = demo.liveProgress();
+        demo.setReversed(true);
+        expect(demo.reversed.value).toBe(true);
+        vi.advanceTimersByTime(FRAME);
+        const first = demo.liveProgress();
+        vi.advanceTimersByTime(FRAME * 6);
+        const later = demo.liveProgress();
+
+        expect(Math.abs(first - before)).toBeLessThan(CONTINUOUS);
+        expect(later).toBeLessThan(first);
+
+        demo.setReversed(false);
+        vi.advanceTimersByTime(FRAME);
+        const back = demo.liveProgress();
+        vi.advanceTimersByTime(FRAME * 6);
+        expect(Math.abs(back - later)).toBeLessThan(CONTINUOUS);
+        expect(demo.liveProgress()).toBeGreaterThan(back);
     });
 });

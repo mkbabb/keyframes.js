@@ -86,11 +86,15 @@ const onScrubUpdate = (v: { t: number }) => {
     if (dur > 0) demo.progress.value = clamp(v.t / dur, 0, 1);
 };
 
+// KFA-100 — Reverse reaches the race: the SWEEP CLOCK owns the direction (it
+// retraces from the live phase), so every tile ball and the ribbon — whose
+// scrubber and visualizer read the same `progress` through the preview twin —
+// turn together. The preview animation's own `reversed` flag is not written: a
+// second inversion there mirrored the ribbon (effectiveT = duration - t) while
+// the tiles kept sweeping forward.
 const onToggleReverse = () => {
     userReversed.value = !userReversed.value;
-    // Flip the preview clock's direction so the standard visualizer/scrubber
-    // (which read `effectiveT = reversed ? duration - t : t`) mirror the reverse.
-    demo.previewAnim.reversed = userReversed.value;
+    demo.setReversed(userReversed.value);
 };
 
 let wasPlayingBeforeScrub = false;

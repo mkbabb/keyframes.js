@@ -184,6 +184,16 @@ export function useEasingDemo() {
     let anchorPhase = 0;
     let anchorTime = 0;
     const wrap01 = (x: number): number => ((x % 1) + 1) % 1;
+    // KFA-100 — the sweep's DIRECTION is the clock's too: Reverse retraces the
+    // cycle from the live phase (every tile ball and the ribbon, which reads
+    // the same `progress`, turn together, continuously).
+    const reversed = ref(false);
+    const phaseAt = (now: DOMHighResTimeStamp): number =>
+        wrap01(
+            anchorPhase +
+                ((reversed.value ? -1 : 1) * (now - anchorTime)) /
+                    (duration.value * 2),
+        );
     const anchorAt = (now: DOMHighResTimeStamp): void => {
         anchorPhase = phase;
         anchorTime = now;
@@ -237,7 +247,7 @@ export function useEasingDemo() {
             return false;
         }
         // One full alternate cycle (0→1→0) per `2 * duration`.
-        phase = wrap01(anchorPhase + (now - anchorTime) / (duration.value * 2));
+        phase = phaseAt(now);
         livePhaseValue = sweep.at(phase).p;
         // Hot path — direct DOM writes, NO Vue reactivity (D4).
         repaintDots();
@@ -282,6 +292,16 @@ export function useEasingDemo() {
 
     // play/pause/togglePlay come from useSceneTransport (above) — they dispatch
     // to the machine (the authority); the adapter re-arms/stops the loop.
+
+    /** Reverse the sweep's direction, rebased at the live phase so the ball
+     *  turns where it stands (KFA-100). */
+    const setReversed = (next: boolean) => {
+        if (next === reversed.value) return;
+        const now = performance.now();
+        if (playback.running) phase = phaseAt(now);
+        anchorAt(now);
+        reversed.value = next;
+    };
 
     const reset = () => {
         livePhaseValue = 0;
@@ -446,6 +466,8 @@ export function useEasingDemo() {
         pause,
         togglePlay,
         reset,
+        reversed,
+        setReversed,
 
         // T.B1-β — the SceneFacility descriptor (the ONE real preview channel +
         // the `easing` facet + the raw-rAF playback).
