@@ -90,7 +90,7 @@ export function useSpringDemo() {
     // marker agree. (It was born at 0 under a target of 1 with no chase armed:
     // "tracking" at x 0.000, the marker at 1, nothing moving, and the first
     // Play or facet write launched the stale chase.)
-    const target = ref(SPRING_BASE.initial);
+    const target = ref<number>(SPRING_BASE.initial);
 
     let liveSpring = markRaw(
         new SpringProgress({
