@@ -189,20 +189,38 @@
                          reading exactly like the mechanism that delivers the lane
                          hue. The tone is, and only ever was, the inline
                          `--ball-tone` binding beside it. -->
-                    <div
-                        v-for="lane in demo.derbyLanes"
-                        :key="lane.name"
-                        class="derby-lane"
-                        :style="{ '--ball-tone': lane.tone }"
-                    >
-                        <span class="derby-lane-rail"></span>
+                    <!-- X.KF.W13X.spring (KFA-41) — ONE value axis: each lane spans
+                         the rail's own box, so a lane ball at value v sits where the
+                         live marks put v (the same `railPct` over the same width);
+                         the tag gutter that shortened every lane by 6.25rem (every
+                         finish ~87 px left of the target) is gone, and the target
+                         the derby races to is drawn across the lanes. -->
+                    <div class="derby-lane-stack">
+                        <span class="derby-target-tick" :style="{ left: `${railPct(1)}%` }"></span>
+                        <div
+                            v-for="lane in demo.derbyLanes"
+                            :key="lane.name"
+                            class="derby-lane"
+                            :style="{ '--ball-tone': lane.tone }"
+                        >
+                            <span class="derby-lane-rail"></span>
+                            <span
+                                :ref="(el) => setDerbyBallEl(lane.index, el)"
+                                class="progress-ball derby-lane-ball"
+                            ></span>
+                        </div>
+                    </div>
+                    <!-- X.KF.W13X.spring (KFA-40 · UIA-KF-094) — the lane names are
+                         ONE legend line beneath the lanes, each tag unbroken and
+                         keyed by its lane's tone; in a 100 px gutter they wrapped to
+                         two lines on a 14 px lane and printed over each other. -->
+                    <div class="derby-legend text-mono-caption tabular-nums">
                         <span
-                            :ref="(el) => setDerbyBallEl(lane.index, el)"
-                            class="progress-ball derby-lane-ball"
-                        ></span>
-                        <span class="derby-lane-tag text-mono-caption tabular-nums">
-                            {{ lane.name }} · ζ{{ lane.zeta.toFixed(2) }}
-                        </span>
+                            v-for="lane in demo.derbyLanes"
+                            :key="lane.name"
+                            class="derby-lane-tag"
+                            :style="{ '--ball-tone': lane.tone }"
+                        >{{ lane.name }} · ζ{{ lane.zeta.toFixed(2) }}</span>
                     </div>
                 </div>
                 </Transition>
@@ -222,7 +240,14 @@
             <!-- X.KF.W13X.spring (A2-KE-L3-8) — Re-seat, the rail's own verb
                  (flip the chase target), sits BESIDE the rail it acts on as a
                  compact control; it was a full-width third row in the ribbon. -->
-            <div class="flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
+            <!-- KFA-40 — while the derby runs, its lane legend overlays this
+                 row, so the row steps back (opacity only: its box, its
+                 description role and the layout all stay; Re-seat is inert
+                 during a derby anyway — `reseat` refuses while it runs). -->
+            <div
+                class="spring-rail-verbs flex flex-wrap items-center justify-center gap-x-3 gap-y-1"
+                :class="{ 'spring-rail-verbs--veiled': demo.derbyActive.value }"
+            >
                 <p id="spring-rail-hint" class="text-small text-muted-foreground text-center">
                     Tap or drag the rail &mdash; the ball springs to the new target. Tune
                     response and damping in the Physics pane.
@@ -867,26 +892,37 @@ const onKeydown = (e: KeyboardEvent) => {
     pointer-events: none;
     z-index: var(--z-content);
 }
+/* KFA-41 — the stack is the lanes' shared box (the rail's width), and the one
+   target tick crosses every lane at value 1. */
+.derby-lane-stack {
+    position: relative;
+    display: grid;
+    gap: 0.35rem;
+}
+.derby-target-tick {
+    position: absolute;
+    top: -0.2rem;
+    bottom: -0.2rem;
+    width: 0;
+    border-left: 1px dashed color-mix(in srgb, var(--foreground) 45%, transparent);
+    pointer-events: none;
+}
 .derby-lane {
     position: relative;
     height: 0.9rem;
-    /* D-7/C-8 — THE TAG GETS ITS OWN GUTTER. `.derby-lane-tag` is painted last at
-       `right: 0`, which is exactly the region a WINNING ball occupies: the lane's
-       payload was occluded by the lane's own label. The lane now reserves a
-       trailing gutter, the track ends where the gutter starts, and because
-       `container-type: inline-size` measures the CONTENT box the ball's `cqw`
-       axis ends there too — the ball cannot reach the tag at any width, rather
-       than merely usually missing it. */
-    --derby-tag-gutter: 6.25rem;
-    padding-inline-end: var(--derby-tag-gutter);
-    /* T.G4 — the lane ball rides `translateX(<cqw>)`; the lane is its inline-size
+    /* D-7/C-8 put the tag in a trailing gutter so a winning ball could not cover
+       it; X.KF.W13X.spring (KFA-41 · KFA-40) — that gutter shortened the lane's
+       value axis against the rail's (every finish and rest ~87 px left of the
+       target line) and was too narrow for its tag. The tags are the legend below
+       now, so the lane is the rail's full width and nothing sits in a ball's path.
+       T.G4 — the lane ball rides `translateX(<cqw>)`; the lane is its inline-size
        container. (No flex here: every child is absolutely positioned.) */
     container-type: inline-size;
 }
 .derby-lane-rail {
     position: absolute;
     left: 0;
-    right: var(--derby-tag-gutter);
+    right: 0;
     top: 50%;
     height: 2px;
     transform: translateY(-50%);
@@ -914,12 +950,25 @@ const onKeydown = (e: KeyboardEvent) => {
    chain that lowered contrast (the mix itself RAISES it). The tag stays tinted;
    it stops being decoration pretending to be a label. Exact in-situ figures over
    the live glass plate remain SS-13's to photograph. */
+/* KFA-40 — the hint + Re-seat row steps back under the derby's legend. */
+.spring-rail-verbs {
+    transition: opacity var(--duration-fast) ease;
+}
+.spring-rail-verbs--veiled {
+    opacity: 0;
+}
+/* KFA-40 · UIA-KF-094 — one legend line; each tag keeps its name and ζ on one
+   line and the row wraps between tags, never inside one. */
+.derby-legend {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.15rem 0.9rem;
+    text-transform: none;
+    letter-spacing: normal;
+}
 .derby-lane-tag {
-    position: absolute;
-    right: 0;
-    top: 50%;
-    width: var(--derby-tag-gutter);
-    transform: translateY(-50%);
+    white-space: nowrap;
     color: color-mix(in srgb, var(--ball-tone, var(--color-progress)) 50%, var(--foreground));
     /* N-2 / MM-29 — the `text-transform: none` patch was known and incomplete:
        `text-mono-caption` also carries `letter-spacing: var(--type-tracking-caps)`

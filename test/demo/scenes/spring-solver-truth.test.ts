@@ -205,3 +205,24 @@ describe("(9) KFA-44 — Reverse runs the sweep backwards", () => {
         }
     });
 });
+
+describe("(10) KFA-40 + UIA-KF-094 + KFA-41 — the derby lanes share the rail's axis, and their names are legible", () => {
+    const src = sfc("SpringTarget.vue");
+    const tpl = src.slice(src.indexOf("<template>"), src.lastIndexOf("</template>"));
+    const css = styleOf(src);
+    it("KFA-41 — a lane is the rail's full width (no tag gutter shortening its cqw axis) and the target crosses the lanes", () => {
+        const lane = ruleBody(css, ".derby-lane");
+        expect(lane, ".derby-lane rule").not.toBe("");
+        expect(lane).not.toMatch(/padding-inline-end/);
+        expect(ruleBody(css, ".derby-lane-rail")).not.toMatch(/right:\s*var\(--derby-tag-gutter\)/);
+        expect(tpl).toMatch(/class="derby-target-tick"[^>]*railPct\(1\)/);
+    });
+    it("KFA-40 / UIA-KF-094 — no tag sits inside a lane; each tag is one unbroken line", () => {
+        const laneBlock = tpl.match(/class="derby-lane"[\s\S]*?<\/div>/)?.[0] ?? "";
+        expect(laneBlock, "the lane element").not.toBe("");
+        expect(laneBlock).not.toMatch(/derby-lane-tag/);
+        expect(ruleBody(css, ".derby-lane-tag")).toMatch(/white-space:\s*nowrap/);
+        // the legend overlays the hint row, which steps back while the derby runs
+        expect(tpl).toMatch(/'spring-rail-verbs--veiled': demo\.derbyActive\.value/);
+    });
+});
