@@ -12,7 +12,7 @@
              `text-mono-small`, which carries no transform and no caps tracking
              at all — because collapsing it would decide a dock-band magnitude,
              and magnitudes are KF.W9's. -->
-        <DockTrigger for="dropdown" aria-label="@mbabb menu" class="text-mono-caption normal-case tracking-normal lg:text-mono-small" data-register="code">@mbabb</DockTrigger>
+        <DockTrigger ref="mbabbTrigger" for="dropdown" aria-label="@mbabb menu" class="text-mono-caption normal-case tracking-normal lg:text-mono-small" data-register="code">@mbabb</DockTrigger>
         <!-- MM-15 — `z-popover`, not `z-modal`. The dock menu is a popover and
              the demo's own written z-contract reserves `--z-modal` (140) for
              modal dialogs. The wrong rung was INERT and therefore invisible:
@@ -290,8 +290,12 @@
          own Dialog (the CSSPasteDialog anatomy: title, description, footer).
          Themeable, focus-trapped, and reachable by the harness, which a native
          `window.confirm()` is not. -->
+    <!-- X.KF.W13X.dock · UIA-KF-118 — the confirm hands focus BACK to the @mbabb
+         trigger when it closes. Its focus scope would return focus to what was
+         focused when it opened — the menu row, unmounted with the dropdown — so
+         focus fell to <body>; the trigger is the command's stable home. -->
     <Dialog v-model:open="confirmClearOpen">
-        <DialogContent>
+        <DialogContent @close-auto-focus="onConfirmCloseAutoFocus">
             <DialogTitle class="text-subheading">Clear all saved animations?</DialogTitle>
             <DialogDescription class="text-body text-muted-foreground">
                 Every saved animation resets to its defaults and the page reloads. This cannot be undone.
@@ -422,6 +426,14 @@ registerShortcut("?", () => { shortcutsOpen.value = !shortcutsOpen.value; }, { l
 // declined while the dialog is taking over (reka's documented menu→dialog idiom).
 function onMenuCloseAutoFocus(event: Event): void {
     if (confirmClearOpen.value || shortcutsOpen.value) event.preventDefault();
+}
+
+// UIA-KF-118 — the confirm's return target (see the template): the trigger that
+// opened the menu the confirm came from.
+const mbabbTrigger = useTemplateRef<{ $el: HTMLElement }>("mbabbTrigger");
+function onConfirmCloseAutoFocus(event: Event): void {
+    event.preventDefault();
+    mbabbTrigger.value?.$el.focus();
 }
 
 // MM-42 (caveat, recorded where the reset is spent): `resetAllStores()` is

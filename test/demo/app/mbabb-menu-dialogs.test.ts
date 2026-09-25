@@ -118,3 +118,17 @@ describe("KFA-113 — the dock is held while the menu's dialogs are up", () => {
         expect(dock.exists()).toBe(false);
     });
 });
+
+describe("UIA-KF-118 — closing the Clear-all confirm returns focus to the @mbabb trigger", () => {
+    it("(3) Cancel lands focus on the trigger, not <body>", async () => {
+        const { wrapper, trigger } = mountHost();
+        await activate(trigger.element);
+        await selectRow("Clear all");
+        await vi.waitFor(() => expect(confirmDialog()).toBeTruthy());
+        const cancel = [...confirmDialog()!.querySelectorAll("button")].find((b) => b.textContent?.trim() === "Cancel")!;
+        cancel.click();
+        await vi.waitFor(() => expect(confirmDialog()).toBeFalsy());
+        await vi.waitFor(() => expect(document.activeElement).toBe(trigger.element));
+        wrapper.unmount();
+    });
+});
