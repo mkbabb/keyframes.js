@@ -47,6 +47,7 @@ import { withSetup } from "../../support/withSetup";
 import { useSpringDemo } from "../../../demo/scenes/spring/useSpringDemo";
 import { useSpringDerby } from "../../../demo/scenes/spring/useSpringDerby";
 import { SPRING_PRESETS } from "../../../demo/scenes/spring/springPresets";
+import { overshoot } from "../../../demo/scenes/spring/SpringHeatmap.vue";
 import type { SpringTrack } from "../../../demo/scenes/spring/useSpringHotPath";
 import { SpringProgress } from "../../../src/animation/physics/spring";
 import { useSceneMachine } from "../../../demo/state";
@@ -328,8 +329,11 @@ describe("X.KF.W11.c (d) — D-2: the settle confirmation sits at the target", (
 
 describe("X.KF.W11.c — M-2/D-7: the value axis never paints a ball off the plate", () => {
     /** The file's own map, re-derived here from the constants it states, so the
-     *  test fails if the axis is widened past what the geometry can hold. */
-    const OVERSHOOT_ALLOWANCE = 0.18;
+     *  test fails if the axis is widened past what the geometry can hold.
+     *  X.KF.W13X.spring (KFA-102) — the allowance is the preset trackers'
+     *  largest analytic peak overshoot, no longer the 0.18 literal that sat
+     *  BELOW the bouncy peak and pinned its lane at the rail end. */
+    const OVERSHOOT_ALLOWANCE = Math.max(...SPRING_PRESETS.map((p) => overshoot(p.dampingFraction)));
     const RAIL_SPAN = 1 + 2 * OVERSHOOT_ALLOWANCE;
     const railPct = (v: number) =>
         ((Math.min(Math.max(v, -OVERSHOOT_ALLOWANCE), 1 + OVERSHOOT_ALLOWANCE) +
@@ -338,7 +342,9 @@ describe("X.KF.W11.c — M-2/D-7: the value axis never paints a ball off the pla
         100;
 
     it("states the same allowance the file paints with", () => {
-        expect(SPRING_TARGET_SRC).toContain("const OVERSHOOT_ALLOWANCE = 0.18;");
+        expect(SPRING_TARGET_SRC).toContain(
+            "const OVERSHOOT_ALLOWANCE = Math.max(...SPRING_PRESETS.map((p) => overshoot(p.dampingFraction)));",
+        );
         expect(SPRING_TARGET_SRC).toContain("const RAIL_SPAN = 1 + 2 * OVERSHOOT_ALLOWANCE;");
         // EVERY positional write goes through the one map. Asserted over the
         // write sites themselves rather than over the whole file, because the
@@ -364,13 +370,14 @@ describe("X.KF.W11.c — M-2/D-7: the value axis never paints a ball off the pla
             expect(p).toBeGreaterThanOrEqual(0);
             expect(p).toBeLessThanOrEqual(100);
         }
-        expect(railPct(0)).toBeCloseTo(13.2353, 3);
-        expect(railPct(1)).toBeCloseTo(86.7647, 3);
-        // The engine's documented worst peak (1.205 at zeta 0.45) is ABOVE the
-        // stated allowance, so it is held at the allowance rather than painted
-        // off the plate — the clamp is explicit, not silent truncation at 1.
-        expect(railPct(1.205)).toBe(railPct(1.18));
-        expect(railPct(1.18)).toBe(100);
+        expect(railPct(0)).toBeCloseTo((OVERSHOOT_ALLOWANCE / RAIL_SPAN) * 100, 6);
+        expect(railPct(1)).toBeCloseTo(((1 + OVERSHOOT_ALLOWANCE) / RAIL_SPAN) * 100, 6);
+        // KFA-102 — the engine's documented worst preset peak (≈1.205 at ζ 0.45)
+        // is INSIDE the allowance now: painted, not held at the rail end. The
+        // clamp stays explicit for anything past it.
+        expect(railPct(1.205)).toBeLessThan(100);
+        expect(railPct(1 + OVERSHOOT_ALLOWANCE)).toBeCloseTo(100, 9);
+        expect(railPct(42)).toBe(100);
     });
 
     it("is the inverse of the projector the drag reads", () => {
@@ -379,7 +386,7 @@ describe("X.KF.W11.c — M-2/D-7: the value axis never paints a ball off the pla
             expect(railValue(railPct(v) / 100)).toBeCloseTo(v, 10);
         }
         // Either reserved band reads as out-of-range and `reseat` clamps it.
-        expect(railValue(0)).toBeCloseTo(-0.18, 10);
-        expect(railValue(1)).toBeCloseTo(1.18, 10);
+        expect(railValue(0)).toBeCloseTo(-OVERSHOOT_ALLOWANCE, 10);
+        expect(railValue(1)).toBeCloseTo(1 + OVERSHOOT_ALLOWANCE, 10);
     });
 });
