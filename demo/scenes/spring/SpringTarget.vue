@@ -308,6 +308,8 @@ import { useDoubleTap } from "@composables/useDoubleTap";
 import { SPRING_DEMO_KEY } from "./springKeys";
 import SpringTrace, { springHorizonMs } from "./SpringTrace.vue";
 import { DOUBLE_TAP_MS } from "./useSpringDemo";
+import { overshoot } from "./SpringHeatmap.vue";
+import { SPRING_PRESETS } from "./springPresets";
 
 const demo = inject(SPRING_DEMO_KEY)!;
 
@@ -391,7 +393,16 @@ const samplerCarriageEl = useTemplateRef<HTMLElement>("samplerCarriageEl");
 // 0.18 the derby lanes already declare, above the engine's worst documented peak
 // — and not the silent [0, 1] truncation M-2 convicts. A clamped ball is inside
 // the plate at EVERY width by construction, so the clip limb dies with it.
-const OVERSHOOT_ALLOWANCE = 0.18;
+//
+// X.KF.W13X.spring (KFA-102) — "above the engine's worst documented peak" was
+// false: the literal was 0.18, the bouncy preset peaks at ≈1.205, so the bouncy
+// derby lane sat pinned at the rail end for 5 frames at its peak (and 0 cqw at
+// its trough). The allowance is now DERIVED from the marks the rail actually
+// carries — the four preset trackers the lanes paint — as their largest analytic
+// peak overshoot (the heatmap's own `overshoot(ζ)`), so no lane can clamp. The
+// live ball and the sweep sampler ride the trace (OA-56), whose plot bounds hold
+// any ζ down to the slider floor; the live fill is a subordinate cue.
+const OVERSHOOT_ALLOWANCE = Math.max(...SPRING_PRESETS.map((p) => overshoot(p.dampingFraction)));
 const RAIL_SPAN = 1 + 2 * OVERSHOOT_ALLOWANCE;
 
 /** Value space → the rail's own 0-100 axis. The ONE map; nothing paints without it. */

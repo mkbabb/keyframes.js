@@ -18,6 +18,8 @@ import { nextTick } from "vue";
 import { withSetup } from "../../support/withSetup";
 import { useSpringDemo } from "../../../demo/scenes/spring/useSpringDemo";
 import SpringHeatmap, { overshoot } from "../../../demo/scenes/spring/SpringHeatmap.vue";
+import { SPRING_BASE, SPRING_PRESETS } from "../../../demo/scenes/spring/springPresets";
+import { SpringProgress } from "../../../src/animation/physics/spring";
 import { useSceneMachine } from "../../../demo/state";
 import { warmKfEngine } from "../../../demo/kf-engine";
 
@@ -330,5 +332,23 @@ describe("(14) KFA-153 — the lane balls keep painting through the overlay's ex
         expect(setter).not.toMatch(/derbyBallEls\.delete/);
         expect(src).toMatch(/<Transition name="derby" @after-leave="onDerbyAfterLeave">/);
         expect(src).toMatch(/const onDerbyAfterLeave = \(\): void => derbyBallEls\.clear\(\);/);
+    });
+});
+
+describe("(15) KFA-102 — no derby lane pins at the rail end", () => {
+    it("the rail's overshoot allowance holds every preset tracker's simulated peak and trough", () => {
+        const src = sfc("SpringTarget.vue");
+        const def = src.match(/const OVERSHOOT_ALLOWANCE = ([^;]+);/)?.[1] ?? "";
+        expect(def, "OVERSHOOT_ALLOWANCE defined").not.toBe("");
+        const allowance = /^[\d.]+$/.test(def.trim())
+            ? Number(def)
+            : Math.max(...SPRING_PRESETS.map((p) => overshoot(p.dampingFraction)));
+        for (const preset of SPRING_PRESETS) {
+            const s = new SpringProgress({ ...SPRING_BASE, response: preset.response, dampingFraction: preset.dampingFraction });
+            s.target = 1;
+            let peak = 0;
+            for (let i = 0; i < 600 && !s.settled; i++) { s.tickDt(4); peak = Math.max(peak, s.value); }
+            expect(peak - 1, `${preset.name} peak overshoot within the allowance`).toBeLessThanOrEqual(allowance + 1e-9);
+        }
     });
 });
