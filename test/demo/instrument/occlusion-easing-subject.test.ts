@@ -28,9 +28,9 @@ const DRIVER = path.join(ROOT, "scripts/lib/demo-driver.mjs");
 function tileBallClasses(): string[] {
     const src = fs.readFileSync(CATALOGUE, "utf8");
     const template = src.slice(src.indexOf("<template>"), src.lastIndexOf("</template>"));
-    const m = template.match(/class="([^"]*\btile-ball\b[^"]*)"/);
-    if (!m) throw new Error("EasingCatalogue template carries no tile-ball element");
-    return m[1].split(/\s+/).filter(Boolean);
+    const cls = template.match(/class="([^"]*\btile-ball\b[^"]*)"/)?.[1];
+    if (!cls) throw new Error("EasingCatalogue template carries no tile-ball element");
+    return cls.split(/\s+/).filter(Boolean);
 }
 
 describe("occlusion manifest — the easing subject is the gallery tile ball (E2E-OCC-1)", () => {
