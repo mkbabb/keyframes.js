@@ -59,7 +59,8 @@ export function useKeyframesState(animation: KeyframesAnimation<any>) {
     // name the compiler's Export path emits — `cssIdent(getAnimationId(…))`,
     // the one derivation `compile/emit/backward/walk.ts` applies — so Copy and
     // Export CSS agree, and the style id stays internal to the applied sheet.
-    const displayName = cssIdent(getAnimationId(animation));
+    const animationName = getAnimationId(animation);
+    const displayName = cssIdent(animationName);
 
     // --- Refs ---
 
@@ -94,6 +95,7 @@ export function useKeyframesState(animation: KeyframesAnimation<any>) {
 
     return {
         keyframesStyleId,
+        animationName,
         displayName,
         cssKeyframesString,
         sheetCSSString,

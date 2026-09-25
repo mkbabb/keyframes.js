@@ -70,7 +70,7 @@ const CSSCodeEditor = (
 
 const HEAVY = { timeout: 30_000 };
 
-const buildFixture = async () => {
+const buildFixture = async (name = "Rotations") => {
     const target = document.createElement("div");
     document.body.appendChild(target);
     const keyframes = await importCSSToTimeline(
@@ -81,7 +81,7 @@ const buildFixture = async () => {
         { duration: 1_000 },
         [target],
     );
-    animation.name = "Rotations";
+    animation.name = name;
     animation.superKey = "cube";
     return markRaw(animation);
 };
@@ -123,6 +123,22 @@ describe("UIA-KF-275 — the pane's heading and status", () => {
         await nextTick();
         expect(status().text()).toBe("Applied");
         seat.clearAppliedCSS();
+        wrapper.unmount();
+    });
+
+    it("(2) the heading carries the name as authored, not the buffer's CSS ident", HEAVY, async () => {
+        const wrapper = mount(KeyframesStringControls, {
+            props: { animation: await buildFixture("Spring Keyframes") },
+            attachTo: document.body,
+        });
+        const buffer = () => String(wrapper.findComponent(CSSCodeEditor).props("modelValue"));
+        await nextTick();
+        await vi.waitFor(() => expect(buffer()).toContain("@keyframes"), { timeout: 20_000 });
+
+        const region = wrapper.find("section[aria-labelledby]");
+        const heading = document.getElementById(region.attributes("aria-labelledby")!);
+        expect(heading?.textContent?.trim()).toBe("Spring Keyframes");
+        expect(buffer()).toContain("@keyframes Spring-Keyframes");
         wrapper.unmount();
     });
 });

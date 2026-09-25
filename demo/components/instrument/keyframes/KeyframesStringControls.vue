@@ -2,13 +2,14 @@
     <!-- UIA-KF-275 (X.KF.W13X.keyframes) — the pane NAMES what it edits. It
          opened straight onto line 1 of the code, with no name and no state
          beside the source (the toasts are the only other channel). A compact
-         header carries the animation's name — the region's accessible name —
+         header carries the animation's name as authored (`Spring Keyframes`,
+         not the buffer's CSS ident) — the region's accessible name —
          and one status line (parsed · parse error · applied) announced
          politely where it changes, beside the buffer it describes. -->
     <section class="min-w-0" :aria-labelledby="headingId">
         <header class="flex items-center justify-between gap-2 pb-2">
             <h3 :id="headingId" class="text-subheading min-w-0 truncate">
-                {{ displayName }}
+                {{ animationName }}
             </h3>
             <span
                 role="status"
@@ -94,7 +95,7 @@ const {
     cssKeyframesString,
     sheetCSSString,
     keyframesStyleId,
-    displayName,
+    animationName,
     updateFromString,
     updateCSSAnimationKeyframesStringFromAnimation,
 } = useKeyframesEditor(() => animation, emit);
