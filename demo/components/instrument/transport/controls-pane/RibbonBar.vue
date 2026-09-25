@@ -8,42 +8,17 @@
                     v-show="storedControls.selectedControl === 'controls'"
                 ></div>
 
-                <!-- Keyframes tab -->
+                <!-- Keyframes tab — X.KF.W13X.mobile (UIA-KF-319): ONE row
+                     with a hierarchy. Apply CSS is the stateful toggle (the
+                     only undo of an applied identity), so it LEADS, labelled;
+                     Copy / Format / Export CSS are secondary icon commands
+                     (glass `iconOnly`, each accessibly named). Four labelled
+                     sm Buttons wrapped 3 + 1 in the 26rem rail and left Apply
+                     alone on a second row. -->
                 <div
                     v-if="storedControls.selectedControl === 'keyframes'"
-                    class="flex items-center justify-center gap-2 flex-wrap"
+                    class="flex items-center justify-center gap-2"
                 >
-                    <Button
-                        size="sm"
-                        emphasis="secondary"
-                        @click="activeKeyframesRef?.copyCSS?.()"
-                    >
-                        <Copy class="icon-sm" /> Copy
-                    </Button>
-                    <!-- The PRIMARY format path (M-3/C-8 ≡ KF-CE-37): this
-                         call is un-awaited BY DESIGN — `formatCSS` is the
-                         keyframes pane's `formatEditor`, the ONE format
-                         boundary, which catches prettier's rejection, toasts
-                         it with Retry and releases the pane's latch, so the
-                         promise it returns never rejects. -->
-                    <Button
-                        size="sm"
-                        emphasis="secondary"
-                        @click="activeKeyframesRef?.formatCSS?.()"
-                    >
-                        <Sparkles class="icon-sm text-gold" /> Format
-                    </Button>
-                    <!-- K.W10 CC-4 — Export CSS: compile the orchestration graph
-                         to a zero-runtime CSS artifact via the gated compileToCSS
-                         (the round-trip's BACKWARD half) + the honest CC-3
-                         ineligibility report. The editor is a CSS-animation IDE. -->
-                    <Button
-                        size="sm"
-                        emphasis="secondary"
-                        @click="activeKeyframesRef?.exportCompiledCSS?.()"
-                    >
-                        <FileCode class="icon-sm text-emerald-500" /> Export CSS
-                    </Button>
                     <Button
                         size="sm"
                         emphasis="secondary"
@@ -63,6 +38,46 @@
                             "
                         />
                         Apply CSS
+                    </Button>
+                    <Button
+                        size="sm"
+                        emphasis="secondary"
+                        icon-only
+                        aria-label="Copy"
+                        title="Copy"
+                        @click="activeKeyframesRef?.copyCSS?.()"
+                    >
+                        <Copy class="icon-sm" />
+                    </Button>
+                    <!-- The PRIMARY format path (M-3/C-8 ≡ KF-CE-37): this
+                         call is un-awaited BY DESIGN — `formatCSS` is the
+                         keyframes pane's `formatEditor`, the ONE format
+                         boundary, which catches prettier's rejection, toasts
+                         it with Retry and releases the pane's latch, so the
+                         promise it returns never rejects. -->
+                    <Button
+                        size="sm"
+                        emphasis="secondary"
+                        icon-only
+                        aria-label="Format"
+                        title="Format"
+                        @click="activeKeyframesRef?.formatCSS?.()"
+                    >
+                        <Sparkles class="icon-sm text-gold" />
+                    </Button>
+                    <!-- K.W10 CC-4 — Export CSS: compile the orchestration graph
+                         to a zero-runtime CSS artifact via the gated compileToCSS
+                         (the round-trip's BACKWARD half) + the honest CC-3
+                         ineligibility report. The editor is a CSS-animation IDE. -->
+                    <Button
+                        size="sm"
+                        emphasis="secondary"
+                        icon-only
+                        aria-label="Export CSS"
+                        title="Export CSS"
+                        @click="activeKeyframesRef?.exportCompiledCSS?.()"
+                    >
+                        <FileCode class="icon-sm text-emerald-500" />
                     </Button>
                 </div>
 
