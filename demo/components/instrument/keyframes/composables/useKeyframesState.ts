@@ -18,7 +18,7 @@ export function useKeyframesState(animation: KeyframesAnimation<any>) {
     // read at SETUP scope, never at module scope (KF-KE-51): the warm resolves
     // before the app mounts, and a module-scope read turns a swallowed warm
     // failure into a chunk-evaluation throw for the whole scene.
-    const { cssIdent } = kfEngine();
+    const { cssIdent, getAnimationId } = kfEngine();
 
     const animationUUID = createAnimationUUId(animation, animation.superKey);
 
@@ -52,6 +52,15 @@ export function useKeyframesState(animation: KeyframesAnimation<any>) {
     // already dead at both of its consumers. Every reader now reads THIS const.
     const keyframesStyleId = cssIdent(`keyframes-style-${animationUUID}`);
 
+    // UIA-KF-174 + UIA-KF-173 (X.KF.W13X.keyframes) — the name the USER reads.
+    // The buffer is the pane's primary content, and it used to open on the
+    // machine token above (`keyframes-style-cube-Rotations`, three times) while
+    // Export CSS named the same animation `Rotations`. The buffer now shows the
+    // name the compiler's Export path emits — `cssIdent(getAnimationId(…))`,
+    // the one derivation `compile/emit/backward/walk.ts` applies — so Copy and
+    // Export CSS agree, and the style id stays internal to the applied sheet.
+    const displayName = cssIdent(getAnimationId(animation));
+
     // --- Refs ---
 
     // X.KF.W13X.keyframes (KFE-ORPHAN · A2-KE-L1-1) — the buffer is the one
@@ -60,6 +69,10 @@ export function useKeyframesState(animation: KeyframesAnimation<any>) {
     // scaffold they read (`keyframeControls`) served only the card editor and
     // its add dialog, which no product file mounted after `e69f7731`.
     const cssKeyframesString = ref("");
+    // The CSS Apply injects: the same animation emitted under the style id,
+    // so the sheet's selector, `animation-name` and `@keyframes` stay the ONE
+    // name the class carries (N-8), whatever the buffer shows.
+    const sheetCSSString = ref("");
 
     // --- Pure helpers ---
 
@@ -81,7 +94,9 @@ export function useKeyframesState(animation: KeyframesAnimation<any>) {
 
     return {
         keyframesStyleId,
+        displayName,
         cssKeyframesString,
+        sheetCSSString,
         getFormatWidth,
     };
 }

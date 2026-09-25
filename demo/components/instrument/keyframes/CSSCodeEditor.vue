@@ -348,7 +348,13 @@ const initEditor = async () => {
                 .getPropertyValue("--font-mono")
                 .trim() || "monospace",
         minimap: { enabled: false },
-        wordWrap: "on",
+        // UIA-KF-174 (X.KF.W13X.keyframes) — code does not wrap. In the
+        // 316–403 px pane Monaco's soft wrap cut inside identifiers and before
+        // `(` / `:` (`rotateY` / `(0turn)`, a selector over three visual lines
+        // at 390); a line longer than the well scrolls inside it, as an
+        // editor's does, and the lines are short now that the buffer shows the
+        // user's name instead of the internal style id.
+        wordWrap: "off",
         scrollBeyondLastLine: false,
         automaticLayout: true,
         lineNumbers: props.lineNumbers ? "on" : "off",

@@ -10,7 +10,7 @@ import { useKeyframesParsing } from "./useKeyframesParsing";
  *                             op, the length-watch flush).
  *
  * KF-KE-49 (X.KF.W12.c) — this barrel returns what its consumer
- * (`KeyframesStringControls.vue`) READS, and nothing else: four members.
+ * (`KeyframesStringControls.vue`) READS, and nothing else.
  * X.KF.W13X.keyframes (A2-KE-L1-1) cut it from fourteen — the other ten served
  * only the card editor (`KeyframesEditor.vue`) and its add dialog, deleted
  * with that subtree (KFE-ORPHAN). It once re-exported twenty members "so the
@@ -41,6 +41,7 @@ export function useKeyframesEditor(
     return {
         cssKeyframesString: state.cssKeyframesString,
         keyframesStyleId: state.keyframesStyleId,
+        sheetCSSString: state.sheetCSSString,
         updateFromString: parsing.updateFromString,
         updateCSSAnimationKeyframesStringFromAnimation:
             parsing.updateCSSAnimationKeyframesStringFromAnimation,

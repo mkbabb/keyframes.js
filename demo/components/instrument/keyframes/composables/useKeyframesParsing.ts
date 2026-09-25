@@ -22,7 +22,13 @@ export function useKeyframesParsing(
     state: KeyframesState,
     emit: (event: "keyframesUpdate", val: { animation: KeyframesAnimation<any> }) => void,
 ) {
-    const { cssKeyframesString, keyframesStyleId, getFormatWidth } = state;
+    const {
+        cssKeyframesString,
+        sheetCSSString,
+        keyframesStyleId,
+        displayName,
+        getFormatWidth,
+    } = state;
 
     // --- CSS string generation (animation → strings) ---
 
@@ -37,14 +43,19 @@ export function useKeyframesParsing(
     // by the library's own published `cssIdent` (`useKeyframesState`) — is read
     // here, and the class the Apply control adds is the same const. One name,
     // one derivation, no agreement to keep.
-    const updateCSSAnimationKeyframesStringFromAnimation = async (
-        cssAnimationKeyframes?: string,
-    ) => {
+    //
+    // UIA-KF-174 (X.KF.W13X.keyframes) — that one name is the APPLIED SHEET's
+    // (`sheetCSSString`), and it is still emitted from the style id alone. The
+    // BUFFER is a second emission of the same animation under `displayName`,
+    // the name the user reads and Export CSS writes; it is never injected.
+    const updateCSSAnimationKeyframesStringFromAnimation = async () => {
         const { CSSKeyframesToString } = await loadAnimationEngine();
-        const raw =
-            cssAnimationKeyframes ??
-            (await CSSKeyframesToString(animation, keyframesStyleId));
-        const keyframesString = await formatEditorCSS(raw, getFormatWidth());
+        const [shown, sheet] = await Promise.all([
+            CSSKeyframesToString(animation, displayName),
+            CSSKeyframesToString(animation, keyframesStyleId),
+        ]);
+        sheetCSSString.value = sheet;
+        const keyframesString = await formatEditorCSS(shown, getFormatWidth());
 
         cssKeyframesString.value = keyframesString;
 

@@ -72,6 +72,7 @@ const emit = defineEmits<{
 
 const {
     cssKeyframesString,
+    sheetCSSString,
     keyframesStyleId,
     updateFromString,
     updateCSSAnimationKeyframesStringFromAnimation,
@@ -198,7 +199,7 @@ const onEditorChange = (value: string): Promise<void> => {
 const { applyCSSStyles, clearApplied, cssApplied } = useKeyframeBrushApply({
     animation,
     styleId: keyframesStyleId,
-    getCSSString: () => cssKeyframesString.value,
+    getCSSString: () => sheetCSSString.value,
 });
 
 // D-4 / L-M-3 / C-3 (X.KF.W12.e) — THE PARSE-ERROR SHAKE HAS SOMETHING TO
@@ -302,7 +303,9 @@ defineExpose({
         }
     },
     exportCompiledCSS,
-    getCSSString: () => cssKeyframesString.value,
+    // The CSS the Apply press injects (the style id's one name, N-8) — the
+    // buffer shows the same animation under `displayName` (UIA-KF-174).
+    getCSSString: () => sheetCSSString.value,
     applyCSSStyles,
     // RB-6 (X.KF.W12.e) — the Apply toggle is the RIBBON's, behind
     // `v-if="selectedControl === 'keyframes'"`, while this pane is force-mounted
