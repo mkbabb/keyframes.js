@@ -4,13 +4,13 @@
          lane's rail and every re-time handle resolve their x from — the master
          clock in ms, `x = t / duration` (the stage's canonical domain). The
          glass-free leaf of the pane (SequenceTimeline is its shell). -->
-    <div class="seq-lanes" :style="{ '--seq-p': source.progress() }">
+    <div class="seq-lanes" :style="{ '--seq-p': (source.progress() * source.duration()) / axis }">
         <!-- The master scrub — the pane's playhead. Its rail heads the time
              column; the playhead line it seats runs down through every lane. -->
         <span class="seq-lane-label text-mono-caption text-muted-foreground" style="grid-row: 1">clock</span>
         <div
             ref="scrubEl"
-            class="seq-lane-scrub kf-focus-ring"
+            class="seq-lane-scrub"
             style="grid-row: 1"
             :class="{ 'is-scrubbing': source.isScrubbing() }"
             role="slider"
@@ -49,16 +49,17 @@
                 <div
                     class="seq-lane-bar"
                     :style="{
-                        left: `${(lane.at / source.duration()) * 100}%`,
-                        width: `${(lane.span / source.duration()) * 100}%`,
+                        left: `${(lane.at / axis) * 100}%`,
+                        width: `${(lane.span / axis) * 100}%`,
                     }"
                 ></div>
                 <!-- The re-time handle: drag or key re-authors the item's `at`
                      on the master Sequence (the engine's `add(child, at)`). Its
                      CONTROL range is the editable [0, atMax] domain. -->
                 <div
-                    class="seq-lane-handle kf-focus-ring"
-                    :style="{ left: `${(lane.at / source.duration()) * 100}%` }"
+                    class="seq-lane-handle"
+                    :style="{ left: `${(lane.at / axis) * 100}%` }"
+                    :data-dragging="activeLane === lane.index ? '' : undefined"
                     role="slider"
                     :aria-label="`Re-time row ${lane.index + 1} start offset`"
                     :aria-valuenow="Math.round(lane.at)"
@@ -156,6 +157,18 @@ const onScrubKeyup = (e: KeyboardEvent) => {
 // the editable [0, atMax] domain. The axis is READ ONCE at the press: a
 // re-time changes the clock's span (duration = max(at + span)), and a
 // projection over the live span would chase its own write under a held pointer.
+/**
+ * UIA-KF-031 — THE AXIS HOLDS STILL UNDER A DRAG. A re-time re-derives the
+ * master clock's span (the last item's start plus its run), and the lanes were
+ * drawn against the LIVE span while the drag projected against the span at
+ * press: the handle trailed the pointer by up to ~100 px over a 120 px drag
+ * (served, row 5, 1440 and 390). For the life of a lane drag, every lane, bar,
+ * handle and the playhead are drawn on the axis the drag projects onto; the
+ * pane re-lays out to the new span when the handle is released.
+ */
+const dragAxis = ref<number | null>(null);
+const axis = computed(() => dragAxis.value ?? props.source.duration());
+
 let laneAxis = 1;
 const laneEls: (HTMLElement | null)[] = [];
 const setLaneEl = (i: number, el: HTMLElement | null) => {
@@ -177,12 +190,14 @@ const { onPointerDown: onLaneScrubDown } = useDragScrub({
     },
     onStart: () => {
         laneAxis = props.source.duration();
+        dragAxis.value = laneAxis;
     },
     onScrub: (at) => {
         if (activeLane.value != null) props.source.reseat(activeLane.value, at);
     },
     onEnd: () => {
         activeLane.value = null;
+        dragAxis.value = null;
     },
 });
 const onLaneDown = (index: number, e: PointerEvent) => {
@@ -301,6 +316,39 @@ const onLaneKeydown = (index: number, e: KeyboardEvent) => {
 }
 .seq-lane-handle:active {
     cursor: grabbing;
+}
+
+/* UIA-KF-317 — a held handle SAYS it is held: the grip takes its full tone and
+   stretches, and its lane's run brightens, for the life of the drag (the grip
+   used to look exactly as it does at rest). */
+.seq-lane-handle[data-dragging] {
+    cursor: grabbing;
+}
+.seq-lane-handle[data-dragging]::after {
+    background: var(--ball-tone);
+    transform: translate(-50%, -50%) scaleY(1.25);
+}
+.seq-lane-track:has(.seq-lane-handle[data-dragging]) .seq-lane-bar {
+    background: color-mix(in srgb, var(--ball-tone) 55%, transparent);
+}
+
+/* UIA-KF-313 — the focus ring sits on the control's OWN shape: the grip of a
+   re-time handle and the master clock's ball, not a square around their
+   invisible hit hosts (a 44×32 box, a full-width rectangle). */
+.seq-lane-scrub:focus-visible,
+.seq-lane-handle:focus-visible {
+    outline: none;
+}
+.seq-lane-scrub:focus-visible .seq-lane-scrub-ball,
+.seq-lane-handle:focus-visible::after {
+    box-shadow: var(--focus-ring-shadow);
+}
+@media (forced-colors: active) {
+    .seq-lane-scrub:focus-visible .seq-lane-scrub-ball,
+    .seq-lane-handle:focus-visible::after {
+        outline: 2px solid Highlight;
+        outline-offset: 2px;
+    }
 }
 
 /* The playhead line through every lane, at the master clock's position. */
