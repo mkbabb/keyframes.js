@@ -1,6 +1,6 @@
 import { computed, type Ref } from "vue";
 
-import type { TransformState } from "./orbital-drag";
+import type { TransformState } from "./orbital-drag/transform";
 import { clamp } from "@mkbabb/value.js/math";
 
 /**

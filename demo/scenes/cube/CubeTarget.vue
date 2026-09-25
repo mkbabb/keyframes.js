@@ -140,7 +140,8 @@ import type { CSSKeyframesAnimation, Vars } from "@mkbabb/keyframes.js";
 import { loadAnimationEngine } from "@mkbabb/keyframes.js";
 import { useDoubleTap } from "@composables/useDoubleTap";
 import OrbitalDrag from "./orbital-drag/OrbitalDrag.vue";
-import type { PressedKeys, TransformState } from "./orbital-drag";
+import type { TransformState } from "./orbital-drag/transform";
+import type { PressedKeys } from "./orbital-drag/types";
 import CubeAxisLines from "./CubeAxisLines.vue";
 import { GRAPH_ATTITUDE, useCubeRelit } from "./useCubeRelit";
 import {

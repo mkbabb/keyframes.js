@@ -2,8 +2,8 @@ import type { vec3 } from "gl-matrix";
 import { useRafFn } from "@vueuse/core";
 import type { Ref } from "vue";
 import { watch } from "vue";
-import type { TransformState, VelocityState } from "..";
-import { axes } from "..";
+import type { TransformState, VelocityState } from "../transform";
+import { axes } from "../transform";
 // inv ζ (orchestration analogue, F.W10.S1): the orbital inertia consumes the
 // engine's SHIPPED analytic `decay()` closed form — it no longer hand-rolls the
 // `Math.pow(inertiaFactor, dt/TARGET_DT)` discrete Euler decay the engine now

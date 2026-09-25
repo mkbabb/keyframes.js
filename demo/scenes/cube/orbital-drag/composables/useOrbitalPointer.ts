@@ -2,7 +2,7 @@ import { vec3 } from "gl-matrix";
 import { ref } from "vue";
 import type { Ref, ShallowRef } from "vue";
 import { useEventListener, useTimeoutFn } from "@vueuse/core";
-import { axes } from "..";
+import { axes } from "../transform";
 import type { PressedKeys } from "../types";
 
 interface OrbitalPointerParams {

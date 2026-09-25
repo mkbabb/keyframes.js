@@ -1,8 +1,8 @@
 import { vec3 } from "gl-matrix";
 import { ref } from "vue";
 import type { Ref } from "vue";
-import type { TransformState } from "..";
-import { axes } from "..";
+import type { TransformState } from "../transform";
+import { axes } from "../transform";
 import type { GestureEvent } from "../types";
 
 interface OrbitalPinchParams {

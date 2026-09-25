@@ -38,8 +38,8 @@
 </template>
 
 <script setup lang="ts">
-import { axes } from "./orbital-drag";
-import type { PressedKeys } from "./orbital-drag";
+import { axes } from "./orbital-drag/transform";
+import type { PressedKeys } from "./orbital-drag/types";
 
 // KF-AX-22 — the attrs contract, DECLARED rather than left latent: this renders
 // a three-root fragment, so Vue cannot auto-inherit fallthrough attrs and would
