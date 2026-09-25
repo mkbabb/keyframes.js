@@ -1019,6 +1019,12 @@ async function runBattery() {
                     // the balls carry no inline `left` and the old `left` read saw
                     // 1 static value however far they moved. Read the ball's own
                     // write channel — the inline transform — on the same nodes.
+                    // X.KF.W13X.spring E2E-S5-1: KF.W13W.b (OA-56, 82360347) moved the
+                    // live and sampler balls OFF the rail onto the trace — the painter
+                    // now writes `plot.place(t)` to their `.curve-carriage` (the
+                    // carriage, not the ball, carries the transform), outside
+                    // `.spring-rail`. Read those carriages; the derby lane balls
+                    // still ride the rail.
                     const rail = await page.evaluate(() => {
                         const el = document.querySelector(".spring-rail");
                         const r = el?.getBoundingClientRect();
@@ -1033,7 +1039,7 @@ async function runBattery() {
                         const seen = new Set();
                         const t0 = performance.now();
                         while (performance.now() - t0 < 2200) {
-                            for (const el of document.querySelectorAll(".spring-rail [class*='ball'][style*='transform']")) {
+                            for (const el of document.querySelectorAll(".spring-target .curve-carriage[style*='transform'], .spring-rail [class*='ball'][style*='transform']")) {
                                 if (el.style.transform) seen.add((el.className?.toString?.() ?? "").slice(0, 20) + "|" + el.style.transform);
                             }
                             await sleep(40);
