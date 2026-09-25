@@ -113,7 +113,20 @@ const { lock } = defineProps<{
        KF-AX-15 ≡ CubeTarget #60 — the three raw `180ms` that used to sit here
        became `--duration-fast` at KF.W6; that row is LANDED-BY KF.W6 and is not
        this unit's claim. */
-    transition: --axis-active var(--duration-fast) var(--ease-standard);
+    /* KFA-88 — the RELEASE fades the bloom out. A transition is chosen by the
+       AFTER-change style, so the unlocked rest also transitions `filter`: on
+       release the bloom eases from its lit drop-shadow to `none` (one eased
+       channel, since the rest value is not derived from the driver), and the
+       resident filter pass still ends when it lands. The locked rule below lists
+       the driver alone, so on lock-in the bloom derives per frame (KF-AX-8). */
+    transition:
+        --axis-active var(--duration-fast) var(--ease-standard),
+        filter var(--duration-fast) var(--ease-standard);
+    /* KFA-88 · KFA-143 — the solid stroke CROSSFADES over the dashed base by
+       the driver (the ::after below); it no longer flips in the key frame. An
+       unregistered custom property inherits, so the pseudo reads the driver's
+       per-frame value (the registered driver itself does not inherit). */
+    --axis-solid: var(--axis-active);
     /* KF-AX-6 — the truthful version of a citation that was ill-formed. The old
        comment cited `--z-behind < --z-content` as if the two were comparable:
        the die's only `--z-content` consumer is `.face-numeral`
@@ -136,23 +149,30 @@ const { lock } = defineProps<{
            set this class: one latch, two bindings, and the inline one outranked
            every stylesheet in the document. */
         --axis-active: 1;
-        border-block-start-style: solid;
+        transition: --axis-active var(--duration-fast) var(--ease-standard);
         /* KF-AX-9 — GATED, and the gate is the whole cure: a non-`none` filter
            on a 1000vw box is a resident compositing pass and three shadow
            buffers on every device, paid at all times for a bloom that is only
            ever visible while a key is held. Ruling 8 bounds the benefit
            honestly — `opacity: 0.45` at rest is itself a grouping property, so
            the stacking context and the forced `flat` used value REMAIN; what
-           goes is the filter pass. The cost of the gate, stated: on RELEASE the
-           bloom drops in one frame (a filter declaration cannot interpolate out
-           of existence) while the opacity still eases. The bloom fades IN
-           correctly, because the radius derives from the interpolating driver. */
+           goes is the filter pass, once the release transition to `none` lands
+           (KFA-88: the bloom fades OUT on the rest rule's `filter` transition,
+           and fades IN because the radius derives from the driver). */
         filter: drop-shadow(
             0 0 calc(var(--axis-active) * 6px)
                 color-mix(in srgb, var(--color) calc(var(--axis-active) * 80%), transparent)
         );
     }
 
+    &::after {
+        content: "";
+        position: absolute;
+        inset-inline: 0;
+        inset-block-start: -1px;
+        border-block-start: 1px solid var(--color);
+        opacity: var(--axis-solid);
+    }
     /* KF-AX-4 · #57 — THE FRAME STAMP, and it is load-bearing. Every geometric
        claim about these strokes is written against the attitude the stage is
        parked at: `.graph` is driven to `rotate3d(-1, 1, 0, 30deg)`
@@ -218,6 +238,9 @@ const { lock } = defineProps<{
 
         &.axis-line--locked {
             filter: none;
+            border-block-start-color: Highlight;
+        }
+        &::after {
             border-block-start-color: Highlight;
         }
     }
