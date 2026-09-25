@@ -1,5 +1,24 @@
 <template>
-    <div class="min-w-0">
+    <!-- UIA-KF-275 (X.KF.W13X.keyframes) — the pane NAMES what it edits. It
+         opened straight onto line 1 of the code, with no name and no state
+         beside the source (the toasts are the only other channel). A compact
+         header carries the animation's name — the region's accessible name —
+         and one status line (parsed · parse error · applied) announced
+         politely where it changes, beside the buffer it describes. -->
+    <section class="min-w-0" :aria-labelledby="headingId">
+        <header class="flex items-center justify-between gap-2 pb-2">
+            <h3 :id="headingId" class="text-subheading min-w-0 truncate">
+                {{ displayName }}
+            </h3>
+            <span
+                role="status"
+                aria-live="polite"
+                class="text-caption text-muted-foreground flex shrink-0 items-center gap-1.5"
+            >
+                <StatusDot :state="paneStatus.dot" size="sm" motion="off" />
+                {{ paneStatus.text }}
+            </span>
+        </header>
         <!-- D-4 (X.KF.W12.e) — the editor WELL is the parse-error shake's
              target: the element whose buffer failed to parse is the element
              that moves. The preset used to be constructed target-less. -->
@@ -15,7 +34,7 @@
                 @update:model-value="onEditorChange"
             />
         </div>
-    </div>
+    </section>
 </template>
 <script setup lang="ts">
 // THE ONE FOCUS OWNER ON A KEYFRAMES ACTIVATION (KSC N-9), decided with the
@@ -31,12 +50,13 @@
 import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 import { kfEngine } from "@kf-engine";
 
-import { h, onMounted, ref, useTemplateRef } from "vue";
+import { computed, h, onMounted, ref, useId, useTemplateRef } from "vue";
 import { useTimeoutFn } from "@vueuse/core";
 import { useKeyframeBrushApply } from "./composables/useKeyframeBrushApply";
 import { useKeyframesEditor } from "./composables/useKeyframesEditor";
 
 import { toast, ToastAction, type ToastHandle } from "@mkbabb/glass-ui/toast";
+import { StatusDot } from "@mkbabb/glass-ui/status-dot";
 import { copyText } from "@utils/clipboard";
 
 // HEAVY surface from the warmed engine (kfEngine(), L.W8 S1 dogfood inversion) —
@@ -74,6 +94,7 @@ const {
     cssKeyframesString,
     sheetCSSString,
     keyframesStyleId,
+    displayName,
     updateFromString,
     updateCSSAnimationKeyframesStringFromAnimation,
 } = useKeyframesEditor(() => animation, emit);
@@ -146,13 +167,20 @@ function onKeyDown(e: KeyboardEvent) {
     }
 }
 
+// The buffer's parse state, for the header's status line (UIA-KF-275): the
+// last edit either adopted (`parsed`) or refused (`error`); the initial buffer
+// is the animation's own projection, so it starts parsed.
+const parseState = ref<"parsed" | "error">("parsed");
+
 const applyEditorChange = async (value: string) => {
     try {
         await updateFromString(value);
+        parseState.value = "parsed";
         if (!isFormatting.value) {
             raiseParseToast({ title: "Keyframes parsed 🎉", tone: "success" });
         }
     } catch (e: unknown) {
+        parseState.value = "error";
         shakeEditorWell();
 
         raiseParseToast({
@@ -200,6 +228,16 @@ const { applyCSSStyles, clearApplied, cssApplied } = useKeyframeBrushApply({
     animation,
     styleId: keyframesStyleId,
     getCSSString: () => sheetCSSString.value,
+});
+
+const headingId = useId();
+
+// Applied outranks the parse state: an applied sheet is what the target shows.
+const paneStatus = computed(() => {
+    if (cssApplied.value) return { dot: "active", text: "Applied" } as const;
+    if (parseState.value === "error")
+        return { dot: "error", text: "Parse error" } as const;
+    return { dot: "success", text: "Parsed" } as const;
 });
 
 // D-4 / L-M-3 / C-3 (X.KF.W12.e) — THE PARSE-ERROR SHAKE HAS SOMETHING TO
