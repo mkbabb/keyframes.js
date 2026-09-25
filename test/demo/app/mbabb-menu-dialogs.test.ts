@@ -155,3 +155,14 @@ describe("UIA-KF-148 · UIA-KF-149 — the destructive confirm on the glass dial
         wrapper.unmount();
     });
 });
+
+describe("UIA-KF-060 — the destructive row reads the canon's red, the confirm button's", () => {
+    it("(5) the Clear-all row paints --destructive, not the demo's --accent-red", async () => {
+        const { wrapper, trigger } = mountHost();
+        await activate(trigger.element);
+        const r = row("Clear all")!;
+        expect(r.className).toMatch(/\btext-destructive\b/);
+        expect(r.className).not.toMatch(/accent-red/);
+        wrapper.unmount();
+    });
+});

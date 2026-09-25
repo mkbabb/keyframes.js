@@ -198,23 +198,14 @@
                  an unthemeable `window.confirm()` that Playwright auto-dismisses;
                  selecting the row closes the menu and opens the dialog.
 
-                 MM-30 — the row reached for the WRONG RED. `text-destructive` is
-                 the VENDOR's `--destructive`, while this repo's own law
-                 (style.css:114-119, which names Clear-all by name) assigns
-                 `--accent-red` to destructive surfaces — and `--accent-red`
-                 alone carries a bespoke `.dark` arm (style.css:187) and a
-                 Tailwind bridge (`--color-accent-red`, style.css:58). Note the
-                 order this matters in: curing MM-4's layer FIRST would have
-                 armed the class and painted the vendor's red, so the token
-                 correction has to land with it, not after it.
-
-                 The `:style` half is the same MM-4 interim as the row above,
-                 and for the same measured reason: `text-accent-red` cannot
-                 paint while `.dropdown-menu__item`'s unlayered `color` outranks
-                 it. Class and inline say the SAME thing, so when the producer
-                 sheet is layered the inline pair comes out and nothing else
-                 changes. [X.KF.W13R.m: layered at glass 10.0.0; the pair is out.] -->
-            <DropdownMenuItem text-value="Clear all" class="gap-2.5 px-1.5 py-1 cursor-pointer text-accent-red" @select="confirmClearOpen = true">
+                 X.KF.W13X.dock · UIA-KF-060 — ONE red, the canon's. MM-30 had
+                 moved this row onto the demo's `--accent-red`, while the confirm
+                 it opens paints the glass `tone="destructive"` Button: two reds
+                 for one command, and the demo red failed text contrast on the
+                 menu plate (served 2.3:1 light, 4.0:1 dark). The row now reads
+                 `--destructive` (`text-destructive`), the token the confirm
+                 button is built from. -->
+            <DropdownMenuItem text-value="Clear all" class="gap-2.5 px-1.5 py-1 cursor-pointer text-destructive" @select="confirmClearOpen = true">
                 <span class="w-7 shrink-0 flex justify-center"><Trash class="w-5 h-5" aria-hidden="true" /></span>
                 <div class="flex-1 min-w-0">
                     <span class="text-small">Clear all &amp; reload</span>
