@@ -164,6 +164,8 @@ describe("the mobile sheet's detent ladder", () => {
         expect(rec.props.side).toBe("right");
         const d: number[] = rec.props.detents;
         expect(new Set(d).size).toBe(d.length);
+        // the side sheet rests as a rail, not a grip strip (a 0.12 strip crushed the pane)
+        expect(d[0]! * w).toBeGreaterThanOrEqual(300);
         const style = rec.attrs.style as Record<string, string>;
         expect(style.top).toBe("var(--stage-top-inset)");
         expect(style.bottom).toBe("var(--stage-bottom-inset)");

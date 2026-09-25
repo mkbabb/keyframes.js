@@ -441,15 +441,18 @@ if (isMobileLayout.value) {
 // ≤ 500px tall) the bottom ladder is degenerate: the glass chrome floor (204px)
 // exceeds both 0.12 and 0.36 of 390px, so PEEK and OPEN were the same box and
 // covered the whole stage band. There the sheet is the desktop rail's analogue,
-// a RIGHT side sheet between the two dock bands, whose rungs are widths: PEEK a
-// grip strip, OPEN 0.4 (the centred subject stays clear: at 844 the sheet's
-// edge sits at 506, right of the subject's centre at 422), FULL 0.55.
+// a RIGHT side sheet between the two dock bands, whose rungs are widths. Its
+// rest is the rail itself, not a grip strip: a 0.12 strip (112px at 932) crushed
+// the pane to a sliver whose controls overflowed into the notch band. PEEK 0.36
+// rests the rail (304px at 844, the stage's centred subject clear of it at 540),
+// OPEN 0.46 keeps the subject's centre clear (the sheet's edge at 456 > 422),
+// FULL 0.6 is the editing room.
 const isShortLayout = useMediaQuery("(max-width: 1023px) and (max-height: 500px)");
 const sheetSide = computed(() => (isShortLayout.value ? "right" : "bottom"));
-const PEEK_SNAP = 0.12;
-const OPEN_SNAP = computed(() => (isShortLayout.value ? 0.4 : 0.36));
-const FULL_SNAP = computed(() => (isShortLayout.value ? 0.55 : 1));
-const snapPoints = computed(() => [PEEK_SNAP, OPEN_SNAP.value, FULL_SNAP.value]);
+const PEEK_SNAP = computed(() => (isShortLayout.value ? 0.36 : 0.12));
+const OPEN_SNAP = computed(() => (isShortLayout.value ? 0.46 : 0.36));
+const FULL_SNAP = computed(() => (isShortLayout.value ? 0.6 : 1));
+const snapPoints = computed(() => [PEEK_SNAP.value, OPEN_SNAP.value, FULL_SNAP.value]);
 // The band the sheet lives in: above the transport, below the top dock. The
 // bottom sheet's FULL rung is capped at it; the side sheet spans it.
 const fullBand = "calc(100dvh - var(--stage-top-inset) - var(--stage-bottom-inset))";
@@ -473,7 +476,7 @@ watch(
 const activeSnap = computed<number | null>({
     get: () =>
         !props.storedControls.isControlsPanelOpen
-            ? PEEK_SNAP
+            ? PEEK_SNAP.value
             : atFull.value
               ? FULL_SNAP.value
               : OPEN_SNAP.value,
@@ -483,7 +486,7 @@ const activeSnap = computed<number | null>({
             Math.abs(c - t) < Math.abs(a - t) ? c : a,
         );
         atFull.value = nearest === FULL_SNAP.value;
-        emit("setControlsPanelOpen", nearest !== PEEK_SNAP);
+        emit("setControlsPanelOpen", nearest !== PEEK_SNAP.value);
     },
 });
 
