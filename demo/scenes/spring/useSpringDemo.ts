@@ -284,6 +284,7 @@ export function useSpringDemo() {
             const dt = lastNow ? now - lastNow : 0;
             lastNow = now;
             tickField(dt);
+            reconcileReadoutEdges(dt);
             // Hot path — direct DOM writes, NO Vue reactivity (D4 transposed).
             repaintSprings();
             maybeFlushReadouts(now);
@@ -303,6 +304,7 @@ export function useSpringDemo() {
         lastNow = now;
 
         tickField(dt);
+        reconcileReadoutEdges(dt);
 
         // springTimingFunction sweep — `direction: alternate` as keyframes. The
         // normalized phase IS `progress`, so a restore re-seeds it directly.
@@ -329,6 +331,25 @@ export function useSpringDemo() {
 
     /** Tick every solver in the field into the non-reactive snapshot (hot path).
      *  The ONE body both loop branches step the physics through. */
+    // X.KF.W13X.spring (KFA-151 · KFA-212 · KFA-103) — THE READOUT'S EDGES. The
+    // readout is throttled to PROGRESS_READOUT_HZ on purpose, but its two edges
+    // are events, not samples: a chase arming (a re-seat, a derby launch or
+    // settle, a param rebuild) is read out on the first frame that moves the
+    // ball, and the settled edge the moment the solver settles. Throttled, x
+    // read 0.000 and the badge 'settled' for 150-235 ms of visible motion, and
+    // the derby's live readout stepped at ~200 ms.
+    let flushOnMotion = false;
+    const armReadoutEdge = (): void => {
+        flushOnMotion = true;
+    };
+    function reconcileReadoutEdges(dt: number): void {
+        const moved = flushOnMotion && dt > 0;
+        if (moved || springLive.settled !== liveSettled.value) {
+            flushReadouts();
+            if (moved) flushOnMotion = false;
+        }
+    }
+
     function tickField(dt: number): void {
         liveSpring.tickDt(dt);
         springLive.simMs += dt;
@@ -412,6 +433,7 @@ export function useSpringDemo() {
         springLive.simMs = 0;
         for (const t of tracks) t.spring.target = v;
         chaseIntent = true;
+        armReadoutEdge();
         startLoop();
     };
 
@@ -442,6 +464,7 @@ export function useSpringDemo() {
             liveSpring.target = 1;
             springLive.simMs = 0;
             target.value = 1;
+            armReadoutEdge();
         },
         () => {
             const v = preDerbyTarget;
@@ -452,6 +475,7 @@ export function useSpringDemo() {
             // The settle is a target write, so it owes the same chase-intent
             // `reseat` owes (the egg used to reach `reseat(0)` and inherit it).
             chaseIntent = true;
+            armReadoutEdge();
             startLoop();
         },
         () => {
@@ -532,7 +556,10 @@ export function useSpringDemo() {
         // C-1 — a rebuild carries value + velocity, so a spring that was MID-CHASE
         // stays mid-chase across a slider move: the intent is re-asserted, never
         // manufactured (a settled field re-arms nothing and the loop rests).
-        if (!liveSpring.settled) chaseIntent = true;
+        if (!liveSpring.settled) {
+            chaseIntent = true;
+            armReadoutEdge();
+        }
         startLoop();
     };
 

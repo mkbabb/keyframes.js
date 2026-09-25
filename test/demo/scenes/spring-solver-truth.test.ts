@@ -352,3 +352,77 @@ describe("(15) KFA-102 — no derby lane pins at the rail end", () => {
         }
     });
 });
+
+/** A driven rAF clock whose timestamps are performance.now()'s (as in a browser). */
+function drivenFrames() {
+    let clock = 20_000;
+    let queue = new Map<number, FrameRequestCallback>();
+    let id = 1;
+    const prevRaf = window.requestAnimationFrame;
+    const prevCancel = window.cancelAnimationFrame;
+    const nowSpy = vi.spyOn(performance, "now").mockImplementation(() => clock);
+    window.requestAnimationFrame = ((cb: FrameRequestCallback) => { queue.set(id, cb); return id++; }) as typeof window.requestAnimationFrame;
+    window.cancelAnimationFrame = ((h: number) => { queue.delete(h); }) as typeof window.cancelAnimationFrame;
+    return {
+        frame(dt = 16) { clock += dt; const cur = queue; queue = new Map(); for (const cb of cur.values()) cb(clock); },
+        restore() { nowSpy.mockRestore(); window.requestAnimationFrame = prevRaf; window.cancelAnimationFrame = prevCancel; },
+    };
+}
+
+describe("(16) KFA-103 — 'settled' fires when the ball visibly stops", () => {
+    it("the badge's settled edge lands within 3 frames of the ball's last visibly-off-rest frame (≥ 0.5 px from its rest on a 551 px track)", () => {
+        const f = drivenFrames();
+        parkPausedOnSpring();
+        const [demo, app] = withSetup(() => useSpringDemo());
+        try {
+            demo.reseat(1);
+            const PX = 551; // the 1440 value track
+            let lastVisibleStep = -1;
+            let settledAt = -1;
+            for (let i = 0; i < 400 && settledAt < 0; i++) {
+                f.frame();
+                const x = demo.springLive.value;
+                if (Math.abs(x - demo.target.value) * PX >= 0.5) lastVisibleStep = i;
+                if (demo.liveSettled.value) settledAt = i;
+            }
+            expect(settledAt, "settles").toBeGreaterThan(0);
+            expect(settledAt - lastVisibleStep, `settled ${settledAt} vs last visible step ${lastVisibleStep}`).toBeLessThanOrEqual(3);
+        } finally {
+            app.unmount();
+            f.restore();
+        }
+    });
+});
+
+describe("(17) KFA-151 + KFA-212 — the readout leaves rest the moment motion starts", () => {
+    it("a re-seat reads 'tracking' and a moved x on the first frame that moves the ball; a derby launch the same", () => {
+        vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+        const f = drivenFrames();
+        parkPausedOnSpring();
+        const [demo, app] = withSetup(() => useSpringDemo());
+        try {
+            f.frame();
+            demo.reseat(1);
+            f.frame(); // arm frame (dt 0)
+            expect(demo.liveSettled.value, "tracking on the arm edge").toBe(false);
+            f.frame(); // the first frame with dt > 0
+            expect(demo.liveValue.value, "x has left 0 on the first moving frame").toBeGreaterThan(0);
+            // back to rest at 0, then the derby: its live launch flushes the same way
+            for (let i = 0; i < 300; i++) f.frame();
+            demo.reseat(0);
+            for (let i = 0; i < 300; i++) f.frame();
+            demo.derby();
+            const x0 = demo.liveValue.value;
+            vi.advanceTimersByTime(4 * 110 + 1); // the live launch (the derby-arm edge)
+            f.frame();
+            f.frame();
+            // the 6 Hz readout throttle stands (PROGRESS_READOUT_HZ); the ARM edge
+            // is flushed, so the first moving frame is read out at once
+            expect(demo.liveValue.value, "the derby's live launch reads out on its first moving frame").not.toBe(x0);
+        } finally {
+            app.unmount();
+            f.restore();
+            vi.useRealTimers();
+        }
+    });
+});

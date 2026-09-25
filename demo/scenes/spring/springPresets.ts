@@ -41,8 +41,15 @@ export const SPRING_PRESETS: readonly SpringPreset[] = [
     },
 ] as const;
 
-/** The solver settle floor (position and velocity) every spring in the field shares. */
-const SETTLE = 1e-4;
+/** The solver settle floor every spring in the field shares, in VISIBLE units
+ *  (X.KF.W13X.spring, KFA-103). It was 1e-4 for both, ≈0.05 px on the 1440
+ *  value track, so "settled" and the settle pulse fired 130-650 ms after the ball
+ *  visibly stopped, on an invisible sub-pixel tail. Position: 1e-3 of the value
+ *  axis (≈0.55 px on the 551 px 1440 track, ≈0.2 px at 390) — below a visible
+ *  step. Velocity (value units/s): 1e-2 — at 60 Hz a further frame moves less
+ *  than 2e-4 of the axis, invisible at every width. */
+const SETTLE_POSITION = 1e-3;
+const SETTLE_VELOCITY = 1e-2;
 
 /**
  * D-3 — THE DECLINED ENGINE FLAG, NOW PASSED AT EVERY CONSTRUCTION SITE.
@@ -59,7 +66,7 @@ const SETTLE = 1e-4;
  */
 export const SPRING_BASE = {
     initial: 0,
-    settleThreshold: SETTLE,
-    velocitySettleThreshold: SETTLE,
+    settleThreshold: SETTLE_POSITION,
+    velocitySettleThreshold: SETTLE_VELOCITY,
     respectReducedMotion: true,
 } as const;
