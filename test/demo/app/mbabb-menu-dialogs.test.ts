@@ -132,3 +132,26 @@ describe("UIA-KF-118 — closing the Clear-all confirm returns focus to the @mba
         wrapper.unmount();
     });
 });
+
+describe("UIA-KF-148 · UIA-KF-149 — the destructive confirm on the glass dialog canon", () => {
+    it("(4) title and description sit in DialogHeader with no type overrides; the grammar is deliberate (no redundant ✕)", async () => {
+        const { wrapper, trigger } = mountHost();
+        await activate(trigger.element);
+        await selectRow("Clear all");
+        await vi.waitFor(() => expect(confirmDialog()).toBeTruthy());
+        const d = confirmDialog()!;
+        const title = d.querySelector("[data-slot=dialog-title], h2")!;
+        const desc = d.querySelector("[data-slot=dialog-description], p")!;
+        expect(title.closest("[data-slot=dialog-header]")).toBeTruthy();
+        expect(desc.closest("[data-slot=dialog-header]")).toBeTruthy();
+        expect(title.className).not.toMatch(/\btext-/);
+        expect(desc.className).not.toMatch(/\btext-/);
+        const host = d.closest("[data-dismiss]") ?? d;
+        expect(host.getAttribute("data-dismiss")).toBe("deliberate");
+        expect([...d.querySelectorAll("button")].filter((b) => b.textContent?.trim() === "Close")).toHaveLength(0);
+        const cancel = [...d.querySelectorAll("button")].find((b) => b.textContent?.trim() === "Cancel")!;
+        cancel.click();
+        await vi.waitFor(() => expect(confirmDialog()).toBeFalsy());
+        wrapper.unmount();
+    });
+});

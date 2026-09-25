@@ -295,11 +295,18 @@
          focused when it opened — the menu row, unmounted with the dropdown — so
          focus fell to <body>; the trigger is the command's stable home. -->
     <Dialog v-model:open="confirmClearOpen">
-        <DialogContent @close-auto-focus="onConfirmCloseAutoFocus">
-            <DialogTitle class="text-subheading">Clear all saved animations?</DialogTitle>
-            <DialogDescription class="text-body text-muted-foreground">
-                Every saved animation resets to its defaults and the page reloads. This cannot be undone.
-            </DialogDescription>
+        <!-- X.KF.W13X.dock · UIA-KF-149 — a destructive confirm takes the canon's
+             `deliberate` grammar (Esc · outside; no ✕ beside Cancel). UIA-KF-148 —
+             the title/description pair sits in the canon's DialogHeader and the
+             canon owns its type: the `text-subheading`/`text-body` overrides
+             flattened title-over-description (20.35 px over 18.6 px). -->
+        <DialogContent dismiss="deliberate" @close-auto-focus="onConfirmCloseAutoFocus">
+            <DialogHeader>
+                <DialogTitle>Clear all saved animations?</DialogTitle>
+                <DialogDescription>
+                    Every saved animation resets to its defaults and the page reloads. This cannot be undone.
+                </DialogDescription>
+            </DialogHeader>
             <DialogFooter>
                 <DialogClose as-child>
                     <Button emphasis="secondary">Cancel</Button>
@@ -329,7 +336,7 @@ import { SharePopover } from "@components/instrument/shell";
 // that gap is a producer row (BH relay), not a local choice.
 import { Avatar, AvatarFallback, AvatarImage } from "@mkbabb/glass-ui";
 import { Button } from "@mkbabb/glass-ui/button";
-import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogTitle } from "@mkbabb/glass-ui/dialog";
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@mkbabb/glass-ui/dialog";
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuShortcut } from "@mkbabb/glass-ui/menu";
 import { DarkModeToggle } from "@mkbabb/glass-ui/dark-mode-toggle";
 import { DockTrigger, useOptionalDockContext } from "@mkbabb/glass-ui/dock";
