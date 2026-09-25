@@ -174,7 +174,27 @@ export function useEasingDemo() {
         new NumericAnimation<{ p: number }>([{ p: 0 }, { p: 1 }, { p: 0 }]),
     );
 
-    let startTime = 0;
+    // ── The sweep clock's STATE is its PHASE (KFA-35) ──────────────────────
+    // `phase` ∈ [0, 1) is the position inside one 0→1→0 cycle; `livePhaseValue`
+    // (below) is the triangle's OUTPUT `p = sweep.at(phase).p`, never re-read as
+    // a phase (the former re-seed `startTime = now - p * duration * 2` resumed
+    // a ball paused at p = 0.4 on the up-leg at p = 0.8, and one paused on the
+    // down-leg on the up-leg). A (re)arm anchors the clock at the live phase.
+    let phase = 0;
+    let anchorPhase = 0;
+    let anchorTime = 0;
+    const wrap01 = (x: number): number => ((x % 1) + 1) % 1;
+    const anchorAt = (now: DOMHighResTimeStamp): void => {
+        anchorPhase = phase;
+        anchorTime = now;
+    };
+    /** Seat the clock at a sweep VALUE `p` (a scrub, a restore): only `p` is
+     *  known, so the triangle is inverted on the leg the clock is on — the
+     *  up-leg at `p / 2`, the down-leg at `1 - p / 2` — keeping direction. */
+    const seatValue = (p: number): void => {
+        phase = phase < 0.5 ? p / 2 : 1 - p / 2;
+        anchorAt(performance.now());
+    };
 
     // ── I.W4 D4 — THE HOT POSITIONAL UPDATE OFF THE VUE RENDER GRAPH ──────────
     // The former `frame()` wrote `progress.value = sweep.at(phase).p` EVERY frame.
@@ -217,7 +237,7 @@ export function useEasingDemo() {
             return false;
         }
         // One full alternate cycle (0→1→0) per `2 * duration`.
-        const phase = ((now - startTime) / (duration.value * 2)) % 1;
+        phase = wrap01(anchorPhase + (now - anchorTime) / (duration.value * 2));
         livePhaseValue = sweep.at(phase).p;
         // Hot path — direct DOM writes, NO Vue reactivity (D4).
         repaintDots();
@@ -237,12 +257,11 @@ export function useEasingDemo() {
     // scene supplies only the per-frame work + the per-arm clock rebase.
     const { playback, startLoop, scenePlayback } = useSweepScene({
         frame,
-        // Re-seed startTime from the LIVE phase so the sweep resumes in phase. The
-        // loop reconciles `progress` to `livePhaseValue` on stop, so the two agree
-        // whenever the loop is idle (the resume anchor is exact).
-        onArm: () => {
-            startTime = performance.now() - livePhaseValue * duration.value * 2;
-        },
+        // Anchor the clock at the LIVE PHASE so the sweep resumes where it
+        // paused, on the leg it paused on (KFA-35). The loop reconciles
+        // `progress` to `livePhaseValue` on stop, so the two agree whenever the
+        // loop is idle.
+        onArm: () => anchorAt(performance.now()),
         // `progress` is the CONTRACT authority the ScenePlayback adapter snapshots/
         // restores (a discrete scrub position, reconciled to the live value on
         // every loop stop). The painters read `livePhaseValue` directly — the hot
@@ -255,6 +274,7 @@ export function useEasingDemo() {
             // correct: it drives the readouts + dots to the scrubbed value at once).
             progress.value = t;
             livePhaseValue = t;
+            seatValue(t);
             repaintDots();
         },
         getPlaying: () => machine.status.value === "playing",
@@ -266,7 +286,8 @@ export function useEasingDemo() {
     const reset = () => {
         livePhaseValue = 0;
         progress.value = 0;
-        startTime = performance.now();
+        phase = 0;
+        anchorAt(performance.now());
         repaintDots();
         machine.dispatch({ type: "RESET" });
     };
@@ -363,6 +384,7 @@ export function useEasingDemo() {
             // back through here), so we gate on the loop being idle.
             if (!playback.running) {
                 livePhaseValue = p;
+                seatValue(p);
                 repaintDots();
             }
         },
