@@ -52,6 +52,14 @@ export function useOrbitalPointer(params: OrbitalPointerParams) {
 
     const previousMousePosition = ref({ x: 0, y: 0 });
 
+    // KFA-82 — a HELD pointer releases with no fling. Sub-0.5 px moves return
+    // early, so the angular-velocity EMA never decays while the pointer rests,
+    // and a release after a hold used to coast on the stale fling speed
+    // (~450° at up to ~1300°/s, served). The last applied move is timestamped;
+    // a release more than HOLD_RELEASE_MS after it zeroes the speed.
+    const HOLD_RELEASE_MS = 64;
+    let lastMoveAt = 0;
+
     // Flag to reset previousMousePosition after pinch-to-single-finger transition
     const justExitedPinch = ref(false);
 
@@ -71,6 +79,7 @@ export function useOrbitalPointer(params: OrbitalPointerParams) {
             isTouching.value = true;
         }
         previousMousePosition.value = { x: event.clientX, y: event.clientY };
+        lastMoveAt = event.timeStamp;
         isDragging.value = true;
     };
 
@@ -89,6 +98,9 @@ export function useOrbitalPointer(params: OrbitalPointerParams) {
             }
         } else {
             isDragging.value = false;
+        }
+        if (event && event.timeStamp - lastMoveAt > HOLD_RELEASE_MS) {
+            angularVelocitySpeed.value = 0;
         }
         onStopDrag?.();
     };
@@ -131,6 +143,7 @@ export function useOrbitalPointer(params: OrbitalPointerParams) {
             updateRotation(deltaX, deltaY, isTouch);
         }
 
+        lastMoveAt = event.timeStamp;
         previousMousePosition.value = { x, y };
     };
 
