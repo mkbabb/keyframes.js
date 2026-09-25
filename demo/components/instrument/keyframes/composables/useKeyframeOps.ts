@@ -1,66 +1,35 @@
-import { h } from "vue";
 import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 import { loadAnimationEngine } from "@mkbabb/keyframes.js";
-import { debounce } from "@utils/helpers";
-import { toast, ToastAction } from "@mkbabb/glass-ui/toast";
-import type { KeyframesState } from "./useKeyframesState";
 import { parseAnimationCSS } from "../utils/parseAnimationCSS";
 import { getStoredAnimationOptions } from "@state";
-import { requireKeyframeSelector, selectorText } from "@utils/keyframeSelector";
-import { formatEditorCSS } from "@utils/formatEditorCSS";
 
-/** The string-generation callbacks the ops thread back into. */
-interface StringSync {
-    updateAllStrings: () => Promise<string>;
-    updateAllStringsAndAnimation: () => Promise<void>;
-    debouncedUpdateAllStrings: () => void;
+/** The buffer projection the op threads back into after an adopt. */
+interface BufferSync {
+    /** Re-project the buffer from the adopted animation (debounced). */
+    reproject: () => void;
 }
 
 /**
- * Run `fn`; on throw, surface a toast with a Retry action and re-log. `await`s
- * `fn` so an op that yields the main thread mid-work (the engine's `yieldToMain`,
- * S4 INP relief) or awaits `loadAnimationEngine()` (L.W8 S1 dogfood inversion)
- * still routes a throw through the toast+retry path.
- */
-async function withErrorToastAsync(
-    fn: () => Promise<void>,
-    message: string,
-    retry: () => void,
-): Promise<void> {
-    try {
-        await fn();
-    } catch (e) {
-        toast({
-            title: message,
-            tone: "destructive",
-            description: (e as Error).message,
-            duration: 10000,
-            action: h(ToastAction, { altText: "Retry", onClick: retry }, () => "Retry"),
-        });
-        console.error(e);
-    }
-}
-
-/**
- * The string-edit → animation mutation ops: fold an edited keyframes/keyframe
- * string back into the live `Animation`, add/remove a keyframe. One-way
- * dependency on the string-generation callbacks (`StringSync`) — no cycle.
+ * The string-edit → animation op: fold an edited `@keyframes` buffer back into
+ * the live `Animation`. One-way dependency on the buffer projection
+ * (`BufferSync`) — no cycle.
+ *
+ * X.KF.W13X.keyframes (KFE-ORPHAN · A2-KE-L1-1) — `updateFromString` is the
+ * whole op surface the live Keyframes pane reads. The per-stop ops
+ * (`updateAnimationFromKeyframeString`, `addKeyframesStringToAnimation`,
+ * `updateAddKeyframesString`, `removeKeyframeData`) and the debounced
+ * whole-buffer op (with its `withErrorToastAsync` retry toast) served only the
+ * card editor and its add dialog, which no product file mounted after
+ * `e69f7731`; they left with that subtree.
  */
 export function useKeyframeOps(
     animation: KeyframesAnimation<any>,
-    state: KeyframesState,
     emit: (
         event: "keyframesUpdate",
         val: { animation: KeyframesAnimation<any> },
     ) => void,
-    sync: StringSync,
+    sync: BufferSync,
 ) {
-    const { addKeyframesString, getFormatWidth } = state;
-    const { updateAllStrings, updateAllStringsAndAnimation } = sync;
-
-    // KF-KE-55 (X.KF.W12.c): the `kfControls.keyframes` write that stood here
-    // fed a stored cell nothing in the demo reads; the write is gone and the
-    // cell's schema member is the store owner's to delete.
     const updateFromString = async (keyframesString: string) => {
         const { CSSKeyframesAnimation, reverseCSSTime, yieldToMain } =
             await loadAnimationEngine();
@@ -94,146 +63,8 @@ export function useKeyframeOps(
             stored.timingFunction = options.timingFunction;
 
         emit("keyframesUpdate", { animation });
-        sync.debouncedUpdateAllStrings();
+        sync.reproject();
     };
 
-    const updateAnimationFromKeyframesString = debounce(
-        (keyframesString: string) => {
-            // S4 (INP relief): this is the demo's heaviest edit op — a full CSS
-            // parse THEN a fresh compile, run on every Monaco edit. Splitting it
-            // with the engine's OWN `yieldToMain` (one yield ladder in the
-            // codebase — the same `scheduler.yield`→`MessageChannel`→`setTimeout`
-            // probe `AnimationGroup` rides) lets the browser service input/paint
-            // between the parse and the compile, so a large keyframes edit never
-            // lands as one > 50 ms long task. `void` — the debounced caller is
-            // fire-and-forget; the throw path is owned by `withErrorToastAsync`.
-            void withErrorToastAsync(
-                async () => {
-                    await updateFromString(keyframesString);
-                },
-                "Could not update keyframes",
-                () => updateAnimationFromKeyframesString(keyframesString),
-            );
-        },
-        1000,
-    );
-
-    const updateAnimationFromKeyframeString = debounce(
-        (keyframeString: string, frameIx: number) => {
-            const start = animation.templateFrames[frameIx]!.start;
-            const wrapped = `${selectorText(start)} { ${keyframeString} }`;
-
-            void withErrorToastAsync(
-                async () => {
-                    const { keyframes, options } =
-                        await parseAnimationCSS(wrapped);
-                    const first = keyframes.entries().next();
-                    if (first.done) {
-                        throw new TypeError(
-                            "Keyframe edit produced no keyframe.",
-                        );
-                    }
-                    const [, newVars] = first.value;
-
-                    Object.assign(
-                        animation.options,
-                        options ?? animation.options,
-                    );
-                    Object.assign(
-                        animation.templateFrames[frameIx]!.vars,
-                        newVars,
-                    );
-
-                    animation.parse();
-
-                    updateAllStringsAndAnimation();
-                },
-                "Could not update keyframe",
-                () =>
-                    updateAnimationFromKeyframeString(keyframeString, frameIx),
-            );
-        },
-        1000,
-    );
-
-    /**
-     * KF-KE-56 (X.KF.W12.c) — PURE, as the dialog's `format` prop declares it
-     * ("formats the raw string and RETURNS the result; writes nothing"). It
-     * also wrote both draft cells, so three writers maintained one mirror; the
-     * dialog emits the formatted text through its model and the editor's one
-     * watch persists it.
-     */
-    const updateAddKeyframesString = (keyframesString: string) =>
-        formatEditorCSS(keyframesString, getFormatWidth());
-
-    /**
-     * Fold a pasted `@keyframes` block into the live animation. `onAdded` runs
-     * on success — the editor closes its dialog there (KF-KE-20: the open state
-     * is the editor's local ref, not a stored preference this op writes).
-     */
-    const addKeyframesStringToAnimation = (
-        keyframesString: string,
-        onAdded?: () => void,
-    ) => {
-        void withErrorToastAsync(
-            async () => {
-                const { options, keyframes } =
-                    await parseAnimationCSS(keyframesString);
-
-                // SINGLE COMPILE (E.W8 S0): append the new stops to the LIVE
-                // animation and parse ONCE — no throwaway Animation that re-adds
-                // every existing frame and compiles a first time. A new frame
-                // (no transform) inherits the preceding keyframe's renderer via
-                // the template-index seek (W7 D-1).
-                if (options) {
-                    animation.setOptions(options as Record<string, unknown>);
-                }
-                for (const [start, vars] of keyframes) {
-                    animation.addFrame(
-                        requireKeyframeSelector(start),
-                        vars as Partial<any>,
-                    );
-                }
-
-                animation.parse();
-
-                updateAllStrings();
-
-                onAdded?.();
-
-                // The draft is spent; the editor's watch mirrors the clear.
-                addKeyframesString.value = "";
-            },
-            "Could not add keyframes",
-            () => addKeyframesStringToAnimation(keyframesString, onAdded),
-        );
-    };
-
-    const removeKeyframeData = (frameIx: number) => {
-        if (animation.templateFrames.length <= 1) {
-            toast({ title: "Cannot remove last keyframe", tone: "destructive" });
-            return false;
-        }
-
-        // SINGLE COMPILE (E.W8 S0): drop the keyframe from the LIVE templates and
-        // parse ONCE — no throwaway Animation re-adding every surviving frame and
-        // compiling a first time.
-        animation.templateFrames = animation.templateFrames.filter(
-            (_, i) => i !== frameIx,
-        );
-        animation.parse();
-
-        updateAllStringsAndAnimation();
-
-        return true;
-    };
-
-    return {
-        updateFromString,
-        updateAnimationFromKeyframesString,
-        updateAnimationFromKeyframeString,
-        updateAddKeyframesString,
-        addKeyframesStringToAnimation,
-        removeKeyframeData,
-    };
+    return { updateFromString };
 }

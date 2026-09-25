@@ -363,4 +363,41 @@ describe("G-KFW12-5 — APPLY: one name, one lifetime", () => {
         expect(Array.from(target.classList)).toEqual([]);
         expect(injectedSheets().length).toBe(0);
     });
+
+    // KF-KE-6 + KF-KE-12, RE-SEATED (X.KF.W13X.keyframes, KFE-ORPHAN): this case
+    // lived in `keyframes-editor-honest.test.ts`, mounted through the card
+    // editor that no product file mounted; the registry it proves
+    // (`useHighlightCSS` → `useApplyCSS`) is the live pane's, so it is asserted
+    // here on the live seat, assertions unchanged.
+    it("(5) KF-KE-6 + KF-KE-12: two owners share one applied identity; the last owner out clears it", HEAVY, async () => {
+        const { animation, target } = await buildFixture("Shared-Owners", "kfapply");
+        const first = await mountSeat(animation);
+        const second = await mountSeat(animation);
+
+        void animation.play();
+        await nextTick();
+        const pausedBefore = animation.paused;
+
+        seatOf(first).applyCSSStyles();
+        await nextTick();
+        expect(seatOf(first).cssApplied).toBe(true);
+        expect(seatOf(second).cssApplied).toBe(true);
+        expect(injectedSheets().length).toBe(1);
+        expect(target.classList.length).toBe(1);
+        expect(animation.paused).toBe(animation.started);
+
+        first.unmount();
+        await nextTick();
+        expect(injectedSheets().length).toBe(1);
+        expect(injectedSheets()[0]!.textContent).toContain("@keyframes");
+        expect(target.classList.length).toBe(1);
+        expect(seatOf(second).cssApplied).toBe(true);
+
+        second.unmount();
+        await nextTick();
+        expect(injectedSheets().length).toBe(0);
+        expect(Array.from(target.classList)).toEqual([]);
+        expect(animation.paused).toBe(pausedBefore);
+        animation.pause();
+    });
 });

@@ -25,23 +25,11 @@ import { useSquareDemo } from "../../../demo/scenes/square/useSquareDemo";
 import { useSquareKeyboard } from "../../../demo/scenes/square/useSquareKeyboard";
 import { SpringProgress } from "../../../src/animation/physics/spring";
 import { useKeyframeOps } from "../../../demo/components/instrument/keyframes/composables/useKeyframeOps";
-import type { KeyframesState } from "../../../demo/components/instrument/keyframes/composables/useKeyframesState";
 import SquareInstrument from "../../../demo/scenes/square/SquareInstrument.vue";
 import { warmKfEngine } from "../../../demo/kf-engine";
 
-/** The two members of `KeyframesState` the ops thread actually reads. */
-const stateStub = () =>
-    ({
-        addKeyframesString: ref(""),
-        kfControls: { keyframes: "", addKeyframes: "", dialogOpen: false },
-        getFormatWidth: () => undefined,
-    }) as unknown as KeyframesState;
-
-const syncStub = () => ({
-    updateAllStrings: async () => "",
-    updateAllStringsAndAnimation: async () => {},
-    debouncedUpdateAllStrings: () => {},
-});
+/** The buffer projection the op threads back into (a no-op here). */
+const syncStub = () => ({ reproject: () => {} });
 
 describe("X.KF.W11.b (a) — the editor seam keeps the square's own renderer (L-2)", () => {
     beforeAll(async () => {
@@ -70,12 +58,7 @@ describe("X.KF.W11.b (a) — the editor seam keeps the square's own renderer (L-
             // identity claim, not a shape claim.
             const ownRenderer = demo.anim.frames[0]!.transform;
 
-            const ops = useKeyframeOps(
-                demo.anim,
-                stateStub(),
-                () => {},
-                syncStub(),
-            );
+            const ops = useKeyframeOps(demo.anim, () => {}, syncStub());
 
             // The exact edit the panel performs: a whitespace-level round-trip
             // of an authored keyframes string. The throwaway the editor compiles

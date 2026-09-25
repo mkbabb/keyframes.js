@@ -7,24 +7,22 @@ import { useKeyframeOps } from "./useKeyframeOps";
 import { formatEditorCSS } from "@utils/formatEditorCSS";
 
 /**
- * The editor's parsing-orchestration half: turns the live `Animation` into its
- * CSS-string projections (animation → strings) and wires the array/control
- * watchers. The string-edit → animation mutation ops are colocated in
- * `useKeyframeOps`, which this composable threads the string-generation
- * callbacks into (one-way dependency, no cycle).
+ * The editor's parsing-orchestration half: projects the live `Animation` into
+ * the pane's buffer (animation → string) and threads that projection into the
+ * buffer → animation op (`useKeyframeOps`, one-way dependency, no cycle).
+ *
+ * X.KF.W13X.keyframes (KFE-ORPHAN · A2-KE-L1-1) — the per-card projection
+ * (`updateAllStrings` over `CSSKeyframesToStrings`), the card-selection watch
+ * and the card ops served only the card editor and its add dialog, which no
+ * product file mounted after `e69f7731`. What stays is what the live pane
+ * reads: the buffer projection and the one op.
  */
 export function useKeyframesParsing(
     animation: KeyframesAnimation<any>,
     state: KeyframesState,
     emit: (event: "keyframesUpdate", val: { animation: KeyframesAnimation<any> }) => void,
 ) {
-    const {
-        cssKeyframesString,
-        templateFrameStrings,
-        kfControls,
-        keyframesStyleId,
-        getFormatWidth,
-    } = state;
+    const { cssKeyframesString, keyframesStyleId, getFormatWidth } = state;
 
     // --- CSS string generation (animation → strings) ---
 
@@ -53,59 +51,27 @@ export function useKeyframesParsing(
         return keyframesString;
     };
 
-    const updateAllStrings = async () => {
-        const { CSSKeyframesToStrings } = await loadAnimationEngine();
-        templateFrameStrings.value = [];
-        const cards = await CSSKeyframesToStrings(animation);
-        templateFrameStrings.value = await Promise.all(
-            cards.map((card) => formatEditorCSS(card, getFormatWidth())),
-        );
+    // After an adopt the buffer re-projects from the animation the op wrote —
+    // debounced, so a burst of edits settles into one projection.
+    const reproject = debounce(() => {
+        void updateCSSAnimationKeyframesStringFromAnimation();
+    }, 100);
 
-        const keyframesString =
-            await updateCSSAnimationKeyframesStringFromAnimation();
-
-        return keyframesString;
-    };
-
-    const debouncedUpdateAllStrings = debounce(updateAllStrings, 100);
-
-    const updateAllStringsAndAnimation = async () => {
-        const reversedKeyframesString = await updateAllStrings();
-        ops.updateAnimationFromKeyframesString(reversedKeyframesString);
-    };
-
-    // --- CSS string → animation ops (colocated) ---
-
-    const ops = useKeyframeOps(animation, state, emit, {
-        updateAllStrings,
-        updateAllStringsAndAnimation,
-        debouncedUpdateAllStrings,
-    });
-
-    // --- Watchers ---
-
-    watch(
-        () => kfControls.selectedKeyframesControl,
-        () => {
-            updateAllStrings();
-        },
-    );
+    const ops = useKeyframeOps(animation, emit, { reproject });
 
     // `animation.templateFrames` is a `markRaw` array, so this watch fires on
     // STRUCTURAL changes (a frame added/removed — the array reference's length)
     // — NOT on element-level edits (`frame.start`/`frame.vars` mutation), which
-    // are un-tracked under markRaw and covered instead by the EXPLICIT
-    // `updateAllStrings()` calls at each mutation site (the single source of
-    // truth). For the structural case the `flush: 'post'` + `nextTick` ordering
-    // (D.W3.S4) keeps the derived strings from reprojecting off a half-applied
-    // array between the mutation and the render barrier. The data-flow is
-    // honest: this watch is the structural projector, the explicit calls are
-    // the edit projector — not a watch that pretends to cover both.
+    // are un-tracked under markRaw and covered instead by the explicit
+    // `reproject()` after each adopt. For the structural case the
+    // `flush: 'post'` + `nextTick` ordering (D.W3.S4) keeps the buffer from
+    // reprojecting off a half-applied array between the mutation and the render
+    // barrier.
     watch(
         () => animation.templateFrames.length,
         async () => {
             await nextTick();
-            debouncedUpdateAllStrings();
+            reproject();
         },
         { flush: "post" },
     );
@@ -113,14 +79,5 @@ export function useKeyframesParsing(
     return {
         updateFromString: ops.updateFromString,
         updateCSSAnimationKeyframesStringFromAnimation,
-        updateAllStrings,
-        debouncedUpdateAllStrings,
-        updateAllStringsAndAnimation,
-        updateAnimationFromKeyframesString:
-            ops.updateAnimationFromKeyframesString,
-        updateAnimationFromKeyframeString: ops.updateAnimationFromKeyframeString,
-        updateAddKeyframesString: ops.updateAddKeyframesString,
-        addKeyframesStringToAnimation: ops.addKeyframesStringToAnimation,
-        removeKeyframeData: ops.removeKeyframeData,
     };
 }

@@ -215,9 +215,8 @@ const { applyCSSStyles, clearApplied, cssApplied } = useKeyframeBrushApply({
 // glyph one file over (no glyph ⇒ no engine read, no parse, no loop).
 //
 // The target is the editor WELL: the element whose buffer failed to parse is the
-// element that moves. The folder's own idiom is this one (`KeyframesEditor.vue`:
-// `presets.warpLeft().setTargets(leaving)`), and `setTargets` is the only
-// populator the engine has — a preset factory takes options, never targets.
+// element that moves. `setTargets` is the only populator the engine has — a
+// preset factory takes options, never targets.
 //
 // D-25 rides with it and is no longer vacuous. The bank booked D-25 INFO
 // *because* neither animation rendered (D-4 here, D-5 at the brush); D-5's decoy

@@ -67,9 +67,6 @@ const stub = vi.hoisted(() => ({
 }));
 vi.mock("@mkbabb/glass-ui", () => stub.module({ Card: "div", CardContent: "div", Separator: "hr" }));
 vi.mock("@mkbabb/glass-ui/labeled-field", () => stub.module({ LabeledSlider: "div" }));
-vi.mock("@components/instrument/keyframes/KeyframesEditor.vue", async () => ({
-    default: (await stub.module({ KeyframesEditor: "div" })).KeyframesEditor,
-}));
 
 import SpringHeatmap, {
     DAMPING_AXIS,

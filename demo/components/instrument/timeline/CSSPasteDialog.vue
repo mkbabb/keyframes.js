@@ -129,7 +129,9 @@ import { useMediaQuery } from "@vueuse/core";
  * `KeyframesAddDialog` was a 161-line re-authoring of these 80: the same
  * `@interact-outside` toaster guard byte for byte, the same `onInput` body, the
  * same flush `<pre><code>` well — and two OPPOSITE state-ownership contracts
- * for one widget. It is now a thin adapter over this shell.
+ * for one widget. It became a thin adapter over this shell, and X.KF.W13X
+ * `.keyframes` deleted it with the card editor that was its only mount
+ * (KFE-ORPHAN); this shell is the one paste dialog.
  *
  * The contract the fold settles:
  *   • `text` is a MODEL, not an `initialText` prop copied into local state on
@@ -153,9 +155,7 @@ import { useMediaQuery } from "@vueuse/core";
  * native textarea has no innerHTML to recolour — the adapter's highlight/Tab
  * deltas are mooted with the host (KAD-3/7/16/17/19, KAD-F1/F4/F5), which is
  * the swap discharging them, not a second edit. The third `<pre>` widget
- * (`KeyframeCard.vue`, R-25) is NOT this shell's: it is a highlighted per-stop
- * read/edit surface whose token layer IS its content, and its S-9 carve is
- * focus/token/tap-floor only.
+ * (`KeyframeCard.vue`, R-25) left with the card editor (KFE-ORPHAN).
  */
 const props = defineProps<{
     title: string;

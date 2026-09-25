@@ -4,17 +4,17 @@ import { useKeyframesParsing } from "./useKeyframesParsing";
 
 /**
  * Editor entry composable — composes the two colocated halves:
- *   • `useKeyframesState`   — UI state (string refs, stored controls, ids,
- *                             the format-width / apply-name helpers).
- *   • `useKeyframesParsing` — parse orchestration (animation ⇄ CSS strings,
- *                             add/remove keyframe ops, the length-watch flush).
+ *   • `useKeyframesState`   — UI state (the buffer ref, the style id, the
+ *                             format-width helper).
+ *   • `useKeyframesParsing` — parse orchestration (animation ⇄ buffer, the one
+ *                             op, the length-watch flush).
  *
- * KF-KE-49 (X.KF.W12.c) — this barrel returns what its two consumers
- * (`KeyframesEditor.vue`, `KeyframesStringControls.vue`) READ, and nothing
- * else. It used to re-export twenty members "so the callsite keeps resolving",
- * six of them read by no one (`tabsListEl`, `animationUUID`, `storedControls`,
- * `getFormatWidth`, `debouncedUpdateAllStrings`,
- * `updateAnimationFromKeyframesString`) — a backwards-compat surface under the
+ * KF-KE-49 (X.KF.W12.c) — this barrel returns what its consumer
+ * (`KeyframesStringControls.vue`) READS, and nothing else: four members.
+ * X.KF.W13X.keyframes (A2-KE-L1-1) cut it from fourteen — the other ten served
+ * only the card editor (`KeyframesEditor.vue`) and its add dialog, deleted
+ * with that subtree (KFE-ORPHAN). It once re-exported twenty members "so the
+ * callsite keeps resolving" — a backwards-compat surface under the
  * standing no-shim law. A consumer that needs one of the halves' internals
  * reaches the half. `getTmpAnimationName` left the list with the accessor
  * itself (D-23 / N-8, X.KF.W12.e): it was a second NAME for `keyframesStyleId`,
@@ -39,25 +39,10 @@ export function useKeyframesEditor(
     const parsing = useKeyframesParsing(animation, state, emit);
 
     return {
-        // Refs
         cssKeyframesString: state.cssKeyframesString,
-        addKeyframesString: state.addKeyframesString,
-        templateFrameStrings: state.templateFrameStrings,
-
-        // Constants
         keyframesStyleId: state.keyframesStyleId,
-        kfControls: state.kfControls,
-
-        // Functions
         updateFromString: parsing.updateFromString,
         updateCSSAnimationKeyframesStringFromAnimation:
             parsing.updateCSSAnimationKeyframesStringFromAnimation,
-        updateAllStrings: parsing.updateAllStrings,
-        updateAllStringsAndAnimation: parsing.updateAllStringsAndAnimation,
-        updateAnimationFromKeyframeString:
-            parsing.updateAnimationFromKeyframeString,
-        updateAddKeyframesString: parsing.updateAddKeyframesString,
-        addKeyframesStringToAnimation: parsing.addKeyframesStringToAnimation,
-        removeKeyframeData: parsing.removeKeyframeData,
     };
 }

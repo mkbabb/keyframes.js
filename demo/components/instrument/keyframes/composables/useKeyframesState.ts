@@ -2,15 +2,12 @@ import { convertPixelsToCh } from "@utils/helpers";
 import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 import { kfEngine } from "@kf-engine";
 import { ref } from "vue";
-import {
-    createAnimationUUId,
-    getStoredAnimationGroupControlOptions,
-} from "@state";
+import { createAnimationUUId } from "@state";
 
 /**
- * The editor's UI-state half: the reactive string refs, the stored-control
- * scaffold, the stable identifiers, and the pure format-width / animation-name
- * helpers. No parsing, no animation mutation — that is `useKeyframesParsing`.
+ * The editor's UI-state half: the buffer ref, the stable identifier, and the
+ * pure format-width helper. No parsing, no animation mutation — that is
+ * `useKeyframesParsing`.
  */
 export function useKeyframesState(animation: KeyframesAnimation<any>) {
     // N-8 (X.KF.W12.e) — ONE DERIVATION, AND IT IS THE LIBRARY'S.
@@ -55,14 +52,14 @@ export function useKeyframesState(animation: KeyframesAnimation<any>) {
     // already dead at both of its consumers. Every reader now reads THIS const.
     const keyframesStyleId = cssIdent(`keyframes-style-${animationUUID}`);
 
-    const storedControls = getStoredAnimationGroupControlOptions(animation);
-    const kfControls = storedControls.keyframeControls;
-
     // --- Refs ---
 
+    // X.KF.W13X.keyframes (KFE-ORPHAN · A2-KE-L1-1) — the buffer is the one
+    // string this state holds. The per-card strings (`templateFrameStrings`),
+    // the add-dialog draft (`addKeyframesString`) and the stored card-control
+    // scaffold they read (`keyframeControls`) served only the card editor and
+    // its add dialog, which no product file mounted after `e69f7731`.
     const cssKeyframesString = ref("");
-    const addKeyframesString = ref(kfControls.addKeyframes);
-    const templateFrameStrings = ref<string[]>([]);
 
     // --- Pure helpers ---
 
@@ -83,15 +80,8 @@ export function useKeyframesState(animation: KeyframesAnimation<any>) {
     };
 
     return {
-        animationUUID,
         keyframesStyleId,
-        storedControls,
-        kfControls,
-
         cssKeyframesString,
-        addKeyframesString,
-        templateFrameStrings,
-
         getFormatWidth,
     };
 }
