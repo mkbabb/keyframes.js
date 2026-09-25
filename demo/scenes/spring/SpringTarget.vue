@@ -120,7 +120,7 @@
                 aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown Shift+ArrowLeft Shift+ArrowRight PageUp PageDown Home End Enter Space"
                 aria-describedby="spring-rail-hint"
                 tabindex="0"
-                @pointerdown="onPointerDown"
+                @pointerdown="onRailPointerDown"
                 @keydown="onKeydown"
             >
                 <!-- D-7/C-8 + D-16 — THE VALUE TRACK, inset inside the rail.
@@ -307,6 +307,7 @@ import { useDragScrub } from "@composables/useDragScrub";
 import { useDoubleTap } from "@composables/useDoubleTap";
 import { SPRING_DEMO_KEY } from "./springKeys";
 import SpringTrace, { springHorizonMs } from "./SpringTrace.vue";
+import { DOUBLE_TAP_MS } from "./useSpringDemo";
 
 const demo = inject(SPRING_DEMO_KEY)!;
 
@@ -530,8 +531,16 @@ const { dragging, onPointerDown } = useDragScrub({
 // S.G3 S2 — the reliable-primitive double-tap on the rail launches the derby (the
 // touch parity for the former `@dblclick`; drag-disjoint — a scrub never triggers
 // it). The SAME path serves mouse, pen, and touch.
+// KFA-42 — every press first lets the demo snapshot the pre-gesture pose (the
+// first press of a gesture), THEN scrubs; a derby restores that pose.
+const onRailPointerDown = (e: PointerEvent): void => {
+    demo.beginRailPress();
+    onPointerDown(e);
+};
+
 useDoubleTap({
     el: railEl,
+    windowMs: DOUBLE_TAP_MS,
     onDoubleTap: () => {
         demo.derby();
     },

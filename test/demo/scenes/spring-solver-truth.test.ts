@@ -283,3 +283,41 @@ describe("(12) KFA-154 — the field's own sweep streams from its first write to
         }
     });
 });
+
+describe("(13) KFA-42 — the derby starts from, and returns to, the pose the double-tap interrupted", () => {
+    it("two tap-presses re-seat the field, yet the lanes launch together from the pre-gesture pose and the race restores it", () => {
+        vi.useFakeTimers();
+        let clock = 10_000;
+        const nowSpy = vi.spyOn(performance, "now").mockImplementation(() => clock);
+        const prevRaf = window.requestAnimationFrame;
+        const prevCancel = window.cancelAnimationFrame;
+        let queue = new Map<number, FrameRequestCallback>();
+        let id = 1;
+        window.requestAnimationFrame = ((cb: FrameRequestCallback) => { queue.set(id, cb); return id++; }) as typeof window.requestAnimationFrame;
+        window.cancelAnimationFrame = ((h: number) => { queue.delete(h); }) as typeof window.cancelAnimationFrame;
+        const frame = () => { clock += 16; const cur = queue; queue = new Map(); for (const cb of cur.values()) cb(clock); };
+        parkPausedOnSpring();
+        const [demo, app] = withSetup(() => useSpringDemo());
+        try {
+            const pose = demo.target.value;
+            const d = demo as { beginRailPress?: () => void };
+            const press = (v: number) => { d.beginRailPress?.(); demo.reseat(v); };
+            press(0.5);
+            for (let i = 0; i < 6; i++) frame(); // the first tap's chase runs ~100 ms
+            press(0.5);
+            for (let i = 0; i < 3; i++) frame();
+            demo.derby();
+            // common start: every lane is at the interrupted pose when the cascade begins
+            for (const t of demo.tracks) expect(t.spring.value, `${t.preset.name} starts at the pose`).toBe(pose);
+            // run the race out (timers + frames)
+            for (let i = 0; i < 200; i++) { vi.advanceTimersByTime(16); frame(); }
+            expect(demo.target.value, "the race restores the pre-gesture pose").toBe(pose);
+        } finally {
+            app.unmount();
+            nowSpy.mockRestore();
+            vi.useRealTimers();
+            window.requestAnimationFrame = prevRaf;
+            window.cancelAnimationFrame = prevCancel;
+        }
+    });
+});

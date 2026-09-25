@@ -23,6 +23,10 @@ export type { SpringTrack } from "./useSpringHotPath";
 
 const SAMPLER_DURATION = 1400;
 
+/** The rail's double-tap window (ms) — the derby gesture's, shared by the demo's
+ *  pre-gesture snapshot and SpringTarget's `useDoubleTap` (KFA-42). */
+export const DOUBLE_TAP_MS = 300;
+
 
 /**
  * Drives the SpringProgress / springTimingFunction showcase.
@@ -456,8 +460,54 @@ export function useSpringDemo() {
         },
     );
 
+    // X.KF.W13X.spring (KFA-42) — THE PRE-GESTURE POSE. Each tap of the rail's
+    // double-tap is also a scrub press, and a press re-seats the field, so the
+    // derby used to launch from a field the two taps had already set chasing
+    // (lanes spread 0.26-0.45 at mount, drifting to the tapped value) and then
+    // "restored" to the tapped spot. The first press of a gesture snapshots the
+    // field; a derby launched within the double-tap window restores that
+    // snapshot first, so the lanes start together from the pose the gesture
+    // interrupted, and the race returns there.
+    interface FieldSnapshot {
+        at: number;
+        target: number;
+        live: [number, number];
+        tracks: [number, number][];
+    }
+    let gestureSnapshot: FieldSnapshot | null = null;
+    let lastPressAt = Number.NEGATIVE_INFINITY;
+    const beginRailPress = (): void => {
+        const now = performance.now();
+        if (now - lastPressAt > DOUBLE_TAP_MS || !gestureSnapshot) {
+            gestureSnapshot = {
+                at: now,
+                target: target.value,
+                live: [liveSpring.value, liveSpring.velocity],
+                tracks: tracks.map((t) => [t.spring.value, t.spring.velocity]),
+            };
+        }
+        lastPressAt = now;
+    };
+    const restoreSnapshot = (snap: FieldSnapshot): void => {
+        liveSpring.reset(snap.live[0], snap.live[1]);
+        liveSpring.target = snap.target;
+        tracks.forEach((t, i) => {
+            const [v, vel] = snap.tracks[i]!;
+            t.spring.reset(v, vel);
+            t.spring.target = snap.target;
+        });
+        target.value = snap.target;
+        springLive.simMs = 0;
+        seatReadoutsFromSolvers();
+        flushReadouts();
+        repaintSprings();
+    };
+
     /** The egg's one entry point: capture the pose it interrupts, then launch. */
     const derby = (): void => {
+        const snap = gestureSnapshot;
+        gestureSnapshot = null;
+        if (snap && performance.now() - lastPressAt <= DOUBLE_TAP_MS) restoreSnapshot(snap);
         preDerbyTarget = target.value;
         launchDerby();
     };
@@ -656,6 +706,7 @@ export function useSpringDemo() {
         // Methods
         reseat,
         toggleTarget,
+        beginRailPress,
         derby, // L.W11 S6 — the four-lane derby + its reactive state/lanes:
         derbyActive,
         derbyLanes: lanes,
