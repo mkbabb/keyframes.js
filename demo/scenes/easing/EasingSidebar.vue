@@ -31,7 +31,24 @@
                  the picker's travel dot is a private one-shot rAF clock, NOT the
                  scene sweep (BG-9); the gallery race IS the motion preview, so
                  a second uncoordinated clock stays off this surface. -->
+            <!-- UIA-KF-093 (+ UIA-KF-091's consumer half) — the catalogue gap
+                 shows the SELECTED curve. An engine-native curve (the bounce
+                 family) has no cubic-bezier, so the editor cannot draw it: the
+                 Curve facet shows glass's display plot of the curve the stage
+                 runs (glass README: EasingCurve is the DISPLAY primitive for
+                 curves the picker cannot author), with no second literal and no
+                 second copy (the header literal is the one copy). The authoring
+                 picker stays seated but hidden until the user departs into a
+                 custom curve — the edit gesture IS the departure. -->
+            <EasingCurve
+                v-if="showGapPlot"
+                class="gap-plot"
+                :strokes="[{ d: gapPlot.d, tone: 'ink' }]"
+                :clipped="gapLeavesFrame"
+                :label="`${demo.currentEasingName.value} curve`"
+            />
             <EasingPicker
+                v-show="!showGapPlot"
                 :key="seat.key.value"
                 v-bind="seat.seed.value"
                 :model-value="seat.model.value"
@@ -53,6 +70,15 @@
                 cubic-bezier reproduces it, so editing here departs into a
                 custom curve
             </p>
+            <Button
+                v-if="showGapPlot"
+                variant="outline"
+                size="sm"
+                class="self-start"
+                @click="departed = true"
+            >
+                Edit as a custom curve
+            </Button>
 
             <Separator />
             <!-- The duration param — X.KF.W13V.y (OA-51; DESIGN-NOTE N-2): the
@@ -76,10 +102,17 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { computed, ref, watch } from "vue";
 import { Card, CardContent, Separator } from "@mkbabb/glass-ui";
+import { Button } from "@mkbabb/glass-ui/button";
 import { LabeledSlider } from "@mkbabb/glass-ui/labeled-field";
-import { EasingPicker, type EasingPickerValue } from "@mkbabb/glass-ui/easing";
+import {
+    EasingCurve,
+    EasingPicker,
+    type EasingPickerValue,
+} from "@mkbabb/glass-ui/easing";
+import { curvePlot, unitEasingFrame } from "@utils/curvePlot";
+import { namedEasing } from "@utils/reference-data/timingCurveUtils";
 
 import {
     NAMED_EASING_BEZIER,
@@ -163,6 +196,9 @@ const seat = useEasingPickerSeat(truth, onAuthored);
 // The catalogue-gap caption: the selection is neither bezier-expressible nor
 // steps (BG-8 — the bounce/elastic families stay kf-owned).
 const catalogueGap = ref(false);
+// The user's departure from a gap curve into authoring (UIA-KF-093): the
+// picker is revealed; a new selection returns to the display plot.
+const departed = ref(false);
 const syncGap = (name: string) => {
     catalogueGap.value =
         name !== "cubic-bezier" &&
@@ -170,6 +206,23 @@ const syncGap = (name: string) => {
         !demo.isSteps.value;
 };
 syncGap(demo.currentEasingName.value);
+const showGapPlot = computed(() => catalogueGap.value && !departed.value);
+// The display stroke from the function the stage runs (the same `namedEasing`
+// the specimen tile plots), in glass's plot space (unit square, value 1 on top).
+const gapPlot = computed(() =>
+    curvePlot(namedEasing(demo.currentEasingName.value), unitEasingFrame()),
+);
+// The bounce family overshoots the unit box (value.js `ease-in-bounce` peaks
+// near 1.18): glass marks a plot that leaves its frame on the crossed edges.
+const gapLeavesFrame = computed(() =>
+    gapPlot.value.vertices.some(({ v }) => v > 1 || v < 0),
+);
+watch(
+    () => demo.currentEasingName.value,
+    () => {
+        departed.value = false;
+    },
+);
 
 // A tile selection (or any other external write of the scene's curve) re-seats
 // the picker; the seat decides remount-vs-write.

@@ -69,6 +69,12 @@ const received: {
 } = {};
 
 vi.mock("@mkbabb/glass-ui/easing", () => ({
+    // X.KF.W13X.easing (UIA-KF-093) — the catalogue-gap state shows glass's
+    // display plot beside the (hidden, still seated) picker.
+    EasingCurve: defineComponent({
+        name: "EasingCurveStub",
+        setup: () => () => h("div", { class: "curve-stub" }),
+    }),
     EasingPicker: defineComponent({
         name: "EasingPickerStub",
         props: {
