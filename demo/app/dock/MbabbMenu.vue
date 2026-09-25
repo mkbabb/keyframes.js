@@ -3,16 +3,12 @@
          open state — the one the self-hold watches (script below). It is a local
          model, not dock plumbing: nothing outside this file reads or writes it. -->
     <DropdownMenu v-model:open="open">
-        <!-- MM-29 (site 1 of 2) — `normal-case` cancels `text-transform` and
-             NOTHING else: `text-mono-caption` also binds
-             `letter-spacing: var(--type-tracking-caps)` (0.1em), which rides on
-             regardless, so a lowercase handle shipped with CAPS tracking. The
-             pair is mandatory (G-W6-8 binds this wave and KF.W7 identically).
-             The responsive rung pair stays exactly as authored — `lg:` swaps to
-             `text-mono-small`, which carries no transform and no caps tracking
-             at all — because collapsing it would decide a dock-band magnitude,
-             and magnitudes are KF.W9's. -->
-        <DockTrigger ref="mbabbTrigger" for="dropdown" aria-label="@mbabb menu" class="text-mono-caption normal-case tracking-normal lg:text-mono-small" data-register="code">@mbabb</DockTrigger>
+        <!-- X.KF.W13X.dock · UIA-KF-237 — the trigger takes the dock's own label
+             rung (`dock-label`, the scene trigger's) and keeps only the mono FACE
+             (`@mbabb` is an identifier, `data-register="code"`). The former
+             caption/small type overrides (MM-29's pair) shrank its box to 26 px
+             at 390 and 31 px at 1440 beside a 30/39 px scene trigger. -->
+        <DockTrigger ref="mbabbTrigger" for="dropdown" aria-label="@mbabb menu" class="dock-label font-mono" data-register="code">@mbabb</DockTrigger>
         <!-- MM-15 — `z-popover`, not `z-modal`. The dock menu is a popover and
              the demo's own written z-contract reserves `--z-modal` (140) for
              modal dialogs. The wrong rung was INERT and therefore invisible:
