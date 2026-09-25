@@ -96,7 +96,7 @@
                 'timeline-expanded-cell z-dock overflow-hidden',
                 'transition-[max-height,opacity] duration-slow ease-standard',
                 storedControls.isTimelineExpanded
-                    ? 'max-h-[var(--panel-max-h)] border-t border-border/50 glass-wash px-4 py-3'
+                    ? 'max-h-[var(--panel-max-h)]'
                     : 'max-h-0',
             ]"
         ></div>

@@ -1,7 +1,11 @@
 <template>
     <div class="flex flex-col gap-3">
-    <Card tier="quiet" :class="['cartoon-surface w-full overflow-visible', props.expanded ? 'border-0 shadow-none bg-transparent' : '']">
-        <CardContent :class="['relative flex flex-col gap-3', props.expanded ? 'p-2 px-0' : 'p-4']">
+    <!-- UIA-KF-085 — the Card IS the surface in both modes: expanded, it
+         floats over the stage at glass's floating tier instead of having its
+         material stripped by class overrides inside a hand-dressed wash cell
+         (the cell is now a placement slot, AnimationControlsGroup.vue). -->
+    <Card :tier="props.expanded ? 'floating' : 'quiet'" class="cartoon-surface w-full overflow-visible">
+        <CardContent class="relative flex flex-col gap-3 p-4">
         <!-- Pane action buttons.
              D-6 + the wave's ONE min-block-size policy (D-8), both spent by
              deleting the same class attribute rather than by writing a second

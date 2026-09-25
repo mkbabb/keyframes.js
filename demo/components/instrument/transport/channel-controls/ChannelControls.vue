@@ -167,10 +167,16 @@
                 <!-- Timeline: outside the gated panels but inside the scrollable
                      area so Teleport lifecycle isn't tied to a panel mount/unmount
                      (which breaks moveTeleport). When collapsed, renders in-place
-                     here. When expanded, teleports to bottom bar. -->
+                     here. When expanded, teleports to bottom bar.
+                     KFA-56 / UIA-KF-019 (X.KF.W13X.timeline) — only the ACTIVE
+                     channel mounts its timeline: the inactive hosts are hidden
+                     by v-show, which a Teleport escapes, so expanding stacked
+                     all three channels' timelines in the cell and Tab walked
+                     into the hidden ones. The session survives the unmount
+                     (KFA-58, useTimeline's per-channel owner). -->
                 <Teleport to="#timeline-expanded-target" :disabled="!storedControls.isTimelineExpanded" defer>
                     <div
-                        v-if="isTimelineVisible"
+                        v-if="active && isTimelineVisible"
                         :key="storedControls.selectedControl"
                         class="animate-in fade-in slide-in-from-right-2 duration-fast"
                     >
