@@ -32,3 +32,16 @@ export const TARGET_DT = 1000 / 60;
  */
 export const inertiaFactorToFriction = (inertiaFactor: number): number =>
     -Math.log(inertiaFactor) * (1000 / TARGET_DT);
+
+/**
+ * KFA-83 — a gesture amount measured over one pointer event, re-expressed per
+ * TARGET_DT frame (the unit the fling speed and the coast step share), so the
+ * fling reads the hand's speed per unit time whatever the event rate. The event
+ * delta is clamped: coalesced events a millisecond apart must not spike it, and
+ * a move after a long pause must not read as near-zero-dt.
+ */
+export const MIN_EVENT_DT = 4;
+export const MAX_EVENT_DT = 100;
+export const perTargetFrame = (amount: number, eventDtMs: number): number =>
+    (amount * TARGET_DT) /
+    Math.min(Math.max(eventDtMs, MIN_EVENT_DT), MAX_EVENT_DT);

@@ -4,6 +4,7 @@ import type { Ref, ShallowRef } from "vue";
 import { useEventListener, useTimeoutFn } from "@vueuse/core";
 import { axes } from "../transform";
 import type { PressedKeys } from "../types";
+import { perTargetFrame } from "./inertiaDecay";
 
 interface OrbitalPointerParams {
     sensitivity: number;
@@ -11,11 +12,11 @@ interface OrbitalPointerParams {
     containerRef: Readonly<ShallowRef<HTMLElement | null>>;
     // Transform appliers — owned by OrbitalDrag (the component that owns the
     // model + emit); the pointer reader only dispatches input to them.
-    updateRotation: (deltaX: number, deltaY: number, isTouch?: boolean) => void;
+    updateRotation: (deltaX: number, deltaY: number, isTouch?: boolean, eventDtMs?: number) => void;
     applyRotation: (axis: vec3, angle: number) => void;
     updateTranslation: (axis: (typeof axes)[number], delta: number) => void;
     updateScale: (axis: (typeof axes)[number], delta: number) => void;
-    handleAxisSpecificInput: (deltaX: number, deltaY: number, isTouch?: boolean) => void;
+    handleAxisSpecificInput: (deltaX: number, deltaY: number, isTouch?: boolean, eventDtMs?: number) => void;
     angularVelocityAxis: vec3;
     angularVelocitySpeed: Ref<number>;
     onStopDrag?: () => void;
@@ -126,8 +127,12 @@ export function useOrbitalPointer(params: OrbitalPointerParams) {
 
         if (Math.abs(deltaX) < 0.5 && Math.abs(deltaY) < 0.5) return;
 
+        // KFA-83 — this move's own time span, so the fling reads speed per
+        // unit time (perTargetFrame), not per pointer event.
+        const eventDtMs = event.timeStamp - lastMoveAt;
+
         if (pressedKeys.value.x || pressedKeys.value.y || pressedKeys.value.z) {
-            handleAxisSpecificInput(deltaX, deltaY, isTouch);
+            handleAxisSpecificInput(deltaX, deltaY, isTouch, eventDtMs);
         } else if (pressedKeys.value.shift) {
             updateTranslation("x", deltaX);
             updateTranslation("y", deltaY);
@@ -138,9 +143,9 @@ export function useOrbitalPointer(params: OrbitalPointerParams) {
             const angle = ((Math.abs(deltaX) * s) / 25) * Math.sign(deltaX);
             applyRotation(axis, angle);
             vec3.copy(angularVelocityAxis, axis);
-            angularVelocitySpeed.value = Math.abs(angle);
+            angularVelocitySpeed.value = perTargetFrame(Math.abs(angle), eventDtMs);
         } else {
-            updateRotation(deltaX, deltaY, isTouch);
+            updateRotation(deltaX, deltaY, isTouch, eventDtMs);
         }
 
         lastMoveAt = event.timeStamp;

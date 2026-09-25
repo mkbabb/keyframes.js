@@ -84,8 +84,7 @@ export function useOrbitalInertia(params: OrbitalInertiaParams) {
         if (isDragging.value || isTouching.value || isWheeling.value) return;
 
         // Frame-rate-independent decay: the analytic factor over the actual
-        // frame delta, so inertia feels identical at 30, 60, or 120fps (the
-        // closed form is frame-rate-exact by construction — no Euler drift).
+        // frame delta (the closed form is frame-rate-exact by construction).
         const now = performance.now();
         const dt =
             lastInertiaTime > 0
@@ -93,10 +92,15 @@ export function useOrbitalInertia(params: OrbitalInertiaParams) {
                 : TARGET_DT;
         lastInertiaTime = now;
         const factor = decayFactorOver(dt);
+        // KFA-83 — the STEP is frame-rate invariant too. The speeds are in the
+        // composable's unit, per TARGET_DT frame; a frame of `dt` ms advances by
+        // speed · dt / TARGET_DT. Stepping the whole speed on every frame coasted
+        // a 120 Hz display ~1.9× as far as a 60 Hz one.
+        const frames = dt / TARGET_DT;
 
         // Rotational inertia via persistent quaternion
         if (Math.abs(angularVelocitySpeed.value) > 1e-4) {
-            applyRotation(angularVelocityAxis, angularVelocitySpeed.value);
+            applyRotation(angularVelocityAxis, angularVelocitySpeed.value * frames);
             angularVelocitySpeed.value *= factor;
         } else {
             angularVelocitySpeed.value = 0;
@@ -111,7 +115,7 @@ export function useOrbitalInertia(params: OrbitalInertiaParams) {
                         k as (typeof axes)[number],
                         (model.value[category] as Record<string, number>)[
                             k
-                        ]! + v,
+                        ]! + v * frames,
                         v * factor,
                     );
                 } else {

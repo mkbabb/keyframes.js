@@ -21,6 +21,7 @@ import { useOrbitalInertia } from "./composables/useOrbitalInertia";
 import { useOrbitalPinch } from "./composables/useOrbitalPinch";
 import { useOrbitalPointer } from "./composables/useOrbitalPointer";
 import { eulerDegreesToQuaternion, quaternionToEulerDegrees } from "./quaternionEuler";
+import { TARGET_DT, perTargetFrame } from "./composables/inertiaDecay";
 
 const props = defineProps<{
     sensitivity?: number;
@@ -126,7 +127,7 @@ const applyRotation = (axis: vec3, angle: number) => {
     syncRotationToModel();
 };
 
-const updateRotation = (deltaX: number, deltaY: number, isTouch = false) => {
+const updateRotation = (deltaX: number, deltaY: number, isTouch = false, eventDtMs = TARGET_DT) => {
     const axis = vec3.fromValues(-deltaY, deltaX, 0);
     const magnitude = vec3.length(axis);
     if (magnitude < 1e-6) return;
@@ -137,14 +138,16 @@ const updateRotation = (deltaX: number, deltaY: number, isTouch = false) => {
 
     applyRotation(axis, angle);
 
-    // EMA-smoothed angular velocity for inertia
+    // EMA-smoothed angular velocity for inertia — per unit time (KFA-83): the
+    // event's angle over its own delta, per TARGET_DT frame, never per event.
     const alpha = 0.3;
     vec3.lerp(angularVelocityAxis, angularVelocityAxis, axis, alpha);
     vec3.normalize(angularVelocityAxis, angularVelocityAxis);
-    angularVelocitySpeed.value = alpha * angle + (1 - alpha) * angularVelocitySpeed.value;
+    angularVelocitySpeed.value =
+        alpha * perTargetFrame(angle, eventDtMs) + (1 - alpha) * angularVelocitySpeed.value;
 };
 
-const updateAxisRotation = (constrainedAxes: (typeof axes)[number][], deltaX: number, deltaY: number, isTouch = false) => {
+const updateAxisRotation = (constrainedAxes: (typeof axes)[number][], deltaX: number, deltaY: number, isTouch = false, eventDtMs = TARGET_DT) => {
     const magnitude = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
     if (magnitude < 1e-6) return;
 
@@ -160,7 +163,7 @@ const updateAxisRotation = (constrainedAxes: (typeof axes)[number][], deltaX: nu
         applyRotation(axis, angle * Math.sign(a === "x" ? -deltaY : deltaX));
     }
 
-    angularVelocitySpeed.value = angle;
+    angularVelocitySpeed.value = perTargetFrame(angle, eventDtMs);
 };
 
 // ── Linear transform appliers ───────────────────────────────────────
@@ -196,24 +199,24 @@ const updateScale = (axis: (typeof axes)[number], delta: number) => {
     updateLinearTransform("scale", axis, model.value.scale[axis] + delta * scaleFactor, delta * scaleFactor);
 };
 
-const handleAxisSpecificInput = (deltaX: number, deltaY: number, isTouch = false) => {
+const handleAxisSpecificInput = (deltaX: number, deltaY: number, isTouch = false, eventDtMs = TARGET_DT) => {
     const keys = pointer.pressedKeys.value;
     const delta = Math.abs(deltaX) > Math.abs(deltaY) ? deltaX : deltaY;
 
     if (keys.x) {
         if (keys.shift) updateTranslation("x", delta);
         else if (keys.ctrl || keys.meta) updateScale("x", delta);
-        else updateAxisRotation(["x"], deltaX, deltaY, isTouch);
+        else updateAxisRotation(["x"], deltaX, deltaY, isTouch, eventDtMs);
     }
     if (keys.y) {
         if (keys.shift) updateTranslation("y", delta);
         else if (keys.ctrl || keys.meta) updateScale("y", delta);
-        else updateAxisRotation(["y"], deltaX, deltaY, isTouch);
+        else updateAxisRotation(["y"], deltaX, deltaY, isTouch, eventDtMs);
     }
     if (keys.z) {
         if (keys.shift) updateTranslation("z", delta);
         else if (keys.ctrl || keys.meta) updateScale("z", delta);
-        else updateAxisRotation(["z"], deltaX, deltaY, isTouch);
+        else updateAxisRotation(["z"], deltaX, deltaY, isTouch, eventDtMs);
     }
 };
 
