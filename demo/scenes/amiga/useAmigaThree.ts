@@ -466,6 +466,14 @@ export function useAmigaThree(
 
     const homeView = (): void => {
         if (!camera || !controls) return;
+        // An orbit released moments ago is still coasting (OrbitControls'
+        // damping tail), and it would carry the camera off home again once the
+        // arc lands. One undamped update completes that coast now — the
+        // controls' own way of spending the tail — and the arc starts from where
+        // it would have come to rest.
+        controls.enableDamping = false;
+        controls.update();
+        controls.enableDamping = true;
         viewArc = {
             from: new THREE.Spherical().setFromVector3(
                 arcOffset.copy(camera.position).sub(controls.target),
