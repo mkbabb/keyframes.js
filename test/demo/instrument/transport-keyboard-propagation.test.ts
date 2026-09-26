@@ -163,8 +163,6 @@ function mountTransport(over: Partial<StoredAnimationGroupControlOptions> = {}):
                         h(TransportDock, {
                             storedControls,
                             isPlaying: false,
-                            isStarted: false,
-                            animationProgress: {},
                             animationNames: ["alpha", "beta"],
                             onTogglePlay: togglePlay,
                         }),

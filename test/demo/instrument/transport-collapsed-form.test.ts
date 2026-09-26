@@ -109,8 +109,6 @@ function mountTransport(animationNames: string[]) {
                         h(TransportDock, {
                             storedControls: stored,
                             isPlaying: true,
-                            isStarted: true,
-                            animationProgress: {},
                             animationNames,
                         }),
                 }),
