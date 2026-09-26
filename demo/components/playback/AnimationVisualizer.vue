@@ -69,7 +69,7 @@ import { SmoothProgress } from "@mkbabb/keyframes.js";
 import { SpringProgress } from "@mkbabb/keyframes.js";
 import { RAFPlayback } from "@mkbabb/keyframes.js";
 import { useDemoTicker } from "@components/instrument/transport/composables/useDemoTicker";
-import { useDragCapture } from "@components/instrument/transport/composables/useDragCapture";
+import { useDragScrub } from "@composables/useDragScrub";
 import { useTouchGate } from "@mkbabb/glass-ui";
 
 const props = defineProps<{
@@ -147,8 +147,8 @@ const progressFromPointerX = (clientX: number): number => {
  * that context to localStorage synchronously, so each emit costs one
  * `JSON.stringify` + `setItem`. The DECISION is DECOUPLE — the machine's cadence
  * is the animation frame, never the input sample — and the pointer half of it
- * lives in `useDragCapture`, which now delivers at most one move per frame with
- * the terminal sample flushed exactly on release.
+ * lives in `useDragScrub` (`coalesce: "raf"`), which delivers at most one move
+ * per frame with the terminal sample flushed exactly on release.
  *
  * The COAST reaches this function from inside `RAFPlayback`: one call per frame
  * by construction, so it already obeys that half of the rule. What it did not
@@ -246,7 +246,12 @@ const startCoast = () => {
 
 // ── Drag capture ─────────────────────────────────────────────────
 
-const { isDragging, onPointerDown } = useDragCapture({
+// X.KF.W13X.lib (A2-KE-L1-2) — the demo's ONE drag seam, with its per-frame
+// delivery (`coalesce: "raf"`, C·C-1 ≡ KF-AV-16): the press seats at once, each
+// later sample is projected and applied in the frame that paints it.
+const { dragging: isDragging, onPointerDown } = useDragScrub({
+    coalesce: "raf",
+    project: (e) => progressFromPointerX(e.clientX),
     onStart: (e) => {
         const ball = ballEl.value;
         if (!ball) return;
@@ -257,20 +262,17 @@ const { isDragging, onPointerDown } = useDragCapture({
         // Reset velocity tracking + cancel any in-flight coast. The
         // machine-write latch re-arms with the gesture: the clock may have moved
         // under us (the ribbon's own Slider scrubs the same animation), so the
-        // press always writes its seat.
+        // press always writes its seat. The press's own progress is the
+        // velocity origin, so its seat (the first `onScrub`) reads zero.
         lastEmittedT = null;
         velocityEstimator.reset(0);
         lastMoveTime = performance.now();
+        lastProgress = progressFromPointerX(e.clientX);
         coastPlayback.stop();
 
         emit("dragStart");
-
-        const p = progressFromPointerX(e.clientX);
-        lastProgress = p;
-        applyProgress(p);
     },
-    onMove: (e) => {
-        const p = progressFromPointerX(e.clientX);
+    onScrub: (p) => {
         trackVelocity(p);
         applyProgress(p);
     },

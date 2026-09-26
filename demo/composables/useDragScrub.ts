@@ -15,10 +15,19 @@ import {
  * window `pointermove`/`pointerup` + a `project(e) → ratio` read. They collapse
  * to THIS composable; each scene supplies ONLY its `project` (a rect-ratio for
  * the rails, a two-axis normalisation for the square). Its live consumers,
- * measured: `SquareScene`, `SpringTarget`, `SequenceScrubber`, and the ONE
- * shared instance behind `SequenceTarget`'s five row handles.
+ * measured: `SquareScene`, `SpringTarget`, `SequenceLanes` (two instances),
+ * `AnimationVisualizer` (the ribbon ball) and `PlaybackRibbon` (the scrub rail).
  *
- * The capture target is `el` (the rail / traveller / handle). vueuse owns the
+ * X.KF.W13X.lib (A2-KE-L1-2) — THE ONE DRAG SEAM. The transport's
+ * `useDragCapture` was a twin of this composable (the same latch, token,
+ * capture, window listeners and scope release) that differed only in
+ * delivering moves once per frame and in handing its hooks the raw event. It is
+ * DELETED; its behaviour lives here as the opt-in `coalesce: "raf"`, and a
+ * consumer whose VALUE is owned elsewhere (the ribbon's producer Slider) omits
+ * `project`/`onScrub` and uses the seam for the gesture alone.
+ *
+ * The capture target is `el` (the rail / traveller / handle), or the element the
+ * `pointerdown` listener sits on when `el` is omitted. vueuse owns the
  * window-listener lifecycle: the move/up/cancel handlers are registered ONCE, in
  * THIS composable's own effect scope (so the scope disposes them), and
  * early-return unless the sample belongs to the gesture in flight — one honest
@@ -30,8 +39,8 @@ import {
  * sets neither.
  *
  * I.W4 D1 — THE GESTURE-IN-FLIGHT AUTHORITY (the gestalt single-seam). This
- * composable is one of the two things in the demo that know "a drag is live"
- * (`useDragCapture` is the other), so it owns the global select-suppression
+ * composable is the one thing in the demo that knows "a drag is live", so it
+ * owns the global select-suppression
  * token: on `onPointerDown` it sets `body.is-dragging` (whose rule
  * `body.is-dragging * { user-select: none }` lives in design-idioms.css) and
  * clears it on `pointerup`/`pointercancel`. Every drag surface that routes
@@ -41,7 +50,7 @@ import {
  * square).
  *
  * X.KF.W11.i — THE GUARD FAMILY (KF-SCR-1 + L·D-1, spec'd with KF-AV-15 across
- * BOTH demo drag seams; `useDragCapture` carries the identical family). Three
+ * the demo's drag seams, which are now this one composable). Three
  * parts, one cure:
  *
  *   (1) THE RE-ENTRANCY GUARD. A second pointer arriving on a live gesture is
@@ -79,18 +88,35 @@ import {
 type ReleasePolicy = "persist" | "recenter";
 
 interface UseDragScrubOptions<T = number> {
-    /** The element that captures the pointer for the gesture (the rail / handle). */
-    el: Ref<HTMLElement | null>;
+    /**
+     * The element that captures the pointer for the gesture (the rail / handle).
+     * Omitted, the seam captures on the element the `pointerdown` listener is
+     * bound to (`e.currentTarget`).
+     */
+    el?: Ref<HTMLElement | null>;
     /**
      * Project a pointer event onto the scene's scrub value. PURE — the scene's
      * own geometry: a rect-ratio for a rail (`(clientX - left) / width`), the
      * nearest-point-on-path length ratio for MotionPath. Returns the value
      * `onScrub` will receive (typically a `[0,1]` ratio; the projector owns any
-     * clamp the geometry needs).
+     * clamp the geometry needs). Omitted with `onScrub` when the value is owned
+     * by the component under the pointer (the seam then owns the gesture only).
      */
-    project: (e: PointerEvent) => T;
+    project?: (e: PointerEvent) => T;
     /** Apply a projected value (re-seat the spring target / scrub the playhead). */
-    onScrub: (value: T) => void;
+    onScrub?: (value: T) => void;
+    /**
+     * The move-delivery policy. Omitted, every admitted `pointermove` is
+     * projected and applied at once. `"raf"` DECOUPLES (C·C-1 ≡ KF-AV-16): the
+     * sample stream is still read at full rate — the latest sample wins — but
+     * the move is delivered in the animation frame that will paint it, so a
+     * consumer whose `onScrub` ends in a machine write (one `JSON.stringify` +
+     * `setItem` per call) pays at most one per frame. The press is never
+     * coalesced, and the pending sample is flushed SYNCHRONOUSLY at the
+     * gesture's end, before `onEnd`, so the release records exactly the value
+     * the user let go at (the terminal sample a wall-clock throttle drops).
+     */
+    coalesce?: "raf";
     /** Fired once on pointer-down, AFTER capture, BEFORE the first `onScrub`. */
     onStart?: (e: PointerEvent) => void;
     /** Fired once on pointer-up, when a live drag ends. */
@@ -121,6 +147,7 @@ export function useDragScrub<T = number>(
 ): UseDragScrub {
     const { el, project, onScrub, onStart, onEnd, onRelease } = options;
     const releasePolicy: ReleasePolicy = options.releasePolicy ?? "persist";
+    const coalesce = options.coalesce === "raf";
 
     const dragging = ref(false);
     /**
@@ -133,6 +160,31 @@ export function useDragScrub<T = number>(
     /** Is this event the gesture's own pointer? The seam's one admission test. */
     const isActivePointer = (e: PointerEvent) => e.pointerId === activePointerId;
 
+    /** Project and apply one sample (a no-op for a gesture-only consumer). */
+    const scrub = (e: PointerEvent) => {
+        if (project && onScrub) onScrub(project(e));
+    };
+
+    // The `coalesce: "raf"` policy's one pending sample and its frame.
+    let pendingMove: PointerEvent | null = null;
+    let moveFrame: number | null = null;
+
+    /** Deliver the latest sample now (the rAF callback AND the terminal flush). */
+    const flushPendingMove = () => {
+        if (moveFrame !== null) cancelAnimationFrame(moveFrame);
+        moveFrame = null;
+        const e = pendingMove;
+        pendingMove = null;
+        if (e) scrub(e);
+    };
+
+    /** Drop the pending sample unsent (the gesture is going away with its scope). */
+    const dropPendingMove = () => {
+        if (moveFrame !== null) cancelAnimationFrame(moveFrame);
+        moveFrame = null;
+        pendingMove = null;
+    };
+
     const endGesture = (e: PointerEvent) => {
         activePointerId = null;
         dragging.value = false;
@@ -140,6 +192,9 @@ export function useDragScrub<T = number>(
         // release hooks, so the chrome is selectable again the instant the drag
         // ends regardless of what the hooks do.
         releaseSelectSuppression();
+        // The terminal sample, exact and synchronous, BEFORE `onEnd` — the
+        // release hook reads the position the gesture ended at.
+        flushPendingMove();
         onEnd?.(e);
         // D2 — only a "recenter" policy fires the scene's return-home verb; under
         // "persist" the dragged value stays exactly where released.
@@ -147,6 +202,9 @@ export function useDragScrub<T = number>(
     };
 
     const onPointerDown = (e: PointerEvent) => {
+        // A drag is the primary button's gesture; a secondary press is a
+        // context menu, never a scrub.
+        if (e.button !== 0) return;
         // THE RE-ENTRANCY GUARD (part 1). One gesture at a time: a second
         // pointer on a live drag acquires nothing, latches nothing and projects
         // nothing. Admitting it is what strands the document-wide token.
@@ -158,13 +216,15 @@ export function useDragScrub<T = number>(
         acquireSelectSuppression();
         // setPointerCapture can throw on iOS / synthetic pointers — the drag
         // still works via the window listeners, so swallow it.
+        const target = el ? el.value : (e.currentTarget as Element | null);
         try {
-            el.value?.setPointerCapture(e.pointerId);
+            target?.setPointerCapture(e.pointerId);
         } catch {
             /* KEEP: capture unavailable — window listeners still drive the drag */
         }
         onStart?.(e);
-        onScrub(project(e));
+        // The press seats immediately under either delivery policy.
+        scrub(e);
     };
 
     // vueuse owns the listener lifecycle: registered HERE, in the composable's
@@ -174,7 +234,9 @@ export function useDragScrub<T = number>(
     // unmount.
     useEventListener(window, "pointermove", (e: PointerEvent) => {
         if (!isActivePointer(e)) return;
-        onScrub(project(e));
+        if (!coalesce) return scrub(e);
+        pendingMove = e;
+        if (moveFrame === null) moveFrame = requestAnimationFrame(flushPendingMove);
     });
 
     useEventListener(window, "pointerup", (e: PointerEvent) => {
@@ -193,9 +255,11 @@ export function useDragScrub<T = number>(
     // THE SCOPE-DISPOSAL RELEASE (part 3). The listeners above die with this
     // scope, so a gesture still in flight at unmount would never see its own
     // `pointerup` and the token would stay held for the session. The scene's
-    // hooks are NOT run — the scene is going away; the token is not, so the
-    // token is what the scope returns.
+    // hooks are NOT run, and a pending coalesced sample is dropped unsent — the
+    // scene is going away; the token is not, so the token is what the scope
+    // returns.
     onScopeDispose(() => {
+        dropPendingMove();
         if (activePointerId === null) return;
         activePointerId = null;
         dragging.value = false;

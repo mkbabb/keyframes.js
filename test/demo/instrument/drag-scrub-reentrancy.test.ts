@@ -3,7 +3,6 @@ import { afterEach, describe, expect, it } from "vitest";
 import { mount } from "@vue/test-utils";
 import { defineComponent, h, ref } from "vue";
 import { useDragScrub } from "@composables/useDragScrub";
-import { useDragCapture } from "@components/instrument/transport/composables/useDragCapture";
 import { releaseSelectSuppression } from "@utils/gestureSelectSuppression";
 
 /**
@@ -21,7 +20,7 @@ import { releaseSelectSuppression } from "@utils/gestureSelectSuppression";
  * disposal, so a mid-drag unmount stranded it too.
  *
  *   • KF-SCR-1 + L·D-1  (kf-SequenceScrubber :40 · :41) — `useDragScrub`
- *   • KF-AV-15          (kf-AnimationVisualizer :55)    — `useDragCapture`
+ *   • KF-AV-15          (kf-AnimationVisualizer :55)    — `useDragScrub` coalesce:"raf" (was `useDragCapture`)
  *
  * They are ONE cure family: a re-entrancy guard, a `pointerId` latch, and a
  * scope-disposal release, landed identically in both composables.
@@ -73,13 +72,21 @@ function mountScrubHost() {
     return { wrapper, el: wrapper.element as HTMLElement, scrubs };
 }
 
+/**
+ * X.KF.W13X.lib (A2-KE-L1-2) — the transport's former `useDragCapture` twin is
+ * the SAME seam under `coalesce: "raf"`, capturing on the listener's element
+ * (no `el`). The press seats at once (its sample is `moves[0]`); every later
+ * sample is delivered once per frame.
+ */
 function mountCaptureHost() {
     const moves: number[] = [];
     const ends: number[] = [];
     const Host = defineComponent({
         setup() {
-            const { onPointerDown } = useDragCapture({
-                onMove: (e) => moves.push(e.clientX),
+            const { onPointerDown } = useDragScrub<number>({
+                coalesce: "raf",
+                project: (e) => e.clientX,
+                onScrub: (x) => moves.push(x),
                 onEnd: (e) => ends.push(e.clientX),
             });
             return () => h("div", { onPointerdown: onPointerDown });
@@ -155,7 +162,7 @@ describe("useDragScrub — the guard family (KF-SCR-1 + L·D-1)", () => {
     });
 });
 
-describe("useDragCapture — the SAME guard family (KF-AV-15)", () => {
+describe("useDragScrub coalesce:\"raf\" (the retired useDragCapture) — the SAME guard family (KF-AV-15)", () => {
     it("a second pointer never acquires the token twice; the opening pointer's release clears it", () => {
         const { el } = mountCaptureHost();
 
@@ -178,11 +185,11 @@ describe("useDragCapture — the SAME guard family (KF-AV-15)", () => {
         el.dispatchEvent(pointer("pointerdown", 1, 10));
         el.dispatchEvent(pointer("pointermove", 2, 999));
         await nextFrame();
-        expect(moves).toEqual([]);
+        expect(moves).toEqual([10]);
 
         el.dispatchEvent(pointer("pointermove", 1, 30));
         await nextFrame();
-        expect(moves).toEqual([30]);
+        expect(moves).toEqual([10, 30]);
 
         el.dispatchEvent(pointer("pointerup", 2, 999));
         expect(ends).toEqual([]);
@@ -210,13 +217,16 @@ describe("C·C-1 ≡ KF-AV-16 — the machine-write policy at the drag seam", ()
         el.dispatchEvent(pointer("pointerdown", 1, 0));
 
         // Four samples inside one 16.7 ms frame — a 240 Hz pointer stream.
+        // The press seats at once, never coalesced.
+        expect(moves).toEqual([0]);
+
         for (const x of [10, 20, 30, 40]) {
             el.dispatchEvent(pointer("pointermove", 1, x));
         }
-        expect(moves).toEqual([]);
+        expect(moves).toEqual([0]);
 
         await nextFrame();
-        expect(moves).toEqual([40]); // exactly one, and it is the LATEST sample
+        expect(moves).toEqual([0, 40]); // exactly one, and it is the LATEST sample
 
         for (const x of [50, 60, 70, 80]) {
             el.dispatchEvent(pointer("pointermove", 1, x));
@@ -225,11 +235,11 @@ describe("C·C-1 ≡ KF-AV-16 — the machine-write policy at the drag seam", ()
         // machine write must still record the exact value the user let go at
         // (the terminal-sample loss a bare throttle is characterised by).
         el.dispatchEvent(pointer("pointerup", 1, 80));
-        expect(moves).toEqual([40, 80]);
+        expect(moves).toEqual([0, 40, 80]);
 
         // …and no stale frame fires behind the gesture's back.
         await nextFrame();
-        expect(moves).toEqual([40, 80]);
+        expect(moves).toEqual([0, 40, 80]);
         expect(tokenHeld()).toBe(false);
     });
 
@@ -241,7 +251,7 @@ describe("C·C-1 ≡ KF-AV-16 — the machine-write policy at the drag seam", ()
         wrapper.unmount();
 
         await nextFrame();
-        expect(moves).toEqual([]);
+        expect(moves).toEqual([0]);
         expect(tokenHeld()).toBe(false);
     });
 });

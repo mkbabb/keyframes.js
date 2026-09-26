@@ -124,7 +124,7 @@ import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 // test file is not this packet's to edit. The move lands the day that seam is
 // widened by its owner.
 import { Button, Slider } from "@mkbabb/glass-ui";
-import { useDragCapture } from "@components/instrument/transport/composables/useDragCapture";
+import { useDragScrub } from "@composables/useDragScrub";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@mkbabb/glass-ui/tooltip";
 import { ArrowLeftRight } from "@lucide/vue";
 import AnimationVisualizer from "./AnimationVisualizer.vue";
@@ -208,7 +208,8 @@ const emit = defineEmits<{
 }>();
 
 // ── J.W2 S1 (W4-4) — the slider scrub rides the SHARED drag seam ─────────────
-// The playhead scrub is a control-surface drag, so `useDragCapture` is its seam:
+// The playhead scrub is a control-surface drag, so `useDragScrub` is its seam
+// (gesture only — no `project`/`onScrub`; X.KF.W13X.lib, A2-KE-L1-2):
 // it owns `setPointerCapture` + the global `body.is-dragging` select-suppression
 // token for the gesture's whole flight (the same gesture-in-flight authority
 // every other drag surface inherits — B6-a at TRUE zero). The former raw
@@ -219,7 +220,7 @@ const emit = defineEmits<{
 // `scrubTo` (re-authoring its pointer→value geometry in an `onMove` body would
 // duplicate the component's own math); the seam owns the GESTURE, the component
 // owns the VALUE.
-const { isDragging, onPointerDown: onScrubPointerDown } = useDragCapture({
+const { dragging: isDragging, onPointerDown: onScrubPointerDown } = useDragScrub({
     onStart: () => emit("scrubStart"),
     onEnd: () => {
         gestureT.value = null;
