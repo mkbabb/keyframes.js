@@ -35,7 +35,7 @@
                      ordered T.B10 action model (`actions.primary.kind === "play"`, the
                      data-layer order truth — VERDICT #6). The animation select is the
                      contextual section (≥2 channels only — the channelZone elision).
-                     Reset + the timeline-collapse chip trail as one nav utility group.
+                     Reset trails as the nav utility.
                      "Clear all & reload" LEFT the transport for the @mbabb settings menu
                      (T.C2 — a destructive storage reset is a settings action, not
                      transport chrome). Separators derive from INHABITED zones (zero
@@ -154,10 +154,12 @@
                         </Select>
                     </template>
 
-                    <!-- nav: reset (+ the timeline-collapse chip when the timeline pane
-                         is expanded — one utility group, no internal separator). The
-                         timeline chip's ultimate home is the timeline pane it controls
-                         (T.C1 → T.B/T.F edge owner); it rides nav here until that lands. -->
+                    <!-- nav: reset. UIA-KF-153 / UIA-KF-283 (X.KF.W13X.transport) — the
+                         timeline Collapse chip and its inert 'Timeline' label are
+                         DELETED from the transport: they were the third
+                         collapse-timeline control, and the chip's home was always
+                         the timeline pane it controls, whose own header Collapse
+                         is the one control (one affordance per verb). -->
                     <DockSeparator />
                     <Tooltip>
                         <TooltipTrigger as-child>
@@ -169,19 +171,6 @@
                         </TooltipTrigger>
                         <TooltipContent>Reset animation</TooltipContent>
                     </Tooltip>
-
-                    <template v-if="storedControls.isTimelineExpanded">
-                        <Tooltip>
-                            <TooltipTrigger as-child>
-                                <DockControl shape="icon" aria-label="Collapse timeline" @click="emit('expandTimeline', false)">
-                                    <Minimize2 class="icon-lg" />
-                                </DockControl>
-                            </TooltipTrigger>
-                            <TooltipContent>Collapse timeline</TooltipContent>
-                        </Tooltip>
-
-                        <span class="dock-label whitespace-nowrap">Timeline</span>
-                    </template>
                 </div>
 
             </GlassDock>
@@ -194,7 +183,6 @@ import { computed, ref, useTemplateRef, watch } from "vue";
 
 import {
     List,
-    Minimize2,
     Pause,
     Play,
 } from "@lucide/vue";
@@ -268,7 +256,6 @@ const emit = defineEmits<{
     (e: "togglePlay"): void;
     (e: "reset", all: boolean): void;
     (e: "selectAnimation", name: string): void;
-    (e: "expandTimeline", expanded: boolean): void;
 }>();
 
 // T.C1 / T.B5-RENDER — the channel zone: `>1 channels ⇒ select`, else ABSENT

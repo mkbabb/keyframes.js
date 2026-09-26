@@ -117,7 +117,6 @@
             @toggle-play="toggleAnimationGroup"
             @reset="(all: boolean) => all ? clear() : reset()"
             @select-animation="onSelectAnimation"
-            @expand-timeline="(v) => { storedControls.isTimelineExpanded = v; }"
         />
     </div>
 

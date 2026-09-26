@@ -15,7 +15,7 @@
  *       BOTH faces because Play is ONE control in glass's `#persistent` seat,
  *       in-flow on both (X.KF.W13W.d, OA-57: the hand-duplicated `#collapsed`
  *       mirror spilled out of the collapsed plate and is retired).
- *   (2) Space on Reset / Collapse-timeline leaves the activation default INTACT
+ *   (2) Space on Reset / the channel Select trigger leaves the activation default INTACT
  *       (`defaultPrevented` stays false — the browser's own Space→click is what
  *       these `@click` buttons depend on; jsdom synthesises no activation click,
  *       so the un-prevented default is the observable) and does NOT fire playback.
@@ -243,10 +243,14 @@ describe("G-KFW13-3 — one propagation policy, both faces, with the registry mo
         expect(s.togglePlay).not.toHaveBeenCalled();
     });
 
-    it("(2′) Space on Collapse-timeline leaves the activation default intact and does not fire playback", () => {
-        const s = mountTransport({ isTimelineExpanded: true });
-        const chip = s.byName("Collapse timeline");
-        const { down } = pressSpace(chip);
+    // X.KF.W13X.transport · UIA-KF-153 — the Collapse-timeline chip left the
+    // transport (the timeline pane's own header Collapse is the one control), so
+    // (2′) holds the same law on the transport's other non-Play button: the
+    // channel Select's trigger.
+    it("(2′) Space on the channel Select trigger leaves the activation default intact and does not fire playback", () => {
+        const s = mountTransport();
+        const trigger = s.byName("Select animation");
+        const { down } = pressSpace(trigger);
         expect(down.defaultPrevented).toBe(false);
         expect(s.registryToggle).not.toHaveBeenCalled();
         expect(s.togglePlay).not.toHaveBeenCalled();
