@@ -68,15 +68,13 @@ export function useAnimationGroupPlayback(
         );
     };
 
+    // KFA-104 (X.KF.W13X.transport) — SELECTING IS NOT PLAYING. Picking a
+    // channel used to start an idle group (`syncPlayState(true)`), which
+    // overrode a scene's `autoPlays: false` (spring's Entry channel: a 60 Hz
+    // loop painting nothing while the dock read 'Pause'). Play is the dock's
+    // Play (and Space); the Select only chooses what the pane shows.
     const onSelectAnimation = (name: string) => {
-        const animationGroup = getAnimationGroup();
         storedControls.selectedAnimation = name;
-        // Selecting an animation while the group is idle STARTS it — routed
-        // through the machine (the emit → PLAY → adapter.resume() starts a fresh
-        // group, the P0 cure), never a direct `group.play()`.
-        if (!animationGroup.started) {
-            syncPlayState(true);
-        }
     };
 
     const toggleAnimationGroup = () => {
@@ -167,19 +165,14 @@ export function useAnimationGroupPlayback(
         sliderUpdate({ t, animation: anim });
     };
 
-    /** Cycle the selection forward/back; start the group if it is idle. */
+    /** Cycle the selection forward/back — a selection, so it never starts
+     *  playback either (KFA-104's keyboard twin). */
     const cycleAnimation = (direction: number) => {
-        const animationGroup = getAnimationGroup();
-        const names = Object.keys(animationGroup.animations);
+        const names = Object.keys(getAnimationGroup().animations);
         if (names.length === 0) return;
         const currentIdx = names.indexOf(storedControls.selectedAnimation ?? "");
         const nextIdx = (currentIdx + direction + names.length) % names.length;
-        storedControls.selectedAnimation = names[nextIdx]!;
-        // Start an idle group through the machine (emit → PLAY → adapter.resume()),
-        // never a direct group.play().
-        if (!animationGroup.started) {
-            syncPlayState(true);
-        }
+        onSelectAnimation(names[nextIdx]!);
     };
 
     return {
