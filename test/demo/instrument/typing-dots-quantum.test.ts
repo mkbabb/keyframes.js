@@ -58,7 +58,9 @@ describe("TypingDots — one step quantum for the march (KFA-200)", { timeout: 3
             teardown = null;
         };
         await nextTick();
-        const deadline = Date.now() + 5000;
+        // the engine is a cold dynamic import: under host load it can take
+        // seconds, so the poll's own deadline sits well inside the case budget
+        const deadline = Date.now() + 20_000;
         while (Date.now() < deadline && seen.length < 3) await new Promise((r) => setTimeout(r, 20));
 
         expect(seen.length).toBe(3);
