@@ -91,18 +91,10 @@
    + safe-area-inset-bottom). The former per-scene `dock-inset` (bottom-only,
    so the top clipped) is DELETED with this — no legacy beside the replacement.
    This sits on .stage-cell (not the [top]/[bottom] grid rows) so the expanded
-   timeline in the [bottom] row keeps its own `auto`-sized growth track.
-   UIA-KF-225 (X.KF.W13X.transport) — the reserve is the STABLE band
-   (`--dock-band-reserve-stable`: the menubar's monotonic peak, layout.css),
-   not the live one. The live measure breathes with the transport's
-   collapse/expand, so the stage sized itself to a collapsed dock and the
-   expanding dock's top rim then rode over the stage card's bottom rim
-   (served: square's stage card bottom 773 over a dock top of 764.6 at 1440,
-   727.5 over 722.6 at 390 — glass on glass). The stable band is the one the
-   work-area's own stable offsets already use for exactly this reason (S1). */
+   timeline in the [bottom] row keeps its own `auto`-sized growth track. */
 .stage-cell {
     box-sizing: border-box;
-    padding-block: var(--dock-band-reserve-stable, var(--dock-band-reserve));
+    padding-block: var(--dock-band-reserve);
 }
 
 /* ── MOBILE — the stack→overlay transposition (H.W7.S1) ──

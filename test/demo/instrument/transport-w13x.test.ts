@@ -24,7 +24,9 @@
  *                      ribbon re-seats instead of holding the stale position.
  *   (11) KFA-104     — selecting a channel never starts playback.
  *   (12) A2-KE-L1-3  — one ticker name: `useRafLoop` is gone.
- *   (13) UIA-KF-225  — the stage cell reserves the STABLE dock band.
+ *   (13) — withdrawn: it asserted UIA-KF-225's first hypothesis (the stage
+ *          reserve breathing), which the served gate refuted; the row is
+ *          re-homed with its measured root (the record's .transport receipt).
  *   (14) UIA-KF-300  — the ball-preview eye's tooltip states the action the next
  *                      press takes; its name stays one stable name + aria-pressed.
  */
@@ -369,12 +371,6 @@ describe("X.KF.W13X.transport — structure", () => {
         ]) {
             expect(read(rel)).not.toMatch(/useRafLoop/);
         }
-    });
-
-    it("(13) UIA-KF-225 — the stage cell reserves the STABLE (peak) dock band, so an expanding transport never rims over it", () => {
-        const css = read("demo/components/instrument/transport/AnimationControlsGroup.css");
-        const rule = /\.stage-cell\s*\{([^}]*)\}/.exec(css)?.[1] ?? "";
-        expect(rule).toMatch(/padding-block:\s*var\(--dock-band-reserve-stable/);
     });
 });
 
