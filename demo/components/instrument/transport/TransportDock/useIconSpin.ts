@@ -25,10 +25,20 @@ import { kfEngine } from "@kf-engine";
  */
 type Twist = InstanceType<ReturnType<typeof kfEngine>["CSSKeyframesAnimation"]>;
 
+/**
+ * KFA-165 (X.KF.W13X.transport) — ONE beat. The twist used to put the dip on
+ * the rotation's own keyframes (`rotateY(-180deg) scale(0.85)` at 40 %), and
+ * the easing runs PER INTERVAL, so the glyph decelerated to a dead stop at
+ * the mirrored pose and then kicked again (served: held -180° for ~6 frames,
+ * then ~33°/frame). The rotation is now a single 0 → 100 % interval (one
+ * decelerating turn), and the dip rides its own track — the individual
+ * `scale` property, keyed sparsely at 40 %, which the engine interpolates
+ * per property — so it no longer re-times the turn.
+ */
 const TWIST_KEYFRAMES = /*css*/ `@keyframes twist {
-    0% { transform: perspective(200px) rotateY(0deg) scale(1); }
-    40% { transform: perspective(200px) rotateY(-180deg) scale(0.85); }
-    100% { transform: perspective(200px) rotateY(-360deg) scale(1); }
+    0% { transform: perspective(200px) rotateY(0deg); scale: 1; }
+    40% { scale: 0.85; }
+    100% { transform: perspective(200px) rotateY(-360deg); scale: 1; }
 }`;
 
 const buildTwist = (): Twist => {
