@@ -62,7 +62,7 @@
                  its slot): it already toggles the popover, and letting it bubble
                  into the row's select would re-open what a second press closed. -->
             <DropdownMenuItem @select.prevent="openShare" text-value="Share" class="gap-2.5 px-1.5 py-1">
-                <span class="w-7 shrink-0 flex justify-center" @click.stop><SharePopover ref="sharePopover" :on-scene-restore="onSceneRestore" /></span>
+                <span class="w-7 shrink-0 flex justify-center" @click.stop><SharePopover ref="sharePopover" :on-scene-restore="onSceneRestore" @done="open = false" /></span>
                 <div class="flex-1 min-w-0">
                     <span class="text-small text-foreground">Share</span>
                 </div>

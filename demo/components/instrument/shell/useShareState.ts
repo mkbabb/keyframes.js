@@ -1,4 +1,4 @@
-import { ref } from "vue";
+import { ref, watch } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import {
     encodeStateToHash,
@@ -13,8 +13,24 @@ export function useShareState(onSceneRestore?: (sceneId: string) => void) {
     const route = useRoute();
     const sharePopoverOpen = ref(false);
     const loadHashInput = ref("");
+    // X.KF.W13X.overlays · UIA-KF-142 — a refused load names its reason AT the
+    // field (the Input's invalid skin + an inline message the field describes
+    // itself by), not only in a toast below the fold. Any edit to the field, or
+    // the popover closing, clears the verdict: it describes the text that was
+    // refused, not the text now in the field.
+    const loadError = ref<string | null>(null);
+    watch(
+        [loadHashInput, sharePopoverOpen],
+        () => {
+            loadError.value = null;
+        },
+        { flush: "sync" },
+    );
 
-    const shareState = async () => {
+    // X.KF.W13X.overlays · UIA-KF-070 — each action reports whether it
+    // COMPLETED, so the host can dismiss the whole menu stack on completion
+    // instead of leaving a modal menu open over the scene.
+    const shareState = async (): Promise<boolean> => {
         const activeScene = route.name as string;
         const state = getAllState(activeScene);
         const encoded = encodeStateToHash(state);
@@ -39,11 +55,12 @@ export function useShareState(onSceneRestore?: (sceneId: string) => void) {
                 duration: 5000,
             });
         }
+        return true;
     };
 
-    const loadFromInput = () => {
+    const loadFromInput = (): boolean => {
         let input = loadHashInput.value.trim();
-        if (!input) return;
+        if (!input) return false;
 
         // Extract state param from URL if a full URL was pasted
         let stateParam: string | null = null;
@@ -64,7 +81,8 @@ export function useShareState(onSceneRestore?: (sceneId: string) => void) {
 
         if (!stateParam) {
             toast({ title: "No shared state found in URL", tone: "destructive", duration: 3000 });
-            return;
+            loadError.value = "No shared state found in this link.";
+            return false;
         }
 
         // UIA-KF-003 — decode, validate and apply are ONE call, and its verdict
@@ -74,9 +92,13 @@ export function useShareState(onSceneRestore?: (sceneId: string) => void) {
         const result = restoreStateFromParam(stateParam);
         if (!result.restored) {
             toast({ title: "Invalid shared state", tone: "destructive", duration: 3000 });
-            return;
+            loadError.value = "This link's shared state could not be read.";
+            return false;
         }
         sharePopoverOpen.value = false;
+        // X.KF.W13X.overlays · UIA-KF-249 — the pasted link is spent once it
+        // loads; reopening Share must not show it again.
+        loadHashInput.value = "";
 
         // Switch to the shared scene if present
         if (result.activeScene && onSceneRestore) {
@@ -89,11 +111,13 @@ export function useShareState(onSceneRestore?: (sceneId: string) => void) {
             duration: 3000,
             description: "Animation state loaded from shared URL.",
         });
+        return true;
     };
 
     return {
         sharePopoverOpen,
         loadHashInput,
+        loadError,
         shareState,
         loadFromInput,
     };

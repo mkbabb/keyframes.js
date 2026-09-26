@@ -80,8 +80,14 @@ async function press(el: Element): Promise<void> {
 }
 
 /** Both overlays are portalled to `document.body` by reka. */
+// X.KF.W13X.overlays — the field is named by its LabeledField ("Load from
+// link"), and the popover opens on its primary action ("Copy link", UIA-KF-248).
 const shareField = () =>
-    document.body.querySelector('input[aria-label="Share URL or hash to load"]');
+    document.body.querySelector('[role="dialog"] input[inputmode="url"]');
+const sharePrimary = () =>
+    [...document.body.querySelectorAll<HTMLButtonElement>('[role="dialog"] button')].find(
+        (b) => b.textContent?.trim() === "Copy link",
+    ) ?? null;
 
 function shareRow(): HTMLElement {
     const row = [...document.body.querySelectorAll<HTMLElement>('[role="menuitem"]')].find(
@@ -99,7 +105,7 @@ async function openMenu() {
 }
 
 describe("KF.W13U.d4 — Enter on the Share row opens Share", () => {
-    it("(1) keyboard: Enter on the focused row opens the popover and hands focus to its field; the menu stays open", async () => {
+    it("(1) keyboard: Enter on the focused row opens the popover and hands focus to its primary action; the menu stays open", async () => {
         const wrapper = await openMenu();
         expect(shareField()).toBeNull();
 
@@ -109,7 +115,7 @@ describe("KF.W13U.d4 — Enter on the Share row opens Share", () => {
             new window.KeyboardEvent("keydown", { key: "Enter", bubbles: true, cancelable: true }),
         );
         await vi.waitFor(() => expect(shareField()).not.toBeNull());
-        await vi.waitFor(() => expect(document.activeElement).toBe(shareField()));
+        await vi.waitFor(() => expect(document.activeElement).toBe(sharePrimary()));
         // `.prevent` holds the menu — the popover anchors to its trigger in the row.
         expect(document.body.textContent).toContain("Clear all");
 
