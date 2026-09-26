@@ -29,25 +29,51 @@ export const transformList = (...items: CssCall[]): CssList => ({
 
 export const MATRIX_AXES = ["x", "y", "z", "w"];
 
-export const transformSliderOptions = {
-    translate: {
-        bounds: [-1000, 1000] as [number, number],
-        step: 1,
-        value: 0,
-    },
-    rotate: {
-        bounds: [-360, 360] as [number, number],
-        step: 1,
-        value: 0,
-    },
-    scale: {
-        bounds: [0.4, 3] as [number, number],
-        step: 0.01,
-        value: 1,
-    },
+/* X.KF.W13X.matrix (UIA-KF-162 · UIA-KF-265) — a slider range per cell ROLE.
+   A matrix3d argument is a unitless matrix entry except the translation column
+   (px). The former table offered three presets and mapped every cell that was
+   not T or S onto `rotate` (±360 DEGREES), so a perspective cell (a divisor term,
+   useful near ±0.005) or a shear/rotation entry (cos/sin magnitudes, ±1) moved
+   the die by a whole distortion per slider step; and translate was a fixed
+   ±1000 px that let the die leave a 390 px stage. The ranges now follow what
+   each entry IS, and the translate range is DERIVED from the stage it paints
+   into (`translateBounds`). */
+export const matrixSliderOptions = {
+    scale: { bounds: [0.4, 3] as [number, number], step: 0.01 },
+    shear: { bounds: [-1, 1] as [number, number], step: 0.01 },
+    perspective: { bounds: [-0.005, 0.005] as [number, number], step: 0.0001 },
+    divisor: { bounds: [0.4, 3] as [number, number], step: 0.01 },
 };
 
-export interface MatrixCellMeta {
+/** The stage the Matrix channel paints into, measured by `useTransformState`:
+ *  the stage region's half extents and the die's side, in CSS px. */
+export interface StageExtent {
+    halfWidth: number;
+    halfHeight: number;
+    side: number;
+}
+
+/**
+ * The translate range for one axis: the die may travel until its face reaches
+ * the stage's edge — the half-extent less the die's half side — and on z (which
+ * has no stage edge) one die-length toward or away from the viewer. An
+ * unmeasured stage offers no travel: a range is never invented without the
+ * extent it is derived from.
+ */
+export const translateBounds = (
+    extent: StageExtent | null,
+    axis: string,
+): [number, number] => {
+    if (!extent) return [0, 0];
+    const reach =
+        axis === "z"
+            ? extent.side
+            : (axis === "y" ? extent.halfHeight : extent.halfWidth) - extent.side / 2;
+    const r = Math.max(0, Math.round(reach));
+    return [-r, r];
+};
+
+export interface MatrixCellMeta extends MatrixCellName {
     axis: string;
     transform: string;
     sliderOptions: { bounds: [number, number]; step: number };
@@ -91,6 +117,21 @@ export type MatrixValues = [
     number,
     number,
     number,
+];
+
+/* X.KF.W13X.matrix (KFA-138 · UIA-KF-159) — the Matrix channel's AUTHORED
+   endpoint. Both endpoints were identity, so on a fresh load the channel played
+   identity → identity: `.cube-pose` held one pose for all 180 captured frames and
+   choosing "Matrix" in the transport changed nothing. The end pose is authored
+   as the one thing the rotate/scale channels cannot show — a shear (column 1,
+   row 0: x' = x + 0.35·y, the die leaning as it plays) — and Reset returns HERE,
+   so Reset never re-seats the inert channel either. The start stays identity
+   (topology 2, `useTransformState`). */
+export const AUTHORED_MATRIX_END: Readonly<MatrixValues> = [
+    1, 0, 0, 0,
+    0.35, 1, 0, 0,
+    0, 0, 1, 0,
+    0, 0, 0, 1,
 ];
 
 const matrixScalar = (value: number): MatrixScalar => ({
@@ -237,13 +278,47 @@ export const getTransformFromIx = (i: number) => {
     return "";
 };
 
-export const getSliderOptionsFromIx = (i: number) => {
-    const transform = getTransformFromIx(i);
-    const key =
-        transform === "T"
-            ? "translate"
-            : transform === "S"
-              ? "scale"
-              : "rotate";
-    return transformSliderOptions[key];
+/* X.KF.W13X.matrix (UIA-KF-063) — ONE unique name per entry. The grid read
+   `Sx … Pw Pw Pw … w`: the three perspective cells shared "Pw" (their ROW is w;
+   what varies is the column) and the six off-diagonals carried a bare axis
+   letter each, so two cells in a column read the same. matrix3d is
+   column-major — index i sits at column ⌊i/4⌋, row i mod 4 — and each role is
+   named by what it couples: S/T by the axis they act on, P by the input axis
+   whose depth it divides, K (a shear/rotation entry) by output·input axis, and
+   the lone divisor `w`. */
+export interface MatrixCellName {
+    /** The role letter: S · T · P · K · w. */
+    symbol: string;
+    /** The axis subscript ("" for w). */
+    sub: string;
+    /** symbol + sub, unique across the 16 entries — the cell's accessible name. */
+    name: string;
+}
+
+const XYZ = ["x", "y", "z"];
+
+export const matrixCellName = (i: number): MatrixCellName => {
+    const col = Math.floor(i / 4);
+    const row = i % 4;
+    const role = getTransformFromIx(i);
+    const [symbol, sub] =
+        role === "S" || role === "T"
+            ? [role, XYZ[row] ?? ""]
+            : role === "P"
+              ? [role, XYZ[col] ?? ""]
+              : i === 15
+                ? ["w", ""]
+                : ["K", `${XYZ[row] ?? ""}${XYZ[col] ?? ""}`];
+    return { symbol, sub, name: symbol + sub };
+};
+
+export const getSliderOptionsFromIx = (
+    i: number,
+    extent: StageExtent | null = null,
+): { bounds: [number, number]; step: number } => {
+    const role = getTransformFromIx(i);
+    if (role === "T") return { bounds: translateBounds(extent, XYZ[i % 4] ?? "x"), step: 1 };
+    if (role === "S") return matrixSliderOptions.scale;
+    if (role === "P") return matrixSliderOptions.perspective;
+    return i === 15 ? matrixSliderOptions.divisor : matrixSliderOptions.shear;
 };

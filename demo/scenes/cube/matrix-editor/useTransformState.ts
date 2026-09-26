@@ -1,20 +1,23 @@
 import { easeInBounce } from "@mkbabb/value.js/easing";
 import { NumericAnimation } from "@mkbabb/keyframes.js";
-import { computed, onScopeDispose, ref } from "vue";
+import { computed, onScopeDispose, ref, shallowRef, watch } from "vue";
 import type { ComputedRef, Ref } from "vue";
+import { useResizeObserver } from "@vueuse/core";
 import { mat4 } from "gl-matrix";
 import { kfEngine } from "@kf-engine";
 import type { TransformState } from "../orbital-drag";
 import {
+    AUTHORED_MATRIX_END,
     createMatrix,
     matrix3dCss,
     getAxisFromIx,
     getTransformFromIx,
     getSliderOptionsFromIx,
+    matrixCellName,
     matrixValues,
     withMatrixCell,
 } from "./transformMath";
-import type { MatrixCellMeta } from "./transformMath";
+import type { MatrixCellMeta, StageExtent } from "./transformMath";
 export type { MatrixCellMeta } from "./transformMath";
 
 /**
@@ -75,9 +78,10 @@ export function useTransformState(
 
     // The Matrix channel's START pose. It is the identity baseline and NOTHING
     // writes it (topology 2): an endpoint written from the same pose as the end
-    // is an animation with no delta.
+    // is an animation with no delta. The END opens on the authored pose
+    // (KFA-138 · UIA-KF-159, `AUTHORED_MATRIX_END`), never identity.
     const matrix3dStart = ref(createMatrix());
-    const matrix3dEnd = ref(createMatrix());
+    const matrix3dEnd = ref(createMatrix(AUTHORED_MATRIX_END));
 
     const transformSliderValues = ref<TransformState>(
         initialTransform
@@ -95,11 +99,37 @@ export function useTransformState(
               },
     );
 
+    // X.KF.W13X.matrix (UIA-KF-265) — the stage the pose paints into. The
+    // translate range is derived from it (`translateBounds`): the stage region's
+    // half extents (`.stage-cell`, the shell's stage region, layout.css) and the
+    // die's side (the pose element's own box). Re-measured whenever the stage
+    // resizes; before the pose has a stage there is no extent, and no travel.
+    const stageExtent = shallowRef<StageExtent | null>(null);
+    const stageHost = computed(
+        () => targetRef.value?.closest<HTMLElement>(".stage-cell") ?? undefined,
+    );
+    const measureStage = () => {
+        const host = stageHost.value;
+        const die = targetRef.value;
+        const rect = host?.getBoundingClientRect();
+        stageExtent.value =
+            host && die && rect && rect.width > 0 && die.offsetWidth > 0
+                ? {
+                      halfWidth: rect.width / 2,
+                      halfHeight: rect.height / 2,
+                      side: die.offsetWidth,
+                  }
+                : null;
+    };
+    useResizeObserver(stageHost, measureStage);
+    watch(targetRef, measureStage, { flush: "post" });
+
     const matrixCellMeta: ComputedRef<MatrixCellMeta[]> = computed(() =>
         Array.from({ length: 16 }, (_, i) => ({
             axis: getAxisFromIx(i),
             transform: getTransformFromIx(i),
-            sliderOptions: getSliderOptionsFromIx(i),
+            sliderOptions: getSliderOptionsFromIx(i, stageExtent.value),
+            ...matrixCellName(i),
         })),
     );
 
@@ -155,7 +185,10 @@ export function useTransformState(
 
     const resetMatrix = () => {
         const fromMatrix = matrixValues(matrix3dEnd.value);
-        const toMatrix = mat4.create();
+        // KFA-138 — Reset returns to the AUTHORED endpoint: resetting to identity
+        // made the channel identity → identity again, inert (captured: after a
+        // Reset the playing pose froze at ~580 ms, `tweens-before-r{1,2}.log`).
+        const toMatrix = AUTHORED_MATRIX_END;
 
         resetTween.stop();
         resetTween.updateKeyframe(0, matrixFrame(fromMatrix));
@@ -172,11 +205,12 @@ export function useTransformState(
                     return value;
                 });
                 matrix3dEnd.value = createMatrix(matrix);
-                    paintTarget();
+                paintTarget();
             })
             .then(() => {
-                // Topology 3 — Reset's destination is identity BY CONSTRUCTION,
-                // so the triple is written, never inferred from a diagonal.
+                // Topology 3 — the T·R·S triple's Reset destination is identity
+                // BY CONSTRUCTION, so it is written, never inferred from the
+                // matrix's diagonal (which now settles on the authored pose).
                 const slider = transformSliderValues.value;
                 slider.rotate.x = 0;
                 slider.rotate.y = 0;
