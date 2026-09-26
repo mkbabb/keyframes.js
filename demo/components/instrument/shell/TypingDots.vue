@@ -96,10 +96,14 @@ const dotCount = ((n: number): number => {
 // perceptibility is not claimed here. It is written down so an edit to either
 // clock is an edit made KNOWINGLY — change one and the beat is gone.
 const CYCLE_MS = 1200;
-// The per-dot stagger increment — the left-to-right cadence step. ~0.16s gives
-// a `. → ·· → ···` march; with 3 dots the spread is 2·160 = 320ms, well inside
-// the cycle.
-const STEP_MS = 160;
+// The per-dot stagger increment — the left-to-right cadence step, a
+// `. → ·· → ···` march. KFA-200 — it is ONE step quantum of the dots' own
+// clock: `steps(4, jump-none)` on each half of the 0 % / 50 % / 100 % shape
+// holds every step for CYCLE / 8 (150 ms), so the stagger is that quantum and
+// the three dots step on one shared grid (the former 160 ms put each dot's
+// step 10 ms off its neighbour's). With 3 dots the spread is 2·150 = 300 ms,
+// well inside the cycle.
+const STEP_MS = CYCLE_MS / 8;
 // Rest opacity NEVER 0 (the perceptual fix + the ≥0.15 floor the seam spec
 // asserts): the dots dim to 0.2 and pulse to 1, never blanking out.
 //
