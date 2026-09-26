@@ -14,7 +14,8 @@
  * group (the dock's chosen scene); otherwise the icon rests. Reduced motion:
  * the group's own gate snaps to rest.
  */
-import { markRaw, onBeforeUnmount, onMounted, useTemplateRef, watch } from "vue";
+import { markRaw, useTemplateRef } from "vue";
+import { useLiveMini } from "@composables/useLiveMini";
 import { kfEngine } from "@kf-engine";
 import { getStoredAnimationOptions } from "@state";
 import { CUBE_SCENE_ID } from "./cubeKeys";
@@ -49,19 +50,10 @@ const group = markRaw(new AnimationGroup(spin, bob));
 // The channels paint different elements (the scene's own declared opt-out).
 group.singleTarget = false;
 
-onMounted(() => {
+useLiveMini(group, () => live, () => {
     spin.setTargets(cubeEl.value!);
     bob.setTargets(bobEl.value!);
-    watch(
-        () => live,
-        (on) => {
-            if (on) void group.play();
-            else group.stop();
-        },
-        { immediate: true },
-    );
 });
-onBeforeUnmount(() => group.stop());
 </script>
 
 <template>

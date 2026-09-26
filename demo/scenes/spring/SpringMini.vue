@@ -13,7 +13,8 @@
  * otherwise the balls rest at the lane starts. Reduced motion: the engine's
  * gate snaps (the field's own `respectReducedMotion`, `SPRING_BASE`).
  */
-import { markRaw, onBeforeUnmount, onMounted, useTemplateRef, watch } from "vue";
+import { markRaw, useTemplateRef } from "vue";
+import { useLiveMini } from "@composables/useLiveMini";
 import { springTimingFunction } from "@mkbabb/keyframes.js";
 import { kfEngine } from "@kf-engine";
 import { SPRING_BASE, SPRING_PRESETS } from "./springPresets";
@@ -44,20 +45,9 @@ const lanes = SPRING_PRESETS.map((preset) =>
     ),
 );
 
-onMounted(() => {
+useLiveMini(lanes, () => live, () => {
     lanes.forEach((lane, i) => lane.setTargets(carriages.value![i]!));
-    watch(
-        () => live,
-        (on) => {
-            for (const lane of lanes) {
-                if (on) void lane.play();
-                else lane.stop();
-            }
-        },
-        { immediate: true },
-    );
 });
-onBeforeUnmount(() => lanes.forEach((lane) => lane.stop()));
 </script>
 
 <template>

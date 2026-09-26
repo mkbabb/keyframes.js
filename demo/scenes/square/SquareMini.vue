@@ -12,7 +12,8 @@
  * contains its paint. `live` plays (the dock's chosen scene); otherwise the
  * icon rests at the tour's start. Reduced motion: the engine's gate snaps.
  */
-import { markRaw, onBeforeUnmount, onMounted, useTemplateRef, watch } from "vue";
+import { markRaw, useTemplateRef } from "vue";
+import { useLiveMini } from "@composables/useLiveMini";
 import type { Vars } from "@mkbabb/keyframes.js";
 import { kfEngine } from "@kf-engine";
 import { SQUARE_TOUR_OPTIONS, TOUR_CORNER, squareTourKeyframes } from "./squareMotion";
@@ -52,17 +53,7 @@ const tour = markRaw(
     ),
 );
 
-onMounted(() => {
-    watch(
-        () => live,
-        (on) => {
-            if (on) void tour.play();
-            else tour.stop();
-        },
-        { immediate: true },
-    );
-});
-onBeforeUnmount(() => tour.stop());
+useLiveMini(tour, () => live);
 
 const REST_FILL = squareTourKeyframes()["0%"].backgroundColor;
 const FIELD = `M0 0L${TOUR_CORNER} ${-TOUR_CORNER}L0 ${TOUR_CORNER}L${-TOUR_CORNER} ${-TOUR_CORNER}Z`;

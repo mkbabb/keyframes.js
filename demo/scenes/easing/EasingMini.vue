@@ -14,7 +14,8 @@
  * curve's start (`--curve-rest`). Reduced motion: the engine's gate snaps —
  * onto a keyframe, i.e. a vertex of the stroke.
  */
-import { markRaw, onBeforeUnmount, onMounted, useTemplateRef, watch } from "vue";
+import { markRaw, useTemplateRef } from "vue";
+import { useLiveMini } from "@composables/useLiveMini";
 import { kfEngine } from "@kf-engine";
 import {
     EASING_DEFAULT_DURATION,
@@ -40,18 +41,7 @@ const preview = markRaw(
     }).fromString(EASING_MINI_KEYFRAMES),
 );
 
-onMounted(() => {
-    preview.setTargets(carriageEl.value!);
-    watch(
-        () => live,
-        (on) => {
-            if (on) void preview.play();
-            else preview.stop();
-        },
-        { immediate: true },
-    );
-});
-onBeforeUnmount(() => preview.stop());
+useLiveMini(preview, () => live, () => preview.setTargets(carriageEl.value!));
 </script>
 
 <template>

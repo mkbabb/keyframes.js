@@ -12,7 +12,8 @@
  * `live` plays the group (the dock's chosen scene); otherwise the icon rests
  * at the home pose. Reduced motion: the group's own gate snaps to rest.
  */
-import { onBeforeUnmount, shallowRef, useId, watch } from "vue";
+import { shallowRef, useId } from "vue";
+import { useLiveMini } from "@composables/useLiveMini";
 import { FLOOR_Y, useAmigaDemo, type AmigaPose } from "./useAmigaDemo";
 
 const { live = false } = defineProps<{ live?: boolean }>();
@@ -45,15 +46,7 @@ const paint = (pose: Readonly<AmigaPose>) => {
 const { animationGroup, pose } = useAmigaDemo(paint);
 paint(pose);
 
-watch(
-    () => live,
-    (on) => {
-        if (on) void animationGroup.play();
-        else animationGroup.stop();
-    },
-    { immediate: true },
-);
-onBeforeUnmount(() => animationGroup.stop());
+useLiveMini(animationGroup, () => live);
 </script>
 
 <template>

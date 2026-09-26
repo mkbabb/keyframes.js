@@ -13,7 +13,8 @@
  * telling it. `live` plays (the dock's chosen scene); otherwise the rows rest
  * at their start. Reduced motion: the Sequence's own gate snaps to rest.
  */
-import { markRaw, onBeforeUnmount, onMounted, useTemplateRef, watch } from "vue";
+import { markRaw, useTemplateRef } from "vue";
+import { useLiveMini } from "@composables/useLiveMini";
 import { Sequence, springTimingFunction, stagger } from "@mkbabb/keyframes.js";
 import { kfEngine } from "@kf-engine";
 import {
@@ -48,19 +49,10 @@ const storyboard = markRaw(new Sequence<BallVars>());
 rows.forEach((row, i) => storyboard.add(row, delays[i]!));
 storyboard.repeat(Infinity).yoyo(true);
 
-onMounted(() => {
+useLiveMini(storyboard, () => live, () => {
     rows.forEach((row, i) => row.setTargets(balls.value![i]!));
     storyboard.seek(0);
-    watch(
-        () => live,
-        (on) => {
-            if (on) void storyboard.play();
-            else storyboard.stop();
-        },
-        { immediate: true },
-    );
 });
-onBeforeUnmount(() => storyboard.stop());
 </script>
 
 <template>
