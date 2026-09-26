@@ -501,8 +501,12 @@ describe("G-KFW12-2 — the ChannelOptions render edge", () => {
             expect(seated.props.mode).toBe("bezier");
             expect(seated.props.preset).toBe("ease-in-out");
 
+            // X.KF.W13X.controls · UIA-KF-165 — the preset is SEATED, never
+            // written: opening the editor to look leaves the store's easing
+            // and its quad exactly as they were.
             const store = getStoredAnimationOptions(a);
-            expect(store.cubicBezierOptions.controlPoints).toEqual(
+            expect(store.animationOptions.timingFunction).toBe("ease-in-out");
+            expect(store.cubicBezierOptions.controlPoints).not.toEqual(
                 NAMED_EASING_BEZIER["ease-in-out"],
             );
 
@@ -658,7 +662,9 @@ describe("X.KF.W13U.e · OA-28 / OA-31 (§0be · §0bg) — the trigger shows th
             const item0 = EASING_GROUPS.flatMap((g) => g.items).find((i) => i.name === key);
             expect(item0, `stored ${literal}`).toBeDefined();
             let t0 = readTrigger();
-            expect(t0.text).toBe(key);
+            // X.KF.W13X.controls · UIA-KF-271 — a parametric curve (a draft
+            // kind) is named `custom` beside its own glyph.
+            expect(t0.text).toBe(key === "cubic-bezier" ? "custom" : key);
             expect(t0.text).not.toContain(item0!.description);
             expectGlyphTrue(t0.d, a.options.timingFunction.fn, `trigger ${key}`);
 

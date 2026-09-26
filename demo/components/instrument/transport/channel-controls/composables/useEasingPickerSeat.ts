@@ -32,6 +32,7 @@ import type { ComputedRef, ShallowRef, StyleValue } from "vue";
 import { computed, shallowRef } from "vue";
 import type { EasingPickerValue, JumpTerm } from "@mkbabb/glass-ui/easing";
 import { cubicBezierToString } from "@mkbabb/value.js/math";
+import { NAMED_EASING_BEZIER } from "@utils/reference-data/animationDescriptions";
 
 import {
     cubicBezierEasing,
@@ -80,6 +81,18 @@ const projectSteps = (steps: number): number =>
  *  half-step of that quantum — two quads within it are the same curve. */
 export const quadEq = (a: Quad, b: Quad): boolean =>
     a.every((v, i) => Math.abs(v - b[i]!) < 0.0005);
+
+/**
+ * X.KF.W13X.controls · A2-KE-L1-5 — the ONE quad → named-curve lookup the
+ * picker seats share (the card's editor and the Easing scene's sidebar each
+ * carried a copy). Resolved against the demo's `NAMED_EASING_BEZIER` only —
+ * never value.js `bezierPresets` (KF-ES-3's cure-lock: the catalogues are not
+ * merged).
+ */
+export const nameForQuad = (q: Quad): string | undefined =>
+    Object.keys(NAMED_EASING_BEZIER).find((n) =>
+        quadEq(NAMED_EASING_BEZIER[n]!, q),
+    );
 
 export interface EasingPickerSeat {
     /** Bumps ONLY on an external named re-seat — bind `:key`. */

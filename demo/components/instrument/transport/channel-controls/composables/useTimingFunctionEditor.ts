@@ -61,32 +61,27 @@ export function useTimingFunctionEditor(
     getAnimation: () => KeyframesAnimation<any>,
     storedAnimationOptions: StoredAnimationOptions,
 ) {
-    /** The name of the easing we auto-converted FROM (for subtitle display) */
+    /**
+     * The name the editor was opened FROM while the stored easing is still
+     * that name (a PEEK), or `null` when it was opened on a curve that already
+     * was cubic-bezier / steps.
+     *
+     * X.KF.W13X.controls · UIA-KF-165 — opening the editor never writes. The
+     * pencil on a named curve used to seat its quad AND persist
+     * `cubic-bezier(…)` on open, so looking at `ease-in-out` and backing out
+     * left the channel on `cubic-bezier` with a gold "custom" label. The
+     * editor now SEATS the named curve's quad (`peekQuad`) without touching
+     * the store; the first authored edit is what commits (`markAuthored`, the
+     * card's authored handler), and Back with no edit leaves the name exactly
+     * as it was. (KF-CO-13's departure — an engine-native name no bezier
+     * reproduces — was already a no-write open; now every open is one.)
+     */
     const convertedFromName = ref<string | null>(null);
-
-    /** Whether the ADVANCED sub-pane (layer settings) is open — not the
-     *  detail editor, whose gate is `showDetailPanel` below (N-9). */
-    const advancedOpen = ref(false);
-
-    /** User dismissed the detail panel without changing the timing function */
-    const detailPanelDismissed = ref(true);
-
-    // KF-CO-23 + KF-CO-44 — the `openEditorOnChange` one-shot flag and the
-    // store watch that was its only clearer are DELETED. The flag existed to
-    // open the editor after the pencil's persist landed, and leaked on the two
-    // branches that persist nothing (an already-bezier curve, a byte-identical
-    // steps literal), so a LATER dropdown pick auto-opened the editor — the
-    // very thing the flag's docstring said it prevented. Every opener now sets
-    // `detailPanelDismissed` itself, synchronously, at the moment of the act;
-    // and a dropdown pick of a DRAFT kind (`cubic-bezier` / `steps` — entries
-    // whose whole meaning is "open an editor") opens it through the same seam
-    // (`onCurvePicked`) instead of persisting silently and showing nothing.
+    /** An edit was authored since the editor opened (UIA-KF-168). */
+    const edited = ref(false);
 
     // I.W2.S3 — the store persists a re-parseable LITERAL; the UI keys off the
-    // KIND. `isDetailTimingFunction` / `timingFunctionKind` are literal-aware, so
-    // `cubic-bezier(0.2, …)` still reads as a detail/bezier curve for these gates.
-
-    /** True when the current timing function has a dedicated editor (cubic-bezier, steps) */
+    // KIND. `isDetailTimingFunction` / `timingFunctionKind` are literal-aware.
     const isDetailEasing = computed(() =>
         isDetailTimingFunction(
             storedAnimationOptions.animationOptions.timingFunction,
@@ -94,23 +89,24 @@ export function useTimingFunctionEditor(
     );
 
     /**
-     * KF-CO-13 — a DEPARTURE: the pencil was used on a name no cubic-bezier
-     * reproduces (`ease-in-bounce`, `smooth-step-3` — the catalogue gap, KF-SS3's
-     * preserved class). The editor opens on the stored quad WITHOUT rewriting
-     * the selection: nothing is persisted until the user authors an edit, and
-     * the panel says what it departed from. The former path flattened the curve
-     * to `[0, 0, 1, 1]` and persisted `cubic-bezier(0, 0, 1, 1)` on open.
+     * X.KF.W13X.controls · UIA-KF-168 · 079 — the editor's caption says what
+     * is on screen, on its own line, in plain words: the name a peek seated
+     * (`from ease-in-out`); a departure's actual starting curve (an
+     * engine-native name has no cubic-bézier form, so the editor starts from
+     * the last custom curve — the former "engine-native, no cubic-bezier
+     * reproduces it" named neither); `edited` once the user has authored a
+     * change (the former notice kept saying "from ease-in-out" over a curve
+     * the user had dragged elsewhere); `custom curve` when it opened on one.
+     * One line always, so a sub-pane swap keeps one height (UIA-KF-272).
      */
-    const departure = computed(
-        () => convertedFromName.value !== null && !isDetailEasing.value,
-    );
-
-    /** Whether the detail panel should be visible */
-    const showDetailPanel = computed(
-        () =>
-            (isDetailEasing.value || departure.value) &&
-            !detailPanelDismissed.value,
-    );
+    const caption = computed<string>(() => {
+        if (edited.value) return "edited";
+        const from = convertedFromName.value;
+        if (from === null) return "custom curve";
+        return NAMED_EASING_BEZIER[from]
+            ? `from ${from}`
+            : `${from} has no cubic-bézier form — starting from your last custom curve`;
+    });
 
     /**
      * KF-CO-10 (the selection half) — the catalogue key the easing dropdown
@@ -304,91 +300,76 @@ export function useTimingFunctionEditor(
         storedAnimationOptions.animationOptions.timingFunction = literal;
     };
 
-    /** Called from the edit icon — opens the curve editor */
-    const onEditIconClick = (currentEasing: string) => {
-        onEasingLabelClick(currentEasing);
+    /**
+     * The dropdown's pick: the key is persisted and applied. Returns `true`
+     * for a DRAFT kind (`cubic-bezier` / `steps` — an entry whose whole
+     * meaning is "author a curve", KF-CO-23): the caller opens the editor on
+     * it (the card's drill-in owner decides panes, not this composable).
+     */
+    const onCurvePicked = (key: string): boolean => {
+        updateTimingFunctionFromName(key);
+        if (!isDraftKind(key)) return false;
+        convertedFromName.value = null;
+        edited.value = false;
+        return true;
     };
 
     /**
-     * The dropdown's pick. A NAME is persisted and applied, and the editor is
-     * left as it was; a DRAFT kind is persisted as its complete literal from
-     * the store's parameters AND opens the editor on them (KF-CO-23) — the
-     * dropdown row for `cubic-bezier` / `steps` is an editor entry, not a
-     * silent selection.
+     * The pencil: prepare the editor for the stored easing and report
+     * whether there is a curve to edit. NOTHING is persisted (UIA-KF-165): a
+     * named curve with a cubic-bézier form is seated by `peekQuad`; an
+     * engine-native name (KF-CO-13's departure) opens on the store's last
+     * custom quad; a curve that already is cubic-bezier / steps opens on
+     * itself.
      */
-    const onCurvePicked = (key: string) => {
-        updateTimingFunctionFromName(key);
-        if (key === "cubic-bezier" || key === "steps") {
-            convertedFromName.value = null;
-            detailPanelDismissed.value = false;
-        }
-    };
-
-    const onEasingLabelClick = (currentEasing: string) => {
-        // The stored value may be a LITERAL now (I.W2.S3) — key off the KIND.
+    const beginEdit = (currentEasing: string): boolean => {
         const kind = timingFunctionKind(currentEasing);
-        if (kind === undefined) return;
-
-        if (kind === "steps") {
-            // Persist the COMPLETE steps literal (not the bare keyword) so a
-            // re-mount round-trips; `updateTimingFunctionFromName` writes it.
-            updateTimingFunctionFromName("steps");
-            detailPanelDismissed.value = false;
-            return;
-        }
-
-        if (kind === "cubic-bezier") {
-            detailPanelDismissed.value = false;
-            convertedFromName.value = null;
-            return;
-        }
-
-        // A named easing the demo's catalogue can express as ONE cubic-bezier
-        // (`NAMED_EASING_BEZIER` — never `bezierPresets`, KF-SS3) is
-        // auto-converted: the quad is seated and the literal persisted.
-        const bezierPoints = NAMED_EASING_BEZIER[currentEasing];
-        if (bezierPoints) {
-            storedAnimationOptions.cubicBezierOptions.controlPoints = [
-                ...bezierPoints,
-            ];
-            convertedFromName.value = currentEasing;
-            // `updateTimingFunctionFromName("cubic-bezier")` persists the
-            // `cubic-bezier(x1, y1, x2, y2)` LITERAL (the live points).
-            updateTimingFunctionFromName("cubic-bezier");
-            detailPanelDismissed.value = false;
-            return;
-        }
-
-        // KF-CO-13 — an engine-native name (no bezier reproduces it): open the
-        // editor as a DEPARTURE on the stored quad. The selection is NOT
-        // rewritten and nothing is persisted here; the first authored edit
-        // (the panel's emit) is what writes `cubic-bezier(…)`.
-        convertedFromName.value = currentEasing;
-        detailPanelDismissed.value = false;
+        if (kind === undefined) return false;
+        edited.value = false;
+        convertedFromName.value =
+            kind === "cubic-bezier" || kind === "steps" ? null : currentEasing;
+        return true;
     };
 
-    const exitDetailPanel = () => {
-        detailPanelDismissed.value = true;
+    /**
+     * The quad a peek seats: the named curve's own cubic-bézier (the demo's
+     * `NAMED_EASING_BEZIER`, never value.js `bezierPresets` — KF-SS3), read,
+     * never written. `undefined` when the stored easing is not a peeked name.
+     */
+    const peekQuad = computed(() => {
+        const from = convertedFromName.value;
+        if (from === null || edited.value) return undefined;
+        return NAMED_EASING_BEZIER[from];
+    });
+
+    /** The card's authored handler ran: the edit is committed. */
+    const markAuthored = (): void => {
+        edited.value = true;
+    };
+
+    const endEdit = (): void => {
         convertedFromName.value = null;
+        edited.value = false;
     };
 
     return {
-        // Reactive state
         convertedFromName,
-        departure,
-        advancedOpen,
+        caption,
+        peekQuad,
         isDetailEasing,
-        showDetailPanel,
         selectedCurveKey,
 
-        // Actions
-        onEditIconClick,
-        onEasingLabelClick,
         onCurvePicked,
-        exitDetailPanel,
+        beginEdit,
+        markAuthored,
+        endEdit,
         setAnimationTimingFunction,
         updateTimingFunctionFromName,
         curveGlyphPath,
         curveFnFor,
     };
 }
+
+/** A draft kind is an editor entry, not a named curve (KF-CO-23 · UIA-KF-271). */
+export const isDraftKind = (key: string): key is DraftKind =>
+    key === "cubic-bezier" || key === "steps";
