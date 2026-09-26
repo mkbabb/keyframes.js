@@ -68,7 +68,7 @@ import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 import { SmoothProgress } from "@mkbabb/keyframes.js";
 import { SpringProgress } from "@mkbabb/keyframes.js";
 import { RAFPlayback } from "@mkbabb/keyframes.js";
-import { useRafLoop } from "@components/instrument/transport/composables/useRafLoop";
+import { useDemoTicker } from "@components/instrument/transport/composables/useDemoTicker";
 import { useDragCapture } from "@components/instrument/transport/composables/useDragCapture";
 import { useTouchGate } from "@mkbabb/glass-ui";
 
@@ -296,7 +296,10 @@ const gatedPointerDown = (e: PointerEvent) => {
 // Always poll — the animation's effectiveT changes during playback, slider scrub,
 // and visualizer drag. The cost is one progress calc + setBallProgress per frame.
 
-useRafLoop(() => {
+// A2-KE-L1-3 (X.KF.W13X.transport) — the demo's ONE shared ticker, by its own
+// name: the eight-line options-bag alias that forwarded to it
+// (`transport/composables/`, deleted) gave one job two names.
+useDemoTicker(() => {
     const anim = props.animation;
     if (!isDragging.value && !coastPlayback.running && anim.options.duration > 0) {
         const progress = Math.max(
@@ -305,7 +308,7 @@ useRafLoop(() => {
         );
         setBallProgress(progress);
     }
-}, { guard: computed(() => props.isPlaying || isDragging.value) });
+}, computed(() => props.isPlaying || isDragging.value));
 
 // ── Paused repaint (R-e-2) ───────────
 // The loop above is guarded off while paused, so a PAUSED scrub (the ribbon's
@@ -324,7 +327,7 @@ watch(
     },
 );
 
-// Stop the raw coast RAFPlayback on dispose — the sync loop rides useRafLoop's
+// Stop the raw coast RAFPlayback on dispose — the sync loop rides useDemoTicker's
 // auto-cleanup, but coastPlayback is a second raw playback; unmounting mid-fling
 // would otherwise leave it running until the spring settles (a bounded micro-leak).
 onScopeDispose(() => coastPlayback.stop());

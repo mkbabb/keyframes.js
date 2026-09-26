@@ -6,7 +6,7 @@
  * Easing + Spring the dead hook was the ONLY unmount-time `stop()`, so swapping
  * away mid-play LEAKED the rAF preview loop perpetually. G.W9 re-homes the
  * cleanup on `onScopeDispose` (the genuine dispose seam, mirroring
- * useRafLoop.ts onUnmounted(stop)).
+ * useDemoTicker.ts's onScopeDispose unsubscribe).
  *
  * This witness PROVES the leak is stopped: it mounts the composable inside an
  * effect scope, starts playback (the rAF loop reschedules), disposes the scope
