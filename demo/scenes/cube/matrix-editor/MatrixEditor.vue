@@ -1,100 +1,87 @@
 <template>
-    <Card tier="quiet" class="cartoon-surface">
-        <CardContent class="grid items-center justify-center gap-3 p-3">
-            <div
-                class="matrix-grid relative m-0 grid h-fit w-full grid-cols-4
-                    items-center justify-items-stretch gap-1 p-0"
-            >
-                <div
-                    class="relative grid aspect-square min-h-[3.5rem] rounded-lg
-                        shadow-sm"
-                    v-for="(value, i) in matrix3dEnd.args"
-                    :key="i"
-                    @focusin="editingCell = i"
-                    @focusout="editingCell = null"
-                >
-                    <!-- z-10 on the Input below is LOCAL stacking: the editable
-                         value field overlays the decorative axis-label div within
-                         the same matrix cell; not an editor z-contract layer. -->
-                    <Input
-                        :class="
-                            `text-small absolute top-0 left-0 z-10 h-full w-full
-                            bg-transparent p-0 text-center font-mono tabular-nums
-                            text-ellipsis` +
-                            [
-                                storedControls.matrixOptions
-                                    .selectedMatrixCell === i
-                                    ? 'font-bold focus:font-bold'
-                                    : '',
-                            ]
-                        "
-                        :title="matrixCellEditText((value as MatrixScalar).payload.value)"
-                        :model-value="cellText(value as MatrixScalar, i)"
-                        @update:model-value="(v) => updateMatrixCell(v, i)"
-                        :start="matrixCellMeta[i]!.sliderOptions.bounds[0]"
-                        :end="matrixCellMeta[i]!.sliderOptions.bounds[1]"
-                        :step="matrixCellMeta[i]!.sliderOptions.step"
-                        @click="
-                            storedControls.matrixOptions.selectedMatrixCell = i
-                        "
-                    />
+    <Card tier="quiet" class="cartoon-surface w-full overflow-visible">
+        <CardContent class="panel-content px-4 py-3">
+            <!-- X.KF.W13X.matrix (UIA-KF-161 · UIA-KF-267) — the surface is ONE
+                 titled glass section, the Spring facet's anatomy: the title names
+                 what the panel edits (the facet had no heading and an unnamed
+                 panel, so once the dock idled to its glyph nothing on screen said
+                 "matrix"), and one caption line is the legend for the S/K/P/T/w
+                 role letters the cells wear. -->
+            <ConfiguratorLayer label="Transform matrix" default-open body-class="flex flex-col gap-3">
+                <p class="text-caption text-muted-foreground">
+                    S&nbsp;scale · K&nbsp;shear · P&nbsp;perspective · T&nbsp;translate&nbsp;(px) · w&nbsp;divisor
+                </p>
+                <!-- UIA-KF-063 · UIA-KF-047 · UIA-KF-263/266 — each cell is a
+                     field-radius TILE holding its name ABOVE a single-line value
+                     field: the name sat under the value as a larger bold
+                     watermark (both illegible, worse in dark), and the text input
+                     stretched to a 56 px square became a disc (the pill radius
+                     clamps to half the block). The grid fills the card instead of
+                     shrink-wrapping to a centred island. The field keeps glass's
+                     own single-line shape; the card-like single-value FIELD kind
+                     is glass's row (O-59, relay-only). -->
+                <div class="matrix-grid grid w-full grid-cols-4 gap-1" role="group" aria-label="Matrix entries">
                     <div
-                        :class="
-                            `matrix-axis-label text-heading absolute top-0 left-0 flex h-full w-full items-center justify-center justify-items-center p-0 text-center ` +
-                            [matrixCellMeta[i]!.axis.toLocaleLowerCase()]
-                        "
+                        v-for="(value, i) in matrix3dEnd.args"
+                        :key="i"
+                        class="matrix-cell"
+                        :class="{ 'is-active': selectedCell === i }"
+                        @focusin="editingCell = i"
+                        @focusout="editingCell = null"
                     >
-                        <template v-if="matrixCellMeta[i]!.transform !== ''">
-                            {{ matrixCellMeta[i]!.transform
-                            }}<sub>{{
-                                matrixCellMeta[i]!.axis.toLowerCase()
-                            }}</sub>
-                        </template>
-                        <template v-else>{{
-                            matrixCellMeta[i]!.axis
-                        }}</template>
+                        <label
+                            :for="`${uid}-${i}`"
+                            :class="['matrix-axis-label', matrixCellMeta[i]!.axis.toLowerCase()]"
+                            >{{ matrixCellMeta[i]!.symbol }}<sub v-if="matrixCellMeta[i]!.sub">{{ matrixCellMeta[i]!.sub }}</sub></label
+                        >
+                        <!-- UIA-KF-264 — the cell the slider drives is marked for AT
+                             (`aria-current`) and, at rest, by the tile's selected
+                             tint (glass DESIGN.md's component-scoped `.is-active`:
+                             10 % foreground ground, 25 % foreground edge). A cell
+                             is selected by focus as well as by pointer, so the
+                             keyboard reaches the slider's cell too. -->
+                        <Input
+                            :id="`${uid}-${i}`"
+                            class="matrix-cell-field text-small text-center font-mono tabular-nums px-1"
+                            inputmode="decimal"
+                            :aria-current="selectedCell === i ? 'true' : undefined"
+                            :title="matrixCellEditText((value as MatrixScalar).payload.value)"
+                            :model-value="cellText(value as MatrixScalar, i)"
+                            @update:model-value="(v) => updateMatrixCell(v, i)"
+                            @focus="selectedCell = i"
+                            @click="selectedCell = i"
+                        />
                     </div>
                 </div>
-            </div>
 
-            <Slider
-                :model-value="[
-                    matrixCellValue(
-                        storedControls.matrixOptions.selectedMatrixCell,
-                    ),
-                ]"
-                @update:model-value="
-                    (val: number[] | undefined) => {
-                        updateMatrixCell(
-                            val![0]!,
-                            storedControls.matrixOptions.selectedMatrixCell,
-                        );
-                    }
-                "
-                :min="
-                    matrixCellMeta[
-                        storedControls.matrixOptions.selectedMatrixCell
-                    ]!.sliderOptions.bounds[0]
-                "
-                :max="
-                    matrixCellMeta[
-                        storedControls.matrixOptions.selectedMatrixCell
-                    ]!.sliderOptions.bounds[1]
-                "
-                :step="
-                    matrixCellMeta[
-                        storedControls.matrixOptions.selectedMatrixCell
-                    ]!.sliderOptions.step
-                "
-                class="w-full"
-            ></Slider>
+                <!-- UIA-KF-260 · UIA-KF-106 (consumer half) — the ONE control
+                     idiom (OA-45/47, the param row): the slider is named by the
+                     cell it drives and the value reads on the label's line; the
+                     humane string reaches AT through the producer's `valueText`.
+                     The value/unit readout PROP and the extreme-edge mark are
+                     glass's half (O-59). -->
+                <div class="param-row">
+                    <LabeledSlider
+                        :model-value="matrixCellValue(selectedCell)"
+                        :label="selectedMeta.name"
+                        :min="selectedMeta.sliderOptions.bounds[0]"
+                        :max="selectedMeta.sliderOptions.bounds[1]"
+                        :step="selectedMeta.sliderOptions.step"
+                        :value-text="(v: number) => `${selectedMeta.name} ${readout(v)}`"
+                        @update:model-value="(v: number) => updateMatrixCell(v, selectedCell)"
+                    />
+                    <output class="param-value" aria-hidden="true">{{ readout(matrixCellValue(selectedCell)) }}</output>
+                </div>
+            </ConfiguratorLayer>
         </CardContent>
     </Card>
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
-import { Slider, Card, CardContent } from "@mkbabb/glass-ui";
+import { computed, ref, useId } from "vue";
+import { Card, CardContent } from "@mkbabb/glass-ui";
+import { LabeledSlider } from "@mkbabb/glass-ui/labeled-field";
+import { ConfiguratorLayer } from "@mkbabb/glass-ui/configurator";
 import { Input } from "@mkbabb/glass-ui/input";
 import {
     matrixCellDisplayText,
@@ -127,17 +114,38 @@ const emit = defineEmits<{
 // may predate the member; the `??=` below is what discharges that for this
 // editor, and it runs to completion before the render function is ever evaluated.
 // The annotation states exactly that post-condition, so the template reads the
-// seeded member instead of re-asserting its presence at each of its ten sites.
+// seeded member instead of re-asserting its presence at each site.
 const storedControls = getStoredAnimationGroupControlOptions(
     props.superKey,
 ) as StoredAnimationGroupControlOptions & { matrixOptions: MatrixOptions };
 
-const defaultMatrixOptions: MatrixOptions = {
-    fixed: true,
-    selectedMatrixCell: 0,
-};
+// X.KF.W13X.matrix (UIA-KF-028) — the slice is the selected cell alone. Its
+// `fixed` flag was written by the ribbon's Fixed/Free toggle and read by
+// nothing: a control that only flipped its own label. Toggle and flag are gone.
+storedControls.matrixOptions ??= { selectedMatrixCell: 0 };
 
-storedControls.matrixOptions ??= defaultMatrixOptions;
+const selectedCell = computed({
+    get: () => storedControls.matrixOptions.selectedMatrixCell,
+    set: (ix: number) => {
+        storedControls.matrixOptions.selectedMatrixCell = ix;
+    },
+});
+
+const selectedMeta = computed(() => {
+    const meta = props.matrixCellMeta[selectedCell.value];
+    if (meta === undefined) {
+        throw new RangeError(
+            `Matrix cell ${selectedCell.value} is outside the matrix3d value.`,
+        );
+    }
+    return meta;
+});
+
+// The readout: the at-rest digit policy, plus the unit a translate cell carries.
+const readout = (value: number): string =>
+    matrixCellDisplayText(value) + (selectedMeta.value.symbol === "T" ? " px" : "");
+
+const uid = useId();
 
 const updateMatrixCell = (to: number | string, ix: number) => {
     emit("updateMatrixCell", to, ix);
@@ -163,8 +171,8 @@ const updateMatrixCell = (to: number | string, ix: number) => {
  * pair, gate-reachable without mounting a glass-ui subtree.
  *
  * The `title` beside it carries the full value in BOTH states — ME-43's
- * recovery affordance, for a fixed ~56 px cell that can hold `-1000`
- * (`transformMath`'s translate bounds) and had no way to show what it clipped.
+ * recovery affordance, for a narrow cell that can hold a translate of several
+ * hundred px and had no way to show what it clipped.
  */
 const editingCell = ref<number | null>(null);
 
@@ -188,25 +196,45 @@ const matrixCellValue = (index: number): number => {
 </script>
 
 <style scoped>
-/* KF.W6 ME-13 — the axis label is the SOLE per-cell identification in this grid,
-   and it was denominated in ALPHA — a 20 % opacity utility in light, a 75 % one
-   in dark. Two magic numbers for one decision, and opacity is not a
-   contrast mechanism — it multiplies whatever the token resolved to, so the
-   light arm sat under a ceiling no theme could raise and the repo's own design
-   doc had already written the diagnosis down ("nearly invisible in light mode")
-   and scheduled a cure that never landed.
+/* X.KF.W13X.matrix — the cell TILE: the name above, the value field below,
+   on the card rung glass's radius canon gives multi-line holders
+   (`--radius-field`, glass DESIGN.md:386). At rest the tile is transparent; the
+   selected tile takes glass's component-scoped `.is-active` recipe (DESIGN.md:
+   "10% foreground bg, 25% foreground border"), so the cell the slider drives is
+   legible after focus leaves the grid. */
+.matrix-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: calc(var(--space-atom) / 2);
+    min-width: 0;
+    padding: calc(var(--space-atom) / 2);
+    border: 1px solid transparent;
+    border-radius: var(--radius-field);
+}
+.matrix-cell.is-active {
+    background: color-mix(in oklab, var(--foreground) 10%, transparent);
+    border-color: color-mix(in oklab, var(--foreground) 25%, transparent);
+}
+.matrix-cell-field {
+    min-width: 0;
+}
 
-   The cure is theme-aware INK, not alpha (the banked ruling), and the demo's own
-   doc floor rides: instead of fading the axis colour, the label paints a real
-   muted RUNG mixed from that same colour toward the page. One fraction, both
-   arms, resolved per theme because --background flips — the light arm gains the
-   presence the doc asked for, the dark arm keeps a solid hue-true ink rather
-   than a 75% wash, and the token language stays exactly what the tree defended
-   twice (--axis-w is deliberately the neutral). Nothing here is transparent, so
-   nothing composites unpredictably over the cell surface beneath.
-   Painted ratios: KF.W9 / SS-13. */
+/* The cell NAME, in the label register above its field (UIA-KF-063: it was a
+   `text-heading` watermark under the value). KF.W6 ME-13's form stands — theme-
+   aware INK mixed from the axis colour, one fraction for both themes, never
+   alpha — but its pole moves from the page to the TEXT: ME-13 mixed toward
+   --background for a decorative watermark under the value, and at caption size
+   that rung measured ~1.7:1 on the light card (the label is now the cell's only
+   name, so it must read as text, WCAG 1.4.3). Mixed toward --foreground it
+   darkens in light and lightens in dark. The axis hues — the scene's identity
+   colours — are kept. */
 .matrix-axis-label {
-    color: color-mix(in oklab, var(--color) 55%, var(--background));
+    font-family: var(--font-mono);
+    font-size: var(--type-caption);
+    line-height: 1.2;
+    text-align: center;
+    color: color-mix(in oklab, var(--color) 55%, var(--foreground));
 }
 .x {
     --color: var(--axis-x);

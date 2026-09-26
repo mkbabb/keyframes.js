@@ -40,7 +40,7 @@ import { Button } from "@mkbabb/glass-ui";
 // (`matrixControlsPanel` below) keyed on the active surface, mirroring the
 // channel host's built-in panels. No scene-injected trigger or content node
 // exists, so there is no root context for one to miss.
-import { Lock, LockOpen, RotateCcw } from "@lucide/vue";
+import { RotateCcw } from "@lucide/vue";
 
 import MatrixEditor from "./matrix-editor/MatrixEditor.vue";
 import CubeTarget from "./CubeTarget.vue";
@@ -129,11 +129,12 @@ const { animationGroup, setTargets } = useCubeDemo(
 // only one a template grep cannot see. Its `role`/`data-state` pair is retained
 // for the same stated reason as its three siblings in `ChannelControls.vue`: it
 // is the seam `styles/tab-idiom.css`'s panel-enter rule and the pane probes key
-// on, and retiring that rule is an open decision this wave does not own. The
-// missing accessible NAME is the a11y spec input the row is banked as.
+// on, and retiring that rule is an open decision this wave does not own. Its
+// accessible NAME is the editor section's own title (X.KF.W13X.matrix,
+// UIA-KF-161: "Transform matrix").
 const tabsContent = () =>
     storedControls.selectedControl === "matrix-controls"
-        ? h("div", { role: "tabpanel", "data-state": "active" }, [
+        ? h("div", { role: "tabpanel", "data-state": "active", "aria-label": "Transform matrix" }, [
             h(MatrixEditor, {
                 matrix3dEnd: matrix3dEnd.value,
                 matrixCellMeta: matrixCellMeta.value,
@@ -151,16 +152,6 @@ const ribbonContent = (slotProps: { selectedControl: string }) =>
                 emphasis: "secondary",
                 onClick: () => resetMatrix(),
             }, { default: () => [h(RotateCcw, { class: "icon-sm" }), " Reset"] }),
-            h(Button, {
-                size: "sm",
-                emphasis: "secondary",
-                onClick: () => { storedControls.matrixOptions!.fixed = !storedControls.matrixOptions!.fixed; },
-            }, {
-                default: () => [
-                    !storedControls.matrixOptions?.fixed ? h(Lock, { class: "icon-sm" }) : h(LockOpen, { class: "icon-sm" }),
-                    ` ${storedControls.matrixOptions?.fixed ? "Free" : "Fixed"}`,
-                ],
-            }),
         ]
         : null;
 

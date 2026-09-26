@@ -30,15 +30,13 @@ export type StoredAnimationGroupControlOptions = {
 };
 
 /**
- * The cube matrix editor's own stored slice. `selectedMatrixCell` was WRITTEN by
- * `MatrixEditor.vue` (`:38`) and SEEDED by its `??=` default (`:115-120`) while
- * this type declared `{ fixed: boolean }` alone — so every read of it through the
- * store was statically ill-typed and no checker in the tree could say so (the
- * X.KF.W4 gate hole). The field is declared here, at the one authority for the
- * stored shape, rather than re-asserted at each reader.
+ * The cube matrix editor's own stored slice: the cell its slider drives, written
+ * and seeded by `MatrixEditor.vue`. Declared here, at the one authority for the
+ * stored shape, rather than re-asserted at each reader (the X.KF.W4 gate hole).
+ * X.KF.W13X.matrix (UIA-KF-028): the `fixed` flag is deleted with the ribbon's
+ * Fixed/Free toggle, its only writer — nothing ever read it.
  */
 export type MatrixOptions = {
-    fixed: boolean;
     selectedMatrixCell: number;
 };
 
