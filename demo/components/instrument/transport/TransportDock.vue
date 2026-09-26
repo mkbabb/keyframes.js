@@ -17,18 +17,20 @@
             the actuation and cancellation law is that composable's docblock.
             Collapsing shrinks the host, so `useMenubarMeasure` republishes the
             smaller --menubar-measured-h and the mobile sheet anchor follows.
-            The transport mounts EXPANDED and may collapse (TD-5): since glass
-            9.0.0 that posture is `collapse="open"` (the former
-            `:always-expanded="false"` with `startCollapsed` defaulted off);
-            the boot posture batches with kf-ChromeDock RR-1 M#4 and is not
-            re-tuned here.
+            KFA-166 (X.KF.W13X.transport) — the boot posture is SETTLED with
+            kf-ChromeDock's RR-1 M#4 batch: `collapse="closed"`, the posture
+            ChromeDock mounts in. The former `collapse="open"` (TD-5) mounted
+            expanded and never idled until a first hover — served expanded
+            after 10 s with no interaction — because the producer's idle
+            window arms on a pointer leave. Closed, the transport rests on the
+            persistent Play and expands on hover/focus like its sibling.
         -->
         <!-- TD-36: the host is a full-bleed band; only the pill takes the
              pointer (the ChromeDock pair — pointer-events-none host,
              pointer-events-auto child), so the band outside it never
              swallows a press meant for the stage beneath. -->
         <div class="pointer-events-auto">
-            <GlassDock ref="dockRef" collapse="open" :fit-content="true">
+            <GlassDock ref="dockRef" collapse="closed" :fit-content="true">
                 <!-- Expanded state: full controls.
                      T.C1 — THE TRANSPORT RECUT (rail-core | section | nav on glass-ui
                      DockSeparator). PLAY LEADS as rail-core, drawn FIRST from the
