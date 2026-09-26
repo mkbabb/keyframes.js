@@ -278,6 +278,7 @@ const lastPose: AmigaPose = { px: SPHERE_HOME, py: SPHERE_HOME, spin: 0 };
 type PoseAuthority = "pose" | "home";
 let authority: PoseAuthority = "home";
 let wasPlaying = false;
+let wasStarted = false;
 let gestureWasLive = false;
 let lastFrameAt = 0;
 
@@ -340,14 +341,27 @@ function onFrame(now: number): boolean {
     lastFrameAt = now;
     const dtSeconds = dt / 1000;
 
-    const playing = animationGroup.started && animationGroup.playing();
+    const started = animationGroup.started;
+    const playing = started && animationGroup.playing();
+    // X.KF.W13X · KFA-126 / UIA-KF-023 — the TRANSPORT's own edges, taken
+    // explicitly: a pause (playing ↓) or a stop/Reset (started ↓; `stop()`
+    // rewinds and settles the group). A pose change seen on an edge frame is the
+    // transport's — the group's last played write, landing between two frames
+    // because the two loops are not phase-locked (C-17), or Reset's rewind — and
+    // never a user scrub. It used to count as one, so `authority = 'pose'` won
+    // and the stage froze mid-air on Pause and stranded Y on Reset. HOME is
+    // decided here, in one place: every stop edge settles all three lanes home.
+    const stopped = wasStarted && !started;
+    const transportEdge = (wasPlaying && !playing) || stopped;
     // D-1 — a SCRUB is the group authoring a pose while the transport is stopped.
-    const scrubbed = !playing && poseMoved();
+    const scrubbed = !playing && !transportEdge && poseMoved();
 
     // The group owns the stage while it plays AND after any seek; HOME owns it
     // once the group has stopped with no seek since (T.A8).
     const nextAuthority: PoseAuthority =
-        playing || scrubbed ? "pose" : wasPlaying ? "home" : authority;
+        playing || scrubbed ? "pose" : transportEdge ? "home" : authority;
+    // UIA-KF-197 — Reset (the stop edge) also brings the room view home.
+    if (stopped) three.homeView();
     const targetPx = nextAuthority === "pose" ? pose.px : SPHERE_HOME;
     const targetPy = nextAuthority === "pose" ? pose.py : SPHERE_HOME;
     const targetSpin = nextAuthority === "pose" ? pose.spin : 0;
@@ -378,6 +392,7 @@ function onFrame(now: number): boolean {
         }
     }
     wasPlaying = playing;
+    wasStarted = started;
 
     continuity.tick(dt);
     rendered.px = targetPx + continuity.offset.px;

@@ -272,8 +272,17 @@ export function useAmigaDemo(onPose?: (pose: Readonly<AmigaPose>) => void) {
         transform,
     );
 
-    // Y — the floor↔upper-third slam under a gravity-flavoured bounce. Starts and
-    // ends at the centred home; the peak |py| = |FLOOR_Y| = 4 ≥ 2.5·radius.
+    // Y — the floor↔upper-third slam under a gravity-flavoured bounce: two full
+    // apex → floor → apex hops per period; the peak |py| = |FLOOR_Y| = 4 ≥
+    // 2.5·radius.
+    //
+    // X.KF.W13X · KFA-66 — the loop's seam is an APEX. The 0 % and 100 % stops
+    // used to sit at the centred home (0) mid-air, so PLAY would enter from rest;
+    // the price was a zero-velocity turn at y = 0 every period: every other hop
+    // stalled two-thirds of the way up, and the 4-unit and 6-unit drops shared
+    // one 400 ms fall. Entering from rest is the continuity lanes' job (T.A8:
+    // the stage settles from HOME onto the live pose), not the curve's, so every
+    // hop is now the same 6-unit fall and the same climb to the same apex.
     //
     // MISSED-E — the easing is PER SEGMENT, because gravity is. One shared
     // `cubic-bezier(0.36, 0, 0.66, 1)` used to govern all five keyframes, and
@@ -292,11 +301,11 @@ export function useAmigaDemo(onPose?: (pose: Readonly<AmigaPose>) => void) {
         duration: Y_PERIOD_MS,
         iterationCount: Infinity,
     })
-        .addFrame("0%", { position: { y: SPHERE_HOME } }, transform, FALL)
+        .addFrame("0%", { position: { y: APEX_Y } }, transform, FALL)
         .addFrame("25%", { position: { y: FLOOR_Y } }, transform, RISE)
         .addFrame("50%", { position: { y: APEX_Y } }, transform, FALL)
         .addFrame("75%", { position: { y: FLOOR_Y } }, transform, RISE)
-        .addFrame("100%", { position: { y: SPHERE_HOME } }, transform)
+        .addFrame("100%", { position: { y: APEX_Y } }, transform)
         .parse();
 
     // T.B9 — the ONE keyspace: the registry SceneId, read straight from
