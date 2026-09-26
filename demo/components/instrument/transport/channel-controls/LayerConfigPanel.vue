@@ -1,7 +1,7 @@
 <template>
     <!-- F1 (H.W9.S3) → LP-10 ≡ KF-CO-37 (prose corrected at the bytes): the
          blend / z-index / weight / enabled rows render as glass-ui
-         `.labeled-field` rows into ChannelOptions's advanced sub-pane, whose
+         `.labeled-field` rows into ChannelOptions's layer sub-pane, whose
          `.labeled-field-grid` wrapper is the ONE DRY source of the row shape —
          the §LABEL-subgrid idiom (design-idioms.css), a uniform derived label
          column across every row. This component does NOT re-author it (the
@@ -54,12 +54,22 @@
             </SelectTrigger>
             <SelectContent>
                 <SelectGroup>
+                    <!-- X.KF.W13X.controls · UIA-KF-171 — the blend select
+                         speaks the sibling easing picker's idiom: each item a
+                         name plus its muted description (the demo's own
+                         `COMPOSITE_OPERATOR_DESCRIPTIONS`, through the
+                         producer's declared `description` slot), and the
+                         current value marked by the producer's item indicator
+                         (glass ≥ 8 default, nothing hides it). -->
                     <SelectItem
                         v-for="item in COMPOSITE_OPERATORS"
                         :key="item"
                         :value="item"
                     >
                         {{ item }}
+                        <template #description>{{
+                            COMPOSITE_OPERATOR_DESCRIPTIONS[item]
+                        }}</template>
                     </SelectItem>
                 </SelectGroup>
             </SelectContent>
@@ -91,13 +101,24 @@
          neither bound; ARIA also wants `aria-invalid`) and is deleted: the
          NumberField's finite-gate rejects nothing the user can see, so there
          is no error to point at. -->
-    <LabeledField label="z-index" v-slot="{ controlId }">
+    <!-- X.KF.W13X.controls · UIA-KF-169 — the ROW is disabled, not only its
+         stepper: the LabeledField carries `disabled`, so glass sets
+         `data-disabled` on the row and its label dims with the control (the
+         label stayed at full ink while the stepper dimmed). UIA-KF-082 / 270 —
+         and z-index is disabled with blend and enabled on a multi-target
+         group: `renderMultiTarget` never reads `entry.layer`, so stepping it
+         there changed nothing on screen while it was offered as live. -->
+    <LabeledField
+        label="z-index"
+        :disabled="!blendAvailable || !layerConfig.enabled"
+        v-slot="{ controlId }"
+    >
         <NumberField
             :id="controlId"
             :model-value="layerConfig.zIndex"
             :step="1"
             :format-options="{ maximumFractionDigits: 0 }"
-            :disabled="!layerConfig.enabled"
+            :disabled="!blendAvailable || !layerConfig.enabled"
             @update:model-value="
                 (v: number) => {
                     if (Number.isFinite(v)) emit('update', { zIndex: v });
@@ -110,30 +131,48 @@
         </NumberField>
     </LabeledField>
 
-    <!-- LP-18 — the weight slider is the one 0–1 quantity at step 0.01 where
-         precision is the point, and it shipped with no visible value (reka
-         supplies `aria-valuenow`, so the reader was told the number and the
-         sighted user was not). The readout is welded into the LABEL — the
-         label track is the row's one text cell, so the number sits where the
-         z-index row's integer sits one row up. (A LabeledSlider readout seam
-         is a producer ask → SS-6.)
+    <!-- X.KF.W13X.controls · UIA-KF-081 — the label is the static `weight`;
+         the value is a trailing readout in its OWN fixed-width tabular cell
+         beside the slider (the way the z-index row shows its integer). Welded
+         into the label (`weight 1.00`) it made the label the widest in the
+         pane, so showing or hiding the row moved every control 27 px sideways
+         and each value step nudged them again. glass's `LabeledSlider` has no
+         readout seam (SS-6), so the row is the producer's `LabeledField` +
+         `Slider` composition (`controlLabelable: false` — reka's Slider root
+         is a span; the thumb is named through `labelledBy`).
+         LP-18 — the one 0–1 quantity at step 0.01 shows its number.
          LP-23 — a live `weightSpring` SILENTLY SHADOWS this write (weight.ts:
-         `weightSpring?.value ?? weight`, spring exempt even from the clamp),
-         so the slider is disabled while a spring drives the weight: a control
-         whose write the engine ignores is not offered as live.
-         LP-20 — `v-if` on the element itself, not a wrapping `<template>`. -->
-    <LabeledSlider
+         `weightSpring?.value ?? weight`), so the slider is disabled while a
+         spring drives the weight. LP-20 — `v-if` on the element itself. -->
+    <LabeledField
         v-if="blendAvailable && layerConfig.op === 'replace'"
-        :label="`weight ${layerConfig.weight.toFixed(2)}`"
-        :model-value="layerConfig.weight"
-        :min="0"
-        :max="1"
-        :step="0.01"
-        :disabled="
-            !layerConfig.enabled || layerConfig.weightSpring !== undefined
-        "
-        @update:model-value="(v: number) => emit('update', { weight: v })"
-    />
+        label="weight"
+        :control-labelable="false"
+        :disabled="!layerConfig.enabled || layerConfig.weightSpring !== undefined"
+        v-slot="{ labelledBy }"
+    >
+        <div class="flex items-center gap-2">
+            <Slider
+                class="min-w-0 flex-1"
+                :aria-labelledby="labelledBy"
+                :model-value="[layerConfig.weight]"
+                :min="0"
+                :max="1"
+                :step="0.01"
+                :value-text="(v: number) => v.toFixed(2)"
+                :disabled="!layerConfig.enabled || layerConfig.weightSpring !== undefined"
+                @update:model-value="
+                    (v?: number[]) => {
+                        const w = v?.[0];
+                        if (w !== undefined) emit('update', { weight: w });
+                    }
+                "
+            />
+            <output class="weight-readout" aria-hidden="true">{{
+                layerConfig.weight.toFixed(2)
+            }}</output>
+        </div>
+    </LabeledField>
 
     <!-- KF-CO-8 ≡ LP-3 — the switch rides the producer's DECLARED model
          (`LabeledSwitchProps.modelValue: boolean`, emit `update:modelValue`).
@@ -153,11 +192,9 @@
 
 <script setup lang="ts">
 import type { AnimationLayerConfig } from "@mkbabb/keyframes.js";
-import {
-    LabeledField,
-    LabeledSlider,
-    LabeledSwitch,
-} from "@mkbabb/glass-ui/labeled-field";
+import { LabeledField, LabeledSwitch } from "@mkbabb/glass-ui/labeled-field";
+import { Slider } from "@mkbabb/glass-ui/slider";
+import { COMPOSITE_OPERATOR_DESCRIPTIONS } from "@utils/reference-data/animationDescriptions";
 import {
     Select,
     SelectContent,
@@ -178,7 +215,8 @@ import {
 // list — the producer's Select emits `string | number`, and the former `as` cast let
 // an out-of-vocabulary operator ride `Object.assign` into the compositor's
 // replace/weight-blend arm unvalidated. (The `COMPOSITE_OPERATOR_DESCRIPTIONS`
-// binding it once carried was a phantom prop — KF-CO-2 / KF-CO-47.)
+// binding it once carried was a phantom prop — KF-CO-2 / KF-CO-47; the table
+// now reaches the items through the producer's declared `description` slot.)
 type CompositeOperator = AnimationLayerConfig["op"];
 const COMPOSITE_OPERATORS = [
     "replace",
@@ -203,3 +241,15 @@ const emit = defineEmits<{
     (e: "update:open", open: boolean): void;
 }>();
 </script>
+
+<style scoped>
+/* UIA-KF-081 — the weight readout's own cell: a fixed width of tabular
+   numerals, so a value step never moves the slider beside it. */
+.weight-readout {
+    flex: none;
+    inline-size: 4ch;
+    text-align: end;
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+}
+</style>
