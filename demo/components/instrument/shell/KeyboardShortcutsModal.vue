@@ -77,9 +77,12 @@
              SAME composable, so the undo route is live behind the scrim by the
              identical mechanism that leaves Delete live. Condition NOT met;
              the row stays MAJOR and is not re-promoted. -->
+        <!-- X.KF.W13X.overlays · UIA-KF-147 — at >= md the dialog widens to hold
+             the groups in TWO columns (below), so the whole map reads without
+             scrolling at 1440x900 (11 of 22 rows showed in a 540px port). -->
         <DialogContent
             scroll
-            class="max-w-md"
+            class="max-w-md md:max-w-2xl"
             @interact-outside="
                 (event) => {
                     if (isInsideToaster(event.target))
@@ -106,7 +109,9 @@
                      law: no per-instance override), and with the override gone
                      the leading/tracking utilities the `cn` merge could not
                      group no longer compete with it. -->
-                <DialogTitle>Keyboard Shortcuts</DialogTitle>
+                <!-- X.KF.W13X.overlays · UIA-KF-251 · UIA-KF-139 — sentence case,
+                     the menu row's own casing ("Keyboard shortcuts"). -->
+                <DialogTitle>Keyboard shortcuts</DialogTitle>
                 <!-- KSM R-15 — ONE copy edit, four faces. The former line
                      ("Press `?` to toggle this panel") hardcoded a binding the
                      General group already derives ~34 rows below, so the `?`
@@ -125,18 +130,37 @@
                      own DialogDescription tone and silently pinned this call
                      site against any future producer re-tone; the `text-small`
                      half is a real, winning override and stays. -->
-                <DialogDescription class="text-small">
-                    Every shortcut registered in this session, grouped by
-                    register.
-                </DialogDescription>
+                <!-- X.KF.W13X.overlays · UIA-KF-251 — one line, no internal
+                     vocabulary ("registered … grouped by register"). -->
+                <DialogDescription class="text-small">Grouped by area.</DialogDescription>
             </DialogHeader>
+            <!-- X.KF.W13X.overlays · UIA-KF-016 — `relative`: the port is the
+                 containing block of the rows' absolutely-positioned sr-only
+                 twins. Without it their containing block was DialogContent, so
+                 they inflated the DIALOG's scroll height (1223 vs 681) and a
+                 wheel past the list's end scrolled the header and close away.
+                 The port is now the only scroller (the producer's own "the root
+                 IS the scroll port"); `overscroll-behavior` on the root is the
+                 glass half, relayed (O-59).
+                 UIA-KF-250 — `scrollbar-hidden` (the FadingScroll README's own
+                 advice): the fade masks already signal overflow, and the
+                 platform thumb drew over the key-cap column.
+                 UIA-KF-147 — the groups flow in two balanced columns at >= md,
+                 each group kept whole (`break-inside-avoid`), and at >= md the
+                 port's cap is the viewport less the dialog's header and insets
+                 rather than `--panel-max-h` (60dvh), so the two columns show the
+                 whole map at 1440x900 (the demo's cap stays below md). -->
             <FadingScroll
                 axis="y"
                 aria-label="Keyboard shortcuts"
-                class="max-h-[var(--panel-max-h)] min-h-0"
+                class="relative scrollbar-hidden max-h-[var(--panel-max-h)] md:max-h-[calc(100dvh-12rem)] min-h-0"
             >
-                <div class="grid gap-4">
-                    <div v-for="[group, items] in groupedShortcuts" :key="group">
+                <div class="md:columns-2 md:gap-x-8">
+                    <div
+                        v-for="[group, items] in groupedShortcuts"
+                        :key="group"
+                        class="break-inside-avoid pb-4"
+                    >
                         <!-- KSM R-7 — a group HEADING is a UI label, not data: the
                              demo's own Mono-as-data law (DESIGN.md) and its in-tree
                              kill-shot (`.status-badge`, design-idioms.css — "a status
@@ -155,11 +179,21 @@
                              proximity is the only grouping signal left — on rows whose
                              own pairing signal R-11 had to add. `sticky top-0` over an
                              opaque plate keeps the register visible for the rows it
-                             governs; the negative inline margin lets the plate span the
-                             port's full width while the text keeps the rows' gutter. -->
+                             governs.
+                             X.KF.W13X.overlays · UIA-KF-072 · UIA-KF-139 — R-20's
+                             sticky plate is RETIRED: an opaque, square-cornered
+                             `bg-popover` band painted across the translucent glass
+                             dialog, faded by the port's own mask when pinned, with
+                             the previous row's cap peeking under it. With the two
+                             columns (UIA-KF-147) the whole map is in view at desktop,
+                             so a heading never scrolls away from its rows there.
+                             The heading is STATIC and leads its rows by weight AND
+                             ink (semibold, foreground — the muted tone read weaker
+                             than the rows it names); the FadingScroll mask is the
+                             only edge treatment. -->
                         <h3
                             :id="`kf-shortcut-group-${group}`"
-                            class="text-small font-semibold text-muted-foreground mb-2 px-2 -mx-2 sticky top-0 bg-popover py-1"
+                            class="text-small font-semibold text-foreground mb-1 px-2"
                         >
                             {{ group }}
                         </h3>
@@ -189,13 +223,15 @@
                                  affordance (click-to-run, which needs a run
                                  route this reference list does not own) and the
                                  honest treatment; the honest one is taken and
-                                 the plate is stripped. The `rounded-md px-2
-                                 py-1.5` rhythm stays — that is the row's box,
-                                 not a hover promise. -->
+                                 the plate is stripped. The `px-2 py-1.5` rhythm
+                                 stays — that is the row's box, not a hover
+                                 promise. X.KF.W13X.overlays · UIA-KF-251 — the
+                                 `rounded-md` that outlived the plate painted
+                                 nothing and is gone. -->
                             <div
                                 v-for="shortcut in items"
                                 :key="`${group}:${shortcut.raw}`"
-                                class="flex items-center justify-between py-1.5 px-2 rounded-md"
+                                class="flex items-center justify-between gap-3 py-1.5 px-2"
                             >
                                 <!-- KSM R-16 — `options.label` is optional on the
                                      producer's unnarrowed return type and is only
