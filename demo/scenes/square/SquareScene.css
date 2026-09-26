@@ -1,32 +1,25 @@
+/* X.KF.W13X · UIA-KF-296 / UIA-KF-090 / KFA-4 — THE TRAVEL IS A REGISTERED
+   LENGTH. `useSquareDemo` reads `--square-travel` off the box's computed style
+   and parses a px figure; an UNREGISTERED custom property computes to its
+   token stream, so the read was always `"clamp(4rem, 21svi, 6.875rem)"` →
+   `parseFloat` NaN → the 110 px fallback, at every width. The phone's clamp
+   never reached the springs (at 390 the box's halo ran 17 px past the plate,
+   served x2) and the tether's own geometry drew a different envelope from the
+   box's. Registered as `<length>`, it computes to px wherever it is declared
+   and inherits that px down to the box, the tether and the field. */
+@property --square-travel {
+    syntax: "<length>";
+    inherits: true;
+    initial-value: 110px;
+}
+
 .square-stage {
     /* The stage is the drag arena; the box translates within it. The plate
        (the I5 glass Card, D1) clips the spring overshoot at its rounded edge. */
     overflow: hidden;
     position: relative;
-
-    /* D-8 — THE ENVELOPE IS CLAMPED TO THE STAGE IT LIVES IN (OP-3 figures
-       re-derived at this unit's open sha; see the receipt's table).
-       A FIXED 12 rem subject with a FIXED ±110 px travel and a 1.08–1.12 swell,
-       inside an `overflow: hidden` plate, amputates on a phone:
-
-         full-drag half-extent = 96 px × 1.12 + 110 + 8 (the separator ring)
-                               = 225.5 px
-         tour-corner half-extent = 96 px × 1.08 + 90 + 8 = 201.7 px
-         mobile half-width       = 187.5 px @375 · 195 px @390
-
-       — so the subject and its ring clipped during the scene's own headline
-       animation. Both numbers are viewport-relative now and both bottom out
-       together, so the [-1,1] field stays square and reachable at every width:
-
-         @375: travel 78.8 px · size 112.5 px → half-extent 151.8 ≤ 187.5
-         @320: travel 67.2 px · size 96.0 px  → half-extent 128.9 ≤ 160
-         ≥524: both at their maxima, byte-identical to the fixed pair.
-
-       `--square-travel` is the px figure the composable reads (and re-reads on
-       resize) so the spring's coordinate world and the painted geometry cannot
-       drift apart — the tether derives from the same number, and the tour's
-       authored corner stops are re-seated proportionally. */
-    --square-travel: clamp(4rem, 21svi, 6.875rem);
+    /* The plate is the size container the arena's envelope resolves against. */
+    container-type: size;
 
     /* N-SQ-6 — THE SQUARE JOINS ITS SIBLINGS' TONE CONTRACT. It was the one
        consumer scene that never declared `--ball-tone` at its stage root
@@ -37,6 +30,34 @@
        re-tone, which is the whole point of the token. Declared to the same
        motion-authority hue the tether and the deflection aura already use. */
     --ball-tone: var(--color-progress);
+}
+
+/* ── X.KF.W13X · UIA-KF-090 / UIA-KF-296 / KFA-4 — THE ENVELOPE IS THE PLATE'S ──
+   D-8 clamped the subject and its travel to the VIEWPORT (`30svi`, `21svi`),
+   which is neither the plate they live in nor — through the unregistered read
+   above — what the springs used. At 1440 the 878x646 plate held a ±110 px field
+   (the box never came within ~214 px of its sides, the quarter ticks described
+   the plate, not the coordinate space), and the 110 px travel sat INSIDE the
+   box's own 107.5 px swollen half-size, so the rubber-band tether from home to
+   the box centre was under the opaque box at every pose (3 of 61 path samples
+   visible, served x2).
+
+   Both now resolve against the plate (`cqmin`, this layer being the plate's
+   first descendant): the travel is what is left of the plate's half-extent once
+   the swollen box (0.56 x size), its 0.5 rem ring and a 1 rem gutter are paid
+   for, so the [-1,1] field is square, reaches the plate, and keeps the box on
+   it at every width — and full travel clearly exceeds the swollen half-size,
+   so the tether shows the displacement.
+
+     1440 (plate 878x646): size 192 px · travel 191.5 px (was 110)
+     390  (plate 334x641): size 100 px · travel ~87 px, ring 16 px inside the edge */
+.square-arena {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    --square-size: clamp(6rem, 30cqmin, 12rem);
+    --square-travel: max(4rem, calc(50cqmin - 0.56 * var(--square-size) - 1.5rem));
 }
 
 /* The instrument layer (field · tether · telemetry · legend) is styled inside
@@ -65,10 +86,9 @@
     align-items: center;
     position: relative;
     z-index: var(--z-content);
-    /* D-8 — the subject shrinks with its envelope (see `.square-stage` above). */
-    --size: clamp(6rem, 30svi, 12rem);
-    width: var(--size);
-    height: var(--size);
+    /* D-8 — the subject shrinks with its envelope (see `.square-arena` above). */
+    width: var(--square-size);
+    height: var(--square-size);
     border-radius: var(--radius-lg);
     /* J.W7a S3 (D13 / SQ-5, the no-legacy delta) — the raw `aquamarine`
        named-colour literal DIES: the fill is the owned --subject-teal token
@@ -105,7 +125,12 @@
     color: color-mix(in oklab, var(--subject-fill) 25%, black);
     box-shadow:
         inset 0 1px 0 color-mix(in srgb, white 22%, transparent),
-        0 0 0 0.5rem color-mix(in srgb, var(--background) 50%, transparent);
+        0 0 0 0.5rem var(--square-ring);
+    /* X.KF.W13X · UIA-KF-292 — the rest ring is mixed from the HAIRLINE token,
+       not the page ground: `--background` at 50 % read as a soft matte in light
+       and as a heavy near-black bezel on the dark plate (a hole, L 0.15). The
+       border ink lifts in both themes. */
+    --square-ring: color-mix(in srgb, var(--border) 70%, transparent);
     /* Direct-manipulation affordance (S5). The transformFunc owns `transform`,
        so the cursor + touch-action carry the drag posture. */
     cursor: grab;
@@ -197,14 +222,17 @@
 
 /* ── L.W11 S4 — the palette-sweep BLOOM (the tumble egg's landing thunk) ──
    While `data-palette-sweep` is set (the egg's colour sweep is live, painted by
-   the kept SpringProgress spin) the box blooms a soft rainbow-sourced halo so
+   the kept SpringProgress spin) the box blooms a soft halo in its own fill so
    the barrel-roll lands as an EVENT — the off-the-normal-path effect the
-   design-refinement probe reads. PRM collapses it to no bloom (the box still
+   design-refinement probe reads. X.KF.W13X · KFA-97 — the halo is the box's
+   OWN fill: a fixed `--rainbow-violet` stayed violet around a box that had been
+   teal since the sweep's landing. (The marker itself now ends with the sweep's
+   landing pulse, not a 360° spring's 1e-3° settle.) PRM collapses it to no bloom (the box still
    tumbles + sweeps colour; only the decorative halo is dropped). */
 .demo-box[data-palette-sweep] {
     box-shadow:
         inset 0 1px 0 color-mix(in srgb, white 30%, transparent),
-        0 0 1.5rem 0.25rem color-mix(in srgb, var(--rainbow-violet) 35%, transparent);
+        0 0 1.5rem 0.25rem color-mix(in srgb, var(--subject-fill) 35%, transparent);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -233,6 +261,6 @@
            sweep still play — only the halo is suppressed). */
         box-shadow:
             inset 0 1px 0 color-mix(in srgb, white 22%, transparent),
-            0 0 0 0.5rem color-mix(in srgb, var(--background) 50%, transparent);
+            0 0 0 0.5rem var(--square-ring);
     }
 }

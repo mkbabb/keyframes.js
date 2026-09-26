@@ -11,91 +11,98 @@
         :shadow="false"
         class="square-stage grid h-full w-full place-items-center"
     >
-        <!-- L.W11 S4 — the draughtsman's instrument layer (the coordinate field,
-             the rubber-band tether, the telemetry strip, the legend) lives in the
-             colocated SquareInstrument sub-unit (markup + styles together). It is
-             fed DERIVED READS of the spring state — no second writer, no rAF. -->
-        <SquareInstrument
-            :defl-x="deflX"
-            :defl-y="deflY"
-            :settled="settled"
-            :tether-active="tetherActive"
-            :tumble-hint-shown="tumbleHintShown"
-            :tour-hint-shown="tourHintShown"
-            :travel="travel"
-        />
-
-        <!-- J.W7a S2 (D7 / SQ-12, TYP §4) — "drag me" is the scene's typography
-             moment: the small body-mono whisper lifts to the Instrument-Serif
-             `text-display` rung — the type IS the affordance, the one audacious
-             word on the bold subject (the same display register the other
-             scene titles carry inward).
-
-             P.W6 S1(a) — the per-axis 2D-slider-group ARIA contract. A single
-             `role="slider"` with a scalar `aria-valuenow` is a lossy
-             misrepresentation of a 2D drag (a 1D control reporting a blended
-             scalar). Instead the box is the `role="group"` container (the 2D
-             instrument) holding TWO visually-hidden `role="slider"` children, one
-             per axis, each carrying a COMPLETE WCAG 4.1.2 contract
-             (`aria-valuemin="-1"`, `aria-valuemax="1"`, live `:aria-valuenow`
-             tracking `springX.target`/`springY.target`). The box stays the
-             keyboard target (arrow nudges move both axis sliders).
-
-             §B.1 row 5 — the ring idiom is `kf-focus-ring`, not the bare
-             `focus-ring`. glass-ui 7.0.0 ships a REALIZED `.focus-ring:focus-visible`
-             inside `@layer components` that also binds `border-radius:
-             var(--radius-pill)`; the demo's unlayered same-named rule won the
-             box-shadow and silently inherited the producer's pill radius onto
-             rectangular hosts. KF.W6 renamed the demo's rule (`a6418729`) and
-             carried its own forced-colors restoration with it; this was one of
-             the two hosts still wearing the bare class.
-
-             D-4/D-7 — THE ACCESSIBLE NAME IS NO LONGER POINTER-ONLY. The label
-             instructed a drag while every keyboard affordance (Arrow×4, Shift+Arrow,
-             PageUp/Down, Home, End, `c`) was undeclared, and all three on-screen
-             instruction surfaces are `aria-hidden` — so there was no channel at
-             all. `aria-keyshortcuts` publishes the bindings and
-             `aria-describedby` points at an sr-only twin of the visual hints. -->
-        <div
-            ref="box"
-            class="demo-box text-display kf-focus-ring"
-            :class="{ 'demo-box--dragging': dragging && armed }"
-            :data-square-mode="mode"
-            role="group"
-            aria-label="Drag the box across two axes — a spring chases each axis"
-            aria-keyshortcuts="ArrowUp ArrowDown ArrowLeft ArrowRight Shift+ArrowUp Shift+ArrowDown Shift+ArrowLeft Shift+ArrowRight PageUp PageDown Home End C"
-            :aria-describedby="keyboardHelpId"
-            tabindex="0"
-            @pointerdown="onPointerDown"
-            @keydown="onKeydown"
-        >
-            <span :id="keyboardHelpId" class="sr-only-slider">
-                Arrow keys nudge the box a quarter of its travel; hold Shift for a
-                fine nudge; Page Up and Page Down move a half-step vertically;
-                Home re-centres it; End sends it to the far corner; press C to
-                trace the travel envelope; double-tap to tumble.
-            </span>
-            <span
-                class="sr-only-slider"
-                role="slider"
-                aria-label="Horizontal position"
-                aria-orientation="horizontal"
-                aria-valuemin="-1"
-                aria-valuemax="1"
-                :aria-valuenow="axisNow.x"
-                :aria-valuetext="`x ${springReadout.x}`"
+        <!-- X.KF.W13X · UIA-KF-090 / UIA-KF-296 / KFA-4 — the ARENA: the plate is
+             the size container, and this layer (its first descendant) is where
+             the subject's size and travel resolve against the plate's own
+             extent (`cqmin`), so the [-1,1] field reaches the plate rather than
+             a viewport guess (SquareScene.css). -->
+        <div class="square-arena">
+            <!-- L.W11 S4 — the draughtsman's instrument layer (the coordinate field,
+                 the rubber-band tether, the telemetry strip, the legend) lives in the
+                 colocated SquareInstrument sub-unit (markup + styles together). It is
+                 fed DERIVED READS of the spring state — no second writer, no rAF. -->
+            <SquareInstrument
+                :defl-x="deflX"
+                :defl-y="deflY"
+                :settled="settled"
+                :tether-active="tetherActive"
+                :tumble-hint-shown="tumbleHintShown"
+                :tour-hint-shown="tourHintShown"
+                :travel="travel"
             />
-            <span
-                class="sr-only-slider"
-                role="slider"
-                aria-label="Vertical position"
-                aria-orientation="vertical"
-                aria-valuemin="-1"
-                aria-valuemax="1"
-                :aria-valuenow="axisNow.y"
-                :aria-valuetext="`y ${springReadout.y}`"
-            />
-            drag me
+
+            <!-- J.W7a S2 (D7 / SQ-12, TYP §4) — "drag me" is the scene's typography
+                 moment: the small body-mono whisper lifts to the Instrument-Serif
+                 `text-display` rung — the type IS the affordance, the one audacious
+                 word on the bold subject (the same display register the other
+                 scene titles carry inward).
+
+                 P.W6 S1(a) — the per-axis 2D-slider-group ARIA contract. A single
+                 `role="slider"` with a scalar `aria-valuenow` is a lossy
+                 misrepresentation of a 2D drag (a 1D control reporting a blended
+                 scalar). Instead the box is the `role="group"` container (the 2D
+                 instrument) holding TWO visually-hidden `role="slider"` children, one
+                 per axis, each carrying a COMPLETE WCAG 4.1.2 contract
+                 (`aria-valuemin="-1"`, `aria-valuemax="1"`, live `:aria-valuenow`
+                 tracking `springX.target`/`springY.target`). The box stays the
+                 keyboard target (arrow nudges move both axis sliders).
+
+                 §B.1 row 5 — the ring idiom is `kf-focus-ring`, not the bare
+                 `focus-ring`. glass-ui 7.0.0 ships a REALIZED `.focus-ring:focus-visible`
+                 inside `@layer components` that also binds `border-radius:
+                 var(--radius-pill)`; the demo's unlayered same-named rule won the
+                 box-shadow and silently inherited the producer's pill radius onto
+                 rectangular hosts. KF.W6 renamed the demo's rule (`a6418729`) and
+                 carried its own forced-colors restoration with it; this was one of
+                 the two hosts still wearing the bare class.
+
+                 D-4/D-7 — THE ACCESSIBLE NAME IS NO LONGER POINTER-ONLY. The label
+                 instructed a drag while every keyboard affordance (Arrow×4, Shift+Arrow,
+                 PageUp/Down, Home, End, `c`) was undeclared, and all three on-screen
+                 instruction surfaces are `aria-hidden` — so there was no channel at
+                 all. `aria-keyshortcuts` publishes the bindings and
+                 `aria-describedby` points at an sr-only twin of the visual hints. -->
+            <div
+                ref="box"
+                class="demo-box text-display kf-focus-ring"
+                :class="{ 'demo-box--dragging': dragging && armed }"
+                :data-square-mode="mode"
+                role="group"
+                aria-label="Drag the box across two axes — a spring chases each axis"
+                aria-keyshortcuts="ArrowUp ArrowDown ArrowLeft ArrowRight Shift+ArrowUp Shift+ArrowDown Shift+ArrowLeft Shift+ArrowRight PageUp PageDown Home End C"
+                :aria-describedby="keyboardHelpId"
+                tabindex="0"
+                @pointerdown="onPointerDown"
+                @keydown="onKeydown"
+            >
+                <span :id="keyboardHelpId" class="sr-only-slider">
+                    Arrow keys nudge the box a quarter of its travel; hold Shift for a
+                    fine nudge; Page Up and Page Down move a half-step vertically;
+                    Home re-centres it; End sends it to the far corner; press C to
+                    trace the travel envelope; double-tap to tumble.
+                </span>
+                <span
+                    class="sr-only-slider"
+                    role="slider"
+                    aria-label="Horizontal position"
+                    aria-orientation="horizontal"
+                    aria-valuemin="-1"
+                    aria-valuemax="1"
+                    :aria-valuenow="axisNow.x"
+                    :aria-valuetext="`x ${springReadout.x}`"
+                />
+                <span
+                    class="sr-only-slider"
+                    role="slider"
+                    aria-label="Vertical position"
+                    aria-orientation="vertical"
+                    aria-valuemin="-1"
+                    aria-valuemax="1"
+                    :aria-valuenow="axisNow.y"
+                    :aria-valuetext="`y ${springReadout.y}`"
+                />
+                drag me
+            </div>
         </div>
     </Card>
 </template>

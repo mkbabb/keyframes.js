@@ -7,7 +7,14 @@
          telemetry strip (serif title + accent x/y readout + settled/tracking
          badge), and the axis legend. All are DERIVED READS of the spring state
          SquareScene feeds as props — no second writer, no second rAF. -->
-    <div class="square-field stage-field-x stage-field-y" aria-hidden="true"></div>
+    <!-- X.KF.W13X · UIA-KF-088 — ONE IDIOM CLASS PER LAYER. Both classes write
+         `background-image`, so on one element the later rule (`-x`) won and the
+         "2-axis" field drew only its vertical lines. Two stacked layers compose
+         the published idiom as it is, both axes drawn. UIA-KF-090 — and the
+         field IS the travel envelope, so its quarter lines are the [-1,1]
+         coordinates the legend names, not quarters of the plate. -->
+    <div class="square-field stage-field-x" aria-hidden="true"></div>
+    <div class="square-field stage-field-y" aria-hidden="true"></div>
 
     <svg
         class="square-tether"
@@ -69,8 +76,8 @@ import { computed } from "vue";
 import { SQUARE_ANIM_NAME } from "./squareKeys";
 
 /**
- * C-9 — THE DROP IS DECLARED NOW. This component has FOUR root nodes (field ·
- * tether · telemetry · legend), so Vue has no single element to fall attributes
+ * C-9 — THE DROP IS DECLARED NOW. This component has FIVE root nodes (the two
+ * field layers · tether · telemetry · legend), so Vue has no single element to fall attributes
  * through to and silently discards any the parent passes — latent today (the
  * sole call site passes declared props only) but silent, and Vue dev-warns the
  * moment it stops being latent. `inheritAttrs: false` states the behaviour
@@ -203,8 +210,9 @@ const tetherPath = computed(() => {
    already have three live consumers (SequenceAxis, SpringTarget ×2). The square
    re-authored them diluted, which is both a shadow duplication and the proximate
    cause of D-7's worst numbers. The cure the row orders is to consume the idiom,
-   not to re-tune invented ones — so the element wears the two published classes
-   and this file declares NO background of its own. (The idiom's own bare-`--border`
+   not to re-tune invented ones — so the field wears the two published classes
+   (one per layer, X.KF.W13X · UIA-KF-088) and this file declares NO background
+   of its own. (The idiom's own bare-`--border`
    contrast is banked at kf-SequenceAxis D-4, a shared-idiom row, and is not
    re-tuned per-site here.)
 
@@ -213,12 +221,19 @@ const tetherPath = computed(() => {
    pseudo-element, which ticked the OPENING edge of each quarter and clipped the
    closing one (asymmetric on both axes), and whose symmetric inset landed the
    50 % tick on the exact pixel of the parent's own crosshair — one of four ticks
-   invisible under a stronger line. There is ONE layer now and one authority for
-   every line in it: the idiom's 50 % mark IS the (0,0) home crosshair, so nothing
-   can swallow anything. */
+   invisible under a stronger line. There is ONE authority (the idiom) for every
+   line — one layer per axis: the idiom's 50 % marks ARE the (0,0) home
+   crosshair, so nothing can swallow anything. */
 .square-field {
+    /* X.KF.W13X · UIA-KF-090 — the [-1,1]² envelope the box's centre travels
+       (`--square-travel`, the registered length the springs read), centred on
+       home, rather than the whole plate. */
     position: absolute;
-    inset: 0;
+    top: 50%;
+    left: 50%;
+    width: calc(2 * var(--square-travel, 110px));
+    height: calc(2 * var(--square-travel, 110px));
+    transform: translate(-50%, -50%);
     pointer-events: none;
 }
 
