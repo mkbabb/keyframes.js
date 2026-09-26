@@ -2,20 +2,6 @@ import { parseTimingFunction, type ParseIssue } from "@mkbabb/value.js/css";
 import { easing } from "@mkbabb/value.js/easing";
 import type { EasingName } from "../../scenes/easing/useEasingDemo";
 
-export const DIRECTION_DESCRIPTIONS: Record<string, string> = {
-    normal: "plays forward",
-    reverse: "plays backward",
-    alternate: "forward then backward",
-    "alternate-reverse": "backward then forward",
-};
-
-export const FILL_MODE_DESCRIPTIONS: Record<string, string> = {
-    none: "no styles when idle",
-    forwards: "keeps end state",
-    backwards: "applies start state before delay",
-    both: "forwards + backwards",
-};
-
 // Named easing → cubic-bezier control point mappings, typed by `EasingName` at
 // the root: every entry names a curve the easing scene can select (a name the
 // union does not hold fails here). The string-keyed record below is DERIVED

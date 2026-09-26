@@ -70,11 +70,9 @@
                      controls `<Select>` is the sole surface switcher, so these are
                      NOT a tablist's panels and no `role="tab"` owns them. `role`
                      and `data-state` are RETAINED DELIBERATELY, not by inertia:
-                     the `[data-state="active"][role="tabpanel"]` panel-enter rule
-                     (`styles/tab-idiom.css`) and the pane probes key on exactly
-                     that pair, and retiring the rule is an open decision this wave
-                     does not own — so stripping the attributes here would pre-empt
-                     it. X.KF.W13X.controls · UIA-KF-275 (the tabpanel limb) —
+                     the pane probes key on that pair, and the panel-enter rule
+                     keys on `data-surface-panel` + `data-state` (design-idioms.css
+                     §surface-panel; X.KF.W13X.lib, A2-KE-L1-21). X.KF.W13X.controls · UIA-KF-275 (the tabpanel limb) —
                      each panel here is NAMED by its surface's registry label
                      (`SURFACE_META`, the same words the dock's surface items
                      read); the fourth site, `CubeScene.vue`'s `h()`-rendered
@@ -82,6 +80,7 @@
                 <div
                     v-if="hasSurface('controls') && selectedControlSurface === 'controls'"
                     role="tabpanel"
+                    data-surface-panel
                     :aria-label="SURFACE_META.controls.label"
                     data-state="active"
                     tabindex="0"
@@ -115,6 +114,7 @@
                 <div
                     v-if="hasSurface('keyframes') && keyframesWarmed"
                     role="tabpanel"
+                    data-surface-panel
                     :aria-label="SURFACE_META.keyframes.label"
                     :data-state="keyframesActive ? 'active' : 'inactive'"
                     :tabindex="keyframesActive ? 0 : -1"
@@ -136,6 +136,7 @@
                 <div
                     v-if="hasSurface('timeline') && selectedControlSurface === 'timeline'"
                     role="tabpanel"
+                    data-surface-panel
                     :aria-label="SURFACE_META.timeline.label"
                     data-state="active"
                     tabindex="0"
@@ -193,8 +194,8 @@
 <script setup lang="ts">
 // This host renders NO tab strip. The `.tab-trigger-*` skin and the second
 // authored copy of it that the pill strip carried are deleted with the strip
-// they painted; what survives in `styles/tab-idiom.css` is the non-scoped
-// `[data-state=active][role=tabpanel]` panel-slide, which still lands on this
+// they painted; what survives is design-idioms.css's non-scoped
+// `[data-surface-panel][data-state=active]` panel-slide, which lands on this
 // host's plain gated panel divs (see the template note above).
 
 import type { KeyframesAnimation } from "@mkbabb/keyframes.js";

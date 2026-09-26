@@ -8,14 +8,13 @@
    arriving (RibbonBar RB-2). */
 
 @import "./playback-idiom.css";
-@import "./tab-idiom.css";
 
 /* Signal tokens: the playful spectrum + gold accent.
    OUTSIDE @layer so the demo's copy overrides glass-ui's incidental same-named
    tokens (authoritative for the demo). */
 :root {
     /* The rainbow six-colour family — referenced by the #rainbow-gradient SVG
-       stroke and the .progress-bar brush-sweep gradient (+ the cyan mid-stop). */
+       stroke. */
     --rainbow-red: hsl(0 85% 60%);
     --rainbow-orange: hsl(30 90% 55%);
     --rainbow-yellow: hsl(55 90% 55%);
@@ -181,36 +180,6 @@
     box-shadow: var(--shadow-cartoon-lg);
 }
 
-/* .progress-bar — the keyframe-editor brush-sweep bar (rainbow, six stops + cyan mid). */
-.progress-bar {
-    @apply h-2 rounded-md;
-    background: linear-gradient(
-        to right,
-        var(--rainbow-red) 0%,
-        var(--rainbow-yellow) 17%,
-        var(--rainbow-green) 33%,
-        var(--rainbow-cyan) 50%,
-        var(--rainbow-blue) 67%,
-        var(--rainbow-violet) 83%,
-        var(--rainbow-red) 100%
-    );
-}
-
-/* .progress-dot — the active-playing conic ring + glow, driven by --dot-p (0–1), allocation-free. */
-.progress-dot {
-    display: inline-block;
-    flex-shrink: 0;
-    border-radius: var(--radius-pill);
-    --deg: calc(var(--dot-p) * 360deg);
-    --glow-spread: calc(2px + var(--dot-p) * 3px);
-    --glow-blur: calc(var(--dot-p) * 1.5px);
-    background: conic-gradient(
-        var(--color-progress) var(--deg),
-        color-mix(in srgb, var(--color-progress) 15%, transparent) var(--deg)
-    );
-    box-shadow: 0 0 var(--glow-spread) var(--glow-blur) color-mix(in srgb, var(--color-progress) 40%, transparent);
-}
-
 /* .progress-rail / .progress-ball — the rail-line + scrubber-ball pair, promoted ONCE
    (was authored four ways) and parameterized by drift-axis custom properties. --ball-size
    is the seam EasingTarget reads via getComputedStyle; --ball-tone (default
@@ -316,11 +285,6 @@
     background: color-mix(in srgb, var(--muted) 60%, transparent);
     color: var(--muted-foreground);
 }
-.reverse-badge {
-    --badge-tone: var(--rainbow-violet);
-    --badge-tint: 16%;
-    --badge-text-mix: 55%;
-}
 
 /* .code-token — inline-code for in-prose API names (camelCase, case-preserving mono). */
 .code-token {
@@ -397,8 +361,20 @@
     pointer-events: none;
 }
 
-/* @keyframes enter — the tab-panel slide-in keyframe (opacity fade + 0.5rem
-   x-translate via the --tw-enter-* vars the consuming rule sets) so the demo's tab
+/* §surface-panel — the control-surface slide-in on switch. X.KF.W13X.lib
+   (A2-KE-L1-21): the rule the retired `tab-idiom.css` carried alone, now keyed
+   on the panels' own `data-surface-panel` attribute rather than a tab role (the
+   panels are the dock Select's surfaces, not a tablist's). It stays non-scoped:
+   it lands on panel divs other components render (ChannelControls' surfaces,
+   the cube's `h()`-rendered matrix panel). */
+[data-surface-panel][data-state="active"] {
+    animation: enter var(--duration-fast) var(--ease-out);
+    --tw-enter-opacity: 0;
+    --tw-enter-translate-x: 0.5rem;
+}
+
+/* @keyframes enter — the surface-panel slide-in keyframe (opacity fade + 0.5rem
+   x-translate via the --tw-enter-* vars the consuming rule sets) so the demo's
    slide no longer depends on tw-animate-css's internal `enter` name. */
 @keyframes enter {
     from {

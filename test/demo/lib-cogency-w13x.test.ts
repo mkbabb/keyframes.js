@@ -9,6 +9,8 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { defineComponent, h, nextTick, ref } from "vue";
 import { mount } from "@vue/test-utils";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 
 const demoSources = import.meta.glob<string>(
     ["../../demo/**/*.{ts,vue,css}", "!../../demo/**/*.d.ts"],
@@ -18,6 +20,9 @@ const demoSources = import.meta.glob<string>(
 /** Every demo source path (repo-relative, `demo/…`). */
 const demoPaths = Object.keys(demoSources).map((p) => p.replace("../../", ""));
 const source = (path: string): string => {
+    // Vite's `?raw` hands stylesheets through its CSS pipeline (empty under the
+    // test transform), so a stylesheet is read from disk.
+    if (path.endsWith(".css")) return readFileSync(resolve(process.cwd(), path), "utf8");
     const text = demoSources[`../../${path}`];
     if (text === undefined) throw new Error(`no demo source at ${path}`);
     return text;
@@ -72,5 +77,42 @@ describe("A2-KE-L1-17 — one live lifecycle for the dock miniatures", () => {
         expect(calls).toEqual(["seat", "play", "stop"]);
         wrapper.unmount();
         expect(calls).toEqual(["seat", "play", "stop", "stop"]);
+    });
+});
+
+describe("A2-KE-L1-21 — dead CSS and the tab-role idiom", () => {
+    it("tab-idiom.css is retired; its panel-enter rule lives in design-idioms.css on data-surface-panel", () => {
+        expect(demoPaths).not.toContain("demo/styles/tab-idiom.css");
+        const idioms = source("demo/styles/design-idioms.css");
+        expect(idioms).not.toContain(`@import "./tab-idiom.css"`);
+        expect(idioms).toMatch(
+            /\[data-surface-panel\]\[data-state="active"\]\s*\{\s*animation:\s*enter\b/,
+        );
+        expect(idioms).not.toMatch(/\[role="tabpanel"\]\s*\{/);
+    });
+
+    it("every surface panel carries the attribute the rule keys on", () => {
+        const controls = source(
+            "demo/components/instrument/transport/channel-controls/ChannelControls.vue",
+        );
+        const panels = controls.match(/role="tabpanel"\n\s*data-surface-panel\n/g) ?? [];
+        expect(panels).toHaveLength((controls.match(/^\s*role="tabpanel"$/gm) ?? []).length);
+        expect(panels.length).toBeGreaterThan(0);
+        expect(source("demo/scenes/cube/CubeScene.vue")).toMatch(
+            /role: "tabpanel", "data-surface-panel": ""/,
+        );
+    });
+
+    it("the idiom recipes with no consumer are deleted (.reverse-badge, .progress-bar, .progress-dot)", () => {
+        const idioms = source("demo/styles/design-idioms.css");
+        for (const cls of [".reverse-badge", ".progress-bar", ".progress-dot"]) {
+            expect(idioms, cls).not.toContain(`${cls} {`);
+        }
+    });
+
+    it("the two never-read description tables are deleted", async () => {
+        const mod = await import("@utils/reference-data/animationDescriptions");
+        expect(Object.keys(mod)).not.toContain("DIRECTION_DESCRIPTIONS");
+        expect(Object.keys(mod)).not.toContain("FILL_MODE_DESCRIPTIONS");
     });
 });

@@ -129,13 +129,13 @@ const { animationGroup, setTargets } = useCubeDemo(
 // This is the FOURTH orphan `[role=tabpanel]` site (CC-D-2/C-3 + N-4), and the
 // only one a template grep cannot see. Its `role`/`data-state` pair is retained
 // for the same stated reason as its three siblings in `ChannelControls.vue`: it
-// is the seam `styles/tab-idiom.css`'s panel-enter rule and the pane probes key
-// on, and retiring that rule is an open decision this wave does not own. Its
+// is the seam the pane probes key on; the panel-enter rule keys on
+// `data-surface-panel` (design-idioms.css §surface-panel). Its
 // accessible NAME is the editor section's own title (X.KF.W13X.matrix,
 // UIA-KF-161: "Transform matrix").
 const tabsContent = () =>
     storedControls.selectedControl === "matrix-controls"
-        ? h("div", { role: "tabpanel", "data-state": "active", "aria-label": "Transform matrix" }, [
+        ? h("div", { role: "tabpanel", "data-surface-panel": "", "data-state": "active", "aria-label": "Transform matrix" }, [
             h(MatrixEditor, {
                 matrix3dEnd: matrix3dEnd.value,
                 matrixCellMeta: matrixCellMeta.value,
