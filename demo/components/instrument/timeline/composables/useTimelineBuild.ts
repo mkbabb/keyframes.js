@@ -10,6 +10,7 @@ import {
     importCSSToTimeline,
 } from "../utils/timelineEngine";
 import { toast, ToastAction } from "@mkbabb/glass-ui/toast";
+import { copyWithToast } from "@composables/copyWithToast";
 import { clamp } from "@mkbabb/value.js/math";
 
 // KFA-59 (X.KF.W13X.timeline) — the hover-preview CAPTURE is gone: its memo
@@ -98,10 +99,10 @@ export function useTimelineBuild(
                 targets.value,
             );
 
-            await navigator.clipboard.writeText(css);
-            toast({ title: "CSS copied to clipboard!", tone: "success" });
-
-            return css;
+            // A2-KE-L1-19 — the one clipboard verb; a refused write toasts its
+            // named failure there instead of surfacing as an export error.
+            const { ok } = await copyWithToast(css, "CSS copied to clipboard!");
+            return ok ? css : "";
         } catch (e) {
             toast({
                 title: "Failed to export CSS",

@@ -20,7 +20,7 @@ const toastSpy = vi.hoisted(() =>
 );
 vi.mock("@mkbabb/glass-ui/toast", () => ({ toast: toastSpy, ToastAction: {} }));
 
-import { copyText } from "@utils/clipboard";
+import { copyWithToast } from "@composables/copyWithToast";
 import DemoGlobalChrome from "../../../demo/components/instrument/transport/components/DemoGlobalChrome.vue";
 
 let wrapper: VueWrapper | undefined;
@@ -36,7 +36,7 @@ describe("UIA-KF-001/002 — one glass toast surface", () => {
             value: { writeText: async () => {} },
             configurable: true,
         });
-        await copyText("a { color: red }", "CSS copied to clipboard!");
+        await copyWithToast("a { color: red }", "CSS copied to clipboard!");
         expect(toastSpy).toHaveBeenCalledTimes(1);
         expect(toastSpy.mock.calls[0]?.[0]).toMatchObject({
             title: "CSS copied to clipboard!",

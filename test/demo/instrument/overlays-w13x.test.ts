@@ -29,8 +29,8 @@ const toastSpy = vi.hoisted(() =>
     vi.fn((_o: { title?: string; tone?: string }) => ({ id: "0", dismiss: () => {}, update: () => {} })),
 );
 vi.mock("@mkbabb/glass-ui/toast", () => ({ toast: toastSpy, ToastAction: {} }));
-const copySpy = vi.hoisted(() => vi.fn(async () => {}));
-vi.mock("@utils/clipboard", () => ({ copyText: copySpy }));
+const copySpy = vi.hoisted(() => vi.fn(async () => ({ ok: true as const })));
+vi.mock("@composables/copyWithToast", () => ({ copyWithToast: copySpy }));
 
 import { registerShortcut } from "@mkbabb/glass-ui/keyboard";
 import { encodeStateToHash, getAllState } from "@state";

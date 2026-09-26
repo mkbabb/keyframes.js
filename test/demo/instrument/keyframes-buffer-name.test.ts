@@ -47,9 +47,10 @@ vi.mock("@mkbabb/glass-ui/toast", () => ({
     ToastAction: {},
 }));
 const copied: string[] = [];
-vi.mock("@utils/clipboard", () => ({
-    copyText: async (text: string) => {
+vi.mock("@composables/copyWithToast", () => ({
+    copyWithToast: async (text: string) => {
         copied.push(text);
+        return { ok: true };
     },
 }));
 

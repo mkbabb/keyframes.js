@@ -116,3 +116,25 @@ describe("A2-KE-L1-21 — dead CSS and the tab-role idiom", () => {
         expect(Object.keys(mod)).not.toContain("FILL_MODE_DESCRIPTIONS");
     });
 });
+
+describe("A2-KE-L1-19 — the clipboard write is glass's, and a refusal speaks", () => {
+    it("the demo's own copyText helper is deleted; no demo file writes the clipboard bare", () => {
+        expect(demoPaths).not.toContain("demo/utils/clipboard.ts");
+        for (const path of demoPaths.filter((p) => !p.endsWith(".css"))) {
+            expect(source(path), path).not.toMatch(/navigator\.clipboard\.writeText/);
+        }
+    });
+
+    it("a refused write resolves to a named failure and raises a destructive toast (no unhandled rejection)", async () => {
+        const toastMod = await import("@mkbabb/glass-ui/toast");
+        const toastSpy = vi.spyOn(toastMod, "toast");
+        Object.defineProperty(navigator, "clipboard", {
+            value: { writeText: () => Promise.reject(new DOMException("denied", "NotAllowedError")) },
+            configurable: true,
+        });
+        const { copyWithToast } = await import("@composables/copyWithToast");
+        await expect(copyWithToast("x", "copied")).resolves.toEqual({ ok: false, reason: "clipboard-api" });
+        expect(toastSpy).toHaveBeenCalledTimes(1);
+        expect(toastSpy.mock.calls[0]?.[0]).toMatchObject({ tone: "destructive" });
+    });
+});

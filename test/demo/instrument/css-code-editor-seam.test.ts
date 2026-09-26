@@ -14,7 +14,7 @@
  * observable), `@utils/formatEditorCSS` (a `vi.fn` whose rejection is the
  * subject of the format boundary), and the sibling's engine-bound
  * composables (`@kf-engine`, `useKeyframesEditor`, `useKeyframeBrushApply`,
- * `@utils/clipboard`) — none of which is a subject of this gate. jsdom gaps
+ * `@composables/copyWithToast`) — none of which is a subject of this gate. jsdom gaps
  * are polyfilled as SYMBOLS only (`CSS.escape`, `matchMedia`, a 2d canvas
  * context that measures nothing, `ResizeObserver`, a non-zero `offsetWidth`
  * so the component takes its immediate-init branch); none alters a component
@@ -129,7 +129,7 @@ vi.mock("@mkbabb/glass-ui/toast", () => ({ toast: toastSpy, ToastAction: {} }));
 const toastsOf = (tone: string) => toastSpy.mock.calls.filter(([o]) => o.tone === tone);
 const formatEditorCSS = vi.hoisted(() => vi.fn<(raw: string, width?: number) => Promise<string>>());
 vi.mock("@utils/formatEditorCSS", () => ({ formatEditorCSS }));
-vi.mock("@utils/clipboard", () => ({ copyText: async () => {} }));
+vi.mock("@composables/copyWithToast", () => ({ copyWithToast: async () => ({ ok: true }) }));
 vi.mock("@kf-engine", () => ({
     kfEngine: () => ({
         CSSKeyframesAnimation: class {},

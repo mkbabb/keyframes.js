@@ -58,7 +58,7 @@ import { useKeyframesEditor } from "./composables/useKeyframesEditor";
 
 import { toast, ToastAction, type ToastHandle } from "@mkbabb/glass-ui/toast";
 import { StatusDot } from "@mkbabb/glass-ui/status-dot";
-import { copyText } from "@utils/clipboard";
+import { copyWithToast } from "@composables/copyWithToast";
 
 // HEAVY surface from the warmed engine (kfEngine(), L.W8 S1 dogfood inversion) —
 // synchronous, since the warm resolves before the app mounts. `presets` is the
@@ -294,14 +294,14 @@ const exportCompiledCSS = async () => {
     try {
         const compiled = await compileToCSS([animation]);
         if (compiled.eligible && compiled.css) {
-            await copyText(
+            await copyWithToast(
                 compiled.css,
                 "Compiled CSS copied — zero-runtime, paste & ship 🎉",
             );
         } else if (compiled.css) {
             // Partial: some children compiled, some refused — copy what shipped,
             // name what did not (the honest-refusal clause).
-            await copyText(compiled.css, "Compiled CSS copied (partial)");
+            await copyWithToast(compiled.css, "Compiled CSS copied (partial)");
             for (const refusal of compiled.refusals) {
                 toast({
                     title: `Could not compile "${refusal.name}"`,
@@ -338,7 +338,7 @@ defineExpose({
     formatCSS: formatEditor,
     copyCSS: async () => {
         if (cssKeyframesString.value) {
-            await copyText(cssKeyframesString.value, "CSS copied to clipboard");
+            await copyWithToast(cssKeyframesString.value, "CSS copied to clipboard");
         }
     },
     exportCompiledCSS,

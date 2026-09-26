@@ -25,7 +25,7 @@ import { defineComponent, h, nextTick } from "vue";
 import { mount, type VueWrapper } from "@vue/test-utils";
 import { TooltipProvider } from "@mkbabb/glass-ui/tooltip";
 
-vi.mock("@utils/clipboard", () => ({ copyText: vi.fn(async () => {}) }));
+vi.mock("@composables/copyWithToast", () => ({ copyWithToast: vi.fn(async () => ({ ok: true })) }));
 
 const { default: CopyButton } = await import("@components/CopyButton/CopyButton.vue");
 

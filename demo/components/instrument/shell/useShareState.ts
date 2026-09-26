@@ -6,7 +6,7 @@ import {
     restoreStateFromParam,
 } from "@state";
 import { toast } from "@mkbabb/glass-ui/toast";
-import { copyText } from "@utils/clipboard";
+import { writeClipboard } from "@mkbabb/glass-ui/dom";
 
 export function useShareState(onSceneRestore?: (sceneId: string) => void) {
     const router = useRouter();
@@ -42,13 +42,15 @@ export function useShareState(onSceneRestore?: (sceneId: string) => void) {
         });
         const url = `${window.location.origin}${resolved.href}`;
 
-        try {
-            await copyText(url, "Link copied to clipboard!");
-            sharePopoverOpen.value = false;
-        } catch {
+        // A2-KE-L1-19 — glass's writeClipboard names a refused write instead of
+        // throwing; the refusal branch is this flow's own fallback.
+        const { ok } = await writeClipboard(url);
+        sharePopoverOpen.value = false;
+        if (ok) {
+            toast({ title: "Link copied to clipboard!", tone: "success" });
+        } else {
             // Fallback: set the state param in the URL directly
             router.replace({ query: { ...route.query, state: encoded } });
-            sharePopoverOpen.value = false;
             toast({
                 title: "URL updated — copy from address bar",
                 tone: "info",

@@ -89,7 +89,7 @@ vi.mock("@mkbabb/glass-ui/toast", () => ({
     toast: () => ({ id: "0", dismiss: () => {}, update: () => {} }),
     ToastAction: {},
 }));
-vi.mock("@utils/clipboard", () => ({ copyText: async () => {} }));
+vi.mock("@composables/copyWithToast", () => ({ copyWithToast: async () => ({ ok: true }) }));
 
 // The warm precedes the subject's IMPORT, exactly as `main.ts` guarantees it.
 const { warmKfEngine, kfEngine } = await import("@kf-engine");

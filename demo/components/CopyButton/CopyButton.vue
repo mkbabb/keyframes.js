@@ -69,7 +69,7 @@ import {
 } from "@mkbabb/glass-ui/tooltip";
 import type { InputAnimationOptions, AnimationGroup } from "@mkbabb/keyframes.js";
 import { loadAnimationEngine } from "@mkbabb/keyframes.js";
-import { copyText } from "@utils/clipboard";
+import { copyWithToast } from "@composables/copyWithToast";
 
 const { text, label = "Copy to clipboard" } = defineProps<{
     text: string;
@@ -133,8 +133,11 @@ const restart = async (group: AnimationGroup<any>) => {
     return group.play();
 };
 
-const handleClick = () => {
-    copyText(text);
+const handleClick = async () => {
+    // A2-KE-L1-19 — the check confirms a REAL copy: a refused write toasts its
+    // named failure (copyWithToast) and shows no success feedback.
+    const { ok } = await copyWithToast(text);
+    if (!ok) return;
 
     isCopied.value = true;
     // Re-arm the announcement (clear then set on the next tick) so a repeat
