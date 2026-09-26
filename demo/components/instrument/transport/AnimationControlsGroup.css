@@ -20,8 +20,7 @@
        @media (min/max-width) — the macro tier reads ITS box, not the viewport;
        (2) the DESCENDANT cqi/cqb consumers resolve against the clamped work-area
        card — M1's --rail-width clamp(20rem, 26cqi, 30rem) on `.controls-content`
-       and C6's --target-viewport-w/h: 30cqi/30cqb on the cube-target loader both
-       now track the card, not the raw viewport. */
+       tracks the card, not the raw viewport. */
     container-type: inline-size;
     container-name: controls-layout;
 
