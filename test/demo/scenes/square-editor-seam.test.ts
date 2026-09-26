@@ -167,10 +167,18 @@ describe("X.KF.W11.b — the instrument reports what is actually painting (C-3/L
     it("pumps the derived reads from the ENGINE's paint, not only the spring loop", () => {
         const ticks: { x: number; y: number; settled: boolean }[] = [];
         const el = document.createElement("div");
+        let touring = true;
         const [demo, app] = withSetup(() =>
-            useSquareDemo(ref(el), undefined, (snapshot) => {
-                ticks.push({ ...snapshot });
-            }),
+            useSquareDemo(
+                ref(el),
+                undefined,
+                (snapshot) => {
+                    ticks.push({ ...snapshot });
+                },
+                // X.KF.W13X · UIA-KF-026 — the tour is running: an engine paint
+                // while it tours is the tour's, and reads "tracking".
+                () => touring,
+            ),
         );
         try {
             demo.anim.setTargets(el);
@@ -189,6 +197,15 @@ describe("X.KF.W11.b — the instrument reports what is actually painting (C-3/L
             expect(ticks[0]!.x).toBeCloseTo(90 / demo.travel.value, 6);
             expect(ticks[0]!.y).toBeCloseTo(-90 / demo.travel.value, 6);
             expect(ticks[0]!.settled).toBe(false);
+
+            // X.KF.W13X · UIA-KF-026 — the same paint while the engine is NOT
+            // touring (a seek, Reset's rewind) is a pose the transport authored:
+            // it still feeds the instrument, and the instrument reads settled.
+            touring = false;
+            paint({ transform: { x: "0px", y: "0px" } }, 0);
+            expect(ticks).toHaveLength(2);
+            expect(ticks[1]!.x).toBeCloseTo(0, 6);
+            expect(ticks[1]!.settled).toBe(true);
         } finally {
             app.unmount();
         }
@@ -204,13 +221,14 @@ describe("X.KF.W11.b — the instrument reports what is actually painting (C-3/L
                 {
                     transform: { x: "90px", y: "0px" },
                     backgroundColor: "#52e898",
-                    tilt: { x: 1, y: 0 },
-                    squash: { x: 1.02, y: 0.98 },
+                    // X.KF.W13X · KFA-34/92 — the mass is one velocity-frame var now.
+                    motion: { heading: 0, stretch: 0.02, lean: 1 },
                 },
                 0,
             );
             expect(el.style.transform).not.toBe("");
             expect(el.style.getPropertyValue("--subject-fill")).toBe("#52e898");
+            expect(el.style.getPropertyValue("--spring-tilt")).not.toBe("");
 
             demo.dispose();
             expect(el.style.transform).toBe("");

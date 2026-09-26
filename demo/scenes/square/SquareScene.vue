@@ -59,7 +59,7 @@
         <div
             ref="box"
             class="demo-box text-display kf-focus-ring"
-            :class="{ 'demo-box--dragging': dragging }"
+            :class="{ 'demo-box--dragging': dragging && armed }"
             :data-square-mode="mode"
             role="group"
             aria-label="Drag the box across two axes — a spring chases each axis"
@@ -200,6 +200,8 @@ const {
     reseat,
     settle,
     seatFromPose,
+    yieldToTour,
+    adoptPaintedPose,
     tourTimeForPose,
     travel,
     paintRest,
@@ -208,9 +210,7 @@ const {
 } = useSquareDemo(
         box,
         () => {
-            // The spring loop has come fully to rest (a drag/tumble settled). If
-            // the group is not touring, the box is idle.
-            if (!animationGroup.started || animationGroup.paused) mode.value = "idle";
+            // The spring loop has come fully to rest (a drag/tumble settled).
             // MISS-3 — THE ENVELOPE TOUR'S CLOCK. The loop coming to rest IS
             // "the chase has arrived"; the keyboard layer opens its next leg on
             // this signal and on nothing else. Held in a mutable slot rather
@@ -225,7 +225,21 @@ const {
             deflX.value = x;
             deflY.value = y;
             settled.value = isSettled;
-            tetherActive.value = dragging.value || !isSettled;
+            // The springs are at rest (the loop's own settle, or a pose the
+            // transport authored): if the group is not touring, the box is idle
+            // — X.KF.W13X · KFA-93 / UIA-KF-293: unless a pointer still holds
+            // it. A drag pinned at the clamp (or held still) lets the springs
+            // arrive under the finger; that rest is not the gesture's end, and
+            // the mode used to drop to `idle` one frame after pointerdown
+            // (will-change lost, the badge flickering settled/tracking mid-drag).
+            if (
+                isSettled &&
+                !dragging.value &&
+                (!animationGroup.started || animationGroup.paused)
+            ) {
+                mode.value = "idle";
+            }
+            tetherActive.value = armed.value || !isSettled;
             // Reveal each egg's hint after the first settle of an interaction
             // that reached the threshold — to the modality that can use it.
             if (isSettled && hasInteracted) {
@@ -233,6 +247,9 @@ const {
                 else tumbleHintShown.value = true;
             }
         },
+        // X.KF.W13X · UIA-KF-026 — the engine is touring (started, not paused):
+        // any other engine paint is a transport-authored pose the springs seat on.
+        () => animationGroup.started && !animationGroup.paused,
     );
 // N-SQ-8 — ONE identity, one spelling. The strip's title and the engine
 // animation's name were two literals across a file boundary; the colocated
@@ -279,6 +296,8 @@ const takeOverFromPlayback = () => {
     }
     pause();
     seatFromPose();
+    // The tour no longer owns the box; the gesture arms `drag` once it moves.
+    mode.value = "idle";
 };
 
 // A live spring read-out for the slider's aria-valuetext (no per-frame Vue work
@@ -319,11 +338,25 @@ const syncReadouts = () => {
 // GROUP's clock at the tour time whose authored pose is nearest the box's
 // current pose, the mirror of `seatFromPose` and the engine's own adopt idea at
 // demo scale.
+//
+// X.KF.W13X · KFA-96 — and the rising edge RETIRES the spring loop first (the
+// spin rests, the sweep and its marker end): Play mid-tumble left the spin loop
+// writing beside the engine. UIA-KF-026 — the falling edge from `playback` (a
+// Pause, or Reset's stop) adopts the pose the engine left as the springs' rest,
+// so nothing chases back to a stale pose. A takeover leaves `playback` itself
+// (it seats the springs on the painted pose), so it never reaches that arm.
 watch(isPlaying, (playing) => {
     if (playing) {
+        // The envelope tour yields to Play (MISS-3's docblock: "a Play press …
+        // takes the box over — the tour yields").
+        tourClock.cancel();
+        yieldToTour();
         facility.channels[0]?.setProgress(tourTimeForPose());
         mode.value = "playback";
-    } else if (mode.value === "playback") mode.value = "idle";
+    } else if (mode.value === "playback") {
+        adoptPaintedPose();
+        mode.value = "idle";
+    }
 });
 
 onMounted(() => {
@@ -384,13 +417,20 @@ const MOVE_TOLERANCE = 12;
 let grabClientX = 0;
 let grabClientY = 0;
 
+// X.KF.W13X · KFA-147 — THE DRAG AFFORDANCES ARM ON MOVEMENT, NOT ON CONTACT.
+// Every pointerdown used to set `drag` mode and the `--dragging` class, so each
+// tap of the double-tap flashed the grab-pulse ring, the tether and the
+// will-change promotion for a frame. They arm once the pointer passes the same
+// house threshold the disclosure uses; a tap never arms them.
+const armed = ref(false);
+
 // Capture the box's home center once per gesture (the seam's `onStart` hook) so
 // the offset is stable across the drag (re-grabbing mid-flight subtracts the live
 // deflection to recover it).
 const captureFrame = (e: PointerEvent) => {
-    // L.W11 S4 — a gesture has begun: mark the tether active. The tumble-hint
-    // disclosure is NOT armed here any more (D-5/L-17: a bare tap is not a drag).
-    tetherActive.value = true;
+    // A gesture has begun; its visuals arm on movement (KFA-147, in `project`).
+    // The tumble-hint disclosure is not armed here either (D-5/L-17).
+    armed.value = false;
     // A pointer grab takes the springs over — the envelope tour yields rather
     // than fighting for them (it has no timer to race any more, just this).
     tourClock.cancel();
@@ -399,7 +439,6 @@ const captureFrame = (e: PointerEvent) => {
     // spring chase begins exactly where the tour left the box — a seamless,
     // jump-free takeover (the library's own adopt idea at demo scale).
     takeOverFromPlayback();
-    mode.value = "drag";
     grabClientX = e.clientX;
     grabClientY = e.clientY;
     const el = box.value;
@@ -426,11 +465,14 @@ const { dragging, onPointerDown } = useDragScrub<{ nx: number; ny: number }>({
     onStart: captureFrame,
     project: (e) => {
         if (
-            !hasInteracted &&
+            !armed.value &&
             Math.hypot(e.clientX - grabClientX, e.clientY - grabClientY) >
                 MOVE_TOLERANCE
         ) {
             hasInteracted = true;
+            armed.value = true;
+            tetherActive.value = true;
+            mode.value = "drag";
         }
         // MISS-1 — the grab offset is subtracted, so the point under the finger
         // stays under the finger instead of the box's centre jumping to it.
@@ -447,12 +489,14 @@ const { dragging, onPointerDown } = useDragScrub<{ nx: number; ny: number }>({
     // chase-to-rest THERE (the box stays where released). `settle()` re-arms the
     // paint loop so the final chase paints even if it had momentarily settled.
     onEnd: () => {
+        armed.value = false;
         settle();
-        // T.A13 — the {drag → idle} FSM edge: the pointer released, the spring
-        // chases to rest at the dragged target (persist). The group stays paused,
-        // and Play genuinely does resume the tour FROM HERE now: the rising edge
-        // seats the group's clock at the authored pose nearest this one (ARB-1).
-        mode.value = "idle";
+        // T.A13 — the {drag → idle} FSM edge is the SPRINGS' rest, not the
+        // release (X.KF.W13X · KFA-93: the fling after a release is still the
+        // drag moving the box, and it lost its will-change promotion the moment
+        // the pointer lifted). The loop's settle sets `idle`. The group stays
+        // paused, and Play resumes the tour FROM HERE: the rising edge seats the
+        // group's clock at the authored pose nearest this one (ARB-1).
         syncReadouts();
     },
 });

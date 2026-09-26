@@ -6,13 +6,13 @@ import { clamp } from "@mkbabb/value.js/math";
 import { useSquareTumble } from "./useSquareTumble";
 import { SQUARE_TOUR_OPTIONS, TOUR_PALETTE, squareTourKeyframes } from "./squareMotion";
 import { onScopeDispose, ref, type Ref } from "vue";
-import { useEventListener } from "@vueuse/core";
+import { useResizeObserver } from "@vueuse/core";
 import { useSweepScene } from "@composables/scene-runtime/useSweepScene";
 
 /**
  * MISS-6 — the square scene's OWN vars shape. The library's `Vars` is the open
  * `{ [arg: string]: number | string | T }` index with `T = any`, so every read
- * in `transformFunc` below (`transform.a.b.c.d`, `tilt.x`, `squash.y`) resolved
+ * in `transformFunc` below (`transform.a.b.c.d`, `motion.lean`) resolved
  * to `any` and NO checker in the tree could catch a misspelt leaf of the one
  * scene whose whole point is the nested-object primitive. Declaring the scene's
  * shape is the free win: the leaves keep their two authored spellings (a raw
@@ -33,8 +33,12 @@ interface SquareVars extends Vars {
      *  the plate's two-tone material owns `background-image` and an opaque image
      *  occludes the colour underneath it (C-1; CSS Backgrounds L3 §3.10). */
     backgroundColor?: string;
-    tilt?: { x?: number; y?: number };
-    squash?: { x?: number; y?: number };
+    /** X.KF.W13X · KFA-34/92/186 — the drag's MASS, in the frame of its own
+     *  travel: `heading` (deg) is the low-passed velocity's direction, `stretch`
+     *  the volume-preserving elongation along it, `lean` (deg) the shear that
+     *  makes the edges trail the travel. The spring loop authors it; the tour
+     *  does not. */
+    motion?: { heading: number; stretch: number; lean: number };
 }
 
 /**
@@ -83,6 +87,11 @@ export function useSquareDemo(
     // live spring snapshot each frame the loop runs, so the tether is a read of
     // the SAME spring state the box paints — NO second writer, NO second rAF.
     onTick?: (snapshot: { x: number; y: number; settled: boolean }) => void,
+    // X.KF.W13X · UIA-KF-026 — whether the engine is TOURING (started and not
+    // paused). An engine paint while it is not — a seek, or Reset's rewind — is
+    // a pose the transport AUTHORED: the springs seat on it and the instrument
+    // reads settled. Absent (a harness with no group), every engine paint is one.
+    isTouring: () => boolean = () => false,
 ) {
     // One spring per axis. Value/target are normalized [-1, 1] of the box's free
     // travel (mapped to a px translate). The (response 0.32, ζ 0.62) feel reads
@@ -178,19 +187,17 @@ export function useSquareDemo(
     // (it knows about settling) from being fired twice per frame.
     let paintingFromLoop = false;
 
+    /** The last painted pose, whichever writer painted it — the seat a
+     *  takeover (or a transport-authored pose) reads, in the renderer's own
+     *  numbers rather than a decomposed matrix. */
+    const lastPaint = { tx: 0, ty: 0, rotate: 0, scale: 1 };
+
     const transformFunc = (vars: SquareVars) => {
         const el = box.value;
         if (!el) return;
-        const { transform, backgroundColor, tilt, squash } = vars;
+        const { transform, backgroundColor, motion } = vars;
         const tx = num(transform?.x);
         const ty = num(transform?.y);
-        if (!paintingFromLoop) {
-            onTick?.({
-                x: tx / travel.value,
-                y: ty / travel.value,
-                settled: false,
-            });
-        }
         // The nested `a.b.c.d` scale is percent-authored in the keyframes
         // (`d:"108%"` → 1.08) and raw in the spring loop (`1 + defl*0.12`).
         const scale = transform?.a?.b?.c?.d != null ? num(transform.a.b.c.d, true) : 1;
@@ -198,30 +205,39 @@ export function useSquareDemo(
         // diamond) in Play, and the "tumble" egg's barrel-roll under a gesture.
         // Composing it into the same custom transform keeps ONE paint authority.
         const rotate = num(transform?.rotate);
-        // P.W6 S1(d) — velocity-tilt + directional squash. The box banks into the
-        // pull (a skewX/skewY from the per-axis spring VELOCITY) and squashes along
-        // the drag axis (a non-uniform scale from velocity magnitude). These ride
-        // the SAME transform string (ONE paint authority, no second writer, no
-        // extra rAF — the inv-ζ anti-rAF law). Velocity is the already-tracked
-        // public `springX.velocity`/`springY.velocity` (zero new physics). The
-        // skew is the visible mass: a fast pull leans the chip, a settle un-banks
-        // it — the spring's hidden momentum made legible.
-        const skewX = tilt?.x ?? 0;
-        const skewY = tilt?.y ?? 0;
-        const sx = squash?.x ?? 1;
-        const sy = squash?.y ?? 1;
+        lastPaint.tx = tx;
+        lastPaint.ty = ty;
+        lastPaint.rotate = rotate;
+        lastPaint.scale = scale;
+        // X.KF.W13X · KFA-34/92/186 — THE MASS IS DRAWN IN THE FRAME OF THE
+        // TRAVEL. The squash picked an axis with a hard `|vx| >= |vy|` boolean, so
+        // on a diagonal float noise flipped a tall rhombus into a wide one every
+        // few frames (~24 px width pops, served ×2); the tilt read vy into skewX
+        // and vx into skewY (a horizontal fling slanted the top and bottom edges)
+        // at a gain that pinned its 9° cap on frame one. Now one velocity vector
+        // is conjugated in: `rotate(h) scale(1+s, 1/(1+s)) skewX(lean) rotate(-h)`
+        // — a volume-preserving stretch ALONG the travel and a lean whose trailing
+        // edge is the one behind it, the same shape in every direction by
+        // construction (rotation-equivariant; no per-quadrant sign to get wrong).
+        // It sits outside the subject's own rotation, so it is screen-space mass.
+        const heading = motion?.heading ?? 0;
+        const stretch = motion?.stretch ?? 0;
+        const lean = motion?.lean ?? 0;
+        const mass =
+            stretch === 0 && lean === 0
+                ? ""
+                : `rotate(${heading.toFixed(3)}deg) ` +
+                  `scale(${(1 + stretch).toFixed(4)}, ${(1 / (1 + stretch)).toFixed(4)}) ` +
+                  `skewX(${lean.toFixed(3)}deg) rotate(${(-heading).toFixed(3)}deg) `;
         el.style.transform =
-            `translate(${tx}px, ${ty}px) rotate(${rotate}deg) ` +
-            `skew(${skewX.toFixed(3)}deg, ${skewY.toFixed(3)}deg) ` +
-            `scale(${(scale * sx).toFixed(4)}, ${(scale * sy).toFixed(4)})`;
-        // Mirror the bank/squash onto CSS custom properties so the scene can paint
+            `translate(${tx}px, ${ty}px) ${mass}rotate(${rotate}deg) ` +
+            `scale(${scale.toFixed(4)})`;
+        // Mirror the lean/stretch onto CSS custom properties so the scene can paint
         // a velocity-reactive affordance off them (and a gate can witness the box
         // banking) — the transform itself stays the single paint authority.
-        if (tilt) {
-            el.style.setProperty("--spring-tilt", `${Math.hypot(skewX, skewY).toFixed(3)}`);
-        }
-        if (squash) {
-            el.style.setProperty("--spring-squash", `${(Math.abs(sx - 1) + Math.abs(sy - 1)).toFixed(4)}`);
+        if (motion) {
+            el.style.setProperty("--spring-tilt", `${Math.abs(lean).toFixed(3)}`);
+            el.style.setProperty("--spring-squash", `${stretch.toFixed(4)}`);
         }
         // C-1 — the colour lands on `--subject-fill`, which the plate's gradient,
         // its base colour AND its derived ink all read. Writing
@@ -229,46 +245,54 @@ export function useSquareDemo(
         // never once visible, for either writer.
         if (backgroundColor) {
             el.style.setProperty("--subject-fill", backgroundColor);
+            // L-22a — the fill now belongs to whoever just wrote it: an engine
+            // colour is never a sweep's to clear.
+            if (!paintingFromLoop) sweepPainted = false;
         }
+        if (!paintingFromLoop) enginePainted();
     };
 
     // ── EASTER EGG — "the Tumble palette-sweep" (H.W12.S6 + L.W11 S4) ─────────
-    // Double-TAP the box → a delighted barrel-roll. (D-17: "double-click" named
-    // a mouse-only verb for a recogniser — `useDoubleTap` — that exists BECAUSE
-    // dblclick was touch-unreachable. This was the live-verb site of the four.) A THIRD `SpringProgress`
-    // chases a +360° target (a snappy underdamped spin with overshoot), folded
-    // into the SAME paint loop + the SAME nested-object `transformFunc` (ONE
-    // paint authority — the spin rides `transform.rotate`, no second writer).
-    // While it spins the box sweeps through the rainbow palette so the tumble
-    // also EXHIBITS the engine's color twin. inv ζ — the light-surface
-    // SpringProgress drives the spin, no hand-rolled rAF.
-    //
-    // L.W11 S4 (the design-refinement egg) — the loved violet→teal sweep is a
-    // PROVENANCE FIX, not a colour kill: the stops no longer dangle as three raw
-    // hex literals (drift-prone against --subject-teal) — they are RESOLVED AND
-    // PARSED ONCE at mount from the demo's sanctioned token family, and the
-    // terminal stop IS `--subject-teal`, so the landing is seamless by identity
-    // (L-11/C-5(b)). The marker is `data-palette-sweep` on the box so the
-    // design-refinement probe reads the egg layer.
-    const { spin: springSpin, colorAtSpin, tumble } = useSquareTumble(() =>
-        startLoop(),
-    );
+    // Double-TAP the box → a delighted barrel-roll (D-17: `useDoubleTap`, the
+    // touch-reachable recogniser). A THIRD `SpringProgress` chases a +360°
+    // target, folded into the SAME paint loop + the SAME nested-object
+    // `transformFunc` (ONE paint authority — the spin rides `transform.rotate`).
+    // While it spins the box sweeps its palette so the tumble also EXHIBITS the
+    // engine's colour twin; the marker is `data-palette-sweep` on the box.
+    const { spin: springSpin, tumble: tumbleSpin, returnHome, halt, sample } =
+        useSquareTumble(() => startLoop());
+
+    /** The fill the box is painted in right now (an inline tour or sweep
+     *  colour), or `undefined` when it rests on the stylesheet's teal. */
+    const paintedFill = (): string | undefined =>
+        box.value?.style.getPropertyValue("--subject-fill").trim() || undefined;
 
     // ── The live paint loop (ticks both springs, paints via transformFunc) ──
     let lastNow = 0;
-    // L-22a — WHOEVER WROTE THE FILL OWNS THE CLEAR. The loop cleared the inline
-    // colour whenever the EGG's spin happened to be settled, which is not the
-    // same question as "who is painting": any drag after a paused, fill-forwards
-    // tour silently discarded the engine's own colour (masked until C-1 landed,
-    // because nothing was visible either way). The sweep now clears exactly what
-    // the sweep wrote, once, on its own settle.
+    // L-22a — WHOEVER WROTE THE FILL OWNS THE CLEAR. A sweep clears exactly what
+    // a sweep wrote, once, when it ends — never an engine fill-forwards colour.
     let sweepPainted = false;
-    const sweepColor = (): { backgroundColor?: string } => {
-        const sampled = colorAtSpin();
-        if (sampled === undefined) return {};
-        sweepPainted = true;
-        return { backgroundColor: sampled };
-    };
+
+    // X.KF.W13X · KFA-34/92/186 — the mass reads a LOW-PASSED velocity (τ 70 ms):
+    // the raw spring velocity jumps to its peak on the frame a target moves, so
+    // the old read snapped the lean to its cap in one frame (KFA-92). Both
+    // channels saturate SOFTLY (tanh) at caps an ordinary drag does not reach —
+    // at 3 u/s the lean is ~2.2° and the stretch ~3.5 % (they were 9° and 10 %,
+    // pinned together for ~15 frames: distortion, not mass — KFA-186).
+    const MASS_TAU_MS = 70;
+    const LEAN_CAP = 6; // deg
+    const STRETCH_CAP = 0.08;
+    const MASS_SPEED = 8; // u/s at which tanh reaches 0.76 of a cap
+    let vx = 0;
+    let vy = 0;
+    let heading = 0;
+
+    // X.KF.W13X · KFA-94 — THE SCALE CARRIER. A takeover seated x/y/spin but
+    // not the nested `d`: the loop re-derived it from the seated deflection
+    // (1.077) where the tour had painted 1.012 — a 6.5 % pop in one frame. The
+    // difference is carried from the painted scale and decays (τ 120 ms).
+    const SCALE_TAU_MS = 120;
+    let scaleCarry = 0;
 
     const frame = (now: DOMHighResTimeStamp): boolean => {
         const dt = lastNow ? now - lastNow : 0;
@@ -277,103 +301,61 @@ export function useSquareDemo(
         springY.tickDt(dt);
         springSpin.tickDt(dt);
 
+        const sweep = sample(now);
+        const tumbling = sweep.marker;
+        const k = dt > 0 ? 1 - Math.exp(-dt / MASS_TAU_MS) : 0;
+        vx += (springX.velocity - vx) * k;
+        vy += (springY.velocity - vy) * k;
+        const speed = Math.hypot(vx, vy);
+        // The heading holds while the box is (nearly) still, so a vanishing
+        // vector never spins the frame (the magnitudes are ~0 there anyway).
+        if (speed > 1e-3) heading = (Math.atan2(vy, vx) * 180) / Math.PI;
+        // The egg's barrel-roll owns its own geometry: no mass while it rolls.
+        const soft = tumbling ? 0 : Math.tanh(speed / MASS_SPEED);
+        if (dt > 0) scaleCarry *= Math.exp(-dt / SCALE_TAU_MS);
+        if (Math.abs(scaleCarry) < 1e-4) scaleCarry = 0;
+
         // Build the NESTED-OBJECT vars from the live spring state and paint. The
         // scale travels through `a.b.c.d` (a deflection-driven 1 → 1.12 swell),
         // so the nested-object structure is genuinely read every frame.
         const defl = Math.min(1, Math.hypot(springX.value, springY.value));
-        const spinning = !springSpin.settled;
-        // P.W6 S1(d) — read the ALREADY-tracked per-axis spring velocity (public,
-        // spring.ts:250) and map it to a bank/squash. The skew leans the chip into
-        // the direction of travel (capped so a hard fling never shears it apart);
-        // the squash stretches along the velocity axis and pinches the cross-axis
-        // (volume-preserving-ish), so a fast pull reads as inertial mass. The egg
-        // SPIN suppresses the tilt (a barrel-roll owns its own geometry) so the two
-        // never fight. Zero new physics, zero new rAF — pure derived reads.
-        const TILT_GAIN = 5; // deg per (unit/s); spring velocity ~[-3..3] at a hard pull
-        const TILT_CAP = 9; // deg — the shear ceiling
-        const SQUASH_GAIN = 0.035; // scale delta per (unit/s)
-        const SQUASH_CAP = 0.1;
-        const clampTilt = (v: number) =>
-            spinning ? 0 : clamp(v * TILT_GAIN, -TILT_CAP, TILT_CAP);
-        // The skew banks PERPENDICULAR to each axis's motion (x-velocity skews the
-        // vertical edges, y-velocity skews the horizontal edges) for a coherent lean.
-        const tiltX = clampTilt(springY.velocity);
-        const tiltY = clampTilt(springX.velocity);
-        const sqMag = spinning
-            ? 0
-            : Math.max(
-                  -SQUASH_CAP,
-                  Math.min(SQUASH_CAP, Math.hypot(springX.velocity, springY.velocity) * SQUASH_GAIN),
-              );
-        // Stretch along the dominant velocity axis, pinch the cross-axis.
-        const xDominant = Math.abs(springX.velocity) >= Math.abs(springY.velocity);
         paintingFromLoop = true;
         transformFunc({
             transform: {
                 x: springX.value * travel.value,
                 y: springY.value * travel.value,
                 rotate: springSpin.value,
-                a: { b: { c: { d: 1 + defl * 0.12 } } },
+                a: { b: { c: { d: 1 + defl * 0.12 + scaleCarry } } },
             },
-            tilt: { x: tiltX, y: tiltY },
-            squash: {
-                x: 1 + (xDominant ? sqMag : -sqMag),
-                y: 1 + (xDominant ? -sqMag : sqMag),
-            },
-            // Sweep the palette WHILE the egg spin is live. The sample is the
-            // sweep's own CLAMPED progress through this turn (L-11/C-5(a) — the
-            // wrapped angle snapped green↔violet on each of the six settle
-            // crossings), and it may decline to answer, in which case nothing is
-            // written this frame rather than a throw inside the rAF (D-27).
-            ...(spinning ? sweepColor() : {}),
+            motion: { heading, stretch: STRETCH_CAP * soft, lean: LEAN_CAP * soft },
+            // D-27 — a sweep that declines to answer writes nothing this frame.
+            ...(sweep.color !== undefined ? { backgroundColor: sweep.color } : {}),
         });
         paintingFromLoop = false;
-        // L.W11 S4 — mark the box with `data-palette-sweep` while the egg's
-        // colour sweep is live, so the off-the-normal-path effect is observable
-        // (the design-refinement browser probe reads `palette|sweep` on the box)
-        // and scene CSS can register the tumble (a one-shot bloom, PRM-guarded).
+        if (sweep.color !== undefined) sweepPainted = true;
         if (box.value) {
-            if (spinning) box.value.setAttribute("data-palette-sweep", "");
+            if (tumbling) box.value.setAttribute("data-palette-sweep", "");
             else box.value.removeAttribute("data-palette-sweep");
         }
-        // The sweep just finished → hand the fill back to the stylesheet. The
-        // CSS `--subject-teal` default wins the moment the inline custom
-        // property is removed, and the sweep's terminal stop IS that token, so
-        // the landing is seamless by identity (L-11/C-5(b)). L-22a: only a fill
-        // THIS sweep wrote is cleared — an engine fill-forwards colour from a
-        // paused tour is not the egg's to discard.
-        if (!spinning && sweepPainted && box.value) {
+        // The sweep just ended → hand the fill back to the stylesheet. Its last
+        // stop IS `--subject-teal`, so the landing is seamless by identity.
+        if (!sweep.live && sweepPainted && box.value) {
             box.value.style.removeProperty("--subject-fill");
             sweepPainted = false;
         }
 
-        // Self-terminate once every spring settles — re-armed by reseat()/tumble().
-        const live = !(springX.settled && springY.settled && springSpin.settled);
-        // L.W11 S4 — feed the scene's instrument layer the live spring snapshot
-        // (the tether + the settled/tracking badge are derived reads of THIS, no
-        // second rAF). Fired every frame the loop runs, plus once more on settle.
-        // N-SQ-1 — THE SNAPSHOT COUNTS THE SAME THREE SPRINGS ITS OWN LIVENESS
-        // TEST DOES. `live` above counts `springSpin`; this snapshot did not —
-        // at the same call site, under a comment calling the tether and badge
-        // "derived reads of THIS". So through the entire advertised 360° tumble
-        // the loop RAN, `onTick` fired every frame with `settled: true`, the
-        // badge read "settled" and the tether stayed hidden. A live feed,
-        // narrowed at the snapshot.
-        onTick?.({
-            x: springX.value,
-            y: springY.value,
-            settled: !live,
-        });
-        // T.A13 — the moment the spring loop comes fully to rest, signal the host
-        // so the FSM settles to `idle` (a drag/tumble finished chasing).
+        // Self-terminate once every spring, the sweep and the carrier are at
+        // rest — re-armed by reseat()/tumble()/a takeover.
+        const live =
+            !(springX.settled && springY.settled && springSpin.settled) ||
+            sweep.live ||
+            scaleCarry !== 0 ||
+            speed > 1e-3;
+        // N-SQ-1 — the snapshot counts what the loop's own liveness counts.
+        onTick?.({ x: springX.value, y: springY.value, settled: !live });
         if (!live) onSettle?.();
         return live;
     };
-
-    // The accumulating spin target — each tumble adds a full turn (720°, 1080°…
-    // are visually identical to 360°/0°, and the spring chases the new target
-    // from wherever it is, so a re-tumble mid-spin keeps rolling smoothly). The
-    // colour sweep keys off `value mod 360`, so it cycles every turn.
 
     const { playback, startLoop, stopLoop } = useSweepScene({
         frame,
@@ -395,61 +377,89 @@ export function useSquareDemo(
     };
 
     /**
-     * Settle in place (I.W4 D2 — the persist policy). On release the box should
-     * STAY where dragged: the spring TARGETS already hold the last dragged value
-     * (set by `reseat` during the gesture), so settling is simply letting the
-     * spring chase-to-rest at THAT target — the lively spring feel is preserved
-     * while the box stays put. This is the explicit counterpart to the
-     * deliberate `Home`/`End` recenter (`reseat(0,0)`). It re-arms the loop so a
-     * release while the spring had already settled still paints the final
-     * chase-to-rest (idempotent — `startLoop` is a no-op while running).
+     * Settle in place (I.W4 D2 — the persist policy): the spring targets already
+     * hold the last dragged value, so settling is letting the chase come to rest
+     * THERE. Re-arms the loop so a release after a momentary settle still paints.
      */
     const settle = (): void => {
         startLoop();
     };
 
-    /**
-     * T.A13 — POSE-CAPTURE TAKEOVER (the {playback → drag} FSM edge). When a
-     * pointerdown lands mid-Play, the group is paused and the springs must SEAT
-     * from the box's CURRENT painted pose so the spring chase begins EXACTLY
-     * where the four-corner tour left the box — no frame jump. Read the live
-     * painted translate off the computed transform (`DOMMatrix.m41/m42`), map it
-     * back into normalized [-1,1] spring space, and `reset` both axes to that
-     * value at rest (velocity 0). The drag's `reseat` then re-targets from here;
-     * the box tracks the pointer continuously. This dogfoods the library's own
-     * adopt/temporal-takeover idea at demo scale.
-     */
-    const seatFromPose = (): void => {
-        const el = box.value;
-        if (!el) return;
-        const cs = getComputedStyle(el);
-        let tx = 0;
-        let ty = 0;
-        let rotate = 0;
-        try {
-            const m = new DOMMatrixReadOnly(cs.transform);
-            tx = m.m41;
-            ty = m.m42;
-            // L-5 — THE TAKEOVER IS JUMP-FREE IN ROTATION TOO, NOT ONLY IN
-            // TRANSLATION. This read used to take `m41`/`m42` and then
-            // `springSpin.reset(0, 0)`, throwing away the tour's own rotation
-            // (0 → 360° across the diamond): the next spring frame painted
-            // `rotate(0)` — up to a 90° un-rotation in ONE frame, against two
-            // "no frame jump" comments. The painted angle is the 2D matrix's
-            // own `atan2(b, a)`; seating the spin there means the first spring
-            // frame paints exactly what the engine's last one did. (The nested
-            // `d` scale needs no seat: the loop re-derives it from the seated
-            // deflection, so it is continuous by construction.)
-            rotate = (Math.atan2(m.b, m.a) * 180) / Math.PI;
-        } catch {
-            // KEEP: a malformed/"none" transform → seat at home (no jump from
-            // rest) — the DOMMatrix parse is best-effort by design.
-        }
+    /** The tumble egg, leaving from the colour the box is painted in. */
+    const tumble = (): void => tumbleSpin(paintedFill());
+
+    /** Seat all three springs AT REST on a pose (normalized x/y, degrees). */
+    const seatSprings = (tx: number, ty: number, rotate: number): void => {
         springX.reset(clamp(tx / travel.value, -1, 1), 0);
         springY.reset(clamp(ty / travel.value, -1, 1), 0);
         springSpin.reset(rotate, 0);
+        vx = 0;
+        vy = 0;
     };
 
+    /** The sweep and the loop yield: nothing the loop wrote outlives it. */
+    const quiesce = (): void => {
+        stopLoop();
+        halt();
+        scaleCarry = 0;
+        const el = box.value;
+        if (el) el.removeAttribute("data-palette-sweep");
+        if (sweepPainted && el) el.style.removeProperty("--subject-fill");
+        sweepPainted = false;
+    };
+
+    /**
+     * T.A13 — POSE-CAPTURE TAKEOVER (the {playback → drag} FSM edge). The group
+     * is paused and the springs SEAT on the pose the engine last painted, so the
+     * chase begins exactly where the tour left the box (L-5: in rotation too).
+     * X.KF.W13X · KFA-94 — the nested scale is carried from the painted one,
+     * and UIA-KF-199 — the channels the drag does not own go HOME: the spin
+     * returns to the nearest upright turn and the tour's colour blends back to
+     * the rest teal (the box used to rest there rotated ~170° and off-colour,
+     * and Home, which moves only x/y, could not restore it).
+     */
+    const seatFromPose = (): void => {
+        seatSprings(lastPaint.tx, lastPaint.ty, lastPaint.rotate);
+        const defl = Math.min(1, Math.hypot(springX.value, springY.value));
+        scaleCarry = lastPaint.scale - (1 + defl * 0.12);
+        returnHome(paintedFill());
+    };
+
+    /**
+     * X.KF.W13X · KFA-96 — THE TOUR TAKES THE BOX. Play's rising edge retires the
+     * spring loop first: the spin rests (mod one turn), the sweep and its marker
+     * end, the loop stops. Play mid-tumble used to leave the spin loop writing
+     * `transform` and the fill beside the engine for ~1.75 s (two writers).
+     */
+    const yieldToTour = (): void => quiesce();
+
+    /**
+     * X.KF.W13X · UIA-KF-026 — an ENGINE paint. While the tour runs it feeds the
+     * instrument (L-4/C-12: the renderer pumps the reads whichever writer
+     * paints). Otherwise it is a pose the transport authored — a seek, or
+     * Reset's rewind to 0 % — and it is the truth: the springs seat on it at
+     * rest, any loop and sweep yield, and the instrument reads settled. Reset
+     * used to leave the springs where the takeover had put them, so the loop
+     * painted over the rewind, the fill stayed on the 0 % stop while the pose did
+     * not, and Home chased back to the stale pose.
+     */
+    function enginePainted(): void {
+        if (isTouring()) {
+            onTick?.({ x: lastPaint.tx / travel.value, y: lastPaint.ty / travel.value, settled: false });
+            return;
+        }
+        quiesce();
+        seatSprings(lastPaint.tx, lastPaint.ty, lastPaint.rotate);
+        onTick?.({ x: springX.value, y: springY.value, settled: true });
+    }
+
+    /** The playing edge's fall (a Pause, or a stop): the pose the engine left is
+     *  the rest the springs hold from now on, and the instrument reads settled. */
+    const adoptPaintedPose = (): void => {
+        quiesce();
+        seatSprings(lastPaint.tx, lastPaint.ty, lastPaint.rotate);
+        onTick?.({ x: springX.value, y: springY.value, settled: true });
+    };
 
     // ── The bottom-bar transport-contract host (the nested-object keyframes) ──
     // Minimal CSSKeyframesAnimation carrying the SAME nested-object keyframes so
@@ -500,7 +510,8 @@ export function useSquareDemo(
      * tour's authored corners proportionally, so the diamond keeps its
      * relationship to the spring field (the authored ±90 px is 90/110 of the
      * desktop travel; it stays that fraction at every width). Runs at mount and
-     * on resize, because the clamp is viewport-relative.
+     * whenever the arena resizes, because the envelope is the plate's
+     * (X.KF.W13X: `cqmin` of the stage, a registered `<length>`).
      */
     const CORNER_FRACTION = 90 / TRAVEL_MAX;
     const resolveEnvelope = (): void => {
@@ -608,10 +619,14 @@ export function useSquareDemo(
      * and the tour's stops were resolved nowhere at all (MISS-5). Both halves
      * are true of this function now.
      */
-    // D-8 — the clamp is viewport-relative, so a resize moves the envelope. The
-    // springs are normalized, so nothing needs re-seating; only the px scale and
-    // the tour's authored corners follow.
-    useEventListener(window, "resize", () => resolveEnvelope());
+    // D-8 / X.KF.W13X — the envelope is the PLATE's, so the plate resizing moves
+    // it (a window resize, and also a sheet or pane opening beside the stage,
+    // which no window `resize` reports). The springs are normalized, so nothing
+    // needs re-seating; only the px scale and the tour's authored corners follow.
+    useResizeObserver(
+        () => box.value?.parentElement ?? null,
+        () => resolveEnvelope(),
+    );
 
     const paintRest = (): void => {
         resolveEnvelope();
@@ -619,8 +634,7 @@ export function useSquareDemo(
         paintingFromLoop = true;
         transformFunc({
             transform: { x: 0, y: 0, a: { b: { c: { d: 1 } } } },
-            tilt: { x: 0, y: 0 },
-            squash: { x: 1, y: 1 },
+            motion: { heading: 0, stretch: 0, lean: 0 },
         });
         paintingFromLoop = false;
         // Seat the instrument layer at rest (the tether hidden, the badge settled).
@@ -665,6 +679,8 @@ export function useSquareDemo(
         reseat,
         settle,
         seatFromPose,
+        yieldToTour,
+        adoptPaintedPose,
         tourTimeForPose,
         travel,
         paintRest,
