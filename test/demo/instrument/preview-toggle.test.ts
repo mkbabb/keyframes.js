@@ -17,6 +17,7 @@
 import { describe, expect, it } from "vitest";
 import { defineComponent, h, nextTick, ref } from "vue";
 import { mount } from "@vue/test-utils";
+import { TooltipProvider } from "@mkbabb/glass-ui/tooltip";
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 
@@ -80,11 +81,15 @@ describe("OA-61 — one floating eye toggle for the ball preview", () => {
         const state = ref<"shown" | "hidden">("shown");
         const Host = defineComponent({
             setup() {
+                // X.KF.W13X.transport · UIA-KF-300 — the eye now carries its
+                // action tooltip, so it mounts under the app's TooltipProvider.
                 return () =>
-                    h(
-                        PreviewToggle,
-                        { state: state.value, "onUpdate:state": (n: "shown" | "hidden") => (state.value = n) },
-                        () => h("div", { "data-preview": "" }),
+                    h(TooltipProvider, null, () =>
+                        h(
+                            PreviewToggle,
+                            { state: state.value, "onUpdate:state": (n: "shown" | "hidden") => (state.value = n) },
+                            () => h("div", { "data-preview": "" }),
+                        ),
                     );
             },
         });

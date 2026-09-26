@@ -18,21 +18,31 @@
         <div class="preview-toggle__body">
             <slot />
         </div>
-        <Button
-            v-if="state !== undefined"
-            size="xs"
-            emphasis="quiet"
-            icon-only
-            class="preview-toggle__eye"
-            aria-label="Hide ball preview"
-            :aria-pressed="state === 'hidden'"
-            @click="emit('update:state', state === 'hidden' ? 'shown' : 'hidden')"
-        >
-            <span class="preview-toggle__glyphs" aria-hidden="true">
-                <Eye class="preview-toggle__glyph" data-glyph="eye" />
-                <EyeOff class="preview-toggle__glyph" data-glyph="eye-off" />
-            </span>
-        </Button>
+        <!-- UIA-KF-300 (X.KF.W13X.transport) — the eye's name stays ONE stable
+             name with `aria-pressed` (pressed = hidden: the APG toggle pattern
+             and this component's own law), so its accessible reading is
+             "Hide ball preview, pressed" when hidden. What a sighted pointer
+             user lacked was the action the next press takes: the tooltip
+             states it ("Show ball preview" while hidden). -->
+        <Tooltip v-if="state !== undefined">
+            <TooltipTrigger as-child>
+                <Button
+                    size="xs"
+                    emphasis="quiet"
+                    icon-only
+                    class="preview-toggle__eye"
+                    aria-label="Hide ball preview"
+                    :aria-pressed="state === 'hidden'"
+                    @click="emit('update:state', state === 'hidden' ? 'shown' : 'hidden')"
+                >
+                    <span class="preview-toggle__glyphs" aria-hidden="true">
+                        <Eye class="preview-toggle__glyph" data-glyph="eye" />
+                        <EyeOff class="preview-toggle__glyph" data-glyph="eye-off" />
+                    </span>
+                </Button>
+            </TooltipTrigger>
+            <TooltipContent>{{ state === "hidden" ? "Show ball preview" : "Hide ball preview" }}</TooltipContent>
+        </Tooltip>
     </div>
 </template>
 
@@ -45,6 +55,7 @@ const PREVIEW_EASE = springTimingFunction({ response: 0.3, dampingFraction: 0.72
 
 <script setup lang="ts">
 import { Button } from "@mkbabb/glass-ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@mkbabb/glass-ui/tooltip";
 import { Eye, EyeOff } from "@lucide/vue";
 
 const { state } = defineProps<{
