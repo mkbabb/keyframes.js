@@ -376,7 +376,6 @@ export default defineConfig((mode) => {
                     "reka-ui",
                     "@vueuse/core",
                     "@lucide/vue",
-                    "vue-sonner",
                 ],
             },
             // assetExtension404Plugin (S2): the dev SPA-fallback 404s
