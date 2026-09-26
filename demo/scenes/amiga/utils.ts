@@ -35,7 +35,7 @@ import { resolveCanvasColor } from "@mkbabb/glass-ui";
  * re-bake hook belongs beside the mesh's construction seat, which is outside this
  * unit's §Bounds; it is routed upward, not patched from here.
  */
-const resolveColor = (color: string): string =>
+export const resolveColor = (color: string): string =>
     resolveCanvasColor(color, document.documentElement);
 
 export const tesselateSphere = (
@@ -68,6 +68,11 @@ export const tesselateSphere = (
         }
     }
     const texture = new THREE.CanvasTexture(canvas);
+    // X.KF.W13X · KFA-195 — the board is painted in sRGB (canvas colours), and
+    // the renderer outputs sRGB; an untagged texture was read as LINEAR and
+    // encoded a second time, so the white tiles rendered mid-grey (a washed-out
+    // ball: served white p95 181 of 255 on the dark ground).
+    texture.colorSpace = THREE.SRGBColorSpace;
 
     const geometry = new THREE.SphereGeometry(radius, 32, 32);
     // Q.WC5 S2 — a SPECULAR material (MeshPhongMaterial: a specular highlight +

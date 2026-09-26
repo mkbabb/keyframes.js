@@ -47,7 +47,9 @@ const room = vi.hoisted(() => ({
     running: true,
 }));
 
-vi.mock("../../../demo/scenes/amiga/useAmigaThree", () => ({
+vi.mock("../../../demo/scenes/amiga/useAmigaThree", async (importOriginal) => ({
+    // The room's pure geometry helpers (contactShadowScale) stay real.
+    ...(await importOriginal<Record<string, unknown>>()),
     useAmigaThree: (_canvasEl: unknown, onFrame: (now: number) => boolean) => {
         room.onFrame = onFrame;
         return {

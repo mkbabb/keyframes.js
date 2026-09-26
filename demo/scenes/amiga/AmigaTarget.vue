@@ -93,7 +93,7 @@ import * as THREE from "three";
 // OD-U21 / SPEC-B3 §N3 (D7) — consume value.js's LIGHT lerp primitive.
 import { clamp, lerp } from "@mkbabb/value.js/math";
 
-import { useAmigaThree } from "./useAmigaThree";
+import { contactShadowScale, useAmigaThree } from "./useAmigaThree";
 import {
     createPoseContinuity,
     SPHERE_HOME,
@@ -431,7 +431,8 @@ function onFrame(now: number): boolean {
         // L-m3 — only X moves; the shadow's own plane is a CONSTANT the room
         // seated at construction, and re-deriving it here made one invariant two.
         shadow.position.x = rendered.px;
-        shadow.scale.setScalar(lerp(1, 1.9, t));
+        // KFA-125 — the penumbra grows with height, clamped to the room floor.
+        shadow.scale.setScalar(contactShadowScale(rendered.px, t));
         // M-6 — `opacity` is on the Material BASE class, so the array case is
         // NARROWED rather than cast away: the teardown handles an array, and an
         // unchecked cast in the hot path was the one place that did not.

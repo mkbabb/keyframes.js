@@ -8,11 +8,14 @@ import { RAFPlayback } from "@mkbabb/keyframes.js";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
-import { tesselateSphere } from "./utils";
+import { useGlobalDark } from "@mkbabb/glass-ui/dark";
+
+import { resolveColor, tesselateSphere } from "./utils";
 import {
     BOX_SIZE,
     CONTACT_FLOOR,
     SHADOW_PLANE_Y,
+    APEX_Y,
     SPHERE_HOME,
     SPHERE_RADIUS,
     WALL_X,
@@ -67,9 +70,24 @@ const CAMERA_Z = BOX_SIZE * 1.15;
 const HALF_FOV_RAD = (CAMERA_FOV / 2) * (Math.PI / 180);
 /** The half-width the authored wall-to-wall sweep needs at the ball plane. */
 const SWEEP_HALF_WIDTH = WALL_X + SPHERE_RADIUS;
+// X.KF.W13X · UIA-KF-196 — the camera frames the BOUNCE ENVELOPE, not the whole
+// 12-unit room: the D-6 horizontal fit (the sweep) and a vertical fit that keeps
+// the floor slam (floor − r) in view, at the D-11 lift (whose φ bias is a ratio
+// of the two reaches below, so a closer camera keeps it). The camera used to sit
+// at the room distance whenever that was farther than the fit — the ball read
+// ~1/6.5 of the stage height, outweighed by the chrome.
+/** The camera's elevation over the ball plane (rad). */
+const ELEVATION = Math.atan2(CAMERA_LIFT, CAMERA_Z);
+/** How far below / above the target the frustum meets the ball plane, per unit distance. */
+const FLOOR_REACH = Math.cos(ELEVATION) * Math.tan(ELEVATION + HALF_FOV_RAD) - Math.sin(ELEVATION);
+const CEILING_REACH = Math.sin(ELEVATION) - Math.cos(ELEVATION) * Math.tan(ELEVATION - HALF_FOV_RAD);
+/** The envelope's reach below and above home: the floor slam and the apex, plus the radius. */
+const ENVELOPE_BELOW = SPHERE_HOME - CONTACT_FLOOR;
+const ENVELOPE_ABOVE = APEX_Y + SPHERE_RADIUS - SPHERE_HOME;
+/** A breath of margin so the ball never kisses the frame edge. */
+const FRAME_MARGIN = 1.04;
 /** UIA-KF-197 — the authored viewing direction (the lift over the room). */
 const HOME_DIRECTION = new THREE.Vector3(0, CAMERA_LIFT, CAMERA_Z).normalize();
-const HOME_DISTANCE = Math.hypot(CAMERA_LIFT, CAMERA_Z);
 /** UIA-KF-197 — how long the camera takes to arc back to the home view. */
 const VIEW_HOME_MS = 360;
 
@@ -118,8 +136,33 @@ interface AmigaThreeHandle {
     dispose(): void;
 }
 
-/** A soft radial black→transparent blob for the fake contact shadow (T.A10). */
-function makeShadowTexture(): THREE.CanvasTexture {
+/**
+ * X.KF.W13X · KFA-67 / UIA-KF-195 — the room's ink, resolved from the theme. The
+ * grid used to be one literal ('#b9b9c6') in both themes, so its contrast
+ * flipped polarity (faint on paper, loud on black), and the contact shadow was
+ * fixed black, invisible on the dark ground. Both are now the theme's own ink
+ * (`--foreground`), and the ink's lightness says which ground it is written on
+ * (a light ink is a dark theme) — no second theme flag to disagree with it.
+ */
+interface RoomPalette {
+    ink: THREE.Color;
+    dark: boolean;
+}
+const resolveRoomPalette = (): RoomPalette => {
+    const ink = new THREE.Color(resolveColor("var(--foreground)"));
+    return { ink, dark: ink.getHSL({ h: 0, s: 0, l: 0 }).l > 0.5 };
+};
+/** Per-theme strengths: the floor carries the depth cue, the walls recede, and
+ *  on the dark ground a light ink needs less to read (and must not dominate). */
+const GRID_OPACITY = {
+    light: { floor: 0.3, wall: 0.16 },
+    dark: { floor: 0.16, wall: 0.08 },
+} as const;
+/** The contact shadow's peak: a dark pool on paper, a lifted pool on black. */
+const SHADOW_PEAK = { light: 0.5, dark: 0.32 } as const;
+
+/** A soft radial ink→transparent blob for the fake contact shadow (T.A10). */
+function makeShadowTexture(palette: RoomPalette): THREE.CanvasTexture {
     const size = 128;
     const canvas = document.createElement("canvas");
     canvas.width = canvas.height = size;
@@ -132,13 +175,49 @@ function makeShadowTexture(): THREE.CanvasTexture {
         size / 2,
         size / 2,
     );
-    g.addColorStop(0, "rgba(0,0,0,0.55)");
-    g.addColorStop(0.5, "rgba(0,0,0,0.28)");
-    g.addColorStop(1, "rgba(0,0,0,0)");
+    const { r, g: gr, b } = palette.ink.getRGB(
+        { r: 0, g: 0, b: 0 },
+        THREE.SRGBColorSpace,
+    );
+    const rgb = `${Math.round(r * 255)}, ${Math.round(gr * 255)}, ${Math.round(b * 255)}`;
+    const peak = SHADOW_PEAK[palette.dark ? "dark" : "light"];
+    g.addColorStop(0, `rgba(${rgb}, ${peak})`);
+    g.addColorStop(0.5, `rgba(${rgb}, ${peak / 2})`);
+    g.addColorStop(1, `rgba(${rgb}, 0)`);
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, size, size);
-    return new THREE.CanvasTexture(canvas);
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    return texture;
 }
+
+/** A ruled panel — unit squares in its local XY plane, centred on the origin. */
+function ruledPanel(width: number, height: number): THREE.LineSegments {
+    const points: number[] = [];
+    for (let x = -width / 2; x <= width / 2 + 1e-9; x += 1) {
+        points.push(x, -height / 2, 0, x, height / 2, 0);
+    }
+    for (let y = -height / 2; y <= height / 2 + 1e-9; y += 1) {
+        points.push(-width / 2, y, 0, width / 2, y, 0);
+    }
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute("position", new THREE.Float32BufferAttribute(points, 3));
+    return new THREE.LineSegments(
+        geometry,
+        new THREE.LineBasicMaterial({ transparent: true, depthWrite: false }),
+    );
+}
+
+/** The contact-shadow plate's side (world units). */
+const SHADOW_PLATE = 2.6;
+
+/**
+ * X.KF.W13X · KFA-125 — the contact shadow's scale for a ball at `px` lifted
+ * `lift` (0 floor → 1 apex): it grows with height (the soft penumbra) but never
+ * past the room's floor edge — a wall-side apex used to spill 1.47 u onto the void.
+ */
+export const contactShadowScale = (px: number, lift: number): number =>
+    Math.min(1 + 0.9 * lift, (BOX_SIZE / 2 - Math.abs(px)) / (SHADOW_PLATE / 2));
 
 /**
  * @param canvasEl  the `<canvas>` template ref.
@@ -179,6 +258,32 @@ export function useAmigaThree(
         | { from: THREE.Spherical; fromTarget: THREE.Vector3; start: number | undefined }
         | undefined;
     const arcScratch = new THREE.Spherical();
+
+    // KFA-67 / UIA-KF-195 — the room's grids, re-inked on every theme flip.
+    const roomGrids: Array<{ grid: THREE.LineSegments; role: "floor" | "wall" }> = [];
+    const applyPalette = (palette: RoomPalette): void => {
+        const strength = GRID_OPACITY[palette.dark ? "dark" : "light"];
+        for (const { grid, role } of roomGrids) {
+            const material = grid.material as THREE.LineBasicMaterial;
+            material.color.copy(palette.ink);
+            material.opacity = strength[role];
+        }
+    };
+    /** Re-resolve the ink after a theme flip has settled, and re-paint. */
+    const retheme = (): void => {
+        if (!scene) return;
+        const palette = resolveRoomPalette();
+        applyPalette(palette);
+        const material = contactShadow?.material;
+        if (material && !Array.isArray(material)) {
+            const shadow = material as THREE.MeshBasicMaterial;
+            shadow.map?.dispose();
+            shadow.map = makeShadowTexture(palette);
+            shadow.needsUpdate = true;
+        }
+        renderDirty = true;
+    };
+    const stopRetheme = useGlobalDark().onFlipSettled(retheme);
     const arcOffset = new THREE.Vector3();
 
     /**
@@ -194,16 +299,22 @@ export function useAmigaThree(
         if (!camera || !renderer || width === 0 || height === 0) return;
         const aspect = width / height;
         camera.aspect = aspect;
-        const needed = SWEEP_HALF_WIDTH / (aspect * Math.tan(HALF_FOV_RAD));
-        const distance = camera.position.length();
-        if (distance > 0 && distance < needed) {
-            camera.position.multiplyScalar(needed / distance);
-        }
+        const framed =
+            FRAME_MARGIN *
+            Math.max(
+                SWEEP_HALF_WIDTH / (aspect * Math.tan(HALF_FOV_RAD)),
+                ENVELOPE_BELOW / FLOOR_REACH,
+                ENVELOPE_ABOVE / CEILING_REACH,
+            );
+        // The camera keeps the direction the user orbited it to and takes the
+        // framed distance (a resize re-frames; it never leaves the ball small).
+        const target = controls?.target ?? homeTarget;
+        arcOffset.copy(camera.position).sub(target);
+        if (arcOffset.lengthSq() === 0) arcOffset.copy(HOME_DIRECTION);
+        camera.position.copy(target).add(arcOffset.setLength(framed));
         // UIA-KF-197 — the home view is the authored direction at the framed
         // distance; Home/Reset carry the camera back to it.
-        homeOffset.setFromVector3(
-            arcOffset.copy(HOME_DIRECTION).multiplyScalar(Math.max(HOME_DISTANCE, needed)),
-        );
+        homeOffset.setFromVector3(arcOffset.copy(HOME_DIRECTION).multiplyScalar(framed));
         camera.updateProjectionMatrix();
         renderer.setSize(width, height, false);
         controls?.update();
@@ -243,29 +354,40 @@ export function useAmigaThree(
         key.position.set(0, BOX_SIZE, BOX_SIZE / 2);
         scene.add(key);
 
-        // T.A10 — the grid-room: a paper-grid FLOOR + BACK-WALL over the theme
-        // backdrop (the gray Lambert box is gone). Quiet neutral lines; the CSS
-        // grid-bg shows through the transparent composite behind them.
-        const gridColor = new THREE.Color("#b9b9c6");
-        const floorGrid = new THREE.GridHelper(BOX_SIZE, 12, gridColor, gridColor);
-        (floorGrid.material as THREE.Material).opacity = 0.35;
-        (floorGrid.material as THREE.Material).transparent = true;
-        floorGrid.position.y = CONTACT_FLOOR;
-        scene.add(floorGrid);
-
-        const backGrid = new THREE.GridHelper(BOX_SIZE, 12, gridColor, gridColor);
-        (backGrid.material as THREE.Material).opacity = 0.18;
-        (backGrid.material as THREE.Material).transparent = true;
-        backGrid.rotation.x = Math.PI / 2;
-        backGrid.position.z = -BOX_SIZE / 2;
-        scene.add(backGrid);
+        // T.A10 — the grid-room: a paper-grid FLOOR and WALLS over the theme
+        // backdrop (the gray Lambert box is gone); the CSS grid-bg shows through
+        // the transparent composite behind them. Unit squares, inked per theme.
+        const palette = resolveRoomPalette();
+        const panel = (role: "floor" | "wall", width: number, height: number) => {
+            const lines = ruledPanel(width, height);
+            roomGrids.push({ grid: lines, role });
+            scene!.add(lines);
+            return lines;
+        };
+        const floor = panel("floor", BOX_SIZE, BOX_SIZE);
+        floor.rotation.x = -Math.PI / 2;
+        floor.position.y = CONTACT_FLOOR;
+        // KFA-64 — the back wall STANDS on the floor: its bottom edge is the
+        // floor line (it used to be centred on home and hang a unit below it,
+        // showing through the translucent floor).
+        const WALL_CENTRE_Y = CONTACT_FLOOR + BOX_SIZE / 2;
+        panel("wall", BOX_SIZE, BOX_SIZE).position.set(0, WALL_CENTRE_Y, -BOX_SIZE / 2);
+        // KFA-194 — the ball reverses at ±WALL_X, one radius from walls that now
+        // exist: two side walls standing on the floor, from the back wall to the
+        // ball's plane (the half of the room the ball lives in; a full-depth wall
+        // would rule the whole foreground).
+        for (const side of [-1, 1]) {
+            const wall = panel("wall", BOX_SIZE / 2, BOX_SIZE);
+            wall.rotation.y = Math.PI / 2;
+            wall.position.set((side * BOX_SIZE) / 2, WALL_CENTRE_Y, -BOX_SIZE / 4);
+        }
 
         // T.A10 — the fake contact-shadow blob on the floor plane, tracked to the
         // ball's x + scaled/faded by height each frame (by the scene's compose).
         contactShadow = new THREE.Mesh(
-            new THREE.PlaneGeometry(2.6, 2.6),
+            new THREE.PlaneGeometry(SHADOW_PLATE, SHADOW_PLATE),
             new THREE.MeshBasicMaterial({
-                map: makeShadowTexture(),
+                map: makeShadowTexture(palette),
                 transparent: true,
                 depthWrite: false,
             }),
@@ -273,6 +395,7 @@ export function useAmigaThree(
         contactShadow.rotation.x = -Math.PI / 2;
         contactShadow.position.set(0, SHADOW_PLANE_Y, 0);
         scene.add(contactShadow);
+        applyPalette(palette);
 
         // The Boing-Ball: the crayon-red checker sphere, re-sourced to
         // var(--amiga-red) (→ var(--rainbow-red), single-sourced in
@@ -436,6 +559,7 @@ export function useAmigaThree(
             else if (material) disposeMaterial(material);
         });
         scene = undefined;
+        roomGrids.length = 0;
         sphereMesh = undefined;
         contactShadow = undefined;
         camera = undefined;
@@ -482,7 +606,10 @@ export function useAmigaThree(
         setup();
     });
 
-    onBeforeUnmount(dispose);
+    onBeforeUnmount(() => {
+        stopRetheme();
+        dispose();
+    });
 
     return {
         setup,
