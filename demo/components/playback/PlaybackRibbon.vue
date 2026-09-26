@@ -197,7 +197,8 @@ const effectiveDuration = computed(() => {
 const emit = defineEmits<{
     (e: "scrubStart"): void;
     (e: "scrubEnd"): void;
-    // L-i2 — wake-only: fires on EVERY seat (pointer, keyboard, or visualizer).
+    // L-i2 — wake-only: fires on EVERY seat (pointer, keyboard, or visualizer)
+    // and on every Reverse flip (KFA-174 — the flip re-maps effective time).
     // Bound by the channel mount alone, whose settled sync loop re-arms on it;
     // the scene mounts have no idle loop and may leave it unbound.
     (e: "scrubbed"): void;
@@ -274,8 +275,17 @@ const onSliderCommit = (val: number[]) => {
 };
 
 
-/** The Reverse cell. */
-const onReverse = () => emit("toggleReverse");
+/** The Reverse cell. KFA-174 (X.KF.W13X.transport) — a direction flip moves
+ *  the EFFECTIVE time the rail displays (`duration − t` ↔ `t`, the contract
+ *  above) without moving the engine's `t`, so the channel mount's sync loop,
+ *  idled while paused, never re-derived it: the thumb and ball held the stale
+ *  position and snapped on the next Play (served: 1.0 held, then 0.035). The
+ *  flip is followed by the same wake a seat sends, so the read-back re-seats
+ *  in the new direction at once. */
+const onReverse = () => {
+    emit("toggleReverse");
+    emit("scrubbed");
+};
 
 /** Seat the playhead at an EFFECTIVE time (the contract above). */
 const scrubTo = (effectiveT: EffectiveMs) => {
