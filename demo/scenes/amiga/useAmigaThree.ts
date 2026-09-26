@@ -348,9 +348,16 @@ export function useAmigaThree(
         renderer.setClearColor(0xffffff, 0);
 
         // Lighting: a soft sky/ground fill + a top-front key for the specular lobe.
-        const hemi = new THREE.HemisphereLight("white", "#c8c8c8", 1.6);
+        // X.KF.W13X · KFA-195 — three's lights are physical (r155+): the Lambert
+        // term divides by π and a spot light falls off with the square of its
+        // distance (decay 2). At the rig's old numbers the fill lit a white tile
+        // to ~0.5 linear (served ~181 of 255: a mid-grey "white") and the key,
+        // ~13 u away, arrived at 0.7/13² — no highlight at all. The key carries
+        // no falloff (decay 0: a studio key, not a bulb in the room) and the fill
+        // is set so a sky-facing white tile reads white.
+        const hemi = new THREE.HemisphereLight("white", "#c8c8c8", 2.4);
         scene.add(hemi);
-        const key = new THREE.SpotLight("white", 0.7, 0, Math.PI / 2, 0.9);
+        const key = new THREE.SpotLight("white", 1.4, 0, Math.PI / 2, 0.9, 0);
         key.position.set(0, BOX_SIZE, BOX_SIZE / 2);
         scene.add(key);
 
