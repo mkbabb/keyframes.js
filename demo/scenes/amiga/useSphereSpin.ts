@@ -13,11 +13,19 @@ import { decay, type DecaySample } from "@mkbabb/keyframes.js";
  * release the engine `decay()` glide coasts the spin to rest.
  *
  * T.A7 — the gesture is an ADDITIVE LAYER, never a second mesh writer. It
- * accumulates into `offset` (a stable `{ x, y }` object the scene reads each
- * frame); the scene composes `groupPose + offset` into the mesh transform (ONE
- * writer). So drag and the group animation compose by construction — the user's
- * spin delta accumulates ON TOP of the composite bounce/spin, and the pre-gesture
- * pose is preserved after the glide settles.
+ * accumulates into `attitude` (a stable quaternion the scene reads each frame);
+ * the scene composes `spin · attitude` into the mesh transform (ONE writer).
+ *
+ * X.KF.W13X · KFA-19 — the attitude is ONE quaternion, a trackball. It used to
+ * be two Euler angles composed 'XYZ', so yaw turned about the already-pitched
+ * body axis: after a quarter-turn pitch a horizontal drag rolled the ball in
+ * place. Every drag delta is now a rotation about the SCREEN axis under the
+ * finger (camera space, perpendicular to the drag), premultiplied.
+ *
+ * X.KF.W13X · KFA-65 — the gesture composes INSIDE the Boing spin. The scene's
+ * spin is applied last, about the fixed tilted world axis, so a delta the user
+ * makes in world (screen) space is conjugated by the current spin (`getFrame`)
+ * before it joins the attitude; a pitch no longer tilts the spin axis.
  *
  * Camera orbit (OrbitControls) stays the BACKGROUND gesture: a pointerdown that
  * RAYCASTS the sphere is the spin gesture (and suppresses orbit for its
@@ -27,10 +35,18 @@ import { decay, type DecaySample } from "@mkbabb/keyframes.js";
 interface SphereSpinOptions {
     /** The mesh the drag spins (the raycast hit-test target). */
     getMesh: () => THREE.Object3D | undefined;
-    /** The camera the raycaster projects through. */
+    /** The camera the raycaster projects through (and whose axes are the screen's). */
     getCamera: () => THREE.Camera | undefined;
     /** Suspend/resume camera orbit while a sphere-spin gesture owns the pointer. */
     setOrbitEnabled: (enabled: boolean) => void;
+    /**
+     * KFA-65 — the rotation the gesture composes INSIDE (the scene's Boing spin,
+     * `mesh = frame · attitude`). A world-space delta D joins the attitude as
+     * `frame⁻¹ · D · frame`. Omitted: identity.
+     */
+    getFrame?: () => THREE.Quaternion;
+    /** KFA-130 — Home snaps instead of gliding under prefers-reduced-motion. */
+    reducedMotion?: () => boolean;
     /**
      * Friction coefficient (1/s) of the release glide — larger = shorter coast.
      * Default 2.4 (a long, legible spin-down).
@@ -49,11 +65,37 @@ const REST_SPEED = 1e-3;
 // apart divided a full drag delta by 0.001 s: a genuine up-to-1000× amplifier on
 // the release impulse, and nothing downstream clamped it.
 const MIN_SAMPLE_MS = 1000 / 240;
-// L-M1/C-8 — a flick older than this is not a flick. `velX/velY` were written
-// only in `onPointerMove` and `endDrag` never looked at WHEN, so a user who
-// flicked, held still for a second and then lifted released the flick's full
-// velocity into the glide. Past this window the finger had come to rest.
+// L-M1/C-8 — a flick older than this is not a flick: past this window the finger
+// had come to rest. KFA-129 — it is also the window the release impulse is READ
+// over (a least-squares slope of the samples inside it), so one early or late
+// event cannot set the coast.
 const FLICK_WINDOW_MS = 100;
+// KFA-20 — a keyboard nudge is a short glide that lands exactly on its step:
+// a stiff friction so the turn reads in ~¼ s, then the remainder is applied.
+const NUDGE_FRICTION = 12;
+// KFA-130 — Home carries the ball back to rest over this long (ease-out).
+const HOME_MS = 320;
+
+/** One screen-axis coast: a decay sampler about a fixed world axis. A nudge also
+ *  carries the exact angle it must cover (`total`), applied when it settles. */
+interface Coast {
+    axis: THREE.Vector3;
+    sample: (t: number) => DecaySample;
+    start: number;
+    applied: number;
+    pitchShare: number;
+    yawShare: number;
+    total?: number;
+}
+
+/** A pointer sample, in cumulative pixels (the window the release is read over). */
+interface Sample {
+    t: number;
+    x: number;
+    y: number;
+}
+
+const IDENTITY = new THREE.Quaternion();
 
 export function useSphereSpin(options: SphereSpinOptions) {
     const friction = options.friction ?? DEFAULT_FRICTION;
@@ -64,8 +106,12 @@ export function useSphereSpin(options: SphereSpinOptions) {
 
     let canvasEl: HTMLCanvasElement | undefined;
 
-    // T.A7 — the ADDITIVE gesture offset (rad), a stable object the scene composes
-    // onto the group pose each frame. `x` = pitch (drag-y), `y` = yaw (drag-x).
+    // T.A7 / KFA-19 — the gesture ATTITUDE: one quaternion, the body side of the
+    // scene's spin (`mesh = spin · attitude`). A stable object the scene reads.
+    const attitude = new THREE.Quaternion();
+    // The per-axis READ-OUT (rad): the pitch (`x`, drag-y) and yaw (`y`, drag-x)
+    // the user has put in, screen-referenced and unwrapped. It is what the a11y
+    // read-out and the dev probe report; the attitude is what is painted.
     const offset = { x: 0, y: 0 };
 
     // ── Drag state ───────────────────────────────────────────────────────────
@@ -74,18 +120,21 @@ export function useSphereSpin(options: SphereSpinOptions) {
     let lastX = 0;
     let lastY = 0;
     let lastMoveTime = 0;
-    // Running angular velocity (rad/s) handed to `decay()` at release.
-    let velX = 0;
-    let velY = 0;
+    // KFA-129 — the flick window: cumulative pixels against (floored) event time.
+    let samples: Sample[] = [];
+    let travelX = 0;
+    let travelY = 0;
 
-    // ── Glide state: a `decay()` sampler per axis, advanced by wall-clock ──────
-    // seconds in the render loop. The per-frame DELTA is added to the offset, so
-    // the spin keeps accumulating until the velocity bleeds below REST_SPEED.
-    let glideX: ((t: number) => DecaySample) | undefined;
-    let glideY: ((t: number) => DecaySample) | undefined;
-    let glideStart = 0;
-    let lastGlideX = 0;
-    let lastGlideY = 0;
+    // ── Coast state: ONE screen-axis decay (a release glide or a nudge) or ONE
+    // homing slerp, advanced on the FRAME clock the present loop hands in.
+    let coast: Coast | undefined;
+    let homing:
+        | { from: THREE.Quaternion; fromX: number; fromY: number; start: number }
+        | undefined;
+
+    const scratchDelta = new THREE.Quaternion();
+    const scratchFrame = new THREE.Quaternion();
+    const scratchCamera = new THREE.Quaternion();
 
     const toNDC = (clientX: number, clientY: number) => {
         const rect = canvasEl!.getBoundingClientRect();
@@ -105,10 +154,64 @@ export function useSphereSpin(options: SphereSpinOptions) {
         return raycaster.intersectObject(mesh, false).length > 0;
     };
 
+    /** The WORLD axis of a screen rotation: camera-space (pitch, yaw, 0) → world. */
+    const screenAxis = (pitch: number, yaw: number): THREE.Vector3 => {
+        const axis = new THREE.Vector3(pitch, yaw, 0).normalize();
+        const camera = options.getCamera();
+        if (camera) axis.applyQuaternion(camera.getWorldQuaternion(scratchCamera));
+        return axis;
+    };
+
+    /** KFA-19 + KFA-65 — turn the attitude by `angle` about the world `axis`,
+     *  inside the scene's frame: attitude ← frame⁻¹ · D · frame · attitude. */
+    const turn = (axis: THREE.Vector3, angle: number): void => {
+        scratchDelta.setFromAxisAngle(axis, angle);
+        const frame = options.getFrame?.();
+        if (frame) {
+            scratchFrame.copy(frame).invert();
+            scratchDelta.premultiply(scratchFrame).multiply(frame);
+        }
+        attitude.premultiply(scratchDelta).normalize();
+    };
+
+    /** Advance a coast by `angle` (rad) along its axis, read-out included. */
+    const advance = (c: Coast, angle: number): void => {
+        if (angle === 0) return;
+        turn(c.axis, angle);
+        offset.x += angle * c.pitchShare;
+        offset.y += angle * c.yawShare;
+    };
+
+    /** A nudge still under way lands on its step before anything else moves. */
+    const finishCoast = (): void => {
+        if (coast?.total !== undefined) advance(coast, coast.total - coast.applied);
+        coast = undefined;
+    };
+
+    /** KFA-129 — the least-squares slope (px/ms) of the flick window's samples. */
+    const slope = (key: "x" | "y"): number => {
+        const n = samples.length;
+        if (n < 2) return 0;
+        let tm = 0;
+        let km = 0;
+        for (const s of samples) {
+            tm += s.t;
+            km += s[key];
+        }
+        tm /= n;
+        km /= n;
+        let num = 0;
+        let den = 0;
+        for (const s of samples) {
+            num += (s.t - tm) * (s[key] - km);
+            den += (s.t - tm) ** 2;
+        }
+        return den > 0 ? num / den : 0;
+    };
+
     // L-M1/C-8 — the engine's analytic decay sampler seeded ONCE with unit
     // velocity, so `unitDecay(t).velocity` IS the multiplicative factor
-    // e^(−k·t): the same closed form the glide itself rides (and the same
-    // dogfood idiom the cube's `useOrbitalInertia` keeps), used here to age a
+    // e^(−k·t): the same closed form the glide itself rides, used here to age a
     // release impulse by however long the finger was still before it lifted.
     const unitDecay = decay({ velocity: 1, friction });
 
@@ -116,24 +219,25 @@ export function useSphereSpin(options: SphereSpinOptions) {
         // MISSED-G — one gesture, one pointer, one button. A second touch used
         // to overwrite `activePointer` and silently steal the drag mid-flight,
         // and a right-button press hijacked the surface with `preventDefault` +
-        // `stopPropagation` while orbit was disabled — a press the user could
-        // not undo and a context menu that never came. Three guards, all cheap,
-        // none of them changing what a single primary-button drag does.
+        // `stopPropagation` while orbit was disabled. Three guards, all cheap.
         if (dragging) return; // re-entrancy: the gesture is already owned
         if (!e.isPrimary) return; // a secondary touch is not a second drag
         if (e.button !== 0) return; // pen/right/middle → not a spin gesture
         if (!hitsSphere(e.clientX, e.clientY)) return; // → OrbitControls
         // The sphere owns this gesture: take the pointer, stand the camera orbit
-        // down, and cancel any in-flight glide (a new grab re-seeds velocity).
+        // down, and end any in-flight coast (a new grab re-seeds velocity).
         dragging = true;
         activePointer = e.pointerId;
         canvasEl!.setPointerCapture(e.pointerId);
         options.setOrbitEnabled(false);
-        glideX = glideY = undefined;
-        velX = velY = 0;
+        finishCoast();
+        homing = undefined;
         lastX = e.clientX;
         lastY = e.clientY;
         lastMoveTime = performance.now();
+        travelX = 0;
+        travelY = 0;
+        samples = [{ t: lastMoveTime, x: 0, y: 0 }];
         e.preventDefault();
         e.stopPropagation();
     };
@@ -141,24 +245,32 @@ export function useSphereSpin(options: SphereSpinOptions) {
     const onPointerMove = (e: PointerEvent) => {
         if (!dragging || e.pointerId !== activePointer) return;
         const now = performance.now();
-        const dt = Math.max(now - lastMoveTime, MIN_SAMPLE_MS) / 1000;
         const dx = e.clientX - lastX;
         const dy = e.clientY - lastY;
-
-        // Horizontal drag → yaw (offset.y); vertical drag → pitch (offset.x). The
-        // gesture accumulates into the ADDITIVE offset, never the mesh (T.A7).
-        const dAngY = dx * sensitivity;
-        const dAngX = dy * sensitivity;
-        offset.y += dAngY;
-        offset.x += dAngX;
-
-        // Track instantaneous angular velocity (rad/s) for the release impulse.
-        velY = dAngY / dt;
-        velX = dAngX / dt;
-
         lastX = e.clientX;
         lastY = e.clientY;
         lastMoveTime = now;
+        // KFA-19 — the delta is a rotation about the SCREEN axis perpendicular
+        // to the drag (a trackball): horizontal → about the screen vertical,
+        // vertical → about the screen horizontal, whatever the attitude.
+        const len = Math.hypot(dx, dy);
+        if (len > 0) {
+            const angle = len * sensitivity;
+            turn(screenAxis(dy / len, dx / len), angle);
+            offset.x += dy * sensitivity;
+            offset.y += dx * sensitivity;
+        }
+        // KFA-129 — sample the flick window. L-M1/C-8: a sample's time is floored
+        // at one real sampling period after the last, so a coalesced pair cannot
+        // divide a whole delta by a sub-millisecond interval.
+        travelX += dx;
+        travelY += dy;
+        const prev = samples[samples.length - 1];
+        const t = prev ? Math.max(now, prev.t + MIN_SAMPLE_MS) : now;
+        samples.push({ t, x: travelX, y: travelY });
+        while (samples.length > 2 && samples[0]!.t < t - FLICK_WINDOW_MS) {
+            samples.shift();
+        }
     };
 
     const endDrag = (e: PointerEvent) => {
@@ -170,73 +282,60 @@ export function useSphereSpin(options: SphereSpinOptions) {
             canvasEl.releasePointerCapture(e.pointerId);
         }
         options.setOrbitEnabled(true);
-
-        // Hand the release velocity to the engine's closed-form glide, AGED by
-        // how long the finger was still before it lifted (L-M1/C-8): inside the
-        // flick window the impulse decays exactly as the glide would have
-        // decayed it over that interval — no cliff, no stale fling — and past
-        // the window there is no flick left to hand on. Only seed an axis whose
-        // flick still has real speed (a static tap glides nowhere).
+        // KFA-129 — the release impulse is the window's slope (px/ms → rad/s),
+        // aged by how long the finger had been still (L-M1/C-8).
         const age = now - lastMoveTime;
         const staleness =
             age >= FLICK_WINDOW_MS ? 0 : unitDecay(age / 1000).velocity;
-        const seed = (v: number) => {
-            const aged = v * staleness;
-            return Math.abs(aged) > REST_SPEED
-                ? decay({ velocity: aged, friction })
-                : undefined;
+        const vx = slope("x") * 1000;
+        const vy = slope("y") * 1000;
+        const speed = Math.hypot(vx, vy);
+        const omega = speed * sensitivity * staleness;
+        samples = [];
+        if (omega <= REST_SPEED) return;
+        coast = {
+            axis: screenAxis(vy / speed, vx / speed),
+            sample: decay({ velocity: omega, friction }),
+            start: now,
+            applied: 0,
+            pitchShare: vy / speed,
+            yawShare: vx / speed,
         };
-        glideX = seed(velX);
-        glideY = seed(velY);
-        glideStart = now;
-        lastGlideX = 0;
-        lastGlideY = 0;
     };
 
     /**
-     * Advance the release glide one render frame — call from the scene's present
-     * loop. Adds the engine `decay()` delta to the ADDITIVE offset. Returns true
-     * while the glide is still live (used by the render-on-demand present loop,
-     * T.A12).
+     * Advance the coast (or the homing) to the FRAME time `now` — the present
+     * loop's rAF timestamp. KFA-128: it read `performance.now()` when it ran,
+     * which wobbles with main-thread work, so an even frame cadence stepped
+     * unevenly (a ±7 % ripple). Returns whether the gesture is still moving.
      */
-    const tickGlide = (): boolean => {
-        if (!glideX && !glideY) return false;
-
-        const t = (performance.now() - glideStart) / 1000;
-        let live = false;
-
-        if (glideX) {
-            const s = glideX(t);
-            offset.x += s.value - lastGlideX;
-            lastGlideX = s.value;
-            if (Math.abs(s.velocity) > REST_SPEED) live = true;
-            else glideX = undefined;
+    const tickGlide = (now: number): boolean => {
+        if (homing) {
+            const k = Math.min(Math.max((now - homing.start) / HOME_MS, 0), 1);
+            const eased = 1 - (1 - k) ** 3;
+            attitude.slerpQuaternions(homing.from, IDENTITY, eased);
+            offset.x = homing.fromX * (1 - eased);
+            offset.y = homing.fromY * (1 - eased);
+            if (k < 1) return true;
+            homing = undefined;
+            attitude.identity();
+            offset.x = 0;
+            offset.y = 0;
+            return false;
         }
-        if (glideY) {
-            const s = glideY(t);
-            offset.y += s.value - lastGlideY;
-            lastGlideY = s.value;
-            if (Math.abs(s.velocity) > REST_SPEED) live = true;
-            else glideY = undefined;
-        }
-        return live;
+        if (!coast) return false;
+        const s = coast.sample(Math.max(now - coast.start, 0) / 1000);
+        advance(coast, s.value - coast.applied);
+        coast.applied = s.value;
+        if (Math.abs(s.velocity) > REST_SPEED) return true;
+        finishCoast();
+        return false;
     };
 
-    // The canvas-pointer listeners ride @vueuse/core's useEventListener (the
-    // inv-ζ dogfood discipline the demo's other drag seams keep): each returns a
-    // stop() handle, auto-released on the host's scope dispose too.
     let stopHandles: Array<() => void> = [];
-
-    /** Wire the pointer listeners onto the canvas (imperative — the canvas exists
-     *  only after the Three.js renderer mounts). */
     const attach = (canvas: HTMLCanvasElement) => {
-        // M-6 — a second `attach` used to OVERWRITE the handle array, leaving
-        // the first canvas's four listeners registered with no way to reach
-        // them. One caller today; the shape was a latent double-registration.
         detach();
         canvasEl = canvas;
-        // Capture-phase pointerdown so the hit-test runs BEFORE OrbitControls'
-        // own (bubbling) listener claims a sphere-hit drag.
         stopHandles = [
             useEventListener(canvas, "pointerdown", onPointerDown, {
                 capture: true,
@@ -246,7 +345,6 @@ export function useSphereSpin(options: SphereSpinOptions) {
             useEventListener(canvas, "pointercancel", endDrag),
         ];
     };
-
     const detach = () => {
         for (const stop of stopHandles) stop();
         stopHandles = [];
@@ -254,41 +352,56 @@ export function useSphereSpin(options: SphereSpinOptions) {
     };
 
     /**
-     * D-2 — the KEYBOARD's route into the same additive offset the drag writes.
-     * A keyboard nudge is a gesture, so it lands in the gesture layer: the scene
-     * never reaches into `offset` itself and the T.A7 single-author discipline
-     * survives the new affordance (one offset author, one mesh writer). Like a
-     * fresh grab, a nudge cancels an in-flight glide.
+     * D-2 — the keyboard route. KFA-20: the step used to be written in ONE frame,
+     * and a sixteenth of a turn is exactly one checker tile, so each press read
+     * as a red↔white swap and two presses as nothing. The nudge is now a short
+     * glide on the same screen-axis coast as a release, seeded so it covers the
+     * step exactly (a decay's total travel is v/k) and landing on it.
      */
     const nudge = (dPitch: number, dYaw: number): void => {
-        glideX = glideY = undefined;
-        offset.x += dPitch;
-        offset.y += dYaw;
-    };
-
-    /** Return the accumulated gesture spin to its rest attitude (the Home key). */
-    const rest = (): void => {
-        glideX = glideY = undefined;
-        velX = velY = 0;
-        offset.x = 0;
-        offset.y = 0;
+        finishCoast();
+        homing = undefined;
+        const angle = Math.hypot(dPitch, dYaw);
+        if (angle === 0) return;
+        coast = {
+            axis: screenAxis(dPitch / angle, dYaw / angle),
+            sample: decay({ velocity: angle * NUDGE_FRICTION, friction: NUDGE_FRICTION }),
+            start: performance.now(),
+            applied: 0,
+            pitchShare: dPitch / angle,
+            yawShare: dYaw / angle,
+            total: angle,
+        };
     };
 
     /**
-     * T.A11 — the decay() dogfood witness, a NON-DOM sampling hook (no readout
-     * DOM). The current angular speed (rad/s): the live `Math.hypot(velX, velY)`
-     * accumulator during a drag, the engine `decay()` sampler's instantaneous
-     * velocity during the glide (the SAME already-tracked physics). It bleeds to 0
-     * as the glide settles — the visible decay() coast, now witnessed by a probe
-     * on the gesture layer rather than a parked telemetry readout.
+     * Home — back to the rest attitude. KFA-130: it zeroed the attitude in one
+     * frame; it now carries it home over HOME_MS (a slerp, ease-out), and snaps
+     * only under prefers-reduced-motion.
      */
+    const rest = (): void => {
+        coast = undefined;
+        if (options.reducedMotion?.() || attitude.angleTo(IDENTITY) === 0) {
+            homing = undefined;
+            attitude.identity();
+            offset.x = 0;
+            offset.y = 0;
+            return;
+        }
+        homing = {
+            from: attitude.clone(),
+            fromX: offset.x,
+            fromY: offset.y,
+            start: performance.now(),
+        };
+    };
+
+    /** The gesture's current angular speed (rad/s) — the dev probe's reading. */
     const angularVelocity = (): number => {
-        if (dragging) return Math.hypot(velX, velY);
-        if (!glideX && !glideY) return 0;
-        const t = (performance.now() - glideStart) / 1000;
-        const gx = glideX ? glideX(t).velocity : 0;
-        const gy = glideY ? glideY(t).velocity : 0;
-        return Math.hypot(gx, gy);
+        if (dragging) return Math.hypot(slope("x"), slope("y")) * 1000 * sensitivity;
+        if (!coast) return 0;
+        const t = Math.max(performance.now() - coast.start, 0) / 1000;
+        return Math.abs(coast.sample(t).velocity);
     };
 
     return {
@@ -297,12 +410,14 @@ export function useSphereSpin(options: SphereSpinOptions) {
         tickGlide,
         nudge,
         rest,
-        /** The additive gesture offset (rad) the scene composes onto the pose. */
+        /** The gesture attitude the scene composes inside its spin. */
+        attitude,
+        /** The per-axis read-out (rad): accumulated screen pitch (x) and yaw (y). */
         offset,
         /** True while the user is actively dragging the sphere. */
         isDragging: () => dragging,
-        /** True while the release glide is still driving the offset. */
-        isGliding: () => !!(glideX || glideY),
+        /** True while a coast (release glide, nudge) or the homing is moving it. */
+        isGliding: () => !!(coast || homing),
         angularVelocity,
     };
 }

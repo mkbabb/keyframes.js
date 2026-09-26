@@ -133,7 +133,9 @@ const sceneRootEl = useTemplateRef<HTMLElement>("sceneRoot");
 // the boing-ball mesh · the grid-room · the managed render-on-demand present
 // loop) lives in the colocated useAmigaThree sub-unit. This scene owns the
 // COMPOSE — the SINGLE mesh writer (T.A7) — injected per frame via `onFrame`.
-const three = useAmigaThree(canvasEl, () => onFrame());
+// KFA-128 — the present loop hands the frame its rAF timestamp; every clock
+// below (the gesture coast, the continuity lanes) steps on it.
+const three = useAmigaThree(canvasEl, (now) => onFrame(now));
 
 // T.A7 — the group rides the compositor and writes an authored POSE (not the
 // mesh). The scene composes that pose with the additive gesture offset onto the
@@ -153,6 +155,11 @@ const sphereSpin = useSphereSpin({
     getMesh: () => three.getSphere(),
     getCamera: () => three.getCamera(),
     setOrbitEnabled: (enabled) => three.setOrbitEnabled(enabled),
+    // KFA-65 — the gesture composes INSIDE the Boing spin (`mesh = qSpin ·
+    // attitude`), so a screen-space drag is conjugated by the spin in flight.
+    getFrame: () => qSpin,
+    // KFA-130 — Home glides home, and snaps under reduced motion.
+    reducedMotion: () => prm.value === "reduce",
 });
 
 // ── D-2: the subject's keyboard route + its per-axis read-out ────────────────
@@ -201,7 +208,11 @@ function onKeydown(event: KeyboardEvent): void {
             pitch = step;
             break;
         case "Home":
+            // UIA-KF-197 — Home returns the ball AND the room view to rest: a
+            // drag that missed the ball orbits the camera, and nothing else
+            // brought it back.
             sphereSpin.rest();
+            three.homeView();
             break;
         default:
             return;
@@ -239,8 +250,6 @@ const tiltAxis = new THREE.Vector3(
     0,
 ).normalize();
 const qSpin = new THREE.Quaternion();
-const qGesture = new THREE.Quaternion();
-const eGesture = new THREE.Euler(0, 0, 0, "XYZ");
 
 // The rendered pose (what actually reaches the mesh), distinct from the group's
 // composite `pose` so the re-seat can drive it home without the group stomping it.
@@ -303,13 +312,13 @@ const poseMoved = (): boolean =>
     pose.py !== lastPose.py ||
     pose.spin !== lastPose.spin;
 
-function onFrame(): boolean {
+function onFrame(now: number): boolean {
     // L-m6 — the glide's liveness is the value `tickGlide()` RETURNS. The scene
     // used to drop that return on the floor and re-derive the answer from
     // `isGliding()`, which reports the SAMPLER'S EXISTENCE — one frame stale
     // against the delta just composed (L-i6's discarded final delta is the same
     // seam, and it is closed by reading the return the function documents).
-    const gliding = sphereSpin.tickGlide();
+    const gliding = sphereSpin.tickGlide(now);
     // L-B1 (BLOCKER) — the primary gesture's OWN edge on the render gate.
     // `isDragging()` existed and nothing consulted it: the drag wrote the
     // additive offset, the compose wrote the quaternion, and the present loop
@@ -324,7 +333,6 @@ function onFrame(): boolean {
     if (gestureWasLive && !gestureLive) syncSpinReadout();
     gestureWasLive = gestureLive;
 
-    const now = performance.now();
     const dt =
         lastFrameAt === 0
             ? NOMINAL_FRAME_MS
@@ -387,13 +395,14 @@ function onFrame(): boolean {
     lastPose.py = pose.py;
     lastPose.spin = pose.spin;
 
-    // Compose: spin about the tilted axis, then the additive gesture pitch/yaw.
+    // Compose: the gesture attitude, inside the spin about the tilted axis.
     const mesh = three.getSphere();
     if (mesh) {
         qSpin.setFromAxisAngle(tiltAxis, rendered.spin);
-        eGesture.set(sphereSpin.offset.x, sphereSpin.offset.y, 0);
-        qGesture.setFromEuler(eGesture);
-        mesh.quaternion.copy(qGesture).multiply(qSpin);
+        // KFA-65 — the spin is applied LAST, about the fixed tilted world axis;
+        // the gesture attitude sits inside it. The old order (gesture · spin)
+        // let any pitch tilt the Boing's own spin axis for the rest of the run.
+        mesh.quaternion.copy(qSpin).multiply(sphereSpin.attitude);
         // C-10 — the ball rides the room's home plane in Z; the original Boing
         // is planar and no channel has ever written otherwise.
         mesh.position.set(rendered.px, rendered.py, SPHERE_HOME);

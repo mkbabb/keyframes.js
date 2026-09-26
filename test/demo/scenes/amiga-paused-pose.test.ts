@@ -39,7 +39,7 @@ import { warmKfEngine } from "../../../demo/kf-engine";
  * the continuity lanes, the gesture, the group, the facility — is REAL.
  */
 const room = vi.hoisted(() => ({
-    onFrame: undefined as undefined | (() => boolean),
+    onFrame: undefined as undefined | ((now: number) => boolean),
     sphere: undefined as unknown,
     shadow: undefined as unknown,
     camera: undefined as unknown,
@@ -48,7 +48,7 @@ const room = vi.hoisted(() => ({
 }));
 
 vi.mock("../../../demo/scenes/amiga/useAmigaThree", () => ({
-    useAmigaThree: (_canvasEl: unknown, onFrame: () => boolean) => {
+    useAmigaThree: (_canvasEl: unknown, onFrame: (now: number) => boolean) => {
         room.onFrame = onFrame;
         return {
             setup: () => {},
@@ -59,6 +59,7 @@ vi.mock("../../../demo/scenes/amiga/useAmigaThree", () => ({
             markRenderDirty: () => {
                 room.dirty++;
             },
+            homeView: () => {},
             get running() {
                 return room.running;
             },
@@ -190,7 +191,7 @@ describe("X.KF.W11.h · G-KFW11-8 — the amiga scene repair", () => {
     /** Advance the present loop one frame; returns the scene's own liveness. */
     const frame = (ms = 16): boolean => {
         now += ms;
-        return room.onFrame!();
+        return room.onFrame!(now);
     };
 
     /** Run frames until the scene declares itself at rest (or the cap trips). */

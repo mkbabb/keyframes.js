@@ -1,5 +1,9 @@
 import { markRaw, onBeforeUnmount, ref, type Ref } from "vue";
-import { useEventListener, useResizeObserver } from "@vueuse/core";
+import {
+    useEventListener,
+    usePreferredReducedMotion,
+    useResizeObserver,
+} from "@vueuse/core";
 import { RAFPlayback } from "@mkbabb/keyframes.js";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
@@ -63,6 +67,15 @@ const CAMERA_Z = BOX_SIZE * 1.15;
 const HALF_FOV_RAD = (CAMERA_FOV / 2) * (Math.PI / 180);
 /** The half-width the authored wall-to-wall sweep needs at the ball plane. */
 const SWEEP_HALF_WIDTH = WALL_X + SPHERE_RADIUS;
+/** UIA-KF-197 — the authored viewing direction (the lift over the room). */
+const HOME_DIRECTION = new THREE.Vector3(0, CAMERA_LIFT, CAMERA_Z).normalize();
+const HOME_DISTANCE = Math.hypot(CAMERA_LIFT, CAMERA_Z);
+/** UIA-KF-197 — how long the camera takes to arc back to the home view. */
+const VIEW_HOME_MS = 360;
+
+/** The shortest signed turn from `a` to `b` (rad). */
+const shortestTurn = (a: number, b: number): number =>
+    ((((b - a + Math.PI) % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI)) - Math.PI;
 
 interface AmigaThreeHandle {
     /** Build the Three.js room. Call once at mount, after the canvas ref is live. */
@@ -82,6 +95,12 @@ interface AmigaThreeHandle {
     setOrbitEnabled(enabled: boolean): void;
     /** T.A12 — force a render next frame (mount, resize, external state change). */
     markRenderDirty(): void;
+    /**
+     * UIA-KF-197 — carry the orbit camera back to the framed home view (a
+     * ~⅓ s arc about the target; a snap under reduced motion). A drag that
+     * misses the ball orbits the room, and nothing used to bring it back.
+     */
+    homeView(): void;
     /**
      * D-8 — true when the room could not be built (no WebGL, a refused context,
      * a driver that threw) or the GL context is currently lost. The scene reads
@@ -131,7 +150,7 @@ function makeShadowTexture(): THREE.CanvasTexture {
  */
 export function useAmigaThree(
     canvasEl: Ref<HTMLCanvasElement | null>,
-    onFrame: () => boolean,
+    onFrame: (now: number) => boolean,
 ): AmigaThreeHandle {
     let sphereMesh: ReturnType<typeof tesselateSphere> | undefined;
     let contactShadow: THREE.Mesh | undefined;
@@ -150,6 +169,17 @@ export function useAmigaThree(
     let renderDirty = true;
     let disposed = false;
     const failed = ref(false);
+    const prm = usePreferredReducedMotion();
+
+    // UIA-KF-197 — the framed home view (re-seated by every frameRoom) and the
+    // arc that carries the camera back to it, stepped on the frame clock.
+    const homeOffset = new THREE.Spherical();
+    const homeTarget = new THREE.Vector3(SPHERE_HOME, SPHERE_HOME, SPHERE_HOME);
+    let viewArc:
+        | { from: THREE.Spherical; fromTarget: THREE.Vector3; start: number | undefined }
+        | undefined;
+    const arcScratch = new THREE.Spherical();
+    const arcOffset = new THREE.Vector3();
 
     /**
      * D-6 — seat the projection for a viewport, dollying out along the camera's
@@ -169,6 +199,11 @@ export function useAmigaThree(
         if (distance > 0 && distance < needed) {
             camera.position.multiplyScalar(needed / distance);
         }
+        // UIA-KF-197 — the home view is the authored direction at the framed
+        // distance; Home/Reset carry the camera back to it.
+        homeOffset.setFromVector3(
+            arcOffset.copy(HOME_DIRECTION).multiplyScalar(Math.max(HOME_DISTANCE, needed)),
+        );
         camera.updateProjectionMatrix();
         renderer.setSize(width, height, false);
         controls?.update();
@@ -284,14 +319,55 @@ export function useAmigaThree(
         }
     };
 
+    /** Step the home arc on the frame clock; true while it moves the camera. */
+    const stepViewArc = (now: number): boolean => {
+        if (!viewArc || !camera || !controls) return false;
+        viewArc.start ??= now;
+        const k = Math.min(Math.max((now - viewArc.start) / VIEW_HOME_MS, 0), 1);
+        const eased = 1 - (1 - k) ** 3;
+        const { from } = viewArc;
+        arcScratch.set(
+            from.radius + (homeOffset.radius - from.radius) * eased,
+            from.phi + (homeOffset.phi - from.phi) * eased,
+            from.theta + shortestTurn(from.theta, homeOffset.theta) * eased,
+        );
+        controls.target.lerpVectors(viewArc.fromTarget, homeTarget, eased);
+        camera.position.setFromSpherical(arcScratch).add(controls.target);
+        camera.lookAt(controls.target);
+        if (k >= 1) {
+            viewArc = undefined;
+            controls.update();
+        }
+        return true;
+    };
+
+    const homeView = (): void => {
+        if (!camera || !controls) return;
+        viewArc = {
+            from: new THREE.Spherical().setFromVector3(
+                arcOffset.copy(camera.position).sub(controls.target),
+            ),
+            fromTarget: controls.target.clone(),
+            // Reduced motion: the arc completes on its first frame (a snap).
+            start: prm.value === "reduce" ? Number.NEGATIVE_INFINITY : undefined,
+        };
+        renderDirty = true;
+    };
+
     function start() {
         if (present.running || failed.value) return;
-        present.loop(() => {
+        present.loop((now: number) => {
             // OrbitControls.update() applies damping and returns true while the
             // camera is still settling — a render trigger on its own (T.A12).
-            const controlsChanged = controls ? controls.update() : false;
-            // The scene composes pose+gesture onto the mesh and reports liveness.
-            const sceneLive = onFrame();
+            // While the home arc runs it owns the camera, and the controls wait.
+            const controlsChanged = viewArc
+                ? stepViewArc(now)
+                : controls
+                  ? controls.update()
+                  : false;
+            // The scene composes pose+gesture onto the mesh and reports liveness,
+            // on this frame's timestamp (KFA-128).
+            const sceneLive = onFrame(now);
             if (
                 renderer &&
                 scene &&
@@ -419,6 +495,7 @@ export function useAmigaThree(
         markRenderDirty: () => {
             renderDirty = true;
         },
+        homeView,
         failed,
         get running() {
             return present.running;

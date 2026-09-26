@@ -139,7 +139,7 @@ describe("useSphereSpin — the amiga A5 engine-drives-mesh contract", () => {
         let liveFrames = 0;
         for (let f = 0; f < 40; f++) {
             now += 16; // ~60fps
-            const live = spin.tickGlide();
+            const live = spin.tickGlide(now); // the present loop hands in its frame time (KFA-128)
             const dy = Math.abs(spin.offset.y - prevY);
             if (dy > 0) liveFrames++;
             deltas.push(dy);
@@ -160,7 +160,7 @@ describe("useSphereSpin — the amiga A5 engine-drives-mesh contract", () => {
         let rested = false;
         for (let f = 0; f < 600 && !rested; f++) {
             now += 16;
-            if (!spin.tickGlide()) rested = true;
+            if (!spin.tickGlide(now)) rested = true;
         }
         expect(rested).toBe(true);
         expect(spin.isGliding()).toBe(false);
@@ -244,18 +244,31 @@ describe("useSphereSpin — the amiga A5 engine-drives-mesh contract", () => {
         nowSpy.mockRestore();
     });
 
-    it("D-2 — the keyboard nudge writes the SAME additive offset, and Home rests it", () => {
+    it("D-2 — the keyboard nudge writes the SAME additive layer, and Home rests it", () => {
+        // X.KF.W13X · KFA-20 / KFA-130 — the nudge and Home are glides on the
+        // frame clock now (a one-frame step was a texture-symmetry swap; a
+        // one-frame Home a snap), so the contract is read after they land.
+        let now = 1000;
+        const nowSpy = vi.spyOn(performance, "now").mockImplementation(() => now);
+        const land = (): void => {
+            for (let f = 0; f < 200 && spin.tickGlide((now += 16)); f++);
+        };
         const y0 = spin.offset.y;
         spin.nudge(0, Math.PI / 8);
+        land();
         expect(spin.offset.y).toBeCloseTo(y0 + Math.PI / 8, 6);
         expect(mesh.rotation.y).toBe(0); // still not a second mesh writer
 
         spin.nudge(Math.PI / 30, 0);
+        land();
         expect(spin.offset.x).toBeCloseTo(Math.PI / 30, 6);
 
         spin.rest();
+        land();
         expect(spin.offset.x).toBe(0);
         expect(spin.offset.y).toBe(0);
+        expect(spin.attitude.angleTo(new THREE.Quaternion())).toBe(0);
         expect(spin.isGliding()).toBe(false);
+        nowSpy.mockRestore();
     });
 });
