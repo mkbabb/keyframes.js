@@ -15,10 +15,13 @@
          Icon-only with no visible label: `aria-label` at the primitive and the
          tooltip carry the name for sighted pointer users and AT alike
          (KF-CB-26). The name flips to the copied state with the icon.
+         The confirmation is enter → hold → return (X.KF.W13X.home, KFA-63):
+         the check crossfades in over the clipboard, holds while the name
+         reads "Copied", and both return together; a re-click restarts it.
          EVALUATED, not asserted (family law — a swap is never sufficient on
          its own): the retained rows are KF-CB-25 (the `easeInBounce` pulse is
          the demo's own feedback register, kept on the primitive by the owner's
-         preserve-animations law), KF-CB-27 (script-side constants, retained by
+         preserve-animations law, on the transform only), KF-CB-27 (script-side constants, retained by
          policy below) and KF-CB-37 (the MOVE is KF.W8's, R-13 — LANDED HERE:
          `instrument/` was REFUSED by R-1's destination law, because two of the
          four importers live in `scenes/easing` and `scenes/spring` and homing
@@ -35,7 +38,7 @@
                 :aria-label="isCopied ? 'Copied to clipboard' : label"
                 @click="handleClick"
             >
-                <span class="clipboard-stack" aria-hidden="true">
+                <span ref="stack" class="clipboard-stack" aria-hidden="true">
                     <Clipboard ref="clipboard" class="icon-md" />
                     <ClipboardCheck
                         ref="clipboardChecked"
@@ -57,7 +60,7 @@
 <script setup lang="ts">
 import { Clipboard, ClipboardCheck } from "@lucide/vue";
 
-import { onMounted, ref, shallowRef, useTemplateRef } from "vue";
+import { onBeforeUnmount, onMounted, ref, shallowRef, useTemplateRef } from "vue";
 import { Button } from "@mkbabb/glass-ui/button";
 import {
     Tooltip,
@@ -78,27 +81,57 @@ const isCopied = ref(false);
 // a repeat copy re-announces). The sighted feedback is the icon swap.
 const liveStatus = ref("");
 
+const stack = useTemplateRef<HTMLElement>("stack");
 const clipboard = useTemplateRef<HTMLElement>("clipboard");
 const clipboardChecked = useTemplateRef<HTMLElement>("clipboardChecked");
 
 // Script-side constants are part of the token audit (KF-CB-27), disposition
-// RETAINED-BY-POLICY: `duration: 200` is the numeric mirror of glass-ui's
+// RETAINED-BY-POLICY: `FADE_MS` is the numeric mirror of glass-ui's
 // `--duration-fast: 0.2s` (the engine takes milliseconds — a CSS custom property
 // is not readable here without a getComputedStyle round-trip at mount, which
 // would trade a documented constant for a layout read), and the `scale(1.25)`
 // pulse amplitude in the keyframe strings below is the demo's OWN register:
 // glass-ui ships hover (1.08/1.1) and press (0.96/0.97) scales, no pulse rung,
 // so there is no producer surface for it to shadow (NO-SURFACE).
-const options: Partial<InputAnimationOptions> = {
-    duration: 200,
+const FADE_MS = 200;
+// KFA-63 — the confirmation is HELD, then returns: the check stays up for the
+// hold, and the name reverts with the glyph (the copied state is a window, not
+// a latch).
+const HOLD_MS = 1400;
+
+// KFA-178 — the `easeInBounce` pulse is the demo's own feedback register
+// (KF-CB-25, kept) and it overshoots by design, so it rides the TRANSFORM only,
+// on the glyph stack; the two opacities cross on a non-overshooting ease, so no
+// out-of-range opacity is ever written.
+const pulse: Partial<InputAnimationOptions> = {
+    duration: FADE_MS,
     timingFunction: "easeInBounce",
+    respectReducedMotion: true,
+};
+const fade: Partial<InputAnimationOptions> = {
+    duration: FADE_MS,
+    timingFunction: "ease-out",
+    fillMode: "forwards",
+    respectReducedMotion: true,
 };
 
-// The copy-feedback group is HEAVY (CSSKeyframesAnimation/AnimationGroup), so it
-// is constructed through loadAnimationEngine() at mount rather than a deep @src
-// import. The engine resolves within microtasks of mount — well before a user
-// can click — and `group` is null-guarded until it is in hand.
-const group = shallowRef<AnimationGroup<any> | null>(null);
+// The copy-feedback groups are HEAVY (CSSKeyframesAnimation/AnimationGroup), so
+// they are constructed through loadAnimationEngine() at mount rather than a deep
+// @src import. The engine resolves within microtasks of mount — well before a
+// user can click — and both groups are null-guarded until they are in hand.
+// `enter` crossfades clipboard → check under the pulse; `exit` crossfades back.
+const enter = shallowRef<AnimationGroup<any> | null>(null);
+const exit = shallowRef<AnimationGroup<any> | null>(null);
+let holdTimer: ReturnType<typeof setTimeout> | undefined;
+
+// stop() rewinds and resolves the in-flight play; `finished` is the engine's
+// completion front-door, so the fresh play() starts only once that play has
+// settled (a play() in the same tick would join the settling one).
+const restart = async (group: AnimationGroup<any>) => {
+    group.stop();
+    await group.finished;
+    return group.play();
+};
 
 const handleClick = () => {
     copyText(text);
@@ -111,46 +144,62 @@ const handleClick = () => {
         liveStatus.value = "Copied to clipboard";
     });
 
-    void group.value?.play();
+    // KFA-124 — every click restarts the feedback: a copy inside the enter or
+    // the hold re-enters from the rest frame and re-arms the hold, instead of
+    // the click being swallowed by the running play.
+    clearTimeout(holdTimer);
+    exit.value?.stop();
+    if (enter.value) void restart(enter.value);
+    holdTimer = setTimeout(() => {
+        isCopied.value = false;
+        void exit.value?.play();
+    }, FADE_MS + HOLD_MS);
 };
 
 onMounted(async () => {
     const { CSSKeyframesAnimation, AnimationGroup } =
         await loadAnimationEngine();
 
-    const clipboardCheckedAnim = new CSSKeyframesAnimation(options).fromString(
-        /*css*/ `@keyframes fade-in {
+    const fadeTo = (from: number, to: number) =>
+        new CSSKeyframesAnimation(fade).fromKeyframes({
+            "0%": { opacity: from },
+            "100%": { opacity: to },
+        });
+
+    const pulseAnim = new CSSKeyframesAnimation(pulse).fromString(
+        /*css*/ `@keyframes pulse {
             0%, 100% {
                 transform: scale(1);
-                opacity: 0;
             }
             50% {
                 transform: scale(1.25);
-                opacity: 1;
             }
         }`,
     );
+    const checkIn = fadeTo(0, 1);
+    const clipboardOut = fadeTo(1, 0);
+    const checkOut = fadeTo(1, 0);
+    const clipboardIn = fadeTo(0, 1);
 
-    const clipboardAnim = new CSSKeyframesAnimation(options).fromString(
-        /*css*/ `@keyframes fade-out {
-            0%, 100% {
-                transform: scale(1);
+    pulseAnim.setTargets(stack.value!);
+    checkIn.setTargets(clipboardChecked.value!);
+    clipboardOut.setTargets(clipboard.value!);
+    checkOut.setTargets(clipboardChecked.value!);
+    clipboardIn.setTargets(clipboard.value!);
 
-            }
-            50% {
-                transform: scale(1.25);
+    const enterGroup = new AnimationGroup(pulseAnim, checkIn, clipboardOut);
+    enterGroup.singleTarget = false;
+    const exitGroup = new AnimationGroup(checkOut, clipboardIn);
+    exitGroup.singleTarget = false;
 
-            }
-        }`,
-    );
+    enter.value = enterGroup;
+    exit.value = exitGroup;
+});
 
-    const g = new AnimationGroup(clipboardAnim, clipboardCheckedAnim);
-    g.singleTarget = false;
-
-    clipboardCheckedAnim.setTargets(clipboardChecked.value!);
-    clipboardAnim.setTargets(clipboard.value!);
-
-    group.value = g;
+onBeforeUnmount(() => {
+    clearTimeout(holdTimer);
+    enter.value?.stop();
+    exit.value?.stop();
 });
 </script>
 <style scoped>
