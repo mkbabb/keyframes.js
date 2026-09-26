@@ -43,6 +43,25 @@ onUnmounted(() => announce?.("Scene ready"));
     width: 100%;
     height: 100%;
     padding: clamp(1rem, 4cqi, 3rem);
+    /* KFA-79 (X.KF.W13X.scene) — the placeholder appears only for a load that
+       outlasts perception's threshold: it holds transparent for 150 ms, then
+       fades in over --duration-fast. A chunk that resolves sooner (the normal
+       cold load, 58-180 ms) paints no plate at all, so nothing is hard-cut. */
+    animation: scene-skeleton-appear var(--duration-fast) var(--ease-out) 150ms both;
+}
+
+@keyframes scene-skeleton-appear {
+    from {
+        opacity: 0;
+    }
+}
+
+/* Reduced motion keeps the threshold (it is a delay, not motion) and drops the
+   fade: the plate appears whole at 150 ms. */
+@media (prefers-reduced-motion: reduce) {
+    .scene-skeleton {
+        animation-duration: 0s;
+    }
 }
 
 .scene-skeleton__plate {
