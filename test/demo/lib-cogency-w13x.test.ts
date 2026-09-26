@@ -138,3 +138,13 @@ describe("A2-KE-L1-19 — the clipboard write is glass's, and a refusal speaks",
         expect(toastSpy.mock.calls[0]?.[0]).toMatchObject({ tone: "destructive" });
     });
 });
+
+describe("A2-KE-L3-11 — one label track across panes", () => {
+    it("the labeled-field grid floors its label column at the one --pane-label-col token", () => {
+        const idioms = source("demo/styles/design-idioms.css");
+        expect(idioms).toMatch(/--pane-label-col:\s*calc\(var\(--control-label\)/);
+        expect(idioms).toMatch(
+            /grid-template-columns:\s*\[label\]\s*minmax\(var\(--pane-label-col\),\s*auto\)\s*\[value\]\s*1fr/,
+        );
+    });
+});

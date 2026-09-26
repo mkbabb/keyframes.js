@@ -304,10 +304,20 @@
    the rows never rendered, and a hand-rolled row (the easing group) that
    inherited it sat 2px right of the fields' value track. The grid now states the
    rung the rows already render, so every row — producer or composed — shares
-   ONE value edge; the row rhythm is `--space-residue`. */
+   ONE value edge; the row rhythm is `--space-residue`.
+   X.KF.W13X.lib (A2-KE-L3-11) — ONE label track across panes. Each grid sized
+   its own `auto` label column, so the advanced sub-pane (blend / z-index /
+   enabled) set its fields 28.5 px (1440) and 43.3 px (390) left of the main
+   form's (duration … fill mode) and the fields jumped sideways on drill-in. The
+   track now floors at `--pane-label-col`, stated in the labels' own type
+   (glass `.label` is `--control-label`, so the floor scales with it under a
+   coarse `--ui-scale`) and wide enough for the pane's longest label
+   ("iterations", 5.9-6.3 × the label size as served), so every pane resolves
+   the same column; a longer label still grows its own grid (`auto`). */
 .labeled-field-grid {
+    --pane-label-col: calc(var(--control-label) * 6.5);
     display: grid;
-    grid-template-columns: [label] auto [value] 1fr;
+    grid-template-columns: [label] minmax(var(--pane-label-col), auto) [value] 1fr;
     align-items: center;
     column-gap: var(--space-atom);
     row-gap: var(--space-residue);
