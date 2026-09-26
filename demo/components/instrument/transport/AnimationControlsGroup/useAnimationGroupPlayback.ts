@@ -1,4 +1,3 @@
-import { computed } from "vue";
 import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 import type { AnimationGroup } from "@mkbabb/keyframes.js";
 import type { StoredAnimationGroupControlOptions } from "@state";
@@ -47,21 +46,13 @@ export function useAnimationGroupPlayback(
     const machine = useSceneMachine();
     const { isPlaying } = useSceneTransport(machine);
 
-    // `started` is cosmetic ONLY (the transport select's paused-vs-idle StatusDot).
-    // Derived, not a shadow: playing ⇒ started; else read the group's own flag
-    // (`group.started` flips on the first rAF tick — the OR covers the just-started
-    // window before the tick fires).
-    const isStarted = computed(
-        () => isPlaying.value || getAnimationGroup().started,
-    );
-
     let wasPlayingBeforeScrub = false;
 
     /**
      * Emit the play/start INTENT to the host (App.onPlayStateChange → the machine
-     * dispatch → the adapter drives the group). It writes NO ref: `isPlaying`/
-     * `isStarted` are machine-derived computeds that re-settle when the dispatch
-     * flips `machine.status`. This is the emit seam the childless-HOME
+     * dispatch → the adapter drives the group). It writes NO ref: `isPlaying` is a
+     * machine-derived computed that re-settles when the dispatch flips
+     * `machine.status`. This is the emit seam the childless-HOME
      * navigate-intercept and the App write-back ride.
      */
     const syncPlayState = (playing?: boolean) => {
@@ -193,7 +184,6 @@ export function useAnimationGroupPlayback(
 
     return {
         isPlaying,
-        isStarted,
         syncPlayState,
         findAnimationGroupObject,
         onSelectAnimation,

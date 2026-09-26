@@ -113,8 +113,6 @@
             ref="transportDockRef"
             :stored-controls="storedControls"
             :is-playing="isPlaying"
-            :is-started="isStarted"
-            :animation-progress="animationProgress"
             :animation-names="transportNames"
             @toggle-play="toggleAnimationGroup"
             @reset="(all: boolean) => all ? clear() : reset()"
@@ -160,7 +158,6 @@ import type { TransportChannel } from "./transportSource";
 import { useAnimationGroupActions } from "./AnimationControlsGroup/useAnimationGroupActions";
 import { useControlsKeyboardShortcuts } from "./AnimationControlsGroup/useControlsKeyboardShortcuts";
 import { useAnimationGroupPlayback } from "./AnimationControlsGroup/useAnimationGroupPlayback";
-import { useAnimationProgress } from "./AnimationControlsGroup/useAnimationProgress";
 
 const { superKey, animationGroup, channels, autoPlay, hideControls, stageMode, hasControlSurfaces = true } = defineProps<{
     animationGroup: AnimationGroup<any>;
@@ -252,7 +249,6 @@ const emit = defineEmits<{
 
 const {
     isPlaying,
-    isStarted,
     syncPlayState,
     findAnimationGroupObject,
     onSelectAnimation,
@@ -298,16 +294,11 @@ const scrubActive = (fraction: number) => {
     groupScrubActive(fraction);
 };
 
-const { animationProgress } = useAnimationProgress(
-    () => animationGroup,
-    isPlaying,
-    () => channels,
-);
 
 // T.B8 — the two former resync watches (the `animationGroup`-change resync and
-// the `machinePlaying` intent edge) are BOTH deleted: `isPlaying`/`isStarted`
-// are machine-derived computeds now, so a group swap or a machine-initiated
-// start settles them automatically — there is no shadow ref to re-seat.
+// the `machinePlaying` intent edge) are BOTH deleted: `isPlaying` is a
+// machine-derived computed now, so a group swap or a machine-initiated
+// start settles it automatically — there is no shadow ref to re-seat.
 
 // Auto-play on mount if requested (e.g. when navigating from home to a scene).
 // Route through the machine (syncPlayState → PLAY) and gate on !isPlaying so a

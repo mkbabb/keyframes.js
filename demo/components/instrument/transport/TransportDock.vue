@@ -97,63 +97,61 @@
                          dead 1-item dropdown or a demoted label). -->
                     <template v-if="channelZoneKind === 'select'">
                         <DockSeparator />
-                        <Tooltip>
-                            <TooltipTrigger as-child>
-                                <div class="relative flex items-center gap-1.5">
-                                <Select
-                                    class="p-0 m-0 cursor-pointer"
-                                    :model-value="storedControls.selectedAnimation ?? ''"
-                                    @update:model-value="
-                                        (key) => {
-                                            emit('selectAnimation', String(key));
-                                        }
-                                    "
-                                >
-                                    <DockTrigger
-                                        for="select"
-                                        aria-label="Select animation"
-                                        class="dock-label"
+                        <!-- X.KF.W13X.transport — the channel Select, bare on the dock:
+                             (UIA-KF-257) no Tooltip and no wrapper div — the trigger
+                             already shows its value and chevron, and the aria-label
+                             names it; (UIA-KF-256) no `dock-label` on the trigger —
+                             DockTrigger owns its face and text rung; (KFA-54) its open
+                             state HOLDS the dock (keepOpen/release, as ChromeDock's
+                             Selects do — hold only, never expand); (UIA-KF-152) the
+                             list opens ABOVE the bottom dock, offset clear of its
+                             top edge. -->
+                        <Select
+                            v-model:open="channelSelectOpen"
+                            class="p-0 m-0 cursor-pointer"
+                            :model-value="storedControls.selectedAnimation ?? ''"
+                            @update:model-value="
+                                (key) => {
+                                    emit('selectAnimation', String(key));
+                                }
+                            "
+                        >
+                            <DockTrigger ref="channelTrigger" for="select" aria-label="Select animation">
+                                <!-- The empty-state leading glyph — rendered
+                                     directly, not via reka's SelectIcon slot
+                                     (the one headless reach past the glass-ui
+                                     surface; DockSelectTrigger owns the trigger
+                                     + its chevron, GG-6). -->
+                                <List v-if="!storedControls.selectedAnimation" />
+                                <SelectValue class="text-ellipsis">{{
+                                    storedControls.selectedAnimation
+                                }}</SelectValue>
+                            </DockTrigger>
+                            <SelectContent
+                                side="top"
+                                :side-offset="channelListOffset"
+                                class="min-w-[var(--dropdown-min-width)]"
+                            >
+                                <!-- UIA-KF-151 · KFA-167 · UIA-KF-108 · UIA-KF-261 — the
+                                     rows carry the channel NAME only. The per-row
+                                     status dot / progress ring read the GROUP's one
+                                     clock (identical on every row, 'warning' for
+                                     paused) and the bold was a second selection
+                                     channel: all deleted. The glass SelectItem's own
+                                     indicator marks the selection (no longer hidden);
+                                     the transport's Play already shows the play state. -->
+                                <SelectGroup class="dock-label">
+                                    <SelectItem
+                                        v-for="name in animationNames"
+                                        :key="name"
+                                        class="py-2 px-3"
+                                        :value="name"
                                     >
-                                        <!-- The empty-state leading glyph — rendered
-                                             directly, not via reka's SelectIcon slot
-                                             (the one headless reach past the glass-ui
-                                             surface; DockSelectTrigger owns the trigger
-                                             + its chevron, GG-6). -->
-                                        <List
-                                            v-if="!storedControls.selectedAnimation"
-                                        />
-                                        <SelectValue class="text-ellipsis">{{
-                                            storedControls.selectedAnimation
-                                        }}</SelectValue>
-                                    </DockTrigger>
-                                    <SelectContent class="min-w-[var(--dropdown-min-width)]">
-                                        <SelectGroup class="dock-label">
-                                            <template v-for="name in animationNames" :key="name">
-                                                <SelectItem class="py-2 px-3" hide-indicator :value="name">
-                                                    <span class="flex items-center gap-2">
-                                                        <!-- Playing: live conic-gradient progress ring driven by --dot-p.
-                                                             Idle/paused: discrete glass-ui StatusDot state colour. -->
-                                                        <span
-                                                            v-if="isPlaying"
-                                                            class="progress-dot w-2.5 h-2.5"
-                                                            :style="dotStyle(name)"
-                                                        ></span>
-                                                        <StatusDot
-                                                            v-else
-                                                            size="md"
-                                                            :state="isStarted ? 'warning' : 'unknown'"
-                                                        />
-                                                        <span :class="storedControls.selectedAnimation === name ? 'font-bold' : ''">{{ name }}</span>
-                                                    </span>
-                                                </SelectItem>
-                                            </template>
-                                        </SelectGroup>
-                                    </SelectContent>
-                                </Select>
-                                </div>
-                            </TooltipTrigger>
-                            <TooltipContent>Select animation</TooltipContent>
-                        </Tooltip>
+                                        {{ name }}
+                                    </SelectItem>
+                                </SelectGroup>
+                            </SelectContent>
+                        </Select>
                     </template>
 
                     <!-- nav: reset (+ the timeline-collapse chip when the timeline pane
@@ -192,7 +190,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, useTemplateRef } from "vue";
+import { computed, ref, useTemplateRef, watch } from "vue";
 
 import {
     List,
@@ -219,11 +217,11 @@ import {
     Button,
 } from "@mkbabb/glass-ui";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@mkbabb/glass-ui/tooltip";
-import { StatusDot } from "@mkbabb/glass-ui/status-dot";
 
 import { RotateCcw } from "@lucide/vue";
 
 import { GlassDock } from "@mkbabb/glass-ui/dock";
+import { DOCK_POPUP_GAP } from "@app/dock/dockEdge";
 import { usePlayActuation } from "./TransportDock/usePlayActuation";
 import { useMenubarMeasure } from "./TransportDock/useMenubarMeasure";
 import { useIconSpin } from "./TransportDock/useIconSpin";
@@ -260,11 +258,9 @@ const {
     onPlayBlur,
 } = usePlayActuation(actuatePlay);
 
-const { storedControls, isPlaying, isStarted, animationProgress, animationNames } = defineProps<{
+const { storedControls, isPlaying, animationNames } = defineProps<{
     storedControls: StoredAnimationGroupControlOptions;
     isPlaying: boolean;
-    isStarted: boolean;
-    animationProgress: Record<string, number>;
     animationNames: string[];
 }>();
 
@@ -283,11 +279,42 @@ const channelZoneKind = computed(
     () => dockCardinality({ tabs: [], channels: animationNames }).channelZone.kind,
 );
 
-/** Set a single CSS custom property; the stylesheet computes gradient + shadow. */
-const dotStyle = (name: string): Record<string, string> => {
-    const p = animationProgress[name] ?? 0;
-    return { "--dot-p": String(p) };
-};
+// KFA-54 — an open channel Select holds the transport and does nothing else,
+// the same RR-2 MISSED #1 law ChromeDock keeps for its Selects: without the
+// hold the dock idle-collapsed ~5.7 s under an open list, which then jumped
+// ~107 px and floated over a collapsed pill. Hold only — never `expand()`
+// (it would demote a pin to a timed hover).
+const channelSelectOpen = ref(false);
+watch(channelSelectOpen, (open) => {
+    if (open) dockRef.value?.keepOpen();
+    else dockRef.value?.release();
+});
+
+// UIA-KF-152 — the list opens ABOVE this bottom dock, and its offset clears
+// the dock's own top edge, not merely the trigger's: the trigger sits inside
+// the plate's block padding, so an offset from the trigger alone laid the
+// list's rim 4-10 px over the dock's (served 769 over 764.6 at 1440, 732.5
+// over 722.6 at 390). The mirror of ChromeDock's `useDockEdgeOffset`
+// (dockEdge.ts, the top dock's bottom edge) for the bottom dock's top edge,
+// measured when the list opens; the plate is the GlassDock's own root through
+// its component ref (no producer selector). The producer half — floating
+// content inside a dock offsets from the dock edge by itself — is O-59.
+const channelTrigger = useTemplateRef<{ $el: HTMLElement }>("channelTrigger");
+const channelListOffset = ref(DOCK_POPUP_GAP);
+watch(
+    channelSelectOpen,
+    (open) => {
+        if (!open) return;
+        const trigger = channelTrigger.value?.$el;
+        const plate = (dockRef.value?.$el as HTMLElement | undefined) ?? null;
+        const inset =
+            trigger && plate
+                ? trigger.getBoundingClientRect().top - plate.getBoundingClientRect().top
+                : 0;
+        channelListOffset.value = Math.max(0, inset) + DOCK_POPUP_GAP;
+    },
+    { flush: "sync" },
+);
 
 // The glyph host is an HTMLElement (the engine target contract); the SFC owns
 // the typed ref and hands it to the composable (TD-17).
@@ -331,9 +358,4 @@ defineExpose({ resetIconSpin });
         padding-bottom: calc(var(--dock-margin) / 2);
     }
 }
-
-/* The .progress-dot recipe (the active-playing conic-gradient progress ring,
-   applied at the SelectItem above) was PROMOTED to the owned idiom layer
-   (design-idioms.css, E.W11.S4 — beside its sibling .progress-bar), so the
-   progress vocabulary is single-sourced. The call site keeps `class="progress-dot"`. */
 </style>
