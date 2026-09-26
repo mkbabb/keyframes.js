@@ -28,6 +28,15 @@ const source = (path: string): string => {
     return text;
 };
 
+/** The demo's cross-cutting composables, loaded lazily so an absent module is a
+ *  failing case (not a file that cannot load). */
+const composables = import.meta.glob("../../demo/composables/*.ts");
+const loadComposable = async <M>(name: string): Promise<M> => {
+    const load = composables[`../../demo/composables/${name}.ts`];
+    expect(load, `demo/composables/${name}.ts`).toBeDefined();
+    return (await load!()) as M;
+};
+
 afterEach(() => {
     vi.restoreAllMocks();
 });
@@ -57,7 +66,9 @@ describe("A2-KE-L1-17 — one live lifecycle for the dock miniatures", () => {
     });
 
     it("useLiveMini seats before the first play, follows `live`, and stops on unmount", async () => {
-        const { useLiveMini } = await import("@composables/useLiveMini");
+        const { useLiveMini } = await loadComposable<typeof import("@composables/useLiveMini")>(
+            "useLiveMini",
+        );
         const calls: string[] = [];
         const player = {
             play: () => calls.push("play"),
@@ -132,7 +143,9 @@ describe("A2-KE-L1-19 — the clipboard write is glass's, and a refusal speaks",
             value: { writeText: () => Promise.reject(new DOMException("denied", "NotAllowedError")) },
             configurable: true,
         });
-        const { copyWithToast } = await import("@composables/copyWithToast");
+        const { copyWithToast } = await loadComposable<
+            typeof import("@composables/copyWithToast")
+        >("copyWithToast");
         await expect(copyWithToast("x", "copied")).resolves.toEqual({ ok: false, reason: "clipboard-api" });
         expect(toastSpy).toHaveBeenCalledTimes(1);
         expect(toastSpy.mock.calls[0]?.[0]).toMatchObject({ tone: "destructive" });
