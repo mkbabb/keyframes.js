@@ -6,8 +6,8 @@ import { SpringProgress, type ViewTransitionHandle } from "@mkbabb/keyframes.js"
  * the platform ships native View Transitions (`useSceneTransition`), the
  * compositor owns the scene cross-fade and this spring ramp stays at rest (one
  * motion, never two stacked). For every swap no View Transition carried (the
- * engine lacks it, the dispatch fell back, or the switch bypassed the dispatch)
- * this is the swap motion — the engine still dogfoods its own SpringProgress.
+ * engine lacks it, or the dispatch fell back) this is the swap motion — the
+ * engine still dogfoods its own SpringProgress.
  *
  * The keyed `<Suspense>` host (App.vue) hard-cuts the scene; this `SpringProgress`
  * fades the new scene in over the previous paint via a sibling reactive style
@@ -43,8 +43,11 @@ export function useSceneSwap(
     // View Transition actually carried (the dispatch handle's own `backend`),
     // never on a one-shot feature probe: the probe read "supported" while every
     // call threw and hard-cut, so neither motion ran. The reading is consumed
-    // per swap, so a switch that bypassed the dispatch (a direct hash,
-    // back/forward) falls through to the spring.
+    // per swap. Every scene-nav entry (the dock, a restore, a direct hash,
+    // back/forward) runs through the dispatch (KFA-24, X.KF.W13X.scene), and
+    // the dispatch resolves the destination chunk first (KFA-25), so the key
+    // flip mounts the resolved scene and this spring fades IT in, never the
+    // <Suspense> fallback (UIA-KF-125).
     const sceneSwapSpring = new SpringProgress({ respectReducedMotion: true });
     watch(activeSceneKey, () => {
         const carriedByVT = lastSwapBackend.value === "view-transition";

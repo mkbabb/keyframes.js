@@ -5,8 +5,13 @@
 // popStateHandler) — so a pure reducer cannot OWN activeScene without a
 // reconcile rule. The route is reconciled with EXACTLY:
 //
-//   • ONE READER  — router.afterEach → dispatch(NAVIGATE(to))  (covers popstate,
-//     deep-link, and the dock Select push alike: every URL change funnels here).
+//   • ONE READER  — router.afterEach → the scene switch (covers popstate,
+//     a direct hash, and the dock Select push alike: every URL change funnels
+//     here). KFA-24 (X.KF.W13X.scene): an in-app URL change reconciles through
+//     the SAME View-Transition switch the dock uses (`runSceneSwitch`), so a
+//     hash or back/forward nav is the same cross-dissolve, never a hard cut. The
+//     initial navigation has no source scene to dissolve from and dispatches
+//     NAVIGATE directly (the first-load seed below).
 //   • ONE WRITER  — watch(machine.activeScene) → router.push   (the machine is
 //     the source; the URL projects it).
 //   • an ACTIVESCENE-EQUALITY ECHO GUARD — the writer no-ops when the route
@@ -21,7 +26,11 @@
 
 import { watch } from "vue";
 import { useRouter, useRoute } from "vue-router";
-import { isNavigationFailure, NavigationFailureType } from "vue-router";
+import {
+    isNavigationFailure,
+    NavigationFailureType,
+    START_LOCATION,
+} from "vue-router";
 import {
     useSceneMachine,
     HOME_SCENE_ID,
@@ -45,7 +54,11 @@ function routeToScene(name: unknown): string {
  * own persisted activeScene, consulted ONLY for bare #/) > ?anim= (applied on
  * SCENE_READY, not here).
  */
-export function useSceneMachineRouterBinding() {
+export function useSceneMachineRouterBinding(opts: {
+    /** Lazily read the VT-wrapped scene switcher (defined after this binding
+     *  in App's setup; read at navigation time, so the later binding resolves). */
+    getRunSceneSwitch: () => (id: string) => void;
+}) {
     const router = useRouter();
     const route = useRoute();
     const machine = useSceneMachine();
@@ -70,9 +83,9 @@ export function useSceneMachineRouterBinding() {
     let writerEcho = false;
 
     // ── THE ONE READER ──
-    // Every URL change (popstate, deep-link, the dock push, a programmatic
-    // push) funnels through afterEach → NAVIGATE. The machine reconciles.
-    router.afterEach((to) => {
+    // Every URL change (popstate, a direct hash, the dock push, a programmatic
+    // push) funnels through afterEach → the scene switch. The machine reconciles.
+    router.afterEach((to, from) => {
         const scene = routeToScene(to.name);
         if (writerEcho) {
             // This afterEach is the echo of OUR OWN push — already in sync.
@@ -80,7 +93,11 @@ export function useSceneMachineRouterBinding() {
             return;
         }
         if (scene === machine.activeScene.value) return; // already reconciled
-        machine.dispatch({ type: "NAVIGATE", to: scene });
+        if (from === START_LOCATION) {
+            machine.dispatch({ type: "NAVIGATE", to: scene });
+            return;
+        }
+        opts.getRunSceneSwitch()(scene);
     });
 
     // ── THE ONE WRITER ──

@@ -19,7 +19,6 @@ import EasingSidebar from "./EasingSidebar.vue";
 import { useEasingDemo } from "./useEasingDemo";
 import { EASING_DEMO_KEY, EASING_SCENE_ID } from "./easingKeys";
 
-const SCENE_ID = EASING_SCENE_ID;
 
 const demo = useEasingDemo();
 provide(EASING_DEMO_KEY, demo);
@@ -82,7 +81,7 @@ const userReversed = ref(false);
 // `ppMode`), persisted with the bucket's expiry, reset and share semantics. The
 // ribbon reads it on every render (an absent field is the default, shown) and
 // its `update:preview` writes it back; nothing scene-local holds a copy.
-const storedControls = getStoredAnimationGroupControlOptions(SCENE_ID);
+const storedControls = getStoredAnimationGroupControlOptions(EASING_SCENE_ID);
 
 const onScrubUpdate = (v: { t: number }) => {
     const dur = demo.previewAnim.options.duration;
@@ -139,7 +138,7 @@ defineExpose({
     // `easing` facet, the raw-rAF playback). The decoy `animationGroup` expose
     // is DELETED with the contract-group decoy; the shell binds the facility.
     facility: demo.facility,
-    superKey: SCENE_ID,
+    superKey: EASING_SCENE_ID,
     isStarted,
     // T.G3 — the scene RESTS on entry (no auto-play). VERDICT #19: a scene that
     // sweeps forever with no gesture burned a full core at idle ("god awful").

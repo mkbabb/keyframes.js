@@ -17,21 +17,13 @@
 // the transport never needs an impersonating group).
 // ─────────────────────────────────────────────────────────────────────────────
 
-import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
-import type { SequenceTimelineSource } from "../timeline/timelineTypes";
+import type { ChannelHandle } from "@composables/scene-facility";
 
-/** One transport channel — the shared-tier structural twin of the app-side
- *  `ChannelHandle` (demo/composables/scene-facility/index.ts). */
-export interface TransportChannel {
-    /** The transport-select label. */
-    name: string;
-    /** Present ⇒ the channel paints; the triad host mounts on it. */
-    animation?: KeyframesAnimation<any>;
-    /** Present ⇒ a master-clock channel: the Timeline pane opens in its
-     *  Sequence mode on these items (X.KF.W13V.s2). */
-    sequence?: SequenceTimelineSource;
-    /** The channel's normalized [0,1] playhead. */
-    progress(): number;
-    /** Seat the channel's normalized [0,1] playhead. */
-    setProgress(t: number): void;
-}
+/** One transport channel — the members of the app-side `ChannelHandle`
+ *  (demo/composables/scene-facility/index.ts) the transport reads: the label,
+ *  the painting `animation`, a master-clock `sequence`, and the [0,1] playhead
+ *  round-trip. A `Pick<>`, so a channel member is declared once (A2-KE-L1-14). */
+export type TransportChannel = Pick<
+    ChannelHandle,
+    "name" | "animation" | "sequence" | "progress" | "setProgress"
+>;

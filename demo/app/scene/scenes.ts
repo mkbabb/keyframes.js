@@ -1,4 +1,5 @@
 import { defineAsyncComponent, type Component } from "vue";
+import { HOME_SCENE_ID } from "@state";
 
 // KF.W13U.d2 (OA-32) — each scene's icon is a LIVING miniature the scene
 // exports from its own directory: its motion is the scene's own animation data
@@ -26,9 +27,14 @@ import { SQUARE_SCENE_ID } from "../../scenes/square/squareKeys";
 import { SPRING_SCENE_ID } from "../../scenes/spring/springKeys";
 import { AMIGA_SCENE_ID } from "../../scenes/amiga/amigaKeys";
 import { CUBE_SCENE_ID } from "../../scenes/cube/cubeKeys";
+// A2-KE-L1-13 (X.KF.W13X.scene) — the cube has ONE load path: the static
+// import. The cube is the boot scene AND home's backdrop, so it is in the boot
+// chunk regardless; the lazy loader its descriptor also declared was never
+// mounted (App rendered this static component for cube and home alike).
+import CubeScene from "../../scenes/cube/CubeScene.vue";
 
 /** A scene's dynamic-import loader — the exact thunk `defineAsyncComponent`
- *  wraps, retained so `warmScene` can warm the chunk on hover (S5). */
+ *  wraps, retained so `loadScene` / `warmScene` resolve the same chunk. */
 type SceneLoader = () => Promise<unknown>;
 
 /**
@@ -83,8 +89,6 @@ export interface SceneDescriptor {
      * unshippable — the permanent cure for the D8 regression class.
      */
     icon?: Component;
-    showStartScreen?: boolean;
-    gridBackground?: boolean;
 }
 
 // id → the raw dynamic-import thunk. Built from the SAME loader the scene's
@@ -102,86 +106,109 @@ function lazyScene(id: string, loader: SceneLoader): Component {
 }
 
 /**
- * S5 — warm a scene's dynamic-import chunk on INTENT — pointer-enter or
- * keyboard focus of its nav row (X.KF.W13U.d5) — so a subsequent switch has no
- * chunk-fetch stall. Pure prefetch: the loader's
- * promise is fired and dropped (Vite caches the module), with NO behaviour
- * change — a rejected warm is swallowed (the real mount surfaces the error via
- * `<Suspense>`). The Vite dynamic-import warmup, NOT Speculation Rules: the demo
- * is an SPA (client-routed scenes, no document navigation), and the guide is
- * explicit that Speculation Rules DO NOT apply to SPAs.
+ * KFA-25 / KFA-76 (X.KF.W13X.scene) — resolve a scene's chunk: the promise the
+ * scene switch awaits BEFORE it starts the View Transition, so the swap never
+ * captures (or shows) the `<Suspense>` fallback. A scene with no loader (home,
+ * the static cube) is already resolved. The same thunk `defineAsyncComponent`
+ * wraps, so Vite's module cache makes the later mount a cache hit. A rejected
+ * load is NOT swallowed here: the caller mounts anyway and `<Suspense>`
+ * surfaces the error, exactly as a switch without the preload would.
  */
-export function warmScene(id: string): void {
-    const loader = sceneLoaders.get(id);
-    // KEEP: cosmetic prefetch — a rejected warm is swallowed; the real mount
-    // surfaces the error via <Suspense> (see the docblock above).
-    if (loader) void loader().catch(() => {});
+export function loadScene(id: string): Promise<unknown> {
+    return sceneLoaders.get(id)?.() ?? Promise.resolve();
 }
 
-/** The home/hero landing scene — no component, just the start screen. */
-export const HOME_SCENE_ID = "home";
+/**
+ * S5 — warm a scene's dynamic-import chunk on INTENT: the dock emits it for
+ * every scene row when its Scene menu opens (`ChromeDock` `warmScene`). Pure
+ * prefetch: the loader's promise is fired and dropped (Vite caches the module),
+ * with NO behaviour change — a rejected warm is swallowed (the real mount
+ * surfaces the error via `<Suspense>`). The Vite dynamic-import warmup, NOT
+ * Speculation Rules: the demo is an SPA (client-routed scenes, no document
+ * navigation), and Speculation Rules DO NOT apply to SPAs.
+ */
+export function warmScene(id: string): void {
+    // KEEP: cosmetic prefetch — a rejected warm is swallowed; the real mount
+    // surfaces the error via <Suspense> (see the docblock above).
+    void loadScene(id).catch(() => {});
+}
 
+/**
+ * KFA-76 (X.KF.W13X.scene) — warm EVERY scene chunk once the page is idle after
+ * first paint, so a first-visit switch evaluates no chunk on the swap tick.
+ * `requestIdleCallback` where the engine ships it (Safari does not), else one
+ * macrotask after load; either way the warm never competes with first paint.
+ */
+export function warmScenesAtIdle(): void {
+    const warmAll = () => {
+        for (const id of sceneLoaders.keys()) warmScene(id);
+    };
+    if ("requestIdleCallback" in window) requestIdleCallback(warmAll);
+    else setTimeout(warmAll, 0);
+}
+
+/** The home/hero landing: the cube backdrop under the start screen. */
 export const homeScene: SceneDescriptor = {
     id: HOME_SCENE_ID,
     label: "Home",
     superKey: HOME_SCENE_ID,
     stageMode: "subject",
-    showStartScreen: true,
+    component: CubeScene,
 };
 
 export const scenes: SceneDescriptor[] = [
     {
-        id: "cube",
+        id: CUBE_SCENE_ID,
         label: "Cube",
         superKey: CUBE_SCENE_ID,
         stageMode: "subject",
         icon: CubeIcon,
-        component: lazyScene("cube", () => import("../../scenes/cube/CubeScene.vue")),
+        component: CubeScene,
     },
     {
-        id: "amiga",
+        id: AMIGA_SCENE_ID,
         label: "Amiga",
         superKey: AMIGA_SCENE_ID,
         stageMode: "subject",
         icon: AmigaIcon,
-        component: lazyScene("amiga", () => import("../../scenes/amiga/AmigaScene.vue")),
+        component: lazyScene(AMIGA_SCENE_ID, () => import("../../scenes/amiga/AmigaScene.vue")),
     },
     {
-        id: "square",
+        id: SQUARE_SCENE_ID,
         label: "Square",
         superKey: SQUARE_SCENE_ID,
         stageMode: "subject",
         icon: SquareIcon,
-        component: lazyScene("square", () => import("../../scenes/square/SquareScene.vue")),
+        component: lazyScene(SQUARE_SCENE_ID, () => import("../../scenes/square/SquareScene.vue")),
     },
     {
-        id: "easing",
+        id: EASING_SCENE_ID,
         label: "Easing",
         superKey: EASING_SCENE_ID,
         stageMode: "editor",
         icon: EasingIcon,
-        component: lazyScene("easing", () => import("../../scenes/easing/EasingScene.vue")),
+        component: lazyScene(EASING_SCENE_ID, () => import("../../scenes/easing/EasingScene.vue")),
     },
     {
-        id: "spring",
+        id: SPRING_SCENE_ID,
         label: "Spring",
         superKey: SPRING_SCENE_ID,
         stageMode: "storyboard",
         icon: SpringIcon,
-        component: lazyScene("spring", () => import("../../scenes/spring/SpringScene.vue")),
+        component: lazyScene(SPRING_SCENE_ID, () => import("../../scenes/spring/SpringScene.vue")),
     },
     {
         // The Sequence + stagger storyboard (F.W10.S3): N children positioned
         // along one master clock by the `stagger` distribution, driven through
         // the F.W9 transport (play/pause/reverse/timeScale/scrub). Dogfoods the
         // engine's TEMPORAL orchestrator the way the cube proves the compositor.
-        id: "sequence",
+        id: SEQUENCE_SCENE_ID,
         label: "Sequence",
         superKey: SEQUENCE_SCENE_ID,
         stageMode: "storyboard",
         icon: SequenceIcon,
         component: lazyScene(
-            "sequence",
+            SEQUENCE_SCENE_ID,
             () => import("../../scenes/sequence/SequenceScene.vue"),
         ),
     },
@@ -203,7 +230,7 @@ export const sceneMap = new Map(allScenes.map((s) => [s.id, s]));
 // scene, so a new scene CANNOT silently fall through to `subject` (the type
 // forces a mode on every descriptor). App.vue reads `currentScene.value.stageMode`.
 
-// All scenes load on demand via defineAsyncComponent for code-splitting.
-// App.vue mounts each under <Suspense> so the async chunk resolves before
-// the scene <Transition> sees its vnode — the loading surface is the
-// <Suspense> #fallback slot, so the descriptors carry no loadingComponent.
+// Every scene but the cube loads on demand via defineAsyncComponent for
+// code-splitting; App.vue mounts the active one under a keyed <Suspense>, whose
+// #fallback is the loading surface (a hard load's only one — an in-app switch
+// awaits `loadScene` first), so the descriptors carry no loadingComponent.

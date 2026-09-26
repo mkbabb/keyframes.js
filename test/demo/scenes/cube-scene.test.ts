@@ -24,7 +24,7 @@ import {
     rotateByAttitude,
     useCubeRelit,
 } from "../../../demo/scenes/cube/useCubeRelit";
-import { SCENE_ID } from "../../../demo/scenes/cube/useCubeDemo";
+import { sceneMap } from "../../../demo/app/scene/scenes";
 import { CUBE_ANIMATION_NAMES } from "../../../demo/scenes/cube/cubeMotion";
 import { CUBE_SCENE_ID } from "../../../demo/scenes/cube/cubeKeys";
 import {
@@ -108,8 +108,11 @@ describe("cube scene registry keys", () => {
             Hover: "Hover",
         });
         // T.B9 — the ONE keyspace: the store key IS the registry SceneId ("cube",
-        // not the retired PascalCase "Cube"), single-sourced from cubeKeys.
-        expect(SCENE_ID).toBe(CUBE_SCENE_ID);
+        // not the retired PascalCase "Cube"), single-sourced from cubeKeys —
+        // the registry descriptor's id and store key are that one constant
+        // (A2-KE-L1-14: the module-local `SCENE_ID` alias is gone).
+        expect(sceneMap.get(CUBE_SCENE_ID)?.id).toBe(CUBE_SCENE_ID);
+        expect(sceneMap.get(CUBE_SCENE_ID)?.superKey).toBe(CUBE_SCENE_ID);
         expect(CUBE_SCENE_ID).toBe("cube");
     });
 });

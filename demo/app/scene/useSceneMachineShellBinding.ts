@@ -146,6 +146,22 @@ export function useSceneMachineShellBinding(opts: {
     let readyFor: string | null = null;
     let readyGroup: object | null = null;
 
+    // KFA-25 (X.KF.W13X.scene) — the swap's commit point as a promise: the
+    // View Transition's update callback awaits it, so the transition captures
+    // the NEW scene bound and its chrome flipped (the one commit point,
+    // `resolvedScene`), never the <Suspense> fallback or the pending window.
+    // One waiter at a time: a newer switch releases the one it supersedes.
+    let readyWaiter: { id: string; resolve: () => void } | null = null;
+
+    function whenSceneReady(id: string): Promise<void> {
+        readyWaiter?.resolve();
+        readyWaiter = null;
+        if (readyFor === id) return Promise.resolve();
+        return new Promise((resolve) => {
+            readyWaiter = { id, resolve };
+        });
+    }
+
     /**
      * Mark the active scene ready: bind its adapter, emit SCENE_READY (the
      * restore), and apply the auto-play intent. Fires once the scene's
@@ -194,6 +210,10 @@ export function useSceneMachineShellBinding(opts: {
         bindSceneAdapter();
         readyFor = currentSceneId.value;
         readyGroup = liveGroup;
+        if (readyWaiter?.id === readyFor) {
+            readyWaiter.resolve();
+            readyWaiter = null;
+        }
 
         machine.dispatch({ type: "SCENE_READY" });
 
@@ -304,5 +324,6 @@ export function useSceneMachineShellBinding(opts: {
         onPlayStateChange,
         onStartStateChange,
         switchScene,
+        whenSceneReady,
     };
 }

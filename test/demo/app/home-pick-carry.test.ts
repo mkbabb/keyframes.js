@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 import { computed, effectScope, ref, shallowRef } from "vue";
 import type { AnimationGroup } from "@mkbabb/keyframes.js";
-import { getStoredAnimationGroupControlOptions } from "@state";
+import { getStoredAnimationGroupControlOptions, HOME_SCENE_ID } from "@state";
 import { useSceneMachineShellBinding } from "../../../demo/app/scene/useSceneMachineShellBinding";
-import { HOME_SCENE_ID, sceneMap } from "../../../demo/app/scene/scenes";
+import { sceneMap } from "../../../demo/app/scene/scenes";
 
 // UIA-KF-004 (X.KF.W13V.u): home's transport lists the cube's channels (home
 // renders the CubeScene backdrop), and a pick there is a navigate-to-cube

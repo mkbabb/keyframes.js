@@ -1,7 +1,9 @@
 import { createRouter, createWebHashHistory } from "vue-router";
 import type { RouteRecordRaw } from "vue-router";
+import { toast } from "@mkbabb/glass-ui/toast";
 import { restoreStateFromParam } from "@state/hashSharing";
-import { allScenes, HOME_SCENE_ID } from "./scenes";
+import { HOME_SCENE_ID } from "@state";
+import { allScenes } from "./scenes";
 
 /**
  * Hash-based router for the keyframes.js demo.
@@ -48,6 +50,26 @@ router.beforeEach((to) => {
         initialNavDone = true;
         const stateParam = to.query.state as string;
         const result = restoreStateFromParam(stateParam);
+        // UIA-KF-143 (X.KF.W13X.scene) — a deep link's verdict is announced on
+        // the Share popover's own load path (the same copy and tones,
+        // `useShareState`): restored → success; unreadable → the link could not
+        // be read, instead of silently landing on the route scene. The root
+        // Toaster renders the queued toast once it mounts.
+        if (result.restored) {
+            toast({
+                title: "State restored!",
+                tone: "success",
+                duration: 3000,
+                description: "Animation state loaded from shared URL.",
+            });
+        } else {
+            toast({
+                title: "Invalid shared state",
+                tone: "destructive",
+                duration: 3000,
+                description: "This link's shared state could not be read.",
+            });
+        }
         const { state: _, ...cleanQuery } = to.query;
         // The ?state= guard RETURNS a redirect LOCATION (not `true`): the
         // deep-linked state's activeScene WINS (WV-W1-LOW-1). The machine's

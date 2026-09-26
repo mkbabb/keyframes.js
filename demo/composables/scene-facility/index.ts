@@ -19,7 +19,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import type { AnimationGroup, KeyframesAnimation } from "@mkbabb/keyframes.js";
-import type { ControlSurface, ScenePlayback } from "@state";
+import type { ControlSurface, ScenePlayback, SurfaceChannelLike } from "@state";
 import { createGroupAdapter } from "@state";
 import { clamp } from "@mkbabb/value.js/math";
 import type { SequenceTimelineSource } from "@components/instrument/timeline/timelineTypes";
@@ -30,9 +30,12 @@ import type { SequenceTimelineSource } from "@components/instrument/timeline/tim
  * Timeline); a light channel instead declares the honest subset of `surfaces` it
  * supports. `progress()`/`setProgress()` are the uniform raf round-trip.
  */
-export interface ChannelHandle {
-    /** The transport-select label. */
-    name: string;
+// A2-KE-L1-14 (X.KF.W13X.scene) — ONE channel type. `ChannelHandle` extends
+// the state layer's structural derivation input (`SurfaceChannelLike`, which
+// cannot import this module: @state is below it), narrowing its members to the
+// live types; the shared tier's `TransportChannel` is a `Pick<>` of it. A new
+// channel member is declared once, here.
+export interface ChannelHandle extends SurfaceChannelLike {
     /** Present ⇒ the triad is HONEST for this channel (it paints). */
     animation?: KeyframesAnimation<any>;
     /** A light channel's honest surface subset (no fictional keyframes). */

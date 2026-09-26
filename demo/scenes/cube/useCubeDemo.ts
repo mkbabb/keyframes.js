@@ -12,11 +12,6 @@ import {
 import { CUBE_ANIMATION_NAMES, cubeSpinKeyframes } from "./cubeMotion";
 import { GRAPH_ATTITUDE, graphAttitudeCss } from "./useCubeRelit";
 
-// T.B9 — the ONE keyspace: the store key (and each `animation.superKey` field) is
-// the registry SceneId, single-sourced from `cubeKeys.ts`. This re-export keeps
-// the existing `SCENE_ID` consumers (CubeScene + this module's internal uses).
-export const SCENE_ID = CUBE_SCENE_ID;
-
 /** The cube's per-channel paint targets (KF.W13U.w — one element per
  *  transform owner) plus the graph the attitude settle writes. */
 export interface CubeTargets {
@@ -37,7 +32,7 @@ export function useCubeDemo(
 
     const matrixAnimationOptions = getStoredAnimationOptions(
         CUBE_ANIMATION_NAMES.Matrix,
-        SCENE_ID,
+        CUBE_SCENE_ID,
     );
 
     const compileMatrixAnimation = () =>
@@ -50,7 +45,7 @@ export function useCubeDemo(
 
     const matrixAnim = shallowRef(markRaw(compileMatrixAnimation()));
     matrixAnim.value.name = CUBE_ANIMATION_NAMES.Matrix;
-    matrixAnim.value.superKey = SCENE_ID;
+    matrixAnim.value.superKey = CUBE_SCENE_ID;
 
     watch([matrix3dStart, matrix3dEnd], () => {
         matrixAnim.value.adoptCompiled(compileMatrixAnimation());
@@ -58,7 +53,7 @@ export function useCubeDemo(
 
     const rotationAnimationOptions = getStoredAnimationOptions(
         CUBE_ANIMATION_NAMES.Rotations,
-        SCENE_ID,
+        CUBE_SCENE_ID,
     );
 
     const rotationAnim = shallowRef(
@@ -69,18 +64,18 @@ export function useCubeDemo(
         ),
     );
     rotationAnim.value.name = CUBE_ANIMATION_NAMES.Rotations;
-    rotationAnim.value.superKey = SCENE_ID;
+    rotationAnim.value.superKey = CUBE_SCENE_ID;
 
     const hoverAnimationOptions = getStoredAnimationOptions(
         CUBE_ANIMATION_NAMES.Hover,
-        SCENE_ID,
+        CUBE_SCENE_ID,
     );
 
     const hoverAnim = shallowRef(
         markRaw(presets.hover(hoverAnimationOptions.animationOptions)),
     );
     hoverAnim.value.name = CUBE_ANIMATION_NAMES.Hover;
-    hoverAnim.value.superKey = SCENE_ID;
+    hoverAnim.value.superKey = CUBE_SCENE_ID;
 
     const animationGroup = shallowRef(
         markRaw(

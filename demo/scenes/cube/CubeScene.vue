@@ -49,11 +49,12 @@ import { getStoredAnimationGroupControlOptions, useSceneMachine } from "@state";
 import { useSceneTransport } from "@composables/scene-runtime/useSceneTransport";
 import { facilityFromGroup } from "@composables/scene-facility";
 import { useTransformState } from "./matrix-editor/useTransformState";
-import { useCubeDemo, SCENE_ID } from "./useCubeDemo";
+import { useCubeDemo } from "./useCubeDemo";
+import { CUBE_SCENE_ID } from "./cubeKeys";
 import { CUBE_ANIMATION_NAMES } from "./cubeMotion";
 import { useCubeTransform } from "./cubeTransformStore";
 
-const superKey = SCENE_ID;
+const superKey = CUBE_SCENE_ID;
 
 const storedControls = getStoredAnimationGroupControlOptions(superKey);
 storedControls.ppMode ??= false;

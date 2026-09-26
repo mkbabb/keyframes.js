@@ -9,7 +9,6 @@ import SequenceTarget from "./SequenceTarget.vue";
 import { useSequenceDemo } from "./useSequenceDemo";
 import { SEQUENCE_DEMO_KEY, SEQUENCE_SCENE_ID } from "./sequenceKeys";
 
-const SCENE_ID = SEQUENCE_SCENE_ID;
 
 const demo = useSequenceDemo();
 provide(SEQUENCE_DEMO_KEY, demo);
@@ -31,7 +30,7 @@ defineExpose({
     // adapter the shell registers with the machine. A facility-only scene has no
     // `animationGroup` and exposes no separate playback identity.
     facility: demo.facility,
-    superKey: SCENE_ID,
+    superKey: SEQUENCE_SCENE_ID,
     isStarted: ref(true),
 });
 </script>

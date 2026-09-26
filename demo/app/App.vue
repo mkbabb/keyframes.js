@@ -170,16 +170,16 @@ import type { AnimationGroup } from "@mkbabb/keyframes.js";
 import { kfEngine } from "@kf-engine";
 import {
     getStoredAnimationGroupControlOptions,
+    HOME_SCENE_ID,
     surfacesFor,
     useSceneMachine,
 } from "@state";
 
-import CubeScene from "../scenes/cube/CubeScene.vue";
 import { useSceneMachineRouterBinding } from "./scene/useSceneMachineRouterBinding";
 import { useSceneMachineShellBinding } from "./scene/useSceneMachineShellBinding";
 import { useSceneSwap } from "./transition/useSceneSwap";
 import { useSceneTransition } from "./transition/useSceneTransition";
-import { scenes, sceneMap, warmScene, homeScene, HOME_SCENE_ID } from "./scene/scenes";
+import { scenes, sceneMap, warmScene, homeScene } from "./scene/scenes";
 import type { SceneExposedApi } from "./scene/sceneExposedApi";
 import { useMonacoCancellationGuard } from "./lifecycle/useMonacoCancellationGuard";
 
@@ -204,7 +204,7 @@ provide(CONTROLS_PANE_HOVER_KEY, dockHoveredRef);
 // + the ?anim= projection + boot GC all live in useSceneMachineRouterBinding (it
 // owns the router binding). App reads the machine's readonly refs only.
 const machine = useSceneMachine();
-useSceneMachineRouterBinding();
+useSceneMachineRouterBinding({ getRunSceneSwitch: () => runSceneSwitch });
 
 const currentSceneId = computed(() => machine.activeScene.value);
 const isHome = computed(() => currentSceneId.value === HOME_SCENE_ID);
@@ -361,10 +361,7 @@ const dockSelectedControl = computed(
 // the start screen; cube = the same component WITH its group registered. The
 // component/key are shared (CubeScene), but `home` registers no adapter and
 // shows no controls — the impossible-routed-state source is gone.
-const activeSceneComponent = computed(() => {
-    if (isHome.value || currentSceneId.value === "cube") return CubeScene;
-    return currentScene.value.component;
-});
+const activeSceneComponent = computed(() => currentScene.value.component);
 const activeSceneKey = computed(() => {
     if (isHome.value || currentSceneId.value === "cube") return "cube";
     return currentSceneId.value;
@@ -396,6 +393,7 @@ const {
     onPlayStateChange,
     onStartStateChange,
     switchScene,
+    whenSceneReady,
 } = useSceneMachineShellBinding({
     sceneRef,
     currentSceneId,
@@ -409,11 +407,12 @@ const {
 // Native View Transitions wrap the (synchronous) scene-id mutation; the no-VT
 // path falls through to the SpringProgress cross-dissolve unchanged, and focus
 // routes to the scene host on `finished` (a11y). Every scene-nav entry (the dock
-// @switch-scene, the SharePopover restore) goes through this.
-const { runSceneSwitch, lastSwapBackend } = useSceneTransition(
-    switchScene,
-    sceneHostEl,
-);
+// @switch-scene, the SharePopover restore, a URL change) goes through this.
+const { runSceneSwitch, lastSwapBackend } = useSceneTransition({
+    mutate: switchScene,
+    sceneHost: sceneHostEl,
+    whenSceneReady,
+});
 
 // Scene-swap cross-dissolve (SpringProgress) — PRESERVED driver (S7), the
 // fallback for any swap no native View Transition carried (KFA-12: read off the

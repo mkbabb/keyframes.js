@@ -244,14 +244,22 @@ function buildSuperKeyMap(scenesSrc) {
  *  keyspace: `superKey` === the registry id). */
 function parseDescriptor(objText, superKeyMap) {
     const idM = objText.match(/\bid:\s*(?:HOME_SCENE_ID|["'`]([^"'`]+)["'`])/);
+    // A2-KE-L1-14 (X.KF.W13X.scene) — a descriptor's `id` is its scene's
+    // imported `*_SCENE_ID` constant, resolved like `superKey` below.
+    const idIdentM = objText.match(/\bid:\s*([A-Z_][\w]*_SCENE_ID)\b/);
     const skLitM = objText.match(/\bsuperKey:\s*["'`]([^"'`]+)["'`]/);
     const skIdentM = objText.match(/\bsuperKey:\s*([A-Za-z_][\w]*)/);
     // `id: HOME_SCENE_ID` resolves to "home" (the only symbol-valued id).
-    const id = idM ? (idM[1] ?? "home") : null;
+    const id =
+        idIdentM && idIdentM[1] !== "HOME_SCENE_ID"
+            ? (superKeyMap?.get(idIdentM[1]) ?? null)
+            : idM
+              ? (idM[1] ?? "home")
+              : null;
     if (!id) throw new Error(`demo-driver: descriptor without an id in scenes.ts: ${objText.slice(0, 60)}`);
     let superKey = skLitM ? skLitM[1] : null;
-    // `superKey: HOME_SCENE_ID` resolves to "home" (defined in scenes.ts itself,
-    // not imported, so it is not in superKeyMap — the ONE keyspace: home's store
+    // `superKey: HOME_SCENE_ID` resolves to "home" (the state layer's constant,
+    // imported from @state, not a relative module, so it is not in superKeyMap — the ONE keyspace: home's store
     // key is the registry id, not the retired "__home__" sentinel).
     if (!superKey && skIdentM && skIdentM[1] === "HOME_SCENE_ID") superKey = "home";
     if (!superKey && skIdentM && superKeyMap) {
