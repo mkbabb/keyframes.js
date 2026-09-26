@@ -9,10 +9,13 @@
              canvas and the page (T.A10). The canvas composites over the SHELL's
              themed paper-grid backdrop (`.grid-background`, fixed behind every
              scene) — renderer alpha:true, and nothing of this scene's own paints
-             over it. `rounded-card` on a raw element is this tree's only such
-             site and is RETAINED: with the wash gone it rounds only the stage
-             boundary, and whether a full-bleed mobile layer should carry card
-             chrome at all is a rendered-silhouette verdict, KF.W9's.
+             over it. X.KF.W13X · UIA-KF-194 — and it wears no chrome: the
+             `rounded-card` radius (a content-card role) and the inset hairline
+             made amiga the one scene that framed its stage, where DESIGN.md §3/§8
+             let a full-bleed 3D canvas omit a plate; the canvas now fills the
+             scene root as cube's stage does. (UIA-KF-024: the hairline was a
+             scoped box-shadow at the ring's own specificity that won on source
+             order, so the focus ring never painted; it paints now.)
              (D-13/L-i7 — the removal changelog that used to live in this
              template, naming four deleted DOM layers a reader cannot see, is
              gone: a rendered template states what IS. The deletions live in the
@@ -26,9 +29,12 @@
              is BORROWED from that landed cure (X.KF.W11.b, `3af1422b`), not
              re-invented: the subject is the `role="group"` container, its
              `aria-keyshortcuts` publishes the bindings, `aria-describedby`
-             points at a real description, and TWO `role="slider"` children carry
-             the per-axis WCAG 4.1.2 contract — a single scalar slider is a lossy
-             misrepresentation of a two-axis spin.
+             points at a real description, and TWO per-axis read-outs carry the
+             spin's value. X.KF.W13X · UIA-KF-291 — they were `role="slider"`
+             spans with no tabindex and no keys (an ARIA slider must be a
+             focusable, operable widget); the keys belong to the group, so the
+             values are read-only `role="status"` read-outs, published where a
+             gesture ends.
 
              The children are the canvas's FALLBACK CONTENT: the accessible
              subtree of a replaced element, which the browser never paints. That
@@ -46,7 +52,7 @@
              on-device. -->
         <canvas
             ref="canvas"
-            class="amiga-canvas kf-focus-ring h-full w-full rounded-card"
+            class="amiga-canvas kf-focus-ring h-full w-full"
             :class="{ 'amiga-canvas--unavailable': roomFailed }"
             role="group"
             :aria-label="
@@ -64,24 +70,8 @@
                 fine nudge; Home returns it to its rest attitude. A pointer drag
                 spins it too, and on release the spin coasts to rest.
             </span>
-            <span
-                role="slider"
-                aria-label="Yaw — the spin about the ball's vertical axis"
-                aria-orientation="horizontal"
-                aria-valuemin="-180"
-                aria-valuemax="180"
-                :aria-valuenow="spinNow.yaw"
-                :aria-valuetext="`yaw ${spinNow.yaw}°`"
-            />
-            <span
-                role="slider"
-                aria-label="Pitch — the spin about the ball's horizontal axis"
-                aria-orientation="vertical"
-                aria-valuemin="-180"
-                aria-valuemax="180"
-                :aria-valuenow="spinNow.pitch"
-                :aria-valuetext="`pitch ${spinNow.pitch}°`"
-            />
+            <span role="status">yaw {{ spinNow.yaw }}°</span>
+            <span role="status">pitch {{ spinNow.pitch }}°</span>
         </canvas>
     </div>
 </template>
@@ -589,15 +579,6 @@ onBeforeUnmount(() => {
        reduction that ruling does admit is a shared `.stage-plate` RECIPE, and a
        shared recipe belongs in the demo's own sheet, not in one scene's scoped
        block; it is routed there rather than re-authored here. */
-    /* J.W7a — the 1px inset stage-boundary hairline defining the glass stage's
-       edge without a DOM layer or blocking the transparent composite. It reads
-       the producer's LOAD-BEARING surface boundary (--control-surface-border →
-       --glass-border-floating), not the decorative --border it used to: this
-       edge is the only thing that says where the stage ends, and the bank
-       measures the decorative rung below the non-text floor in BOTH arms, worse
-       in light (MISSED-D). The rung is the producer's, so nothing is
-       re-authored demo-side. */
-    box-shadow: inset 0 0 0 1px var(--control-surface-border);
 }
 .amiga-canvas:active {
     cursor: grabbing;
@@ -610,17 +591,4 @@ onBeforeUnmount(() => {
     cursor: default;
 }
 
-/* D-15 — under forced-colors the UA drops `box-shadow`, and the inset hairline
-   above IS the stage boundary: without it the stage has no edge at all in the
-   one mode that most needs one. The boundary keeps its meaning through a
-   system-coloured outline, the same shape the house's `kf-focus-ring` forced-
-   colors arm takes. (The CANVAS ITSELF is exempt — a replaced element's pixels
-   are not re-coloured — so this is the whole of the scene's forced-colors
-   surface, which is why it is one rule.) */
-@media (forced-colors: active) {
-    .amiga-canvas {
-        box-shadow: none;
-        outline: 1px solid CanvasText;
-    }
-}
 </style>

@@ -405,13 +405,13 @@ describe("X.KF.W11.h · G-KFW11-8 — the amiga scene repair", () => {
             const help = canvas.querySelector(`#${helpId}`);
             expect(help?.textContent?.trim().length ?? 0).toBeGreaterThan(20);
 
-            // Two axis sliders, exactly as the square's 2D subject carries.
-            const sliders = canvas.querySelectorAll('[role="slider"]');
-            expect(sliders.length).toBe(2);
-            for (const s of sliders) {
-                expect(s.getAttribute("aria-label")).toBeTruthy();
-                expect(s.getAttribute("aria-valuenow")).toBeTruthy();
-            }
+            // Two per-axis read-outs. X.KF.W13X · UIA-KF-291: the square's
+            // borrowed pair of `role="slider"` spans had no tabindex and no keys
+            // (an inert slider); the group owns the keys, so the values are
+            // read-only `role="status"` read-outs (amiga-w13x.test.ts).
+            const readouts = canvas.querySelectorAll('[role="status"]');
+            expect(readouts.length).toBe(2);
+            for (const r of readouts) expect(r.textContent?.trim()).toMatch(/^(yaw|pitch) -?\d+°$/);
         });
 
         it("the keyboard path turns the ball (the subject is operable without a pointer)", () => {
