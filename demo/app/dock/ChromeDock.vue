@@ -366,7 +366,7 @@ watch(isSelectOpen, (open) => {
         class="fixed left-0 right-0 z-dock flex items-center justify-center pointer-events-none"
         style="top: var(--dock-top-anchor);"
     >
-        <div class="pointer-events-auto">
+        <div class="pointer-events-auto dock-vt-group">
             <!-- G.W12.S2: the :always-expanded="isMobile" occlusion-dodge mask is
                  REMOVED — glass-ui's rebuilt dock owns the no-occlusion
                  contract; the occlusion gate re-runs mask-free as the lock. The
@@ -568,6 +568,15 @@ watch(isSelectOpen, (open) => {
 </template>
 
 <style scoped>
+/* KFA-77 (X.KF.W13X.scene) — the pill is its own View-Transition group, so a
+   scene swap morphs it from the old width to the new one and its label
+   cross-fades in place, instead of double-exposing inside the root fade at two
+   offsets. A fixed pill paints above the stage, so its group paints above the
+   `scene-subject` group too (KFA-26). One pill per state, so the name is unique. */
+.dock-vt-group {
+    view-transition-name: chrome-dock;
+}
+
 /* ChromeDock D-5 (co-id: the F4 row of the deleted header fork's record) — ONE
    glyph rung in the dock row, and it is the DOCK's own.
 

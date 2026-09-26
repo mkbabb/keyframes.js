@@ -29,7 +29,7 @@
              pointer (the ChromeDock pair — pointer-events-none host,
              pointer-events-auto child), so the band outside it never
              swallows a press meant for the stage beneath. -->
-        <div class="pointer-events-auto">
+        <div class="pointer-events-auto dock-vt-group">
             <GlassDock ref="dockRef" collapse="closed" :fit-content="true">
                 <!-- Expanded state: full controls.
                      T.C1 — THE TRANSPORT RECUT (rail-core | section | nav on glass-ui
@@ -319,6 +319,15 @@ defineExpose({ resetIconSpin });
 </script>
 
 <style scoped>
+/* KFA-77 (X.KF.W13X.scene) — the pill is its own View-Transition group, so a
+   scene swap morphs it from the old width to the new one and its label
+   cross-fades in place, instead of double-exposing inside the root fade at two
+   offsets. A fixed pill paints above the stage, so its group paints above the
+   `scene-subject` group too (KFA-26). One pill per state, so the name is unique. */
+.dock-vt-group {
+    view-transition-name: transport-dock;
+}
+
 /* TD-35 — the transport's internal rhythm rides the ONE gutter token every
    producer dock control rides (`--dock-layer-gap` scales with --dock-scale), so
    the row grows with its siblings on coarse pointers instead of a fixed 12px. */
