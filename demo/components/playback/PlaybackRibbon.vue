@@ -59,40 +59,33 @@
             <TooltipContent>Scrub animation timeline</TooltipContent>
         </Tooltip>
 
-        <div class="grid grid-cols-2 gap-2 w-full">
-            <!-- Both cells wear the shared `.btn-playback` skin
-                 (playback-idiom.css, via design-idioms.css) — one voice for the
-                 transport band. Height: the producer Button's `min-block-size`
-                 (40/60px by pointer) is the one live authority (D-16 — the
-                 template `h-10` and the skin's `height: 2rem` were both dead
-                 under it). Width: the grid track (N-6). Glyph size: the
-                 producer's `--ui-glyph` rung, which the demo's `icon-*`
-                 utilities silently defeated so Play's glyph stayed pinned while
-                 the coarse-pointer button grew (D-17/N-4). `emphasis="secondary"`
-                 is the Button's own default (N-6). -->
-            <Button class="btn-playback btn-playback-accent" @click="emit('togglePlay')">
-                <span>{{ isAnimPlaying ? 'Pause' : 'Play' }}</span>
-                <Pause v-if="isAnimPlaying" />
-                <Play v-else class="pl-px" />
-            </Button>
-            <!-- D-15 / D-8 / N-1 — ONE pressed authority: the skin's
-                 `.btn-playback[aria-pressed="true"]` rule (playback-idiom.css).
-                 The template utilities that argued with it were dead by
-                 layering and are gone. -->
-            <Button
-                class="btn-playback rounded-full gap-2"
-                :aria-pressed="userReversed"
-                @click="emit('toggleReverse')"
-            >
-                <span>Reverse</span>
-                <ArrowLeftRight
-                    :class="[
-                        'transition-transform duration-fast',
-                        userReversed ? 'scale-x-[-1]' : '',
-                    ]"
-                />
-            </Button>
-        </div>
+        <!-- UIA-KF-051 · UIA-KF-155 (X.KF.W13X.transport) — ONE TRANSPORT. The
+             ribbon's own Play/Pause cell is DELETED: it drove the very state
+             the dock's persistent Play drives (served ×2 on easing, spring and
+             cube — pressing either flips both), so every scene carried two
+             controls for one verb (demo/DESIGN.md §3), and its pastel accent
+             fill was the low-contrast pill of 155. The dock owns play, reset
+             and the channel select; the ribbon keeps what is its own — the
+             scrub rail, Reverse and the ball preview.
+             The cell wears the shared `.btn-playback` skin (playback-idiom.css,
+             via design-idioms.css). Height: the producer Button's
+             `min-block-size` (D-16). Glyph size: the producer's `--ui-glyph`
+             rung (D-17/N-4). `emphasis="secondary"` is the Button's own
+             default (N-6). D-15 / D-8 / N-1 — ONE pressed authority: the
+             skin's `.btn-playback[aria-pressed="true"]` rule. -->
+        <Button
+            class="btn-playback rounded-full gap-2"
+            :aria-pressed="userReversed"
+            @click="onReverse"
+        >
+            <span>Reverse</span>
+            <ArrowLeftRight
+                :class="[
+                    'transition-transform duration-fast',
+                    userReversed ? 'scale-x-[-1]' : '',
+                ]"
+            />
+        </Button>
 
         <!-- OA-10 (§0ao.1) → OA-61 (X.KF.W13W.e) — the ball preview and its
              ONE hide/show toggle (PreviewToggle: the eye floats top-right,
@@ -116,7 +109,7 @@
 </template>
 
 <script setup lang="ts">
-// The `.btn-playback*` skin the two cells wear is NOT authored here: it lives in
+// The `.btn-playback` skin the Reverse cell wears is NOT authored here: it lives in
 // demo/styles/playback-idiom.css, pulled in by design-idioms.css, and lands on
 // glass-ui's <Button> DOM shared with the scene play buttons. This file authors
 // no styles: the scrub rail is the producer Slider's own paint (OA-8).
@@ -133,7 +126,7 @@ import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 import { Button, Slider } from "@mkbabb/glass-ui";
 import { useDragCapture } from "@components/instrument/transport/composables/useDragCapture";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@mkbabb/glass-ui/tooltip";
-import { ArrowLeftRight, Pause, Play } from "@lucide/vue";
+import { ArrowLeftRight } from "@lucide/vue";
 import AnimationVisualizer from "./AnimationVisualizer.vue";
 import PreviewToggle from "./PreviewToggle.vue";
 
@@ -209,7 +202,6 @@ const emit = defineEmits<{
     // the scene mounts have no idle loop and may leave it unbound.
     (e: "scrubbed"): void;
     (e: "sliderUpdate", val: { t: number; animation: KeyframesAnimation<any> }): void;
-    (e: "togglePlay"): void;
     (e: "toggleReverse"): void;
     (e: "update:preview", preview: "shown" | "hidden"): void;
 }>();
@@ -281,6 +273,9 @@ const onSliderCommit = (val: number[]) => {
     emit("scrubEnd");
 };
 
+
+/** The Reverse cell. */
+const onReverse = () => emit("toggleReverse");
 
 /** Seat the playhead at an EFFECTIVE time (the contract above). */
 const scrubTo = (effectiveT: EffectiveMs) => {

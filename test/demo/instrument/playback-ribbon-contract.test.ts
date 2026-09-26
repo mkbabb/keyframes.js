@@ -535,13 +535,17 @@ const readRepo = async (path: string): Promise<string> => {
 const GLASS_DIST = "node_modules/@mkbabb/glass-ui/dist";
 
 describe("G-KFW9-9 / K-5 — the focus affordance survives the two-deletion act", () => {
-    it("a focused Play button carries a forced-colors indicator, and no demo-owned unlayered rule defeats it", async () => {
+    // X.KF.W13X.transport · UIA-KF-051 — the ribbon's Play cell is deleted (the
+    // dock's persistent Play is the one Play); the `.btn-playback` census the
+    // act guards is live on the ribbon's remaining cell, Reverse. Assertions
+    // unchanged; the subject follows the skin.
+    it("a focused playback button (the ribbon's Reverse cell) carries a forced-colors indicator, and no demo-owned unlayered rule defeats it", async () => {
         const seat = mountRibbon();
         await settle();
 
-        // (i) the subject: the ribbon's Play cell is a producer `Button` wearing
+        // (i) the subject: the ribbon's Reverse cell is a producer `Button` wearing
         //     the demo's `.btn-playback` skin — the rule's own census, live.
-        const play = seat.root.querySelector<HTMLElement>(".btn-playback-accent")!;
+        const play = seat.root.querySelector<HTMLElement>(".btn-playback[aria-pressed]")!;
         expect(play).not.toBeNull();
         expect(play.tagName).toBe("BUTTON");
         expect(play.classList.contains("btn-playback")).toBe(true);
