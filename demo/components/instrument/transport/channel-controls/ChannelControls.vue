@@ -74,14 +74,15 @@
                      (`styles/tab-idiom.css`) and the pane probes key on exactly
                      that pair, and retiring the rule is an open decision this wave
                      does not own — so stripping the attributes here would pre-empt
-                     it. What REMAINS open is the accessible NAME (no
-                     `aria-labelledby`/`aria-label` on any of the four sites — the
-                     fourth is `CubeScene.vue`'s `h()`-rendered matrix panel): that
-                     is the a11y spec input the row is banked as, and it is stated
-                     here rather than improvised. -->
+                     it. X.KF.W13X.controls · UIA-KF-275 (the tabpanel limb) —
+                     each panel here is NAMED by its surface's registry label
+                     (`SURFACE_META`, the same words the dock's surface items
+                     read); the fourth site, `CubeScene.vue`'s `h()`-rendered
+                     matrix panel, is the scene's (UIA-KF-161's hosting). -->
                 <div
                     v-if="hasSurface('controls') && selectedControlSurface === 'controls'"
                     role="tabpanel"
+                    :aria-label="SURFACE_META.controls.label"
                     data-state="active"
                     tabindex="0"
                 >
@@ -114,6 +115,7 @@
                 <div
                     v-if="hasSurface('keyframes') && keyframesWarmed"
                     role="tabpanel"
+                    :aria-label="SURFACE_META.keyframes.label"
                     :data-state="keyframesActive ? 'active' : 'inactive'"
                     :tabindex="keyframesActive ? 0 : -1"
                     ref="keyframesPaneEl"
@@ -134,26 +136,18 @@
                 <div
                     v-if="hasSurface('timeline') && selectedControlSurface === 'timeline'"
                     role="tabpanel"
+                    :aria-label="SURFACE_META.timeline.label"
                     data-state="active"
                     tabindex="0"
                 >
-                    <!-- Placeholder shown in the tab when timeline is expanded to bottom bar -->
-                    <div
-                        v-if="storedControls.isTimelineExpanded"
-                        class="flex flex-col items-center justify-center gap-3 py-12 text-muted-foreground"
-                    >
-                        <ChevronDown class="w-6 h-6 animate-bounce" />
-                        <p class="text-small font-medium">Timeline expanded below</p>
-                        <Button
-                            size="sm"
-                            emphasis="quiet"
-                            class="gap-1.5 text-small font-medium"
-                            @click="storedControls.isTimelineExpanded = false"
-                        >
-                            <Minimize2 class="icon-sm" />
-                            Collapse
-                        </Button>
-                    </div>
+                    <!-- X.KF.W13X.controls · UIA-KF-061 · 282 — the rail's
+                         "Timeline expanded below" placeholder is deleted: a
+                         dead card with a forever-bouncing chevron (untokenized,
+                         never reduced-motion gated) and a FOURTH collapse
+                         control, which at 390 pointed down at a timeline that
+                         sits above the sheet. The expanded surface's own
+                         collapse is the verb (demo/DESIGN.md §3, one control
+                         per verb). -->
                 </div>
 
                 <!-- Scene-specific panels (cube's matrix-controls body, the
@@ -176,11 +170,12 @@
                      (KFA-58, useTimeline's per-channel owner). -->
                 <Teleport to="#timeline-expanded-target" :disabled="!storedControls.isTimelineExpanded" defer>
                     <div
-                        v-if="active && isTimelineVisible"
+                        v-if="active && isTimelineVisible && KeyframeTimeline"
                         :key="storedControls.selectedControl"
                         class="animate-in fade-in slide-in-from-right-2 duration-fast"
                     >
-                        <KeyframeTimeline
+                        <component
+                            :is="KeyframeTimeline"
                             ref="timelineRef"
                             :targets="animation.targets"
                             :animation-options="animation.options"
@@ -205,17 +200,19 @@
 import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 import type { AnimationLayerConfig } from "@mkbabb/keyframes.js";
 
-import { Button } from "@mkbabb/glass-ui";
 
 import {
     computed,
     defineAsyncComponent,
     inject,
+    markRaw,
+    shallowRef,
     Teleport,
     useTemplateRef,
+    watch,
 } from "vue";
+import type KeyframeTimelineComponent from "../../timeline/KeyframeTimeline.vue";
 import { TABS_EXTERNALLY_MANAGED_KEY } from "../injectionKeys";
-import { ChevronDown, Minimize2 } from "@lucide/vue";
 import { useKeyframesPaneReveal } from "./composables/useKeyframesPaneReveal";
 import { useSelectedControlSurface } from "./composables/useSelectedControlSurface";
 import {
@@ -226,7 +223,19 @@ import {
 } from "@state";
 
 const KeyframesStringControls = defineAsyncComponent(() => import("../../keyframes/KeyframesStringControls.vue"));
-const KeyframeTimeline = defineAsyncComponent(() => import("../../timeline/KeyframeTimeline.vue"));
+// X.KF.W13X.controls · KFA-119 — the timeline module is fetched at the idle
+// warm (the same post-LCP moment the keyframes pane warms) or when the timeline
+// is first asked for, and once fetched it renders SYNCHRONOUSLY. Behind
+// `defineAsyncComponent`, the first Timeline switch waited on the chunk and
+// even a cached module resolved a frame late: the slot rendered 0 px tall for
+// 2-3 frames and the ribbon card below jumped up and back.
+const KeyframeTimeline = shallowRef<typeof KeyframeTimelineComponent | null>(null);
+let timelineLoad: Promise<void> | undefined;
+const loadKeyframeTimeline = (): void => {
+    timelineLoad ??= import("../../timeline/KeyframeTimeline.vue").then((m) => {
+        KeyframeTimeline.value = markRaw(m.default);
+    });
+};
 import ChannelOptions from "./ChannelOptions.vue";
 import { getStoredAnimationGroupControlOptions } from "@state";
 
@@ -347,7 +356,8 @@ const emit = defineEmits<{
 }>();
 
 const keyframesControlsRef = useTemplateRef<InstanceType<typeof KeyframesStringControls>>("keyframesControlsRef");
-const timelineRef = useTemplateRef<InstanceType<typeof KeyframeTimeline>>("timelineRef");
+const timelineRef =
+    useTemplateRef<InstanceType<typeof KeyframeTimelineComponent>>("timelineRef");
 
 const isTimelineVisible = computed(() =>
     storedControls.selectedControl === "timeline" || storedControls.isTimelineExpanded,
@@ -369,6 +379,14 @@ const { keyframesActive, keyframesWarmed } = useKeyframesPaneReveal({
     storedControls,
     keyframesPaneEl,
 });
+// KFA-119 — the idle warm, or the first ask, fetches the timeline module.
+watch(
+    [keyframesWarmed, isTimelineVisible],
+    ([warmed, visible]) => {
+        if (visible || (warmed && hasSurface("timeline"))) loadKeyframeTimeline();
+    },
+    { immediate: true },
+);
 
 const selectControl = (key: string | number) => {
     // The user-pick path writes the DFA projection of the pick (not the raw key)

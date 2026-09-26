@@ -131,7 +131,11 @@ export function useKeyframesPaneReveal(
             // The tabpanel root carries tabindex=0 when active — focus it so the
             // revealed pane owns the tab sequence; Monaco re-measures on the layout
             // pass that content-visibility restoration triggers.
-            node?.focus?.();
+            // X.KF.W13X.controls · KFA-118 — `preventScroll`: when '2' re-opens
+            // a closed rail, this runs while the track is still ~0 px wide inside
+            // the overflow-hidden pane, and a plain focus() scrolled the pane
+            // 240 px sideways (the content slid in from the left, cut off).
+            node?.focus?.({ preventScroll: true });
         });
     });
 
