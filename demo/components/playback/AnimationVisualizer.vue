@@ -68,7 +68,7 @@ import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 import { SmoothProgress } from "@mkbabb/keyframes.js";
 import { SpringProgress } from "@mkbabb/keyframes.js";
 import { RAFPlayback } from "@mkbabb/keyframes.js";
-import { useDemoTicker } from "@components/instrument/transport/composables/useDemoTicker";
+import { useDemoTicker } from "@composables/useDemoTicker";
 import { useDragScrub } from "@composables/useDragScrub";
 import { useTouchGate } from "@mkbabb/glass-ui";
 

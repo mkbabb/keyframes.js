@@ -148,3 +148,12 @@ describe("A2-KE-L3-11 — one label track across panes", () => {
         );
     });
 });
+
+describe("A2-KE-L1-15 (limb e) — components/playback does not up-import the transport's composables", () => {
+    it("the playback components read cross-cutting composables from demo/composables", () => {
+        for (const path of demoPaths.filter((p) => p.startsWith("demo/components/playback/"))) {
+            expect(source(path), path).not.toMatch(/from "@components\/instrument\/transport\/composables\//);
+        }
+        expect(demoPaths).toContain("demo/composables/useDemoTicker.ts");
+    });
+});
