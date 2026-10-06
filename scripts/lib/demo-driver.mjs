@@ -25,6 +25,7 @@
  *   serveDist(distDir)             — static http server over the built demo
  *                                    (dist/gh-pages); returns { url, close }.
  *   REQUIRE_BROWSER                — the KF_REQUIRE_BROWSER=1 flag, read ONCE.
+ *   backgroundLaunch(launch)       — §0ei: every launch headless (no window).
  *   withBrowser(fn, opts)          — resolveChromium → launch → fn(browser) →
  *                                    finally close (the J.W3 S1a lifecycle).
  *   withPage(opts, fn)             — withBrowser → serveDist(opts.distDir) on
@@ -489,7 +490,21 @@ function harnessUnavailable(reason, label) {
  *                `label` names the gate's browser-half assertion in the
  *                required-but-unavailable failure message.
  */
+/**
+ * value.js COHESION §0ei (owner law, 2026-10-06) — no driven browser ever opens
+ * a window. Every launch is headless; a caller's `headless: false` (the old
+ * real-GPU ask) becomes the installed Google Chrome (`channel: "chrome"`) in new
+ * headless mode, which runs WebGL on ANGLE Metal (measured on the owner's Mac:
+ * "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)").
+ */
+export function backgroundLaunch(launch = {}) {
+    return launch.headless === false
+        ? { channel: "chrome", ...launch, headless: true }
+        : { ...launch, headless: true };
+}
+
 export async function withBrowser(fn, { launch = {}, label } = {}) {
+    launch = backgroundLaunch(launch);
     const chromium = resolveChromium();
     if (!chromium) {
         return harnessUnavailable(
