@@ -8,7 +8,11 @@
          caption on its own muted line UNDER the title (the provenance notice
          used to be squeezed between title and Back and broke mid-word).
          UIA-KF-036 — the host renders this as a SIBLING of the pane's scrolled
-         body, so the navigation is never scrolled out of view. -->
+         body, so the navigation is never scrolled out of view.
+         E2E-USAB-1 (KF.W13X Repair 1) — both sub-panes stay in the DOM (the
+         closed one `inert`), so each Back NAMES THE PANE IT LEAVES: two
+         controls called "Back to controls" were one accessible name on two
+         buttons. -->
     <div
         ref="rootEl"
         data-subpane-header
@@ -19,7 +23,7 @@
             emphasis="quiet"
             icon-only
             size="sm"
-            aria-label="Back to controls"
+            :aria-label="`Back from ${title} to controls`"
             @click="emit('back')"
         >
             <ArrowLeft class="icon-sm" />

@@ -216,12 +216,12 @@ describe("X.KF.W13X.controls — one drill-in owner, one sub-pane header (A2-KE-
             const dh = detail.get("[data-subpane-header]");
             const shape = (el: Element) =>
                 [...el.querySelectorAll("*")].map((e) => e.tagName).slice(0, 3);
-            expect(dh.element.querySelector("button")?.getAttribute("aria-label")).toBe("Back to controls");
+            expect(dh.element.querySelector("button")?.getAttribute("aria-label")).toBe("Back from cubic-bézier to controls");
             expect(dh.element.firstElementChild?.tagName).toBe("BUTTON");
             const dt = dh.get("[data-subpane-title]");
             expect(dt.text()).toBe("cubic-bézier");
             expect(dt.classes()).toContain("text-subheading");
-            await detail.find('button[aria-label="Back to controls"]').trigger("click");
+            await detail.find('button[aria-label^="Back from "]').trigger("click");
             await endRowTransition(detail.element);
 
             await layerEntry(wrapper).trigger("click");
@@ -232,6 +232,14 @@ describe("X.KF.W13X.controls — one drill-in owner, one sub-pane header (A2-KE-
             expect(lh.get("[data-subpane-title]").text()).toBe("layer");
             expect(lh.get("[data-subpane-title]").classes()).toContain("text-subheading");
             expect(shape(lh.element)).toEqual(shape(dh.element));
+            // E2E-USAB-1 — both headers are in the DOM at once (the closed
+            // pane is inert, not unmounted): each Back names its own pane, and
+            // no two labelled buttons in the card share an accessible name.
+            expect(lh.element.querySelector("button")?.getAttribute("aria-label")).toBe("Back from layer to controls");
+            const names = wrapper
+                .findAll("button[aria-label]")
+                .map((b) => b.attributes("aria-label"));
+            expect(new Set(names).size).toBe(names.length);
             // UIA-KF-269 — no Back or pencil shrinks the producer's Button.
             for (const b of wrapper.findAll("button")) expect(b.classes()).not.toContain("h-auto");
             // UIA-KF-273 / 269 — the entry names the content and is not a hand-rolled focus ring.
@@ -263,7 +271,7 @@ describe("X.KF.W13X.controls — one drill-in owner, one sub-pane header (A2-KE-
             await pencil(wrapper).trigger("click");
             await settle();
             const detail = wrapper.get(".panel-row--detail");
-            await detail.get('button[aria-label="Back to controls"]').trigger("click");
+            await detail.get('button[aria-label^="Back from "]').trigger("click");
             await settle();
             expect(detail.classes()).toContain("panel-row--inactive");
             expect(detail.find(".picker-stub").exists()).toBe(true);
@@ -285,7 +293,7 @@ describe("X.KF.W13X.controls — one drill-in owner, one sub-pane header (A2-KE-
         try {
             await pencil(wrapper).trigger("click");
             await settle();
-            await wrapper.get('.panel-row--detail button[aria-label="Back to controls"]').trigger("click");
+            await wrapper.get('.panel-row--detail button[aria-label^="Back from "]').trigger("click");
             await settle();
             await layerEntry(wrapper).trigger("click");
             await settle();
@@ -306,7 +314,7 @@ describe("X.KF.W13X.controls — the easing editor tells the truth (UIA-KF-165 �
             await settle();
             expect(stored.animationOptions.timingFunction).toBe("ease-in-out");
             expect(wrapper.get("[data-subpane-caption]").text()).toBe("from ease-in-out");
-            await wrapper.get('.panel-row--detail button[aria-label="Back to controls"]').trigger("click");
+            await wrapper.get('.panel-row--detail button[aria-label^="Back from "]').trigger("click");
             await settle();
             expect(stored.animationOptions.timingFunction).toBe("ease-in-out");
             expect(wrapper.find(".gold-shimmer").exists()).toBe(false);
@@ -325,7 +333,7 @@ describe("X.KF.W13X.controls — the easing editor tells the truth (UIA-KF-165 �
             await settle();
             expect(String(stored.animationOptions.timingFunction)).toMatch(/^cubic-bezier\(/);
             expect(wrapper.get("[data-subpane-caption]").text()).toBe("edited");
-            await wrapper.get('.panel-row--detail button[aria-label="Back to controls"]').trigger("click");
+            await wrapper.get('.panel-row--detail button[aria-label^="Back from "]').trigger("click");
             await settle();
             expect(wrapper.find(".gold-shimmer").exists()).toBe(false);
             expect(wrapper.get('[aria-haspopup="dialog"], [data-stub="PopoverTriggerStub"] button').text()).toContain("custom");
