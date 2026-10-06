@@ -18,8 +18,13 @@
              the Instrument-Serif display rung + its COMPLETE re-parseable
              literal (Fira Code + CopyButton, never truncated). The family filter
              lives in the catalogue below (X.KF.W13W.p). -->
-        <header class="gallery-header shrink-0">
-            <div class="gallery-id">
+        <!-- X.KF.W13X.sections (A2-KE-L1-8) — the ONE SceneStageHeader; the
+             title slot keeps the specimen-name swap (a keyed Transition). -->
+        <SceneStageHeader
+            class="gallery-header shrink-0"
+            id-class="flex flex-wrap items-baseline gap-x-3.5 gap-y-1 min-w-0"
+        >
+            <template #title>
                 <Transition name="specimen-name" mode="out-in">
                     <h2
                         :key="demo.currentEasingName.value"
@@ -28,6 +33,8 @@
                         {{ demo.currentEasingName.value }}
                     </h2>
                 </Transition>
+            </template>
+            <template #readouts>
                 <span class="specimen-literal" data-register="code">
                     <!-- UIA-KF-091 — one print per fact: an engine-named
                          curve's literal IS its name (value.js round-trips it
@@ -50,8 +57,8 @@
                          un-do the reshell. -->
                     <CopyButton :text="literal" label="Copy easing literal" />
                 </span>
-            </div>
-        </header>
+            </template>
+        </SceneStageHeader>
 
         <!-- X.KF.W13W.p (OA-58) — the drawer IS the one easing picker
              (`EasingCatalogue`): the family filter (one glass segmented control),
@@ -89,6 +96,7 @@ import {
     steppedEasing,
 } from "@utils/reference-data/timingCurveUtils";
 import { EASING_GROUPS } from "@utils/reference-data/easingGroups";
+import SceneStageHeader from "../SceneStageHeader.vue";
 import { EASING_DEMO_KEY } from "./easingKeys";
 
 const demo = inject(EASING_DEMO_KEY)!;

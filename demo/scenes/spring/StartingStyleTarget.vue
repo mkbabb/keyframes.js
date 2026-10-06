@@ -17,9 +17,14 @@
                  `overflow-wrap: anywhere` is why the title needs no `truncate`.
                  UIA-KF-097 — the header carries the title alone: the emitter is
                  named once, on the artifact trigger below. -->
-            <CardHeader class="w-full max-w-3xl shrink-0 items-center p-0">
-                <CardTitle class="text-display text-foreground">@starting-style</CardTitle>
-            </CardHeader>
+            <!-- X.KF.W13X.sections (A2-KE-L1-8) — the ONE SceneStageHeader (its
+                 title is the same glass CardTitle; the header keeps the Card
+                 header's one-column grid). -->
+            <SceneStageHeader
+                title="@starting-style"
+                class="grid w-full max-w-3xl shrink-0 items-center"
+                id-class="min-w-0"
+            />
 
             <!-- UIA-KF-097 — the demonstrand is the hero: the stage takes the
                  free height, and the verb under it is intrinsic-width. -->
@@ -189,7 +194,8 @@ import { ChevronRight } from "@lucide/vue";
 // for either).
 import { Alert, AlertDescription, AlertTitle, Skeleton } from "@mkbabb/glass-ui";
 import { Button } from "@mkbabb/glass-ui/button";
-import { Card, CardHeader, CardTitle } from "@mkbabb/glass-ui/card";
+import { Card } from "@mkbabb/glass-ui/card";
+import SceneStageHeader from "../SceneStageHeader.vue";
 import { Chip } from "@mkbabb/glass-ui/chip";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@mkbabb/glass-ui/collapsible";
 import type { EntryRefusal } from "@mkbabb/keyframes.js";

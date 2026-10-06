@@ -25,21 +25,27 @@
         <path class="square-tether-line" :d="tetherPath" />
     </svg>
 
-    <div class="square-telemetry" aria-hidden="true">
-        <span class="text-display square-telemetry-title leading-none">{{
-            SQUARE_ANIM_NAME
-        }}</span>
-        <div class="square-telemetry-axes">
-            <span class="text-mono-small text-muted-foreground tabular-nums">x</span>
-            <span class="readout-accent text-mono-small tabular-nums">{{ readoutX }}</span>
-            <span class="text-mono-small text-muted-foreground tabular-nums">y</span>
-            <span class="readout-accent text-mono-small tabular-nums">{{ readoutY }}</span>
-        </div>
-        <span
-            class="status-badge self-start text-mono-micro uppercase px-2 py-0.5 rounded-full"
-            :class="settled ? 'settled-badge' : 'tracking-badge'"
-        >{{ settled ? "settled" : "tracking" }}</span>
-    </div>
+    <!-- X.KF.W13X.sections (A2-KE-L1-8) — the telemetry strip is the ONE
+         SceneStageHeader (title · x/y readouts · status), placed as this
+         instrument's corner chrome; it stays `aria-hidden` decoration. -->
+    <SceneStageHeader
+        :title="SQUARE_ANIM_NAME"
+        :status="settled ? 'settled' : 'tracking'"
+        class="square-telemetry"
+        aria-hidden="true"
+        title-class="square-telemetry-title leading-none"
+        id-class="flex flex-col gap-1"
+        aside-class="flex flex-col items-start"
+    >
+        <template #readouts>
+            <div class="square-telemetry-axes">
+                <span class="text-mono-small text-muted-foreground tabular-nums">x</span>
+                <span class="readout-accent text-mono-small tabular-nums">{{ readoutX }}</span>
+                <span class="text-mono-small text-muted-foreground tabular-nums">y</span>
+                <span class="readout-accent text-mono-small tabular-nums">{{ readoutY }}</span>
+            </div>
+        </template>
+    </SceneStageHeader>
 
     <div class="square-legend" aria-hidden="true">
         <!-- T.A13 + T.B3 (fold row 69) — the stage caption naming the live
@@ -73,6 +79,7 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
+import SceneStageHeader from "../SceneStageHeader.vue";
 import { SQUARE_ANIM_NAME } from "./squareKeys";
 
 /**
@@ -308,7 +315,8 @@ const tetherPath = computed(() => {
        what you can read. */
     z-index: calc(var(--z-content, 1) + 1);
 }
-.square-telemetry-title {
+/* The title renders inside SceneStageHeader, out of this file's scope. */
+.square-telemetry :deep(.square-telemetry-title) {
     color: var(--foreground);
     opacity: 0.92;
 }

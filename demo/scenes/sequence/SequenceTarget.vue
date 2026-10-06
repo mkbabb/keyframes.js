@@ -26,11 +26,15 @@
                  truncates and the Metric holds its own tabular slot, so a growing
                  clock never reflows the card mid-play (UIA-KF-211; the 390 header
                  was five wrapped lines). -->
-            <div class="seq-header flex flex-nowrap items-center justify-between gap-3 px-4 py-2.5 border-b border-border/40 shrink-0">
-                <div class="flex flex-nowrap items-baseline gap-3 min-w-0">
-                    <!-- The scene name is the card's heading (D-5): an `h2`, so the
-                         outline names the storyboard. -->
-                    <h2 class="text-display text-foreground truncate m-0 min-w-0">Sequence</h2>
+            <!-- X.KF.W13X.sections (A2-KE-L1-8) — the ONE SceneStageHeader. -->
+            <SceneStageHeader
+                title="Sequence"
+                class="seq-header flex flex-nowrap items-center justify-between gap-3 px-4 py-2.5 border-b border-border/40 shrink-0"
+                title-class="truncate m-0 min-w-0"
+                id-class="flex flex-nowrap items-baseline gap-3 min-w-0"
+                aside-class="shrink-0"
+            >
+                <template #readouts>
                     <Metric
                         size="md"
                         label="clock"
@@ -39,27 +43,29 @@
                         class="readout-accent shrink-0"
                         data-readout="primary"
                     />
-                </div>
-                <!-- EE-SEQ-1 "the reel" — the discoverable twin of the hidden
-                     typed "reel" trigger: cascading-wave overshoot replay.
-                     THE STATE SIGNAL (kf-SequenceTarget ST-4 · D-9 · D-15 · ST-2 ·
-                     ST-10 · C-2; KFA-220): the reel's running state IS the
-                     Button's shipped `loading` contract — it emits `aria-busy`,
-                     shows the busy glyph in the header and suppresses activation,
-                     which is the announcement, the affordance and the visible form
-                     of `playReel`'s lock in one binding. -->
-                <Button
-                    size="xs"
-                    icon-only
-                    class="shrink-0"
-                    :loading="demo.isReeling.value"
-                    aria-label="Play the reel — a cascading wave replay"
-                    title="Play the reel"
-                    @click="demo.playReel()"
-                >
-                    <Clapperboard class="w-3.5 h-3.5" />
-                </Button>
-            </div>
+                </template>
+                <template #aside>
+                    <!-- EE-SEQ-1 "the reel" — the discoverable twin of the hidden
+                         typed "reel" trigger: cascading-wave overshoot replay.
+                         THE STATE SIGNAL (kf-SequenceTarget ST-4 · D-9 · D-15 · ST-2 ·
+                         ST-10 · C-2; KFA-220): the reel's running state IS the
+                         Button's shipped `loading` contract — it emits `aria-busy`,
+                         shows the busy glyph in the header and suppresses activation,
+                         which is the announcement, the affordance and the visible form
+                         of `playReel`'s lock in one binding. -->
+                    <Button
+                        size="xs"
+                        icon-only
+                        class="shrink-0"
+                        :loading="demo.isReeling.value"
+                        aria-label="Play the reel — a cascading wave replay"
+                        title="Play the reel"
+                        @click="demo.playReel()"
+                    >
+                        <Clapperboard class="w-3.5 h-3.5" />
+                    </Button>
+                </template>
+            </SceneStageHeader>
 
             <!-- ── THE STORYBOARD — the subject, and only the subject ──
                  X.KF.W13X.sequence (A2-KE-L3-7 · one primary per region): the Timeline pane's
@@ -132,6 +138,7 @@ import { useTypedTrigger } from "./useTypedTrigger";
 import { Button, Card } from "@mkbabb/glass-ui";
 // Glass 7 canonical poster-metric primitive.
 import { Metric } from "@mkbabb/glass-ui/metric";
+import SceneStageHeader from "../SceneStageHeader.vue";
 import { Clapperboard } from "@lucide/vue";
 
 import { SEQUENCE_DEMO_KEY } from "./sequenceKeys";

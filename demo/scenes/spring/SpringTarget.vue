@@ -49,53 +49,35 @@
              intra-repo divergence, not a house style, so the house's own shape is
              adopted: the scene name was already rendered at the display rung in a
              bare `<span>`; it becomes the heading it was drawn as. -->
-        <header class="spring-header flex w-full max-w-3xl flex-wrap items-end justify-between gap-3 gap-y-2 shrink-0">
-            <div class="flex flex-col gap-1 min-w-0">
+        <!-- X.KF.W13X.sections (A2-KE-L1-8) — the stage header is the ONE
+             SceneStageHeader: the title is its glass section title, the badge
+             (D-14: the region that publishes settled ↔ tracking, flipping only
+             on a discrete transition) is its `status`, authored once there. -->
+        <SceneStageHeader
+            title="Spring"
+            :status="stateLabel"
+            class="spring-header flex w-full max-w-3xl flex-wrap items-end justify-between gap-3 gap-y-2 shrink-0"
+            title-class="truncate leading-none"
+            id-class="flex flex-col gap-1 min-w-0"
+            aside-class="flex flex-col items-end gap-1 shrink-0"
+        >
+            <template #readouts>
                 <!-- X.KF.W13V.y (OA-51; DESIGN-NOTE N-3 · N-6) — the title is the
-                     thing measured in plain words (it read the engine class name,
-                     `SpringProgress`); the ball's position is the stage's ONE
-                     primary readout, everything else on the stage is muted. -->
-                <h2 class="text-display text-foreground truncate leading-none">
-                    Spring
-                </h2>
+                     thing measured in plain words; the ball's position is the
+                     stage's ONE primary readout, everything else is muted. -->
                 <div class="flex items-baseline gap-2">
                     <span class="text-small text-muted-foreground">position</span>
                     <span class="spring-readout-primary tabular-nums" data-readout="primary">{{ demo.liveValue.value.toFixed(3) }}</span>
                 </div>
-            </div>
-            <div class="flex flex-col items-end gap-1 shrink-0">
-                <!-- D-14 — the one DISCRETE, high-salience state change in the
-                     scene (settled ↔ tracking) had no `role="status"` and no live
-                     region, so the single fact a non-visual user most needs from
-                     an instrument — has it come to rest — was published nowhere.
-                     `aria-valuenow` cannot carry it: that tracks the COMMANDED
-                     value and says nothing about settling. The badge is the state,
-                     so the badge becomes the region. The surrounding 6 Hz restraint
-                     is deliberately preserved: this flips on a discrete transition,
-                     never per readout tick.
-                     Gesture spec 6 — and it is where the derby announces itself,
-                     since the lane overlay is (correctly) `aria-hidden`
-                     decoration and four racing balls are not a thing to narrate. -->
-                <span
-                    class="status-badge text-mono-micro uppercase px-2 py-0.5 rounded-full"
-                    :class="stateLabel === 'settled' ? 'settled-badge' : 'tracking-badge'"
-                    role="status"
-                >{{ stateLabel }}</span>
-                <!-- N-2 — `text-mono-caption` carries `text-transform: uppercase`
-                     at the installed pin, so this scene's three-symbol vocabulary
-                     was being corrupted by its own type utility: the velocity
-                     label "v" rendered as "V". The transform-free sibling rung
-                     `text-mono-small` is what the "x" label two rows above already
-                     uses, so this is a divergence inside one readout, not a house
-                     choice. (The third site — SpringTrace's ζ rendering as the
-                     Greek CAPITAL zeta, a different character that reads as a
-                     Latin Z, in the one place the plot names its own parameter —
-                     is `.e`'s file and is named to `.e`, not reached across.) -->
+            </template>
+            <template #aside>
+                <!-- N-2 — `text-mono-small` (transform-free): the velocity
+                     label must not render as "V". -->
                 <span class="text-mono-small text-muted-foreground tabular-nums">
                     velocity {{ demo.liveVelocity.value.toFixed(2) }}
                 </span>
-            </div>
-        </header>
+            </template>
+        </SceneStageHeader>
 
         <!-- The rail: tap/drag to re-seat the live target -->
         <div class="flex w-full max-w-3xl flex-col items-center justify-center gap-6">
@@ -302,6 +284,7 @@ import { computed, inject, onMounted, onScopeDispose, useTemplateRef } from "vue
 import { Card } from "@mkbabb/glass-ui";
 import { Button } from "@mkbabb/glass-ui/button";
 import { Shuffle } from "@lucide/vue";
+import SceneStageHeader from "../SceneStageHeader.vue";
 import { clamp } from "@mkbabb/value.js/math";
 import { useDragScrub } from "@composables/useDragScrub";
 import { useDoubleTap } from "@composables/useDoubleTap";

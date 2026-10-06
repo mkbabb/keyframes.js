@@ -16,13 +16,9 @@
     gap: 0.5rem 1.5rem;
 }
 
-.gallery-id {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: 0.25rem 0.875rem;
-    min-width: 0;
-}
+/* The identity column (title + literal) is SceneStageHeader's `idClass`
+   (flex · wrap · baseline · 0.25rem 0.875rem gap · min-width 0): it renders
+   inside the shared header, out of this file's scope (X.KF.W13X.sections). */
 
 .specimen-name {
     line-height: 1.05;
