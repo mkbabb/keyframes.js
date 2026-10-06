@@ -87,7 +87,12 @@
              The row's second clause is PRODUCER-SIDE and stays declared: the
              same rule sets `pointer-events: none`, so its `cursor: not-allowed`
              can never paint and `:hover` never engages. Not cured demo-side. -->
-        <div class="flex items-center justify-end gap-1">
+        <!-- X-DS pass 1 (KF-P1-17) — the row LEADS with the pane's name (the
+             Keyframes pane's own title rung): it was four right-aligned glyphs
+             over an empty left half, so the cluster floated and the pane never
+             named itself. -->
+        <div class="flex items-center gap-1">
+            <h3 class="text-subheading mr-auto min-w-0 truncate">Timeline</h3>
             <!-- Undo / redo (F.W14.S2) — the discoverable affordance for the
                  Mod+Z / Mod+Shift+Z bindings; bounded by the same canUndo/canRedo
                  history state. Sits in the timeline card (not over the dock band),

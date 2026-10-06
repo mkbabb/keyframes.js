@@ -58,14 +58,12 @@ Color is named by role, never by a new call-site literal.
   values are not theme signals to be casually retuned; an arm moves only for a
   measured ink failure, and the axis tokens (`--axis-x/y/z`) follow the same
   rule.
-* **Material is not a crayon.** Lighting gets a named material register,
-  defined in `design-idioms.css` as theme pairs: `--specular` is the
-  foreground/highlight pair (`light-dark(white, var(--foreground))`) and
-  `--shade` is the background/shadow pair (`light-dark(var(--background),
-  black)`). The sequence playhead cap consumes `--specular`; the cube face
-  sheen/shade gradients are the register's next consumer (their literals are
-  the cube packet's to fold). A literal is permitted only inside the material
-  token definition; a new lighting effect consumes the pair.
+* **Lighting is flat (X-DS, value.js COHESION §0ej/§0ek).** The demo authors no
+  lighting: no specular, sheen, veil, glow halo, coloured drop-glow or inset
+  catch-light on chrome or subject. The `--specular`/`--shade` material register
+  and the cube's lit lacquer it fed are deleted; the cube's faces are flat
+  crayons with a fixed per-face tonal step. Glass's own material (one quiet
+  edge) is glass's to tune, never overridden here (O-87).
 
 Signal tokens belong in `demo/styles/design-idioms.css`; geometry belongs in
 `demo/styles/layout.css`. Both sheets are imported after glass-ui's cascade, so

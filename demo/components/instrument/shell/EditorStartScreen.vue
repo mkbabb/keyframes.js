@@ -127,15 +127,7 @@
              phone column can stack it BELOW the cube (the headline sits
              above); on desktop the block flows exactly as the two lines did. -->
         <div class="hero-sub">
-            <!-- X.KF.W13X.mobile (A2-KE-L3-10 + A2-KE-L2-5) — the title-wave
-                 pause sits INLINE at the end of the deck line (it was alone on
-                 a row ~250px under the headline it controls), and it takes
-                 pointer input: the band is ink (`pointer-events: none`,
-                 inherited from the shell's start-screen wrapper), so the one
-                 control in it re-enables its own hit-testing, the TD-36 dock
-                 idiom — a tap flips aria-pressed on a phone. -->
-            <div class="hero-deck-line">
-                <h2 class="start-screen-prose hero-deck">
+            <h2 class="start-screen-prose hero-deck">
                     from the list
                     <!-- KF-EST-10 — the glyph is voiced as a WORD in a deck whose law is
                          "no weight above 400": Lucide's default stroke scales with the
@@ -145,30 +137,37 @@
                          not scale with size. -->
                     <List class="hero-deck-icon inline" aria-hidden="true" absolute-stroke-width />
                     below, then press Play.
-                </h2>
-                <Button
-                    size="sm"
-                    emphasis="quiet"
-                    icon-only
-                    class="hero-motion-toggle pointer-events-auto"
-                    aria-label="Pause the title animation"
-                    :aria-pressed="wavePaused"
-                    @click="wavePaused = !wavePaused"
-                >
-                    <Waves v-if="wavePaused" class="icon-md" aria-hidden="true" />
-                    <Pause v-else class="icon-md" aria-hidden="true" />
-                </Button>
-            </div>
+            </h2>
             <h2 v-if="hint" class="start-screen-prose hero-hint">
                 {{ hint }}
             </h2>
+            <!-- X-DS pass 1 (KF-P1-15) — the title-wave pause is a LABELLED
+                 control on its own line under the hint. It was an unlabelled
+                 pause glyph at the end of "…then press Play." (it read as a
+                 stray pause mark, or as the Play control itself; at 390 it sat
+                 alone at the far edge). The label is the control's name, the
+                 glyph rides inside it, and pressed = paused. It takes pointer
+                 input: the band is ink (`pointer-events: none`, inherited from
+                 the shell's start-screen wrapper), so the one control in it
+                 re-enables its own hit-testing (the TD-36 dock idiom). -->
+            <Button
+                size="sm"
+                emphasis="quiet"
+                class="hero-motion-toggle pointer-events-auto"
+                aria-label="Pause the title animation"
+                :aria-pressed="wavePaused"
+                @click="wavePaused = !wavePaused"
+            >
+                <Pause aria-hidden="true" />
+                <span>Pause the title animation</span>
+            </Button>
         </div>
     </div>
 </template>
 
 <script setup lang="ts">
 import { Button } from "@mkbabb/glass-ui/button";
-import { List, Pause, Waves } from "@lucide/vue";
+import { List, Pause } from "@lucide/vue";
 import { ref } from "vue";
 import AnimatedText from "./AnimatedText.vue";
 import TypingDots from "./TypingDots.vue";
@@ -310,14 +309,8 @@ h1.hero-display {
    KF-EST-20 — the inert `w-full` utilities are gone from both `<h2>`s: a block
    element already fills its container's inline axis, and neither was overriding
    anything. */
-.hero-deck-line {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-block-start: 0.75rem;
-}
-
 .hero-deck {
+    margin-block-start: 0.75rem;
     font-family: var(--font-display);
     font-style: italic;
     font-weight: 400;
@@ -339,7 +332,7 @@ h1.hero-display {
 
 /* KFA-134 — the wave's pause sits under the hint, quiet, on its own line. */
 .hero-motion-toggle {
-    flex-shrink: 0;
+    margin-block-start: 0.5rem;
 }
 
 /* The engine-dogfooded ellipsis host: the THREE DOTS are one unbreakable
@@ -441,9 +434,6 @@ h1.hero-display {
         font-size: clamp(1.5rem, 5.4cqi, var(--type-title));
     }
 
-    .hero-deck-line {
-        justify-content: center;
-    }
 }
 
 /* X.KF.W13X.mobile (A2-KE-L2-4) — THE SHORT PHONE (landscape, block size

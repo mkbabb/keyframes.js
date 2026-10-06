@@ -1,29 +1,29 @@
 /**
  * S.B7 · S4 — Cube scene composable coverage (a25 F1 · fold row 40).
  *
- * Locks `useCubeRelit` — the orientation-coupled re-lighting model (the light is
- * pinned in the room; the die turns under it, faces toward the key light
- * brighten). The `faceLit` computed is a pure function of the live rotation, so
- * it asserts deterministically without a rAF. References the scene's
- * animation-name registry (`useCubeDemo`, renamed from `useCubeAnimations` at
- * S.D4, C-17) + transport key (`cubeKeys`) so a rename reds here.
+ * X-DS pass 1 (KF-P1-02; value.js X-DS.md, COHESION §0ej/§0ek) — the
+ * orientation-coupled re-lit die (`useCubeRelit`: a pinned key light, per-face
+ * `--lit`, a specular sweep and a veil) is DELETED with the lit-lacquer
+ * material; its coverage is retired here in the same motion (never assert a
+ * tell the source no longer emits) and replaced by the flat-face falsifier
+ * below: the die's faces carry no lighting and their one tonal step is fixed
+ * per face. What survives of the module is the stage attitude
+ * (`graphAttitude.ts`), still locked here. References the scene's
+ * animation-name registry (`useCubeDemo`) + transport key (`cubeKeys`) so a
+ * rename reds here.
  *
  * T.A1/T.A2 — the `--spin-energy` bloom (spinEnergy/flashRoll/disposeFlash) and
  * the on-stage `euler` attitude readout were DELETED (verdict #1 / rulings
- * #5/#8); their coverage is retired here in the same motion (never assert a tell
- * the source no longer emits).
+ * #5/#8); their coverage is retired here in the same motion.
  */
 import { describe, expect, it } from "vitest";
-import { mat4 } from "gl-matrix";
-import { ref } from "vue";
-import type { TransformState } from "../../../demo/scenes/cube/orbital-drag";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import {
-    FACE_NORMALS,
     GRAPH_ATTITUDE,
     graphAttitudeCss,
     rotateByAttitude,
-    useCubeRelit,
-} from "../../../demo/scenes/cube/useCubeRelit";
+} from "../../../demo/scenes/cube/graphAttitude";
 import { sceneMap } from "../../../demo/app/scene/scenes";
 import { CUBE_ANIMATION_NAMES } from "../../../demo/scenes/cube/cubeMotion";
 import { CUBE_SCENE_ID } from "../../../demo/scenes/cube/cubeKeys";
@@ -34,61 +34,39 @@ import {
     withMatrixCell,
 } from "../../../demo/scenes/cube/matrix-editor/transformMath";
 
-const restTransform = (rotate = { x: 0, y: 0, z: 0 }): TransformState => ({
-    rotate,
-    translate: { x: 0, y: 0, z: 0 },
-    scale: { x: 1, y: 1, z: 1 },
-    matrix: mat4.create(),
-});
+const CUBE = resolve(__dirname, "../../../demo/scenes/cube");
+const stripComments = (src: string) =>
+    src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/<!--[\s\S]*?-->/g, "").replace(/^\s*\/\/.*$/gm, "");
 
-describe("useCubeRelit — the orientation-coupled relight", () => {
-    it("FACE_NORMALS is six axis-aligned unit outward normals", () => {
-        expect(FACE_NORMALS).toHaveLength(6);
-        for (const n of FACE_NORMALS) {
-            expect(Math.hypot(n[0], n[1], n[2])).toBeCloseTo(1, 10);
-        }
-        // Front (+Z) and back (−Z) are opposite.
-        expect(FACE_NORMALS[0]).toEqual([0, 0, 1]);
-        expect(FACE_NORMALS[2]).toEqual([0, 0, -1]);
+describe("KF-P1-02 — the die's faces are flat crayons", () => {
+    const css = stripComments(readFileSync(resolve(CUBE, "CubeTarget.css"), "utf8"));
+    const vue = stripComments(readFileSync(resolve(CUBE, "CubeTarget.vue"), "utf8"));
+
+    it("no lighting is authored on a face: no gradient, shadow, specular or veil", () => {
+        expect(css).not.toMatch(/gradient\(/);
+        expect(css).not.toMatch(/box-shadow/);
+        expect(css).not.toMatch(/face-lacquer|face-relit|--lit\b/);
+        expect(vue).not.toMatch(/face-lacquer|face-relit|--lit\b|faceLit|useCubeRelit/);
     });
 
-    it("at rest the light-facing front is brighter than the shadowed back", () => {
-        const { faceLit } = useCubeRelit(ref(restTransform()), GRAPH_ATTITUDE);
-        const front = Number(faceLit.value[0]);
-        const back = Number(faceLit.value[2]);
-        // Key light has a +Z component → +Z face lit, −Z face sunk.
-        expect(front).toBeGreaterThan(back);
-        // Every litness is a clamped [0,1] string.
-        for (const s of faceLit.value) {
-            const v = Number(s);
-            expect(v).toBeGreaterThanOrEqual(0);
-            expect(v).toBeLessThanOrEqual(1);
-        }
-    });
-
-    it("faceLit re-lights reactively as the die turns", () => {
-        const t = ref(restTransform({ x: 10.4, y: 20.6, z: -3.5 }));
-        const { faceLit } = useCubeRelit(t, GRAPH_ATTITUDE);
-        const before = faceLit.value[0];
-        // Turn the die a quarter — the computed relights.
-        t.value = restTransform({ x: 90, y: 0, z: 0 });
-        expect(faceLit.value[0]).not.toBe(before);
-    });
-
-    it("faceLit is quantized to 2 decimals (T.A5 — write-count reduction)", () => {
-        const { faceLit } = useCubeRelit(ref(restTransform()), GRAPH_ATTITUDE);
-        for (const s of faceLit.value) {
-            // toFixed(2) — at most two fractional digits (never three).
-            expect(s).toMatch(/^\d(\.\d{1,2})?$/);
-        }
+    it("the one tonal step is FIXED per face class, never driven by the rotation", () => {
+        const fill = css.match(/\.face-fill\s*\{([^}]*)\}/)![1]!;
+        expect(fill).toMatch(/background-color:\s*color-mix\(\s*in oklab,\s*var\(--face-crayon\)/);
+        // The step is a class-keyed custom property (top / bottom / sides)…
+        expect(css).toMatch(/\.cube-side\.top\s*\{[^}]*--face-step:\s*8%/);
+        expect(css).toMatch(/\.cube-side\.bottom\s*\{[^}]*--face-step:\s*8%/);
+        expect(css).toMatch(/\.cube-side\.left,\s*\.cube-side\.right\s*\{[^}]*--face-step:\s*4%/);
+        // …and nothing in the component writes it (no inline, no script).
+        expect(vue).not.toMatch(/--face-step/);
+        // The crayons stay the six named tokens (identity, §0dm).
+        for (let n = 1; n <= 6; n++) expect(vue).toContain(`var(--face-${n})`);
     });
 });
 
 describe("the stage attitude is single-sourced (#56)", () => {
-    it("the CSS the PRM arm snaps to is the attitude the relight is given", () => {
+    it("the CSS the PRM arm snaps to is the one authored attitude", () => {
         // The eased intro's end keyframe, the reduced-motion snap and the
-        // lighting model's room hop all read ONE constant; a drift between them
-        // is a light pinned to a stage that is somewhere else.
+        // axis-reveal geometry all read ONE constant.
         expect(graphAttitudeCss()).toBe("rotate3d(-1, 1, 0, 30deg)");
         expect(graphAttitudeCss(GRAPH_ATTITUDE)).toBe(graphAttitudeCss());
     });

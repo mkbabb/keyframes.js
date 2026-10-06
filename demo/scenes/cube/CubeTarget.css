@@ -2,44 +2,28 @@
    sources this file). Carved at the ⑨/⑩ ceiling tripwire: the style tier is the
    component's natural concern seam (the ControlsPaneWrapper/AnimationControlsGroup
    sourced-stylesheet precedent, S.D2/S.A0). */
-/* L.W11.S2 — register --lit (re-lit luminance) so it INTERPOLATES between ticks.
-
-   KF.W6 W6-H, the cube unit's token dispositions, recorded at the bytes so no
-   later seat re-opens them or "tidies" them into a divergent edit:
+/* KF.W6 W6-H, the cube unit's token dispositions, recorded at the bytes so no
+   later seat re-opens them or "tidies" them into a divergent edit. (X-DS pass 1,
+   KF-P1-02: the `@property --lit` registration that stood here — the re-lit
+   luminance channel — is DELETED with the re-light; rows #30/#59 below now
+   speak of `--axis-active` alone.)
 
    · #30 — a `@property` inside `<style scoped>` registers DOCUMENT-WIDE; scoping
-     styles the selectors, never the registration. `--lit` here and
-     `--axis-active` in CubeAxisLines are therefore global names, and they are
-     the most generic names in the scene tree. RETAINED-BY-POLICY: the demo's
+     styles the selectors, never the registration. `--axis-active` in
+     CubeAxisLines is therefore a global name. RETAINED-BY-POLICY: the demo's
      override posture is deliberate (design-idioms.css:9-11) and PREFIXING is
-     reserved for a SHOWN two-producer collision with a measured consequence —
-     no glass-ui token of either name exists, so there is nothing to collide
-     with today. A prefix move here would have to re-register both properties,
-     which is why the disposition is written down rather than left to a sweep.
+     reserved for a SHOWN two-producer collision with a measured consequence.
    · #59 — a registered property with an `initial-value` SUBSTITUTES that value
-     when unset, so a `var(--lit, 0.5)` fallback arm can never be selected. The
-     four such arms in this unit (:132, :138, :139 here; :53/:55/:56 in
-     CubeAxisLines) are inert by construction. NO-SURFACE, not a delete: the
-     arms are kept because deleting defensive code that costs nothing invites
-     the divergent edit the row warns about, and the row is NO-WAVE-OWNER.
+     when unset, so a `var(--axis-active, …)` fallback arm can never be selected.
    · #39 — this unit reaches four producer tokens with no fallback
      (`--background`, `--z-content`, `duration-panel`, `text-display-2`). That
      is the demo's posture, not an oversight (the wave's coupling probe counts
      dozens of such names demo-wide); recorded as the cascade-exposure
      annotation the row asks for, never re-booked as a defect.
-   · #60 — SPENT at W6-J, one motion for the whole family: the raw `160ms`
-     below and the three `180ms` in CubeAxisLines both take the producer's
-     `--duration-fast` rung, so no declaration in this unit mixes a hand-fit
-     duration with a tokenised easing any more.
-   · #24 — the unlayered `transition:` shorthand below wins over the utility
-     layer and clobbers `transition-[background-color,opacity] duration-panel`
-     at the markup. NO-WAVE-OWNER, untouched: this wave changes no transition
-     shape here, so the clobber is neither cured nor deepened. */
-@property --lit {
-    syntax: "<number>";
-    inherits: true;
-    initial-value: 0.5;
-}
+   · #60 / #24 — the `transition: --lit …` shorthand those rows spoke of is
+     DELETED with the re-light (X-DS pass 1), so the markup's own
+     `transition-[background-color,opacity] duration-panel` utility is no
+     longer clobbered. */
 /* P.W5.S3 — the axis-lock reveal (@property --axis-active + the .axis-line
    styles) lives in the colocated CubeAxisLines sub-unit, beside its markup. */
 
@@ -128,13 +112,6 @@
        of the page ground under each face keeps the crayon's composited colour
        exactly what it was over the ground, and nothing behind reads through. */
     background-color: var(--background);
-    /* L.W11.S2 — smooth the per-face re-light between rotation ticks (the
-       registered @property --lit interpolates at the rotation cadence).
-       KF-AX-15 ≡ #60 — the raw `160ms` takes the family's one rung,
-       `--duration-fast: 0.2s` (decided in the same motion as the three
-       `180ms` in `CubeAxisLines.vue`); `linear` stays, because a re-light
-       tracking a rotation cadence is not eased. */
-    transition: --lit var(--duration-fast) linear;
     /* G5: the faces carry a STATIC per-face transform (they never re-transform —
        only the parent .cube/.idle-hover/OrbitalDrag container animates), so the
        former resident `will-change: transform` here pinned six permanent
@@ -161,61 +138,34 @@
     }
 }
 
-/* L.W11.S2 — the lit-lacquer MATERIAL: a glossy lacquer read over the inline
-   crayon backgroundColor (LUMINANCE-only — proof:crayon-preserved unaffected). */
-.face-lacquer {
+/* X-DS pass 1 (KF-P1-02) — the FLAT crayon face (the ORIGIN die, `1acf25c6`:
+   six flat faces, `backgroundColor: side.color`, no lighting model). The
+   L.W11 lit-lacquer gloss (a 145° white→black sheen + two inset catch-lights)
+   and the orientation-coupled re-light (a radial specular + a --background
+   veil keyed to --lit) are DELETED. The one tonal step is FIXED per face — top
+   a touch lighter, bottom and the sides a touch darker — so the die still reads
+   as a solid; it is keyed to the face, never to the rotation. The crayon hue
+   is the face's own token (--face-n, §0dm identity), mixed by lightness only. */
+.face-fill {
     position: relative;
     overflow: hidden;
     border-radius: inherit;
-    /* a fixed diagonal lacquer sheen over the crayon backgroundColor */
-    background-image: linear-gradient(
-        145deg,
-        rgba(255, 255, 255, 0.22) 0%,
-        rgba(255, 255, 255, 0) 38%,
-        rgba(0, 0, 0, 0.14) 100%
+    background-color: color-mix(
+        in oklab,
+        var(--face-crayon),
+        var(--face-step-ink, black) var(--face-step, 0%)
     );
-    box-shadow:
-        inset 0 1px 0 0 rgba(255, 255, 255, 0.28),
-        inset 0 0 0 1px rgba(255, 255, 255, 0.1);
 }
-
-/* The re-lit overlay: highlight rises with --lit (face toward the light), shadow
-   veil deepens as it falls. The crayon is never recolored — only lit.
-
-   KF.W6 #8 — DECLARED, NOT CURED, and routed rather than patched here. The
-   "shadow" veil below mixes `--background`, so in the LIGHT arm — which is the
-   default arm — it mixes toward the page's near-white and an AWAY face renders
-   BRIGHTER than a lit one: the lighting model inverts its own sign. The banked
-   cure is a veil that is DARK IN BOTH ARMS, and no such token exists to consume:
-   the material register (design-idioms.css) pairs `--specular`
-   (light-dark(white, --foreground) — light in both arms, correct for the sweep
-   above) with `--shade` (light-dark(--background, black)), whose LIGHT arm is
-   the very token this row convicts; glass's own `--shadow-color` is
-   `var(--foreground)` and flips with the theme too. Spelling a raw `black` at
-   this call site would breach the register's own law (DESIGN.md §2: a literal is
-   permitted only inside the material token definition) and re-author demo-side
-   what a register should own. So the cure needs ONE new register member, its
-   definition site is the demo's sheet rather than this scene's scoped block, and
-   that sheet is outside this unit's §Bounds. Routed upward with the two rows
-   that wait on the same member: the `.face-lacquer` shade stop above and the
-   amiga stage's ground stop. The sheen half of DESIGN.md §2's hand-off is held
-   with it so the register is decided ONCE, not half here and half later.
-   Rendered magnitude stays KF.W9's. */
-.face-relit {
-    border-radius: inherit;
-    background:
-        /* upper-right specular sweep, strengthening toward the light */
-        radial-gradient(
-            120% 120% at 78% 18%,
-            rgba(255, 255, 255, calc(0.05 + 0.5 * var(--lit, 0.5))) 0%,
-            rgba(255, 255, 255, 0) 52%
-        ),
-        /* a --background-tinted shadow veil that lifts as the face turns away */
-        linear-gradient(
-            180deg,
-            color-mix(in srgb, var(--background) calc((1 - var(--lit, 0.5)) * 46%), transparent) 0%,
-            color-mix(in srgb, var(--background) calc((1 - var(--lit, 0.5)) * 62%), transparent) 100%
-        );
+.cube-side.top {
+    --face-step: 8%;
+    --face-step-ink: white;
+}
+.cube-side.bottom {
+    --face-step: 8%;
+}
+.cube-side.left,
+.cube-side.right {
+    --face-step: 4%;
 }
 
 /* The face numeral rides the content plane (z off the named --z-* scale). */
@@ -227,6 +177,6 @@
    `::after` halo, driven by the deleted velocity-coupled luminance var) is GONE.
    `filter` is a CSS grouping property → it forced `.cube`'s USED `transform-style`
    to `flat`, collapsing the six 3D faces onto one plane (only face 1 survived —
-   verdict #1). The re-light (`--lit`) + lacquer sheen carry the depth; no
+   verdict #1). The fixed per-face tonal step carries the depth; no
    compensating ancestor shadow is re-introduced (any ancestor in the 3D chain
    re-flattens). */

@@ -415,7 +415,6 @@ watch(
 }
 .tile-ball {
     --ball-size: 14px;
-    --ball-glow: 28%;
 }
 [data-density="menu"] .tile-ball {
     --ball-size: 10px;

@@ -30,6 +30,8 @@
  *   node scripts/ds-census.mjs --routes home   (a historical one-page build)
  *   node scripts/ds-census.mjs --frames DIR    also save one frame per page
  *                                              (<route>-<width>-<scheme>.png)
+ *   node scripts/ds-census.mjs --settle 6000   per-page settle in ms (default
+ *                                              2200; raise it on a loaded host)
  *   KF_PLAYWRIGHT_DIR=/path                    where to resolve playwright from
  */
 import fs from "node:fs";
@@ -49,6 +51,10 @@ const BASE = opt("--base", "http://localhost:5173/");
 const WIDTHS = opt("--widths", "1440").split(",").map(Number);
 const OUT = opt("--out", null);
 const FRAMES = opt("--frames", null);
+// The per-page settle before the read (ms). The default suits an idle machine;
+// under load a route transition can still be cross-fading at 2.2 s, which
+// double-counts two routes in one page.
+const SETTLE = Number(opt("--settle", "2200"));
 const ROUTES = opt("--routes", "home,cube,amiga,square,easing,spring,sequence")
     .split(",")
     .map((r) => (r === "home" ? "" : r));
@@ -352,7 +358,7 @@ async function computedCensus() {
                 for (const route of ROUTES) {
                     const url = new URL(`#/${route}`, BASE).toString();
                     await page.goto(url, { waitUntil: "load" });
-                    await page.waitForTimeout(2200);
+                    await page.waitForTimeout(SETTLE);
                     const r = await page.evaluate(pageCensus);
                     if (FRAMES) {
                         fs.mkdirSync(FRAMES, { recursive: true });

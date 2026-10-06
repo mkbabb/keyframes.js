@@ -18,8 +18,7 @@
  *    files, never edited, never restated). The whole corpus's deepest error was
  *    arguing this component's geometry in a frame the app shows for 650 ms.
  *  · KF-AX-14 / -16 / -23 — one boolean drives one class; the three strokes come
- *    from the owner's own `axes` tuple; the fragment is `aria-hidden` like its
- *    `face-relit` sibling.
+ *    from the owner's own `axes` tuple; the fragment is `aria-hidden`.
  *
  * No source text is read and no CSS is asserted by string: the style rows
  * (KF-AX-8/-9/-13/-17/-21) ride byte clauses in the wave record, because a test
@@ -41,7 +40,7 @@ import {
     GRAPH_ATTITUDE,
     rotateByAttitude,
     type GraphAttitude,
-} from "../../../demo/scenes/cube/useCubeRelit";
+} from "../../../demo/scenes/cube/graphAttitude";
 
 /** The stage attitude at the FIRST frame of the 650 ms intro sweep: identity. */
 const MOUNT_T0: GraphAttitude = { axis: [0, 0, 0], angleDeg: 0 };

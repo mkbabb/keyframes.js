@@ -5,21 +5,11 @@
          header carries the animation's name as authored (`Spring Keyframes`,
          not the buffer's CSS ident) — the region's accessible name —
          and one status line (parsed · parse error · applied) announced
-         politely where it changes, beside the buffer it describes. -->
+         politely where it changes, beside the buffer it describes.
+         X-DS pass 1 (KF-P1-16) — the header is the code well's FIRST ROW,
+         inside the card (the editor's `#header` slot), under a hairline: it
+         hung on the page grid above the card, anchored to no surface. -->
     <section class="min-w-0" :aria-labelledby="headingId">
-        <header class="flex items-center justify-between gap-2 pb-2">
-            <h3 :id="headingId" class="text-subheading min-w-0 truncate">
-                {{ animationName }}
-            </h3>
-            <span
-                role="status"
-                aria-live="polite"
-                class="text-caption text-muted-foreground flex shrink-0 items-center gap-1.5"
-            >
-                <StatusDot :state="paneStatus.dot" size="sm" motion="off" />
-                {{ paneStatus.text }}
-            </span>
-        </header>
         <!-- D-4 (X.KF.W12.e) — the editor WELL is the parse-error shake's
              target: the element whose buffer failed to parse is the element
              that moves. The preset used to be constructed target-less. -->
@@ -33,7 +23,23 @@
                 :line-numbers="true"
                 :border="true"
                 @update:model-value="onEditorChange"
-            />
+            >
+                <template #header>
+                    <header class="flex items-center justify-between gap-2 border-b border-border px-4 py-2">
+                        <h3 :id="headingId" class="text-subheading min-w-0 truncate">
+                            {{ animationName }}
+                        </h3>
+                        <span
+                            role="status"
+                            aria-live="polite"
+                            class="text-caption text-muted-foreground flex shrink-0 items-center gap-1.5"
+                        >
+                            <StatusDot :state="paneStatus.dot" size="sm" motion="off" />
+                            {{ paneStatus.text }}
+                        </span>
+                    </header>
+                </template>
+            </CSSCodeEditor>
         </div>
     </section>
 </template>

@@ -53,26 +53,21 @@
                                         // z-* layer.
                                         'absolute z-10 flex items-center justify-center',
                                     ]"
-                                    :style="{ '--lit': faceLit[index] }"
                                 >
+                                    <!-- X-DS pass 1 (KF-P1-02) — a FLAT crayon face
+                                         (the ORIGIN die: six flat faces, a numeral,
+                                         rounded corners). The lit-lacquer gloss and
+                                         the orientation-coupled specular/veil are
+                                         deleted; the one tonal step is FIXED per face
+                                         (CubeTarget.css), never driven by rotation. -->
                                     <template v-if="!ppMode">
                                         <div
                                             :class="[
-                                                'face-lacquer h-full w-full font-bold',
+                                                'face-fill h-full w-full font-bold',
                                                 'flex items-center justify-center',
                                             ]"
-                                            :style="{
-                                                backgroundColor: side.color,
-                                            }"
+                                            :style="{ '--face-crayon': side.color }"
                                         >
-                                            <!-- L.W11.S2 — the re-lit overlay: a --lit-keyed
-                                                 highlight/shadow modulating LUMINANCE over
-                                                 the KEPT crayon, never its hue. Pointer-
-                                                 transparent. -->
-                                            <span
-                                                class="face-relit pointer-events-none absolute inset-0"
-                                                aria-hidden="true"
-                                            ></span>
                                             <span
                                                 :class="[
                                                     'face-numeral text-display-2 h-full w-full',
@@ -119,7 +114,6 @@ import OrbitalDrag from "./orbital-drag/OrbitalDrag.vue";
 import type { TransformState } from "./orbital-drag/transform";
 import type { PressedKeys } from "./orbital-drag/types";
 import CubeAxisLines from "./CubeAxisLines.vue";
-import { GRAPH_ATTITUDE, useCubeRelit } from "./useCubeRelit";
 import {
     numberValue,
     transformCall,
@@ -147,8 +141,6 @@ defineExpose({ cubeEl, bobEl, poseEl, graphEl });
 // L.W11.S2 — the six crayon facets are KEPT, every hue intact; the raw rgba
 // literals are HOISTED one-for-one into named --face-1…6 tokens (proof:crayon-
 // preserved hue-EXACT), resolved by the backgroundColor binding at paint time.
-// Its re-lit normal lives in useCubeRelit (FACE_NORMALS, index-aligned — rest
-// pose: front toward +Z).
 //
 // KF.W6 #9 ≡ CubeScene D-7 — DECLARED, NOT CURED, and routed. The hoist
 // preserved the hues EXACTLY, which is the praise and the defect in one act:
@@ -175,20 +167,10 @@ const cubeSides = [
     { class: "bottom", content: "6", color: "var(--face-6)" },
 ];
 
-// L.W11.S2 — the orientation-coupled RE-LIT die (the signature egg). faceLit
-// (per-face --lit) rides the LIVE transform model OrbitalDrag publishes per
-// rotation — reactive, NO second rAF (inv ζ); the crayon hue is untouched
-// (--lit is LUMINANCE only). Colocated unit.
-// #4/#56 — the relight needs BOTH frames: the die's own Euler triple (the model)
-// and the attitude its `.graph` ancestor is parked at (the stage). The attitude
-// is single-sourced at `useCubeDemo`, which is also what animates `.graph` into
-// it, so the light and the stage can never drift apart.
-const { faceLit } = useCubeRelit(transform, GRAPH_ATTITUDE);
-
 // ── EASTER EGG — "the axis-lock reveal" (P.W5.S3) ─────────────────────────────
 // Hold X / Y / Z and OrbitalDrag CONSTRAINS the rotation to that single axis —
 // a powerful affordance that was, until now, completely invisible. The latched
-// axis line now LIGHTS UP (--axis-active + a drop-shadow bloom in its own color),
+// axis line now goes SOLID and full-strength (--axis-active; no bloom, X-DS),
 // making the otherwise-hidden single-axis constraint spatially legible. It reads
 // the `pressedKeys` latch OrbitalDrag already owns (emitted on every toggle) —
 // no new rAF, no new gesture machinery (inv ζ): a threshold + a CSS state flip.

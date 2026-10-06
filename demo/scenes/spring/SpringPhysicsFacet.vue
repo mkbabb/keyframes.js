@@ -13,7 +13,7 @@
          SPF-27 (KF.W6): this header was a tranche changelog naming files that
          no longer exist at any path; it now describes what mounts. -->
     <Card tier="quiet" class="cartoon-surface w-full overflow-visible">
-        <CardContent class="panel-content px-4 py-3">
+        <CardContent class="panel-content p-0">
             <!-- X.KF.W13X.spring (A2-KE-L3-9; KF-W13 addendum (c), glass 10.1.0
                  O-68) — the facet is ONE glass section, and its one action rides
                  the section's `#actions` header slot, on the label's row: the

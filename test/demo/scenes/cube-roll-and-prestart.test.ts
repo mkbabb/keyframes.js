@@ -20,8 +20,7 @@ import {
 import {
     GRAPH_ATTITUDE,
     rotateByAttitude,
-    useCubeRelit,
-} from "../../../demo/scenes/cube/useCubeRelit";
+} from "../../../demo/scenes/cube/graphAttitude";
 
 /**
  * X.KF.W11.a · G-KFW11-1 — THE CUBE PACKET'S BORN-RED GATE.
@@ -276,31 +275,10 @@ describe("ME-30/ME-31 — the sync topology", () => {
     });
 });
 
-describe("#4/#56 — the relight's two frames", () => {
-    it("the key light is above: the top face rests brighter than the bottom", () => {
-        const { faceLit } = useCubeRelit(
-            ref(restTransform()),
-            // Measured in the die's OWN frame, so the sign is read alone.
-            { axis: [0, 0, 1], angleDeg: 0 },
-        );
-        const top = Number(faceLit.value[4]);
-        const bottom = Number(faceLit.value[5]);
-        expect(top).toBeGreaterThan(bottom);
-    });
-
-    it("the stage attitude reaches the model — the sign fix ALONE does not close #56", () => {
-        const blind = useCubeRelit(ref(restTransform()), {
-            axis: [0, 0, 1],
-            angleDeg: 0,
-        });
-        const seeing = useCubeRelit(ref(restTransform()), GRAPH_ATTITUDE);
-
-        // If the attitude were ignored the two would be identical — which is
-        // exactly the state a bare `0.6 -> -0.6` leaves the model in.
-        expect(seeing.faceLit.value).not.toEqual(blind.faceLit.value);
-        expect(GRAPH_ATTITUDE.angleDeg).toBe(30);
-    });
-
+// X-DS pass 1 (KF-P1-02) — the relight's two-frame tests (#4 the key light's
+// sign, #56 the attitude reaching the lighting model) are retired with the
+// re-lit die they locked; the attitude's own rotation is still held.
+describe("#56 — the stage attitude's rotation", () => {
     it("the room hop is a real rotation (unit-preserving, identity at 0°)", () => {
         const n = [0, 0, 1] as const;
         const turned = rotateByAttitude(n, GRAPH_ATTITUDE);

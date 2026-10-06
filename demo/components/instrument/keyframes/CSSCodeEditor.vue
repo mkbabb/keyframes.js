@@ -7,10 +7,11 @@
          plate's hairline is the Card's own and its radius is `rounded-card`
          by construction; the off-ladder `rounded-lg` — the demo's one
          cartoon-stamped surface nested inside a `rounded-card` Card on a
-         different corner — is gone. The demo's focus-elevation rule
-         (`.cartoon-surface:has(:focus-visible)`, design-idioms.css) keys on
-         the class the Card carries, so the lift for a focused Monaco well is
-         unchanged. Monaco mounts on the inner box, which owns the height.
+         different corner — is gone. Monaco mounts on the inner box, which
+         owns the height. X-DS pass 1 (KF-P1-16): the frame's `#header` slot is
+         the well's first row, INSIDE the card, so a consumer's title and
+         status sit on the surface they describe instead of on the page grid
+         above it.
 
          KF-CE-14 + KF-CE-10 — the well has THREE states, and the demo's
          largest module is never an empty hard-bordered box: while the chunk
@@ -25,29 +26,32 @@
     <component
         :is="border ? Card : 'div'"
         v-bind="border ? { shadow: false } : {}"
-        :class="['code-well relative w-full overflow-hidden', border ? 'cartoon-surface' : '']"
+        :class="['code-well w-full overflow-hidden', border ? 'cartoon-surface' : '']"
     >
-        <div
-            ref="containerEl"
-            class="w-full"
-            :style="{ height }"
-            :aria-busy="phase === 'booting' ? 'true' : undefined"
-        ></div>
-        <Skeleton
-            v-if="phase === 'booting'"
-            class="absolute inset-0"
-            aria-hidden="true"
-        />
-        <div
-            v-else-if="phase === 'failed'"
-            role="alert"
-            class="absolute inset-0 flex flex-col items-center justify-center gap-2 p-4 text-center"
-        >
-            <p class="text-destructive">The code editor could not load.</p>
-            <p class="text-muted-foreground text-sm">{{ bootError }}</p>
-            <Button size="sm" emphasis="secondary" @click="initEditor()">
-                Retry
-            </Button>
+        <slot name="header" />
+        <div class="relative">
+            <div
+                ref="containerEl"
+                class="w-full"
+                :style="{ height }"
+                :aria-busy="phase === 'booting' ? 'true' : undefined"
+            ></div>
+            <Skeleton
+                v-if="phase === 'booting'"
+                class="absolute inset-0"
+                aria-hidden="true"
+            />
+            <div
+                v-else-if="phase === 'failed'"
+                role="alert"
+                class="absolute inset-0 flex flex-col items-center justify-center gap-2 p-4 text-center"
+            >
+                <p class="text-destructive">The code editor could not load.</p>
+                <p class="text-muted-foreground text-sm">{{ bootError }}</p>
+                <Button size="sm" emphasis="secondary" @click="initEditor()">
+                    Retry
+                </Button>
+            </div>
         </div>
     </component>
 </template>

@@ -99,43 +99,28 @@
        near-white-on-mint in dark mode.
        (The font-weight/size leaves with the D7 `text-display` swap above —
        the published rung owns the type; scoped rules no longer shadow it.)
-       L.W11 S4 — a two-tone material (a subtle top-down oklab gradient + an
-       inset edge-light) reads the teal as a physical chip under the graph light,
-       not a flat fill. The base --subject-teal token is the KEPT identity; the
-       gradient only adds depth (the keeper hue is untouched).
+       X-DS pass 1 (KF-P1-08) — the tile is a FLAT fill. The L.W11 S4 "physical
+       chip" material (an 8% white top-light gradient, an inset catch-light and
+       a 0.5rem mat ring that read as a bezel) is deleted; the kept identity is
+       the --subject-teal hue itself.
 
-       C-1 — THE COLOUR CHANNEL FINALLY PAINTS. The scene's whole value.js
-       colour half wrote `el.style.backgroundColor` and NOTHING ever showed it:
-       an opaque `background-image` paints over `background-color` (CSS
-       Backgrounds L3 §3.10), and no rule in the selector set reset the image.
-       Both writers landed dead — the tumble sweep (the entire reason
-       parseCssColor/mixColors/serializeCssColor are in this scene's graph) and
-       all five tour stops. The gradient now rides `--subject-fill`, ONE custom
-       property that defaults to the kept `--subject-teal` identity, and the
-       renderer sweeps THAT property: the image tracks the hue instead of hiding
-       it, and the derived ink tracks with it, so "drag me" keeps its AA
-       relationship to whatever the box is currently painted. */
+       C-1 — the colour channel rides `--subject-fill`, ONE custom property
+       that defaults to the kept `--subject-teal` identity; the renderer sweeps
+       THAT property (the tumble sweep and the tour stops), and the derived ink
+       tracks with it, so "drag me" keeps its AA relationship to whatever the
+       box is currently painted. */
     --subject-fill: var(--subject-teal);
     background-color: var(--subject-fill);
-    background-image: linear-gradient(
-        to bottom,
-        color-mix(in oklab, var(--subject-fill) 92%, white 8%),
-        var(--subject-fill)
-    );
     color: color-mix(in oklab, var(--subject-fill) 25%, black);
-    box-shadow:
-        inset 0 1px 0 color-mix(in srgb, white 22%, transparent),
-        0 0 0 0.5rem var(--square-ring);
-    /* X.KF.W13X · UIA-KF-292 — the rest ring is mixed from the HAIRLINE token,
-       not the page ground: `--background` at 50 % read as a soft matte in light
-       and as a heavy near-black bezel on the dark plate (a hole, L 0.15). The
-       border ink lifts in both themes. */
-    --square-ring: color-mix(in srgb, var(--border) 70%, transparent);
+    /* The one edge: a 1px hairline in the border token (UIA-KF-292: the border
+       ink lifts in both themes). An outline, so it perturbs no geometry. */
+    outline: 1px solid var(--square-ring);
+    --square-ring: var(--border);
     /* Direct-manipulation affordance (S5). The transformFunc owns `transform`,
        so the cursor + touch-action carry the drag posture. */
     cursor: grab;
     touch-action: none;
-    transition: box-shadow var(--duration-fast, 160ms) var(--ease-standard, ease);
+    transition: outline-color var(--duration-fast, 160ms) var(--ease-standard, ease);
 }
 
 /* MISS-9 + D-14/L-9 — the compositor promotion is GATED on the FSM, and the FSM
@@ -152,44 +137,29 @@
     will-change: transform;
 }
 
-/* L.W11 S4 — hover-arm: the rig "powers on" under the pointer (the deflection-
-   reactive aura blooms a faint motion-authority ring at the edge — the hue is
-   `--color-progress` → `--accent-kf`, a VIOLET; MISS-8: this prose used to call
-   it "red", the hue the demo's own style.css records repointing away from and
-   reserves `--accent-red` for destructive-only). */
+/* Hover: the grab cursor is the affordance; the hairline steps to the motion
+   hue (`--color-progress`, the violet). No aura (X-DS KF-P1-08). */
 .demo-box:hover {
-    box-shadow:
-        inset 0 1px 0 color-mix(in srgb, white 28%, transparent),
-        0 0 0 0.5rem color-mix(in srgb, var(--color-progress) 12%, transparent);
+    --square-ring: color-mix(in srgb, var(--color-progress) 60%, var(--border));
 }
 
-/* P.W6 S1(d) — the dragging shadow now also intensifies with the live velocity
-   BANK: the box paints `--spring-tilt` (the skew magnitude) onto itself from the
-   spring loop, and the motion-authority edge ring brightens with it — a fast
-   pull READS as kinetic energy at the edge (the spring's velocity surfaced as
-   light, not just geometry). `--spring-tilt` defaults to 0 (a flat box glows the
-   base 22%). */
+/* P.W6 S1(d) — dragging: the edge line thickens to 2px in the motion hue and
+   its strength follows the live velocity BANK (`--spring-tilt`, painted by the
+   spring loop each frame; 0 = a flat box at the base strength). The spring's
+   velocity is surfaced as line strength, not as light. */
 .demo-box--dragging {
     cursor: grabbing;
-    /* D-16 — NO TRANSITION WHILE THE GLOW IS DRIVEN PER FRAME. The 160 ms
-       `box-shadow` transition inherited from `.demo-box` low-passed exactly the
-       signal this rule exists to show: `--spring-tilt` is rewritten by the
-       spring loop every frame (~16.7 ms), so each write started a fresh 160 ms
-       chase that the next write superseded — the edge ring lagged the velocity
-       it reports by an order of magnitude and never reached the tilt's peak.
-       The hover/rest arm KEEPS its transition (those are discrete state
-       changes, which is what a transition is for); only the frame-driven state
-       opts out, so the ring tracks the spring exactly. */
+    /* D-16 — NO TRANSITION WHILE THE EDGE IS DRIVEN PER FRAME: `--spring-tilt`
+       is rewritten every frame, and a 160 ms transition would low-pass exactly
+       the signal this rule shows. Hover/rest keep theirs (discrete states). */
     transition: none;
     --tilt-glow: calc(var(--spring-tilt, 0) * 1.4%);
-    box-shadow:
-        inset 0 1px 0 color-mix(in srgb, white 28%, transparent),
-        0 0 0 0.5rem
-            color-mix(
-                in srgb,
-                var(--color-progress) calc(22% + var(--tilt-glow)),
-                transparent
-            );
+    outline-width: 2px;
+    --square-ring: color-mix(
+        in srgb,
+        var(--color-progress) calc(45% + var(--tilt-glow)),
+        var(--border)
+    );
 }
 
 /* P.W6 S1(d) — the grab-pulse "capture confirmed" ring. A one-shot expanding
@@ -220,20 +190,10 @@
     }
 }
 
-/* ── L.W11 S4 — the palette-sweep BLOOM (the tumble egg's landing thunk) ──
-   While `data-palette-sweep` is set (the egg's colour sweep is live, painted by
-   the kept SpringProgress spin) the box blooms a soft halo in its own fill so
-   the barrel-roll lands as an EVENT — the off-the-normal-path effect the
-   design-refinement probe reads. X.KF.W13X · KFA-97 — the halo is the box's
-   OWN fill: a fixed `--rainbow-violet` stayed violet around a box that had been
-   teal since the sweep's landing. (The marker itself now ends with the sweep's
-   landing pulse, not a 360° spring's 1e-3° settle.) PRM collapses it to no bloom (the box still
-   tumbles + sweeps colour; only the decorative halo is dropped). */
-.demo-box[data-palette-sweep] {
-    box-shadow:
-        inset 0 1px 0 color-mix(in srgb, white 30%, transparent),
-        0 0 1.5rem 0.25rem color-mix(in srgb, var(--subject-fill) 35%, transparent);
-}
+/* X-DS pass 1 (KF-P1-08) — the palette-sweep BLOOM (a 1.5rem halo in the
+   box's own fill, L.W11 S4) is deleted: the tumble and the colour sweep ARE
+   the event. `data-palette-sweep` stays as the sweep's marker (it gates the
+   compositor hint above). */
 
 @media (prefers-reduced-motion: reduce) {
     /* D-14/L-D4 — the dead `.square-tether { transition: none }` rule stood
@@ -255,12 +215,5 @@
     .demo-box--dragging::before {
         transition: none;
         opacity: 0;
-    }
-    .demo-box[data-palette-sweep] {
-        /* Drop the decorative bloom under reduced motion (the tumble + colour
-           sweep still play — only the halo is suppressed). */
-        box-shadow:
-            inset 0 1px 0 color-mix(in srgb, white 22%, transparent),
-            0 0 0 0.5rem var(--square-ring);
     }
 }

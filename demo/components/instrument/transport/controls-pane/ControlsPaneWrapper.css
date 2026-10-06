@@ -152,6 +152,27 @@
         overflow-y: auto;
         overscroll-behavior: contain;
     }
+    /* X-DS pass 1 (KF-P1-12) — the scroller's cut is SOFT and says "more".
+       A surface taller than the rail was cut dead at the scroller's edge (the
+       card's side borders stopped with no bottom edge, no radius, no fade:
+       a broken card above the ribbon). The edge that still has content past
+       it fades over the single-sourced --mask-fade — the same mask the mobile
+       sheet wears — driven by the scroller's OWN scroll timeline, so a surface
+       that fits (no scroll range, an inactive timeline) wears no mask at all
+       and an edge at its limit is crisp. No JS, no scroll listener. */
+    @supports (animation-timeline: scroll()) {
+        .controls-surface {
+            mask-image: linear-gradient(
+                to bottom,
+                transparent,
+                black var(--surface-fade-start),
+                black calc(100% - var(--surface-fade-end)),
+                transparent
+            );
+            animation: surface-scroll-fade linear both;
+            animation-timeline: scroll(self block);
+        }
+    }
     .controls-pane-wrapper.controls-pane--open {
         pointer-events: auto;
         /* The desktop open/close axis is the [rail]-track collapse; the F9
@@ -209,5 +230,33 @@
 @media (min-width: 1024px) and (prefers-reduced-motion: reduce) {
     .controls-pane-wrapper.controls-pane--open {
         transition: none;
+    }
+}
+
+/* KF-P1-12 — the desktop scroller's edge fades, as typed lengths so the scroll
+   timeline can interpolate them (0px = a crisp edge). */
+@property --surface-fade-start {
+    syntax: "<length>";
+    inherits: false;
+    initial-value: 0px;
+}
+@property --surface-fade-end {
+    syntax: "<length>";
+    inherits: false;
+    initial-value: 0px;
+}
+@keyframes surface-scroll-fade {
+    0% {
+        --surface-fade-start: 0px;
+        --surface-fade-end: var(--mask-fade);
+    }
+    15%,
+    85% {
+        --surface-fade-start: var(--mask-fade);
+        --surface-fade-end: var(--mask-fade);
+    }
+    100% {
+        --surface-fade-start: var(--mask-fade);
+        --surface-fade-end: 0px;
     }
 }

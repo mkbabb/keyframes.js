@@ -379,13 +379,8 @@ const figureLabel = computed(
     display: block;
     overflow: visible; /* L-14: a breach paints outside, it never clips */
 }
-/* The data layer carries the glow (L-8): declared on the `<svg>` box, the
-   `drop-shadow` length is CSS px in every engine — isotropic, like the stroke. */
-.plot-data {
-    filter: drop-shadow(
-        0 0 3px color-mix(in srgb, var(--color-progress) 45%, transparent)
-    );
-}
+/* X-DS pass 1 (KF-P1-09) — the data layer's stroke glow (L-8 drop-shadow) is
+   deleted: the trace is a flat stroke in its hue. */
 .plot-target-line,
 .plot-baseline {
     stroke: color-mix(in srgb, var(--foreground) 55%, transparent);

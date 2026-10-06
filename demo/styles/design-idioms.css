@@ -53,20 +53,6 @@
        EGG_HUES terminal stop, so the box's rest colour == the tumble egg's landing
        colour by construction. */
     --subject-teal: #52e898;
-
-    /* ── Material register (DESIGN.md §2): lighting is a REGISTER, never a crayon.
-       --specular is the highlight source, a foreground/highlight pair — pure white
-       on the light page, the page's own ink on the dark page (nothing on a dark
-       page is brighter than its ink). --shade is the shadow source, a
-       background/shadow pair — the page's own haze on the light page, true black
-       on the dark page. These are the ONLY literals the register permits; a
-       lighting effect consumes the pair (the sequence playhead cap's bevel today;
-       the cube face sheen/shade gradients are the cube packet's next consumer).
-       The names sit beside glass-ui's POSITIONAL --specular-x/-y/-intensity/-angle
-       registers and are a colour mix, not a position — the flat-namespace datum,
-       notified to the producer (O-26 R-15). */
-    --specular: light-dark(white, var(--foreground));
-    --shade: light-dark(var(--background), black);
 }
 
 /* The demo-owned :focus-visible contract — the SINGLE keyboard-focus affordance
@@ -97,11 +83,13 @@
    synonym for "keyboard-only": a pointer-focused TEXT-ENTRY surface matches it,
    by design and in every engine. The former wording ("pointer focus stays quiet
    — pixel-isomorphic for the mouse case") was false about text entry, and it is
-   the sentence `.cartoon-surface:has(:focus-visible)` below was measured against
-   (CSSCodeEditor's Monaco focuses a hidden textarea, so that host lights on a
-   pointer click, correctly). The contract is: this ring, and the cartoon lift
-   that mirrors it, follow `:focus-visible` — quiet for pointer-focused BUTTONS,
-   lit for pointer-focused TEXT ENTRY. */
+   what the former cartoon focus-lift was measured against (CSSCodeEditor's
+   Monaco focuses a hidden textarea, so that host lit on a pointer click). The
+   contract is: this ring follows `:focus-visible` — quiet for pointer-focused
+   BUTTONS, lit for pointer-focused TEXT ENTRY. X-DS pass 1 (KF-P1-06): the
+   card-wide lift to the 3-layer cartoon stamp on a focused descendant is
+   DELETED; the field's own ring is the focus signal, and a card's elevation
+   never changes on focus. */
 .kf-focus-ring:focus-visible {
     box-shadow: var(--focus-ring-shadow);
     outline: none;
@@ -170,21 +158,27 @@
     stroke: var(--ppmycota-primary, var(--foreground));
 }
 
-/* cartoon Card focus-elevation — re-applies the descendant :focus-visible lift
-   cartoon-surface drops (shadow-only). It follows the SAME register the ring
-   above declares, so it lights for a pointer-focused text-entry descendant
-   (CSSCodeEditor's Monaco well, the demo's sole raw-class consumer) and stays
-   quiet for a pointer-focused button — that is the heuristic, not a defect
-   (KF-CE-46: the contract text was the wrong half and has been moved). */
-.cartoon-surface:has(:focus-visible) {
-    box-shadow: var(--shadow-cartoon-lg);
+/* .panel-content — ONE FRAME PER PANE (X-DS pass 1, KF-P1-11). A pane Card
+   whose content is a glass ConfiguratorLayer (Easing, Spring physics, the
+   Sequence timeline) was a card inside a card: the stamped Card, then the
+   layer's own bordered, tinted panel ~18px inside it — two borders, two radii,
+   doubled padding. The Card is the frame: inside it the section reads glass's
+   own section tokens as transparent (its hairline and tint are for a section
+   standing on a bare Configurator aside), and the CardContent carries no
+   padding of its own (`p-0` at the three sites), so the layer's own insets are
+   the pane's — ChannelOptions' single-frame density. */
+.panel-content {
+    --configurator-divider-section: transparent;
+    --configurator-section-tint: transparent;
 }
 
 /* .progress-rail / .progress-ball — the rail-line + scrubber-ball pair, promoted ONCE
    (was authored four ways) and parameterized by drift-axis custom properties. --ball-size
    is the seam EasingTarget reads via getComputedStyle; --ball-tone (default
-   --color-progress) parameterizes fill+glow+rail-tint via a `var(--ball-tone, …)` fallback
-   so a per-scene ANCESTOR sets it without shadowing (each subject keeps its icon's hue). */
+   --color-progress) parameterizes fill+rail-tint via a `var(--ball-tone, …)` fallback
+   so a per-scene ANCESTOR sets it without shadowing (each subject keeps its icon's hue).
+   X-DS pass 1 (KF-P1-04) — the ball is a FLAT disc: the tinted `--ball-glow` halo
+   (and its per-scene knob) is deleted; the hue alone carries it (the ORIGIN ball). */
 .progress-rail {
     position: absolute;
     top: 50%;
@@ -204,7 +198,6 @@
     margin-top: calc(var(--ball-size, 36px) / -2);
     border-radius: var(--radius-pill);
     background: var(--ball-tone, var(--color-progress));
-    box-shadow: 0 2px 10px color-mix(in srgb, var(--ball-tone, var(--color-progress)) var(--ball-glow, 35%), transparent);
     pointer-events: none;
 }
 
@@ -231,7 +224,6 @@
     transform: translate(-50%, -50%);
     border-radius: var(--radius-pill);
     background: var(--ball-tone, var(--color-progress));
-    box-shadow: 0 2px 10px color-mix(in srgb, var(--ball-tone, var(--color-progress)) var(--ball-glow, 35%), transparent);
     pointer-events: none;
 }
 

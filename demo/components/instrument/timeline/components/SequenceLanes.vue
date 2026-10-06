@@ -262,10 +262,6 @@ const onLaneKeydown = (index: number, e: KeyboardEvent) => {
     transform: translate(calc(var(--seq-p, 0) * 100cqw), -50%);
     will-change: transform;
 }
-.seq-lane-scrub.is-scrubbing .seq-lane-scrub-ball {
-    --ball-glow: 60%;
-}
-
 /* One lane: the rail, the item's run as a bar in its tone, the handle. */
 .seq-lane-track {
     grid-column: 2;

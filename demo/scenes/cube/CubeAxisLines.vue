@@ -81,8 +81,8 @@ const { lock } = defineProps<{
 
 .axis-line {
     /* KF-AX-20 — 1000vw stays. The codex charge against it is dead (register
-       #10/#11); what made the width expensive was the RESIDENT filter below,
-       which is now gated, and a stroke that must span the viewport at every
+       #10/#11); what made the width expensive was a resident bloom filter,
+       now deleted (X-DS), and a stroke that must span the viewport at every
        graph attitude has no smaller honest number. */
     width: 1000vw;
     height: 0px;
@@ -113,15 +113,11 @@ const { lock } = defineProps<{
        KF-AX-15 ≡ CubeTarget #60 — the three raw `180ms` that used to sit here
        became `--duration-fast` at KF.W6; that row is LANDED-BY KF.W6 and is not
        this unit's claim. */
-    /* KFA-88 — the RELEASE fades the bloom out. A transition is chosen by the
-       AFTER-change style, so the unlocked rest also transitions `filter`: on
-       release the bloom eases from its lit drop-shadow to `none` (one eased
-       channel, since the rest value is not derived from the driver), and the
-       resident filter pass still ends when it lands. The locked rule below lists
-       the driver alone, so on lock-in the bloom derives per frame (KF-AX-8). */
-    transition:
-        --axis-active var(--duration-fast) var(--ease-standard),
-        filter var(--duration-fast) var(--ease-standard);
+    /* X-DS pass 1 (KF-P1-07) — the lock is shown by the LINE ITSELF: it goes
+       solid (the ::after crossfade) and full-opacity. The coloured drop-shadow
+       bloom (97afd328) and its `filter` transition are deleted; the ORIGIN
+       axes were plain dashed lines. */
+    transition: --axis-active var(--duration-fast) var(--ease-standard);
     /* KFA-88 · KFA-143 — the solid stroke CROSSFADES over the dashed base by
        the driver (the ::after below); it no longer flips in the key frame. An
        unregistered custom property inherits, so the pseudo reads the driver's
@@ -150,19 +146,6 @@ const { lock } = defineProps<{
            every stylesheet in the document. */
         --axis-active: 1;
         transition: --axis-active var(--duration-fast) var(--ease-standard);
-        /* KF-AX-9 — GATED, and the gate is the whole cure: a non-`none` filter
-           on a 1000vw box is a resident compositing pass and three shadow
-           buffers on every device, paid at all times for a bloom that is only
-           ever visible while a key is held. Ruling 8 bounds the benefit
-           honestly — `opacity: 0.45` at rest is itself a grouping property, so
-           the stacking context and the forced `flat` used value REMAIN; what
-           goes is the filter pass, once the release transition to `none` lands
-           (KFA-88: the bloom fades OUT on the rest rule's `filter` transition,
-           and fades IN because the radius derives from the driver). */
-        filter: drop-shadow(
-            0 0 calc(var(--axis-active) * 6px)
-                color-mix(in srgb, var(--color) calc(var(--axis-active) * 80%), transparent)
-        );
     }
 
     &::after {
@@ -176,7 +159,7 @@ const { lock } = defineProps<{
     /* KF-AX-4 · #57 — THE FRAME STAMP, and it is load-bearing. Every geometric
        claim about these strokes is written against the attitude the stage is
        parked at: `.graph` is driven to `rotate3d(-1, 1, 0, 30deg)`
-       (GRAPH_ATTITUDE, useCubeRelit.ts:62) on mount, under `perspective: 1200px`
+       (GRAPH_ATTITUDE, graphAttitude.ts) on mount, under `perspective: 1200px`
        (CubeTarget.css:47). Derived in that frame (test/demo/scenes/
        cube-axis-reveal.test.ts, which re-derives it from GRAPH_ATTITUDE rather
        than restating it):
@@ -221,8 +204,7 @@ const { lock } = defineProps<{
    class-keyed one in `a11y-overrides.css`, an ARIA-keyed one in
    `accessibility.css`) and these three bare divs match NEITHER, so the mode used
    to take the hue coding away — `--axis-x/-y/-z` are replaced by a system colour
-   — while leaving the drop-shadow as an un-keyed halo the OS cannot recolour.
-   Under forced colors the surviving tells are the ones the mode preserves:
+   — so under forced colors the surviving tells are the ones the mode preserves:
    stroke style (dashed → solid) and the system `Highlight` colour.
 
    KF-AX-3 (KF.W6's row, NOT cured here, re-measured 2026-09-19): the comment
@@ -233,11 +215,9 @@ const { lock } = defineProps<{
    here; only the false sentence is retired. */
 @media (forced-colors: active) {
     .axis-line {
-        filter: none;
         border-block-start-color: CanvasText;
 
         &.axis-line--locked {
-            filter: none;
             border-block-start-color: Highlight;
         }
         &::after {

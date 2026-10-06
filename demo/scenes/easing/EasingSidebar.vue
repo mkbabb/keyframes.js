@@ -16,7 +16,7 @@
         class="cartoon-surface w-full overflow-visible"
         :style="seat.containerStyle"
     >
-        <CardContent class="panel-content px-4 py-3">
+        <CardContent class="panel-content p-0">
             <!-- X.KF.W13X.sq+dh (§0dz, addendum (e)) — the pane wears glass's
                  section anatomy (the ConfiguratorLayer the Spring and Sequence
                  panes wear): one labelled section holding the curve editor and

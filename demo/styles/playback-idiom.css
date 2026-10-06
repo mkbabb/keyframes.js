@@ -61,17 +61,14 @@
 .btn-playback-accent {
     background: var(--accent-kf);
     color: var(--accent-kf-foreground);
-    transition:
-        background var(--duration-fast, 150ms) var(--ease-standard),
-        box-shadow var(--duration-fast, 150ms) var(--ease-standard),
-        transform var(--duration-fast, 150ms) var(--ease-standard);
+    transition: background var(--duration-fast, 150ms) var(--ease-standard);
 }
 /* ── K.W4 F3 → T.D7 — the accent hover keeps its LIFT shape, re-voiced onto the
    ONE motion-color authority (--color-progress → the OD-6 violet). The K-era
    comment bound this hover to the red-dashed family; VERDICT #16 killed the
    latent-red theme, so the hover now agrees with the same violet the
-   AnimationVisualizer ball/dashed-twin draws — the deeper fill / tinted glow
-   ring / 1px rise (--lift-sm) are unchanged.
+   AnimationVisualizer ball/dashed-twin draws. X-DS pass 1 (KF-P1-10): the
+   tinted glow ring and the 1px rise are DELETED — the fill step is the hover.
    D-10 + N-1 (X.KF.W13.e) — the deeper fill is now the `--accent-kf-strong`
    rung (declared "hover/active deepen (light) / lift (dark)") under the SAME
    `--accent-kf-foreground` ink, so hover RAISES the label's contrast instead of
@@ -80,9 +77,6 @@
    dead ink, narration and declaration together. */
 .btn-playback-accent:hover {
     background: var(--accent-kf-strong);
-    box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-progress) 35%, transparent),
-        0 2px 10px color-mix(in srgb, var(--color-progress) 25%, transparent);
-    transform: translateY(var(--lift-sm, -1px));
 }
 
 /* ── K.W4 F3 — the SHARED transport hover (Reverse + any non-accent playback
@@ -93,17 +87,13 @@
    above winning for the Play CTA. N-1 (X.KF.W13.e) — the "accent border" this
    comment promised, its hover declaration and its transition entry are all
    DELETED: there is no border box on a `.button` to paint (see the accent
-   rule's N-1 block above), so the plate and the glow are the whole hover. */
+   rule's N-1 block above). X-DS pass 1 (KF-P1-10): the tinted glow and the
+   1px rise are DELETED, so the 12% wash is the whole hover. */
 .btn-playback:not(.btn-playback-accent) {
-    transition:
-        background var(--duration-fast, 150ms) var(--ease-standard),
-        box-shadow var(--duration-fast, 150ms) var(--ease-standard),
-        transform var(--duration-fast, 150ms) var(--ease-standard);
+    transition: background var(--duration-fast, 150ms) var(--ease-standard);
 }
 .btn-playback:not(.btn-playback-accent):hover {
     background: color-mix(in srgb, var(--color-progress) 12%, transparent);
-    box-shadow: 0 1px 6px color-mix(in srgb, var(--color-progress) 14%, transparent);
-    transform: translateY(var(--lift-sm, -1px));
 }
 
 /* G-KFW9-9 / K-5 (X.KF.W13.c) — `.btn-playback:focus-visible` is DELETED: it
@@ -163,5 +153,38 @@
     .scrub-rail:focus-within {
         outline: 2px solid Highlight;
         outline-offset: 2px;
+    }
+}
+
+/* ── X-DS pass 1 (KF-P1-01) — the ball-preview eye, seated beside Reverse in
+   the ribbon's transport row (it floated over the preview's corner). It wears
+   `.btn-playback` like its sibling; what is its own is the eye / eye-off
+   cross-fade, stacked in one cell, on the engine spring the preview body fades
+   on (`--preview-ease`, PreviewToggle's PREVIEW_EASE). The state rides
+   `data-preview` (the TooltipTrigger owns the button's `data-state`).
+   `auto`, not the skin's 100%: the eye takes its label's width and Reverse
+   takes the row's remainder. ── */
+.btn-playback[data-preview] {
+    width: auto;
+}
+.preview-eye__glyphs {
+    display: grid;
+}
+.preview-eye__glyph {
+    grid-area: 1 / 1;
+    width: 1rem;
+    height: 1rem;
+    transition:
+        opacity 420ms var(--preview-ease),
+        transform 420ms var(--preview-ease);
+}
+[data-preview="shown"] .preview-eye__glyphs [data-glyph="eye-off"],
+[data-preview="hidden"] .preview-eye__glyphs [data-glyph="eye"] {
+    opacity: 0;
+    transform: scale(0.6);
+}
+@media (prefers-reduced-motion: reduce) {
+    .preview-eye__glyph {
+        transition: none;
     }
 }

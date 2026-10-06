@@ -73,29 +73,58 @@
              rung (D-17/N-4). `emphasis="secondary"` is the Button's own
              default (N-6). D-15 / D-8 / N-1 — ONE pressed authority: the
              skin's `.btn-playback[aria-pressed="true"]` rule. -->
-        <Button
-            class="btn-playback rounded-full gap-2"
-            :aria-pressed="userReversed"
-            @click="onReverse"
+        <!-- X-DS pass 1 (KF-P1-01) — the transport row: Reverse and the ball
+             preview's eye, two labelled siblings of one size and emphasis. The
+             eye floated over the ghost dot's corner (OA-61, out of flow, no
+             frame, no label: the owner's "floating meaninglessly",
+             2026-10-06); it is seated here, in the row of verbs it belongs
+             to, and the ghost dot carries nothing. -->
+        <div
+            class="grid gap-2"
+            :class="showEye ? 'grid-cols-[minmax(0,1fr)_auto]' : 'grid-cols-1'"
         >
-            <span>Reverse</span>
-            <ArrowLeftRight
-                :class="[
-                    'transition-transform duration-fast',
-                    userReversed ? 'scale-x-[-1]' : '',
-                ]"
-            />
-        </Button>
+            <Button
+                class="btn-playback rounded-full gap-2"
+                :aria-pressed="userReversed"
+                @click="onReverse"
+            >
+                <span>Reverse</span>
+                <ArrowLeftRight
+                    :class="[
+                        'transition-transform duration-fast',
+                        userReversed ? 'scale-x-[-1]' : '',
+                    ]"
+                />
+            </Button>
+            <!-- UIA-KF-300 (X.KF.W13X.transport) — ONE stable name with
+                 `aria-pressed` (pressed = hidden: the APG toggle pattern), so
+                 its accessible reading is "Hide ball preview, pressed" when
+                 hidden; the tooltip states the action the next press takes. -->
+            <Tooltip v-if="showEye">
+                <TooltipTrigger as-child>
+                    <Button
+                        class="btn-playback rounded-full gap-2"
+                        aria-label="Hide ball preview"
+                        :aria-pressed="preview === 'hidden'"
+                        :data-preview="preview"
+                        :style="{ '--preview-ease': PREVIEW_EASE }"
+                        @click="emit('update:preview', preview === 'hidden' ? 'shown' : 'hidden')"
+                    >
+                        <span>Preview</span>
+                        <span class="preview-eye__glyphs" aria-hidden="true">
+                            <Eye class="preview-eye__glyph" data-glyph="eye" />
+                            <EyeOff class="preview-eye__glyph" data-glyph="eye-off" />
+                        </span>
+                    </Button>
+                </TooltipTrigger>
+                <TooltipContent>{{ preview === "hidden" ? "Show ball preview" : "Hide ball preview" }}</TooltipContent>
+            </Tooltip>
+        </div>
 
-        <!-- OA-10 (§0ao.1) → OA-61 (X.KF.W13W.e) — the ball preview and its
-             ONE hide/show toggle (PreviewToggle: the eye floats top-right,
-             out of flow; hidden keeps the box). The mount owns the state and
-             its persistence; every mount binds it. -->
-        <PreviewToggle
-            v-if="animation"
-            :state="preview"
-            @update:state="(next) => emit('update:preview', next)"
-        >
+        <!-- OA-10 (§0ao.1) → OA-61 (X.KF.W13W.e) — the ball preview; its
+             body fades in PreviewToggle (hidden keeps the box). The mount owns
+             the state and its persistence; every mount binds it. -->
+        <PreviewToggle v-if="animation" :state="preview">
             <AnimationVisualizer
                 :animation="animation"
                 :is-playing="isAnimPlaying"
@@ -112,7 +141,8 @@
 // The `.btn-playback` skin the Reverse cell wears is NOT authored here: it lives in
 // demo/styles/playback-idiom.css, pulled in by design-idioms.css, and lands on
 // glass-ui's <Button> DOM shared with the scene play buttons. This file authors
-// no styles: the scrub rail is the producer Slider's own paint (OA-8).
+// no styles: the scrub rail is the producer Slider's own paint (OA-8), and the
+// preview eye's glyph cross-fade (`.preview-eye__*`) rides the same partial.
 
 import { computed, ref, useId } from "vue";
 import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
@@ -126,9 +156,9 @@ import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 import { Button, Slider } from "@mkbabb/glass-ui";
 import { useDragScrub } from "@composables/useDragScrub";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@mkbabb/glass-ui/tooltip";
-import { ArrowLeftRight } from "@lucide/vue";
+import { ArrowLeftRight, Eye, EyeOff } from "@lucide/vue";
 import AnimationVisualizer from "./AnimationVisualizer.vue";
-import PreviewToggle from "./PreviewToggle.vue";
+import PreviewToggle, { PREVIEW_EASE } from "./PreviewToggle.vue";
 
 /**
  * THE TIME-SPACE CONTRACT (X.KF.W13.b · C-2, one declaration for the ribbon).
@@ -175,7 +205,7 @@ const { animation, source, duration, currentT, preview } = defineProps<{
     userReversed: boolean;
     /**
      * OA-10 / OA-61 — the ball preview's (the AnimationVisualizer twin's)
-     * visibility, toggled by the one PreviewToggle eye. Every demo mount binds
+     * visibility, toggled by the one eye in the transport row (KF-P1-01). Every demo mount binds
      * it (the scene bucket's `ballPreview`) and persists it; left `undefined`
      * (a bare harness mount), the ribbon offers no eye and shows the preview.
      * A two-member string, not a boolean: Vue casts an absent Boolean prop to
@@ -242,6 +272,10 @@ const { dragging: isDragging, onPointerDown: onScrubPointerDown } = useDragScrub
  *  release the rail returns to the read-back, which by then holds the seat. */
 const gestureT = ref<EffectiveMs | null>(null);
 const railT = computed<EffectiveMs>(() => gestureT.value ?? currentT);
+
+/** KF-P1-01 — the eye is offered where there is a preview to hide AND a mount
+ *  that owns its state (an unbound harness mount offers none). */
+const showEye = computed(() => animation !== undefined && preview !== undefined);
 
 /** D-5 — the id the sr-only hint carries, forwarded to the thumb by the producer. */
 const scrubHintId = useId();

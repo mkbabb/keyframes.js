@@ -113,7 +113,6 @@ const { default: TransportDock } =
     await import("../../../demo/components/instrument/transport/TransportDock.vue");
 const { default: PlaybackRibbon } = await import("../../../demo/components/playback/PlaybackRibbon.vue");
 const { TooltipProvider } = await import("@mkbabb/glass-ui/tooltip");
-const { default: PreviewToggle } = await import("../../../demo/components/playback/PreviewToggle.vue");
 const { kfEngine, warmKfEngine } = await import("../../../demo/kf-engine");
 const { useIconSpin } =
     await import("../../../demo/components/instrument/transport/TransportDock/useIconSpin");
@@ -376,17 +375,30 @@ describe("X.KF.W13X.transport — structure", () => {
 
 describe("X.KF.W13X.transport — the ball-preview eye", () => {
     it("(14) UIA-KF-300 — the eye's tooltip states the next action; the name stays stable with aria-pressed", async () => {
+        // X-DS pass 1 (KF-P1-01) — the eye is the ribbon's own control now,
+        // seated beside Reverse (it floated over the preview's corner).
+        const anim = new CSSKeyframesAnimation({ duration: 1000 }).fromString(
+            "from { opacity: 0; } to { opacity: 1; }",
+        );
         const w = mount(
             defineComponent({
                 setup: () => () =>
                     h(TooltipProvider, { delayDuration: 0 }, () =>
-                        h(PreviewToggle, { state: "hidden" }, () => h("div", { "data-preview": "" })),
+                        h(PlaybackRibbon, {
+                            animation: anim,
+                            currentT: 0,
+                            isAnimPlaying: false,
+                            userReversed: false,
+                            preview: "hidden",
+                        } as InstanceType<typeof PlaybackRibbon>["$props"]),
                     ),
             }),
             { attachTo: document.body },
         );
         mounted.push(w);
-        const eye = (w.element as HTMLElement).querySelector<HTMLButtonElement>("button")!;
+        const eye = (w.element as HTMLElement).querySelector<HTMLButtonElement>(
+            'button[aria-label="Hide ball preview"]',
+        )!;
         expect(eye.getAttribute("aria-label")).toBe("Hide ball preview");
         expect(eye.getAttribute("aria-pressed")).toBe("true");
         eye.dispatchEvent(new FocusEvent("focus"));

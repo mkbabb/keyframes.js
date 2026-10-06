@@ -619,8 +619,9 @@ function onKeydown(e: KeyboardEvent): void {
     pointer-events: none;
 }
 
-/* ── The marker — a ringed dot on the live (response, ζ); lifts above the
-   field with a soft glow so it stays legible over the saturated bands. Anchored
+/* ── The marker — a solid dot on the live (response, ζ), ringed in the page
+   ground and then a 1.5px hue ring so it stays legible over the saturated
+   bands (X-DS pass 1, KF-P1-09: the 8px glow is deleted). Anchored
    at the field's top-left; `translate(<cqw>, <cqh>)` carries the position and
    the negative margins centre the 0.9rem dot on it. The glide rides
    `transform` (compositor-only) and is switched OFF during a stream. ── */
@@ -635,9 +636,7 @@ function onKeydown(e: KeyboardEvent): void {
     border-radius: var(--radius-pill, 9999px);
     border: 2px solid var(--background);
     background: var(--color-progress);
-    box-shadow:
-        0 0 0 1.5px color-mix(in srgb, var(--color-progress) 70%, transparent),
-        0 0 8px color-mix(in srgb, var(--color-progress) 55%, transparent);
+    box-shadow: 0 0 0 1.5px color-mix(in srgb, var(--color-progress) 70%, transparent);
     pointer-events: none;
     transition: transform var(--duration-fast) var(--ease-standard);
     will-change: transform;

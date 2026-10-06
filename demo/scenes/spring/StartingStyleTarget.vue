@@ -345,9 +345,9 @@ const artifact = computed<ArtifactState>(() => {
        ink above AA on this plate (≈4.8:1 light / ≈4.7:1 dark), not a decorative
        percentage. */
     background: color-mix(in srgb, var(--color-progress) 14%, transparent);
-    box-shadow: 0 8px 32px color-mix(in srgb, var(--color-progress) 24%, transparent);
     /* KF-SST-17 — an outline, the file's own idiom: it survives forced colors
-       where the box-shadow dies, and out of flow it perturbs no geometry. */
+       and out of flow it perturbs no geometry. X-DS pass 1 (KF-P1-09): it is
+       the plate's ONE edge; the 32px tinted halo is deleted. */
     outline: 1px solid color-mix(in srgb, var(--color-progress) 45%, transparent);
     outline-offset: -1px;
 

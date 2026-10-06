@@ -17,10 +17,13 @@
          `center` is what makes an overflowing flex column unreachable at its
          start edge. Horizontal clipping stays ON deliberately — the value axis
          now reserves its own overshoot room, so nothing legitimately paints
-         outside this box. -->
+         outside this box.
+         X-DS pass 1 (KF-P1-18) — `py-4`: the stage header takes a top inset
+         (the Transform stage's own); with the figure filling the card's free
+         height the title sat flush against the card's top border. -->
     <Card
         :shadow="false"
-        class="spring-target relative flex flex-col items-center gap-8 h-full w-full px-6 lg:px-8 overflow-x-hidden overflow-y-auto"
+        class="spring-target relative flex flex-col items-center gap-8 h-full w-full px-6 lg:px-8 py-4 overflow-x-hidden overflow-y-auto"
         :class="{ 'spring-target--live': isLive, 'spring-target--sweeping': demo.isPlaying.value }"
     >
         <!-- Header readout.
@@ -674,8 +677,8 @@ const onKeydown = (e: KeyboardEvent) => {
 
 /* The rail + ball geometry now come from the shared .progress-rail /
    .progress-ball idiom (design-idioms.css). The consolidation adopts
-   EasingTarget's canonical lineage (rail-tint 8%, ball-glow 35%) — so the former
-   12% rail + 40% glow become the canonical defaults (a named befitting motion-
+   EasingTarget's canonical lineage (rail-tint 8%; the ball glow is deleted,
+   X-DS KF-P1-04) — so the former 12% rail became the canonical default (a named befitting motion-
    cohesion delta, the same class as the W11 --spring-snappy reconcile). These
    scoped modifiers carry only the per-site variation: the left-positioned
    horizontal centering (the idiom centers vertically via margin-top; these balls
@@ -773,7 +776,7 @@ const onKeydown = (e: KeyboardEvent) => {
 }
 .sampler-ball {
     --ball-size: 1rem;
-    --ball-glow: 0%; /* the sweep sampler is a quiet translucent marker, no glow */
+    /* the sweep sampler is a quiet translucent marker */
     background: color-mix(in srgb, var(--ball-tone, var(--color-progress)) 65%, transparent);
 }
 
@@ -865,14 +868,14 @@ const onKeydown = (e: KeyboardEvent) => {
 .derby-leave-to {
     opacity: 0;
 }
+/* X-DS pass 1 (KF-P1-09) — the settle pulse is a border-colour step only; its
+   drop-shadow flash is deleted. */
 @keyframes spring-settle-pulse {
     0% {
         border-color: var(--ball-tone, var(--color-progress));
-        filter: drop-shadow(0 0 4px color-mix(in srgb, var(--ball-tone, var(--color-progress)) 60%, transparent));
     }
     100% {
         border-color: color-mix(in srgb, var(--ball-tone, var(--color-progress)) 50%, transparent);
-        filter: none;
     }
 }
 
@@ -939,13 +942,10 @@ const onKeydown = (e: KeyboardEvent) => {
 }
 .derby-lane-ball {
     --ball-size: 0.8rem;
-    --ball-glow: 30%;
     position: absolute;
     top: 50%;
     margin-top: calc(var(--ball-size) / -2);
     /* the T.G4 anchor (left / margin-left / will-change) rides the shared rule above */
-    /* the phosphor afterglow in the lane hue */
-    filter: drop-shadow(0 0 5px color-mix(in srgb, var(--ball-tone, var(--color-progress)) 50%, transparent));
 }
 /* KF-SS-5 / D-4 — THE LANE TAGS READ AA. The old mix was 90% lane tone against
    the near-black foreground at `opacity: 0.85`; composited over the light plate

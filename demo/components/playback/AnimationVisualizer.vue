@@ -48,7 +48,7 @@
                 ></div>
 
                 <div
-                    class="absolute top-0 left-0 rounded-full z-content h-full aspect-square bg-accent-kf/30 shadow-sm pointer-events-none"
+                    class="absolute top-0 left-0 rounded-full z-content h-full aspect-square bg-accent-kf/30 pointer-events-none"
                 ></div>
 
                 <div
@@ -351,11 +351,10 @@ onScopeDispose(() => coastPlayback.stop());
 /* The idiom leaves `transform` unclaimed BY DESIGN and this ball is its own
    painter (it writes `translateX` every frame), so the ball opts OUT of the
    idiom's `pointer-events: none` — it is the scene's drag handle, not a
-   decorative mark — and keeps its own elevation. Nothing else is overridden. */
+   decorative mark. X-DS pass 1 (KF-P1-04 · KF-P1-24): it is a flat disc like
+   the start and ghost markers — the tinted glow and the --shadow-md layer (a
+   light halo in the dark arm) are deleted. Nothing else is overridden. */
 .visualizer-ball {
     pointer-events: auto;
-    box-shadow:
-        0 2px 10px color-mix(in srgb, var(--ball-tone) var(--ball-glow, 35%), transparent),
-        var(--shadow-md, 0 4px 6px -1px rgb(0 0 0 / 0.1));
 }
 </style>

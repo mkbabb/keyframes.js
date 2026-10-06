@@ -2,17 +2,15 @@
    sources this file). Carved at the ⑨/⑩ ceiling tripwire: the style tier is the
    component's natural concern seam (the ControlsPaneWrapper/AnimationControlsGroup
    sourced-stylesheet precedent, S.D2/S.A0). */
-/* The MASTER tone (the readout accent and the scrub glow
-   read ONE authority — `--color-progress`, the page's `--accent-kf`); the rows
-   OVERRIDE it per-row with their spectrum stop. */
+/* The MASTER tone (the readout accent reads ONE authority — `--color-progress`,
+   the page's `--accent-kf`); the rows OVERRIDE it per-row with their spectrum
+   stop. */
 .seq-target {
     --ball-tone: var(--color-progress);
-    /* L.W11 S7 — --seq-glow: the ONE intensity the lane balls share while the pane scrubs. */
-    --seq-glow: 0;
 }
 
 /* `--ball-p` is REGISTERED so it is a typed `<number>` operand with an initial
-   value in the traveller's `calc()` transform and box-shadow — never an
+   value in the traveller's `calc()` translate — never an
    invalid-at-computed-value token before the engine's first write. Registration
    makes a property animatable; it does NOT interpolate the engine's discrete
    per-frame writes (nothing transitions it — kf-SequenceTarget D-17). Note the
@@ -132,24 +130,14 @@
         0;
     z-index: var(--z-seq-handle); /* the traveller rests ON its gate, above the rail */
     will-change: translate, scale;
-    /* L.W11 S7 — THE IGNITION CASCADE (lane-detonate): the glow scales with the
-       engine's --ball-p so staggered lanes BLOOM in a DIAGONAL cascade. One
-       box-shadow calc() — no rAF (inv ζ). */
-    box-shadow: 0 0
-        calc(2px + var(--ball-p, 0) * 16px + var(--seq-glow, 0) * 6px)
-        calc(var(--ball-p, 0) * 4px)
-        color-mix(in srgb, var(--ball-tone) calc(30% + var(--ball-p, 0) * 50%), transparent);
+    /* X-DS pass 1 (KF-P1-09) — the L.W11 S7 velocity-scaled "ignition" halo is
+       deleted: the staggered travel itself is the cascade. */
 }
 
-/* L.W11 S7 — the IGNITION-CASCADE host marker. `.cascade-chase` seats the
-   per-lane glow seam (--seq-glow, declared ONCE on `.seq-target` and lifted
-   while the Timeline pane scrubs); the detonation is engine-driven (--ball-p,
-   no rAF — inv ζ). */
+/* L.W11 S7 — the cascade host marker (the travel is engine-driven via
+   --ball-p, no rAF — inv ζ). */
 .cascade-chase {
     will-change: transform;
-}
-.seq-stage.is-scrubbing {
-    --seq-glow: 1;
 }
 
 /* POWER-ON BOOT (~780ms): the staggered lane drop, demonstrating `stagger` on

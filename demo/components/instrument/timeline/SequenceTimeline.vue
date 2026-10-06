@@ -14,7 +14,7 @@
          caption in the body (it was an uppercase mono header competing with the
          lanes), then the lanes. -->
     <Card tier="quiet" class="cartoon-surface w-full overflow-visible">
-        <CardContent class="panel-content px-4 py-3">
+        <CardContent class="panel-content p-0">
             <ConfiguratorLayer label="Sequence" default-open body-class="flex flex-col gap-3">
                 <template #actions>
                     <!-- The re-time's undo (SC-2): the one path back to the default

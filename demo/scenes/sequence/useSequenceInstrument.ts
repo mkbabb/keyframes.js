@@ -26,8 +26,8 @@ const POWER_ON_MS = 780;
  * reads — it owns no engine; the cascade MOTION is the engine's own --ball-p
  * fan-out (Sequence.scrub drives each child), never a hand-rolled clock (inv ζ).
  *
- *   • isScrubbing — lifts the stage's --seq-glow while a master-clock scrub is
- *     held — pointer OR keyboard (the well runs hotter when you conduct).
+ *   • isScrubbing — marks the stage `.is-scrubbing` while a master-clock scrub
+ *     is held — pointer OR keyboard (its glow is deleted, X-DS KF-P1-09).
  *   • scrubDir (+1 forward / -1 back) — flips the diagonal cascade so the lane
  *     detonation chases the thumb (violet→green forward, cooling on drag-back).
  *   • powerOn — the orchestrated boot (ruler clip-wipe → staggered lane drop),

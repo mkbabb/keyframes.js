@@ -10,7 +10,7 @@ import {
     type Matrix3dCall,
 } from "./matrix-editor/transformMath";
 import { CUBE_ANIMATION_NAMES, cubeSpinKeyframes } from "./cubeMotion";
-import { GRAPH_ATTITUDE, graphAttitudeCss } from "./useCubeRelit";
+import { GRAPH_ATTITUDE, graphAttitudeCss } from "./graphAttitude";
 
 /** The cube's per-channel paint targets (KF.W13U.w — one element per
  *  transform owner) plus the graph the attitude settle writes. */
