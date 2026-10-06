@@ -22,7 +22,8 @@
  *   bogus `start/end/step` attributes on a text field.
  */
 import { beforeAll, describe, expect, it } from "vitest";
-import { createApp, effectScope, nextTick, ref } from "vue";
+import { createApp, effectScope, h, nextTick, ref } from "vue";
+import { TooltipProvider } from "@mkbabb/glass-ui/tooltip";
 import { mat4 } from "gl-matrix";
 
 import { warmKfEngine } from "../../../demo/kf-engine";
@@ -130,10 +131,15 @@ describe("UIA-KF-028 · 264 · 260 · 106 · 161 · 047 — the mounted editor",
         }));
         const host = document.createElement("div");
         document.body.appendChild(host);
-        const app = createApp(MatrixEditor, {
+        // The app mounts every surface under glass's TooltipProvider; the
+        // section's header Reset carries a Tooltip (X.KF.W13X.sections).
+        const props = {
             matrix3dEnd: createMatrix(AUTHORED_MATRIX_END),
             matrixCellMeta: meta,
             superKey: "cube",
+        };
+        const app = createApp({
+            render: () => h(TooltipProvider, null, { default: () => h(MatrixEditor, props) }),
         });
         app.mount(host);
         await nextTick();

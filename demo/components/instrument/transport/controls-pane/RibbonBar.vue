@@ -1,5 +1,9 @@
 <template>
-    <div class="flex-shrink-0 pl-4 pr-4 lg:pr-7 pb-2">
+    <!-- X.KF.W13X.sections (KF-W13 addendum (c)) — the ribbon card exists only
+         while it carries verbs: a surface whose scene hands it nothing (the
+         cube's matrix surface, whose Reset now rides its section header) shows
+         no empty second card (`.ribbon-bar:has(.ribbon-slot:empty)`). -->
+    <div class="ribbon-bar flex-shrink-0 pl-4 pr-4 lg:pr-7 pb-2">
         <Card tier="quiet" class="cartoon-surface overflow-visible">
             <CardContent class="p-3">
                 <!-- Controls tab: filled via Teleport from ChannelOptions -->
@@ -119,7 +123,7 @@
                 <!-- Other tabs (matrix controls, etc.) via slot -->
                 <div
                     v-else-if="storedControls.selectedControl !== 'controls'"
-                    class="flex items-center justify-center gap-2 flex-wrap"
+                    class="ribbon-slot flex items-center justify-center gap-2 flex-wrap"
                 >
                     <slot
                         name="ribbon-content"
@@ -193,5 +197,11 @@ watch(
    callsite (D.W2.S3); a scoped rule fights the cascade honestly. */
 .ribbon-apply--active {
     border-color: transparent;
+}
+/* X.KF.W13X.sections — no empty ribbon card: a scene slot that renders nothing
+   leaves `.ribbon-slot` holding only Vue's comment anchors, which `:empty`
+   ignores, so the card is not drawn. */
+.ribbon-bar:has(.ribbon-slot:empty) {
+    display: none;
 }
 </style>

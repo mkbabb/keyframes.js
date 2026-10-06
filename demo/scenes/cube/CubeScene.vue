@@ -28,7 +28,6 @@ const props = defineProps<{
     hideLoader?: boolean;
 }>();
 
-import { Button } from "@mkbabb/glass-ui";
 // No reka `<Tabs>` import here, and none is owed (CubeScene D-20, KF.W6 — the
 // former header argued this against a superseded glass-ui major and a strip
 // component in a file that does not exist; the pin and the installed copy are
@@ -40,7 +39,6 @@ import { Button } from "@mkbabb/glass-ui";
 // (`matrixControlsPanel` below) keyed on the active surface, mirroring the
 // channel host's built-in panels. No scene-injected trigger or content node
 // exists, so there is no root context for one to miss.
-import { RotateCcw } from "@lucide/vue";
 
 import MatrixEditor from "./matrix-editor/MatrixEditor.vue";
 import CubeTarget from "./CubeTarget.vue";
@@ -117,13 +115,13 @@ const { animationGroup, setTargets } = useCubeDemo(
 
 // The matrix-controls BODY is a PLAIN gated panel, rendered ONLY while the
 // active surface is "matrix-controls" (gated on `storedControls.selectedControl`
-// — the SAME single-authority value `ribbonContent` keys on, written back by the
+// — the single-authority value the RibbonBar keys on, written back by the
 // ChannelControls derivation-sync and falling back to "controls" when the Matrix
 // condition lapses), else nothing (null) — matching the parent's
 // `selectedControlSurface === 'x'` gating. The active surface is read from the
 // store CubeScene already holds (the `tabs-content` slot chain does not forward
 // it — ControlsPaneWrapper/App re-expose only selectedAnimation; the store read
-// is the in-scope mirror of ribbonContent's gate, both reading the same
+// is the in-scope mirror of the pane's own gate, both reading the same
 // authority).
 //
 // This is the FOURTH orphan `[role=tabpanel]` site (CC-D-2/C-3 + N-4), and the
@@ -141,20 +139,15 @@ const tabsContent = () =>
                 matrixCellMeta: matrixCellMeta.value,
                 superKey,
                 onUpdateMatrixCell: updateMatrixCell,
+                onResetMatrix: resetMatrix,
             }),
         ])
         : null;
 
-const ribbonContent = (slotProps: { selectedControl: string }) =>
-    slotProps.selectedControl === "matrix-controls"
-        ? [
-            h(Button, {
-                size: "sm",
-                emphasis: "secondary",
-                onClick: () => resetMatrix(),
-            }, { default: () => [h(RotateCcw, { class: "icon-sm" }), " Reset"] }),
-        ]
-        : null;
+// X.KF.W13X.sections (KF-W13 addendum (c)) — the cube hands the ribbon NOTHING:
+// its one ribbon verb was the matrix Reset, alone on a second card under the
+// editor. It now rides the "Transform matrix" section header (`#actions`,
+// MatrixEditor), bound above to the composable's own `resetMatrix`.
 
 onMounted(() => {
     const target = cubeTargetRef.value;
@@ -211,7 +204,6 @@ defineExpose({
     // landing stays still until its own Play gesture).
     autoPlays: true,
     tabsContent,
-    ribbonContent,
 });
 </script>
 

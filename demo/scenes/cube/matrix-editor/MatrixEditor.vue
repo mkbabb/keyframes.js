@@ -8,6 +8,29 @@
                  "matrix"), and one caption line is the legend for the S/K/P/T/w
                  role letters the cells wear. -->
             <ConfiguratorLayer label="Transform matrix" default-open body-class="flex flex-col gap-3">
+                <!-- X.KF.W13X.sections (KF-W13 addendum (c), glass 10.1.0 O-68) — the
+                     section's one action rides its header: Reset sat ALONE in a
+                     second ribbon card under the editor, a body row away from the
+                     title of what it resets. It is now a glass Button in the
+                     layer's `#actions` slot (quiet, sm, icon-only, named), the
+                     Spring facet's anatomy; `.stop` keeps the press from toggling
+                     the layer. -->
+                <template #actions>
+                    <Tooltip>
+                        <TooltipTrigger as-child>
+                            <Button
+                                emphasis="quiet"
+                                size="sm"
+                                icon-only
+                                aria-label="Reset matrix"
+                                @click.stop="emit('resetMatrix')"
+                            >
+                                <RotateCcw aria-hidden="true" />
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Reset matrix: return every entry to the identity</TooltipContent>
+                    </Tooltip>
+                </template>
                 <p class="text-caption text-muted-foreground">
                     S&nbsp;scale · K&nbsp;shear · P&nbsp;perspective · T&nbsp;translate&nbsp;(px) · w&nbsp;divisor
                 </p>
@@ -79,7 +102,9 @@
 
 <script setup lang="ts">
 import { computed, ref, useId } from "vue";
-import { Card, CardContent } from "@mkbabb/glass-ui";
+import { RotateCcw } from "@lucide/vue";
+import { Button, Card, CardContent } from "@mkbabb/glass-ui";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@mkbabb/glass-ui/tooltip";
 import { LabeledSlider } from "@mkbabb/glass-ui/labeled-field";
 import { ConfiguratorLayer } from "@mkbabb/glass-ui/configurator";
 import { Input } from "@mkbabb/glass-ui/input";
@@ -100,14 +125,12 @@ const props = defineProps<{
     superKey: string;
 }>();
 
-// ME-39 — the `resetMatrix` emit and its local raiser are DELETED with their
-// diagnostic. LAW A census before the act: the emit had exactly one declared
-// consumer (`CubeScene`'s `onResetMatrix`), and it was unreachable — the raiser
-// had zero call sites, no template binding among them, so the component could
-// never fire it. The LIVE Reset is the ribbon Button calling the composable's
-// own `resetMatrix` directly; that path is untouched.
+// ME-39 deleted an unreachable `resetMatrix` emit (no raiser). X.KF.W13X.sections
+// restores it WITH its raiser: the header's Reset (`#actions`) is the one
+// reset control, and CubeScene binds it to the composable's own `resetMatrix`.
 const emit = defineEmits<{
     (e: "updateMatrixCell", to: number | string, ix: number): void;
+    (e: "resetMatrix"): void;
 }>();
 
 // The store keeps `matrixOptions` OPTIONAL because a persisted pre-matrix bucket
