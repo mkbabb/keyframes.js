@@ -17,13 +17,19 @@
          the terminal label moves, the curve does not. The graticule is labelled
          (D-6): `1` on the target line, `0` on the baseline, `0` and the horizon on
          the time axis. -->
-    <div class="w-full max-w-3xl shrink-0">
-        <!-- The header row takes the sibling row's `mb-2` (SpringTarget's sweep
-             header) — one label-row idiom, one spacing (D-9) — and that 8 px gap is
+    <!-- X.KF.W13X.sq+dh (§0dz) — the trace is the bottom of the spring
+         figure and takes the figure's remaining height (the plot box grows;
+         its viewBox constants are unchanged, `preserveAspectRatio="none"`). -->
+    <div class="flex w-full min-h-0 flex-1 flex-col">
+        <!-- The header row keeps the label-row idiom's `mb-2` (D-9; the sibling
+             sweep row it matched folded into this legend, §0dz) — and that 8 px gap is
              also where the trace's glow lands at the ζ floor (D-13): the drawn peak
              sits 0.67 px under the frame's top edge after the half-stroke, so the
              ≤3 px glow extent overruns a 4 px gap and fits inside this one. -->
-        <div class="flex items-center justify-between mb-2">
+        <!-- §0dz — the row WRAPS: with the sweep clause the legend no longer
+             fits beside the title at phone width, so it drops beneath it
+             (one unbroken line itself) instead of running over the title. -->
+        <div class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 mb-2">
             <!-- D-11 — the primary slot names the plot; it no longer dresses the
                  invariant stop count as a live readout (the count is a fact about
                  the sampling grid and lives on the time axis, below). -->
@@ -38,13 +44,13 @@
                  stage's one violet readout is the ball's position (SpringTarget),
                  so the figure's numbers no longer compete with it. -->
             <span class="code-token tabular-nums text-muted-foreground whitespace-nowrap" data-figure-legend>
-                ζ {{ dampingFraction.toFixed(2) }} · peak {{ peak.toFixed(3) }}
+                <template v-if="sweep !== undefined">sweep {{ sweep.toFixed(3) }} · </template>ζ {{ dampingFraction.toFixed(2) }} · peak {{ peak.toFixed(3) }}
             </span>
         </div>
         <!-- One figure for assistive tech: the plot's quantity as a sentence computed
              over the resolved points (never over the mapped {x, y} — K-5), with the
              marks and tick labels presentational beneath it. -->
-        <div role="img" :aria-label="figureLabel">
+        <div role="img" :aria-label="figureLabel" class="flex min-h-0 flex-1 flex-col">
             <div class="plot-frame">
                 <!-- Layer 1 — the reference geometry, NEUTRAL (D-3/D-4/N-3, the
                      EasingTarget sparkline precedent): the data hue belongs to the
@@ -288,7 +294,10 @@ import { computed } from "vue";
 
 import { useSpringLinearStops } from "./useSpringLinearStops";
 
-const props = defineProps<{ response: number; dampingFraction: number }>();
+// `sweep` — the timing-function sweep's sampled value (the sampler ball's
+// height), printed in the figure's one legend line (§0dz: the stage's stray
+// readout row folded into the figure it describes).
+const props = defineProps<{ response: number; dampingFraction: number; sweep?: number }>();
 
 // The `linear(0, 0.234 4.17%, …, 1)` string from the shared emitter (the
 // springLinearStops() dogfood — the engine's own), resolved to (t, value) points
@@ -357,7 +366,10 @@ const figureLabel = computed(
 .plot-frame {
     position: relative;
     width: 100%;
-    height: 8rem;
+    /* §0dz — the plot box takes the figure's free height, floored at the
+       8rem OA-56 set so a ball still reads ON the trace in a short card. */
+    flex: 1 1 auto;
+    min-height: 8rem;
 }
 .plot-layer {
     position: absolute;

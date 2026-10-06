@@ -16,88 +16,97 @@
         class="cartoon-surface w-full overflow-visible"
         :style="seat.containerStyle"
     >
-        <CardContent class="panel-content flex flex-col gap-3 px-4 py-3">
-            <!-- KF-ES-12 ≡ KF-TFP-1 — the picker sits in the shared
-                 `useEasingPickerSeat` (channel-controls/composables), the SAME
-                 seat the transport's TimingFunctionPanel uses. A tile that
-                 names a curve in the demo's bezier map re-seats by REMOUNT on
-                 the `preset` initial prop (the only way 7.0.0 displays a named
-                 preset — `EasingPickerValue` has no preset field); a steps
-                 tile, a custom quad and a preset pick inside the picker itself
-                 reach the MOUNTED picker through the vendor's own `modelValue`
-                 write-through, so the picker is never torn down under the
-                 user's hands (KF-ES-5), and the echo filter is measured against
-                 the LIVE truth, never a stale seed (KF-ES-1). `:playback="false"`:
-                 the picker's travel dot is a private one-shot rAF clock, NOT the
-                 scene sweep (BG-9); the gallery race IS the motion preview, so
-                 a second uncoordinated clock stays off this surface. -->
-            <!-- UIA-KF-093 (+ UIA-KF-091's consumer half) — the catalogue gap
-                 shows the SELECTED curve. An engine-native curve (the bounce
-                 family) has no cubic-bezier, so the editor cannot draw it: the
-                 Curve facet shows glass's display plot of the curve the stage
-                 runs (glass README: EasingCurve is the DISPLAY primitive for
-                 curves the picker cannot author), with no second literal and no
-                 second copy (the header literal is the one copy). The authoring
-                 picker stays seated but hidden until the user departs into a
-                 custom curve — the edit gesture IS the departure. -->
-            <EasingCurve
-                v-if="showGapPlot"
-                class="gap-plot"
-                :strokes="[{ d: gapPlot.d, tone: 'ink' }]"
-                :clipped="gapLeavesFrame"
-                :label="`${demo.currentEasingName.value} curve`"
-            />
-            <EasingPicker
-                v-show="!showGapPlot"
-                :key="seat.key.value"
-                v-bind="seat.seed.value"
-                :model-value="seat.model.value"
-                :playback="false"
-                label="Easing curve editor"
-                @update:model-value="seat.onPickerChange"
-            />
-
-            <!-- BG-8 (the honest catalogue gap, quiet): an engine-native curve
-                 (bounce/elastic families) is not expressible as one
-                 cubic-bezier — the tile + header literal carry the selection;
-                 authoring here departs into a custom cubic-bezier. -->
-            <!-- UIA-KF-054 (easing limb) — status copy in the small register,
-                 sentence case; the curve's identifier is the one code chip and
-                 is never uppercased (DESIGN.md §8). -->
-            <p
-                v-if="catalogueGap"
-                class="gap-caption text-small text-muted-foreground"
-            >
-                <code data-register="code">{{ demo.currentEasingName.value }}</code>
-                is engine-native: no cubic-bezier reproduces it, so editing it
-                here departs into a custom curve.
-            </p>
-            <Button
-                v-if="showGapPlot"
-                variant="outline"
-                size="sm"
-                class="self-start"
-                @click="departed = true"
-            >
-                Edit as a custom curve
-            </Button>
-
-            <Separator />
-            <!-- The duration param — X.KF.W13V.y (OA-51; DESIGN-NOTE N-2): the
-                 PARAM ROW idiom (`.param-row`, design-idioms.css) — label and
-                 live value on one line, the slider spanning the row beneath. -->
-            <div class="param-row">
-                <LabeledSlider
-                    :model-value="demo.duration.value"
-                    label="duration"
-                    :min="300"
-                    :max="5000"
-                    :step="100"
-                    :value-text="(v: number) => `${v} milliseconds`"
-                    @update:model-value="(v) => { demo.duration.value = v; }"
+        <CardContent class="panel-content px-4 py-3">
+            <!-- X.KF.W13X.sq+dh (§0dz, addendum (e)) — the pane wears glass's
+                 section anatomy (the ConfiguratorLayer the Spring and Sequence
+                 panes wear): one labelled section holding the curve editor and
+                 its duration. The editor sits on the BARE surface: the pane's
+                 Card is the one plate, so no second tinted card nests inside it
+                 (the same one-frame rule as the Sequence stage, `.sq`). -->
+            <ConfiguratorLayer label="Easing" default-open body-class="flex flex-col gap-3">
+                <!-- KF-ES-12 ≡ KF-TFP-1 — the picker sits in the shared
+                     `useEasingPickerSeat` (channel-controls/composables), the SAME
+                     seat the transport's TimingFunctionPanel uses. A tile that
+                     names a curve in the demo's bezier map re-seats by REMOUNT on
+                     the `preset` initial prop (the only way 7.0.0 displays a named
+                     preset — `EasingPickerValue` has no preset field); a steps
+                     tile, a custom quad and a preset pick inside the picker itself
+                     reach the MOUNTED picker through the vendor's own `modelValue`
+                     write-through, so the picker is never torn down under the
+                     user's hands (KF-ES-5), and the echo filter is measured against
+                     the LIVE truth, never a stale seed (KF-ES-1). `:playback="false"`:
+                     the picker's travel dot is a private one-shot rAF clock, NOT the
+                     scene sweep (BG-9); the gallery race IS the motion preview, so
+                     a second uncoordinated clock stays off this surface. -->
+                <!-- UIA-KF-093 (+ UIA-KF-091's consumer half) — the catalogue gap
+                     shows the SELECTED curve. An engine-native curve (the bounce
+                     family) has no cubic-bezier, so the editor cannot draw it: the
+                     Curve facet shows glass's display plot of the curve the stage
+                     runs (glass README: EasingCurve is the DISPLAY primitive for
+                     curves the picker cannot author), with no second literal and no
+                     second copy (the header literal is the one copy). The authoring
+                     picker stays seated but hidden until the user departs into a
+                     custom curve — the edit gesture IS the departure. -->
+                <EasingCurve
+                    v-if="showGapPlot"
+                    class="gap-plot"
+                    :strokes="[{ d: gapPlot.d, tone: 'ink' }]"
+                    :clipped="gapLeavesFrame"
+                    :label="`${demo.currentEasingName.value} curve`"
                 />
-                <output class="param-value" aria-hidden="true">{{ demo.duration.value }} ms</output>
-            </div>
+                <EasingPicker
+                    v-show="!showGapPlot"
+                    :key="seat.key.value"
+                    v-bind="seat.seed.value"
+                    :model-value="seat.model.value"
+                    :playback="false"
+                    surface="bare"
+                    label="Easing curve editor"
+                    @update:model-value="seat.onPickerChange"
+                />
+
+                <!-- BG-8 (the honest catalogue gap, quiet): an engine-native curve
+                     (bounce/elastic families) is not expressible as one
+                     cubic-bezier — the tile + header literal carry the selection;
+                     authoring here departs into a custom cubic-bezier. -->
+                <!-- UIA-KF-054 (easing limb) — status copy in the small register,
+                     sentence case; the curve's identifier is the one code chip and
+                     is never uppercased (DESIGN.md §8). -->
+                <p
+                    v-if="catalogueGap"
+                    class="gap-caption text-small text-muted-foreground"
+                >
+                    <code data-register="code">{{ demo.currentEasingName.value }}</code>
+                    is engine-native: no cubic-bezier reproduces it, so editing it
+                    here departs into a custom curve.
+                </p>
+                <Button
+                    v-if="showGapPlot"
+                    variant="outline"
+                    size="sm"
+                    class="self-start"
+                    @click="departed = true"
+                >
+                    Edit as a custom curve
+                </Button>
+
+                <Separator />
+                <!-- The duration param — X.KF.W13V.y (OA-51; DESIGN-NOTE N-2): the
+                     PARAM ROW idiom (`.param-row`, design-idioms.css) — label and
+                     live value on one line, the slider spanning the row beneath. -->
+                <div class="param-row">
+                    <LabeledSlider
+                        :model-value="demo.duration.value"
+                        label="duration"
+                        :min="300"
+                        :max="5000"
+                        :step="100"
+                        :value-text="(v: number) => `${v} milliseconds`"
+                        @update:model-value="(v) => { demo.duration.value = v; }"
+                    />
+                    <output class="param-value" aria-hidden="true">{{ demo.duration.value }} ms</output>
+                </div>
+            </ConfiguratorLayer>
         </CardContent>
     </Card>
 </template>
@@ -107,6 +116,7 @@ import { computed, ref, watch } from "vue";
 import { Card, CardContent, Separator } from "@mkbabb/glass-ui";
 import { Button } from "@mkbabb/glass-ui/button";
 import { LabeledSlider } from "@mkbabb/glass-ui/labeled-field";
+import { ConfiguratorLayer } from "@mkbabb/glass-ui/configurator";
 import {
     EasingCurve,
     EasingPicker,

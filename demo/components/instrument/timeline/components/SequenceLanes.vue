@@ -36,8 +36,11 @@
                 class="seq-lane-label text-mono-caption text-muted-foreground tabular-nums"
                 :style="{ gridRow: lane.index + 2 }"
             >
-                <span class="text-foreground">{{ lane.index + 1 }}</span>
-                <span>@{{ Math.round(lane.at) }}ms</span>
+                <!-- X.KF.W13X.sq+dh (§0dz) — ONE label register per row: the
+                     index and its offset are one muted mono caption (the index
+                     wore a second, foreground ink — two competing stacks, the
+                     owner's frame). The lane's tone already keys the row. -->
+                {{ lane.index + 1 }} @{{ Math.round(lane.at) }}ms
             </span>
             <div
                 :ref="(el) => setLaneEl(lane.index, el as HTMLElement | null)"
@@ -236,8 +239,7 @@ const onLaneKeydown = (index: number, e: KeyboardEvent) => {
 
 .seq-lane-label {
     grid-column: 1;
-    display: inline-flex;
-    gap: 0.375rem;
+    white-space: nowrap;
     text-transform: none;
     letter-spacing: 0;
 }

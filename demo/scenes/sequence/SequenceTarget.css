@@ -60,7 +60,11 @@
     display: grid;
     grid-template-columns: var(--label-col) 1fr;
     grid-template-columns: subgrid;
-    row-gap: 0.55rem;
+    /* X.KF.W13X.sq+dh (§0dz) — the lanes take the room the stage's subject
+       needs to stay the view's dominant region beside the Timeline pane (a
+       0.55rem pitch let the pane's section out-size the stage at 1024). The
+       phone compression below still wins under lg. */
+    row-gap: 1rem;
 }
 .seq-row {
     grid-column: 1 / -1;

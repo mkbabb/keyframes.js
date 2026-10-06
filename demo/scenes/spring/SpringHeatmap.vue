@@ -131,11 +131,13 @@
             </div>
         </div>
 
-        <!-- The legend — ONE line (N-5): the ramp, its scale, and what it
-             varies with. -->
-        <div class="flex items-center gap-1.5 min-w-0 text-caption text-muted-foreground whitespace-nowrap" data-figure-legend>
-            <span class="spring-heatmap-swatch shrink-0" aria-hidden="true"></span>
-            <span class="truncate tabular-nums" title="Peak overshoot varies with damping ζ only; response sets the tempo, not the peak">0 → {{ OVERSHOOT_MAX_PERCENT }} % overshoot · set by damping alone</span>
+        <!-- The legend — ONE legend (N-5): the ramp, its scale, and what it
+             varies with. X.KF.W13X.sq+dh (§0dz, no ellipsis in effect): it
+             WRAPS beside its swatch when the pane is narrower than the line;
+             it was clipped to "…set by damping alon…" in the 1440 rail. -->
+        <div class="flex items-start gap-1.5 min-w-0 text-caption text-muted-foreground" data-figure-legend>
+            <span class="spring-heatmap-swatch shrink-0 mt-1" aria-hidden="true"></span>
+            <span class="min-w-0 tabular-nums" title="Peak overshoot varies with damping ζ only; response sets the tempo, not the peak">0 → {{ OVERSHOOT_MAX_PERCENT }} % overshoot · set by damping alone</span>
         </div>
     </div>
 </template>

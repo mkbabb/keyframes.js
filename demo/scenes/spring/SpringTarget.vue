@@ -57,7 +57,7 @@
             title="Spring"
             :status="stateLabel"
             class="spring-header flex w-full max-w-3xl flex-wrap items-end justify-between gap-3 gap-y-2 shrink-0"
-            title-class="truncate leading-none"
+            title-class="whitespace-nowrap leading-none"
             id-class="flex flex-col gap-1 min-w-0"
             aside-class="flex flex-col items-end gap-1 shrink-0"
         >
@@ -79,8 +79,16 @@
             </template>
         </SceneStageHeader>
 
+        <!-- X.KF.W13X.sq+dh (§0dz, addendum (e)) — THE SUBJECT: the spring's
+             response as ONE figure (the target rail it chases on, then the
+             plotted trace its balls ride), filling the card's remaining height.
+             It was four stacked equal-weight blocks (rail, verbs, a stray
+             sweep-readout row, a 128 px plot), so a reading eye found no
+             primary; the sweep readout now sits in the trace's one legend
+             line, subordinate. -->
+        <figure class="spring-figure m-0 flex w-full max-w-3xl min-h-0 flex-1 flex-col gap-6" data-subject>
         <!-- The rail: tap/drag to re-seat the live target -->
-        <div class="flex w-full max-w-3xl flex-col items-center justify-center gap-6">
+        <div class="flex w-full flex-col items-center justify-center gap-6">
             <!-- J.W7a S4 (D17 / C2) — the displacement rail carries the shared
                  `.stage-field-x` coordinate frame: vertical quarter ticks at
                  0.25/0.5/0.75 of the target axis (the curve canvas's --border
@@ -241,19 +249,6 @@
             </div>
         </div>
 
-        <!-- The timing-function sweep (the spring sampled as a CSS timing
-             function). X.KF.W13V.y (N-3 · N-6): titled in plain words, and its
-             sampled value is a MUTED caption — the stage has one violet readout
-             (the position above), so this one no longer competes with it.
-             X.KF.W13W.b (OA-56): its sampler ball rides the plotted trace below
-             (the sampler track, a rail under the ball, is deleted). -->
-        <div class="w-full max-w-3xl shrink-0">
-            <div class="flex items-center justify-between">
-                <span class="text-small text-foreground" data-figure-title>Timing-function sweep</span>
-                <span class="text-mono-caption text-muted-foreground tabular-nums">{{ demo.sampled.value.toFixed(3) }}</span>
-            </div>
-        </div>
-
         <!-- ── L.W11 S6 — the linear() 26-stop PLOT (the curve drawn, beside its
              string). The parse + draw lives in the colocated SpringTrace sub-unit
              (the natural concern seam); it reads the live (response, ζ) so the
@@ -267,6 +262,7 @@
             ref="traceEl"
             :response="demo.response.value"
             :damping-fraction="demo.dampingFraction.value"
+            :sweep="demo.sampled.value"
         >
             <span ref="samplerCarriageEl" class="curve-carriage sampler-carriage">
                 <span class="curve-ball sampler-ball"></span>
@@ -275,6 +271,7 @@
                 <span class="curve-ball spring-ball"></span>
             </span>
         </SpringTrace>
+        </figure>
     </Card>
 </template>
 

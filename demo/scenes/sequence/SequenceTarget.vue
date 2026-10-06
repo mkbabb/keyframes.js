@@ -23,14 +23,15 @@
                  `stagger × N` caption (the five lanes already say it) and the
                  ready/playing badge (the transport's play glyph already says it)
                  are deleted: one readout per datum. The row NEVER wraps: the title
-                 truncates and the Metric holds its own tabular slot, so a growing
+                 is one word that never ellipsizes (§0dz: no ellipsis in effect)
+                 and the Metric holds its own tabular slot, so a growing
                  clock never reflows the card mid-play (UIA-KF-211; the 390 header
                  was five wrapped lines). -->
             <!-- X.KF.W13X.sections (A2-KE-L1-8) — the ONE SceneStageHeader. -->
             <SceneStageHeader
                 title="Sequence"
                 class="seq-header flex flex-nowrap items-center justify-between gap-3 px-4 py-2.5 border-b border-border/40 shrink-0"
-                title-class="truncate m-0 min-w-0"
+                title-class="whitespace-nowrap m-0"
                 id-class="flex flex-nowrap items-baseline gap-3 min-w-0"
                 aside-class="shrink-0"
             >
