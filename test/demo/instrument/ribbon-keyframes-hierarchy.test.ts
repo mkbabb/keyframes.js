@@ -49,7 +49,7 @@ describe("UIA-KF-319 — the Keyframes ribbon hierarchy", () => {
 
     it("Copy, Format and Export CSS are named icon commands", () => {
         const buttons = mountKeyframesRibbon().slice(1);
-        expect(buttons.map((b) => b.getAttribute("aria-label"))).toEqual(["Copy", "Format", "Export CSS"]);
+        expect(buttons.map((b) => b.getAttribute("aria-label"))).toEqual(["Copy keyframes", "Format", "Copy compiled CSS"]);
         for (const b of buttons) {
             expect(b.hasAttribute("data-icon-only")).toBe(true);
             expect(b.textContent?.trim()).toBe("");

@@ -23,9 +23,14 @@
                     v-if="storedControls.selectedControl === 'keyframes'"
                     class="flex items-center justify-center gap-2"
                 >
+                    <!-- UIA-KF-175 (X.KF.W13X.sections) — Apply CSS is a toggle,
+                         so it says so: `aria-pressed` reads the pane's own
+                         `cssApplied` (the rainbow skin is the app's identity
+                         hue, kept). -->
                     <Button
                         size="sm"
                         emphasis="secondary"
+                        :aria-pressed="Boolean(activeKeyframesRef?.cssApplied)"
                         :class="
                             activeKeyframesRef?.cssApplied
                                 ? 'rainbow-vivid text-white ribbon-apply--active'
@@ -43,12 +48,15 @@
                         />
                         Apply CSS
                     </Button>
+                    <!-- UIA-KF-173 — the two clipboard verbs are named for what
+                         they copy: the keyframes source, or the zero-runtime CSS
+                         compiled from the orchestration graph. -->
                     <Button
                         size="sm"
                         emphasis="secondary"
                         icon-only
-                        aria-label="Copy"
-                        title="Copy"
+                        aria-label="Copy keyframes"
+                        title="Copy keyframes"
                         @click="activeKeyframesRef?.copyCSS?.()"
                     >
                         <Copy class="icon-sm" />
@@ -77,18 +85,24 @@
                         size="sm"
                         emphasis="secondary"
                         icon-only
-                        aria-label="Export CSS"
-                        title="Export CSS"
+                        aria-label="Copy compiled CSS"
+                        title="Copy compiled CSS"
                         @click="activeKeyframesRef?.exportCompiledCSS?.()"
                     >
                         <FileCode class="icon-sm text-emerald-500" />
                     </Button>
                 </div>
 
-                <!-- Timeline tab -->
+                <!-- Timeline tab — X.KF.W13X.sections (A2-KE-L3-15 · UIA-KF-179):
+                     ONE row with a lead. Snapshot (capture the subject's pose as
+                     a keyframe, the timeline's authoring verb) leads, labelled;
+                     the three CSS paths are named icon commands, each named for
+                     what it does (Import REPLACES the timeline, Add MERGES into
+                     it). Four labelled sm Buttons wrapped 3 + 1 at 1440 and
+                     2 + 2 at 390. -->
                 <div
                     v-else-if="storedControls.selectedControl === 'timeline'"
-                    class="flex items-center justify-center gap-2 flex-wrap"
+                    class="flex items-center justify-center gap-2"
                 >
                     <Button
                         size="sm"
@@ -100,23 +114,32 @@
                     <Button
                         size="sm"
                         emphasis="secondary"
+                        icon-only
+                        aria-label="Import CSS, replacing the timeline"
+                        title="Import CSS (replaces the timeline)"
                         @click="activeTimelineRef?.openImportDialog?.()"
                     >
-                        <Download class="icon-sm" /> Import
+                        <Download class="icon-sm" />
                     </Button>
                     <Button
                         size="sm"
                         emphasis="secondary"
-                        @click="activeTimelineRef?.exportCSS?.()"
-                    >
-                        <Upload class="icon-sm" /> Export
-                    </Button>
-                    <Button
-                        size="sm"
-                        emphasis="secondary"
+                        icon-only
+                        aria-label="Add CSS, merging into the timeline"
+                        title="Add CSS (merges into the timeline)"
                         @click="activeTimelineRef?.openAddCSSDialog?.()"
                     >
-                        <FilePlus2 class="icon-sm" /> Add CSS
+                        <FilePlus2 class="icon-sm" />
+                    </Button>
+                    <Button
+                        size="sm"
+                        emphasis="secondary"
+                        icon-only
+                        aria-label="Export CSS"
+                        title="Export CSS"
+                        @click="activeTimelineRef?.exportCSS?.()"
+                    >
+                        <Upload class="icon-sm" />
                     </Button>
                 </div>
 
