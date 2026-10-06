@@ -76,6 +76,23 @@ export function resolvePlay<V extends Vars>(group: AnimationGroup<V>): void {
 export async function play<V extends Vars>(
     group: AnimationGroup<V>,
 ): Promise<void> {
+    // A held play is only "in flight" while its loop is armed. The loop can be
+    // withdrawn before the first tick ever runs (`playback.stop()` on a group
+    // that reads `!started` — the pause a host issues between `play()` and the
+    // first frame, X.KF.W13X R-r-1): the promise stays held, and re-entrancy
+    // then handed it back forever without a loop behind it, so the group could
+    // never be started again. Such a play re-arms its loop under the SAME
+    // promise; a paused group stays paused (that is `resume()`'s act), and a
+    // finished or stopped one holds no promise and starts fresh below.
+    if (
+        group._playingPromise &&
+        group.resolvePromise &&
+        !group.started &&
+        !group.paused &&
+        !group.playback.running
+    ) {
+        group.playback.loop(group._boundFrame);
+    }
     return beginPlay(group, () => withReducedMotion(
         group.respectReducedMotion,
         () => playReducedMotion(group),
