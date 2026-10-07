@@ -75,18 +75,14 @@ export const tesselateSphere = (
     texture.colorSpace = THREE.SRGBColorSpace;
 
     const geometry = new THREE.SphereGeometry(radius, 32, 32);
-    // Q.WC5 S2 — a SPECULAR material (MeshPhongMaterial: a specular highlight +
-    // shininess) so the lit sphere reads as a deliberately-lit object, not the
-    // flat diffuse-only MeshLambertMaterial placeholder. The scene's
-    // HemisphereLight + SpotLight rig produces a visible highlight on the phong
-    // specular lobe (the checker map stays the diffuse base). A near-white,
-    // moderately-shiny specular evokes the glossy Amiga Boing-Ball surface
-    // without a new shader/material pipeline.
-    const material = new THREE.MeshPhongMaterial({
-        map: texture,
-        specular: new THREE.Color(0x333333),
-        shininess: 30,
-    });
+    // X-DS pass 2 · KF-C2-01 — a DIFFUSE material (MeshLambertMaterial: no
+    // specular lobe, no shininess). Q.WC5 S2 had swapped the Lambert ball for
+    // a Phong one so the sphere read as "deliberately lit" — a gloss highlight
+    // the X-DS canon removes from every 3D demo object (no gloss, bloom or
+    // glow; flat-to-soft faces with a restrained tonal step). The checker map
+    // stays the diffuse base, so the Boing Ball's red and white (identity,
+    // §0dm) read exactly as painted, shaded only by the soft fill.
+    const material = new THREE.MeshLambertMaterial({ map: texture });
     // MISSED-C — the hand-rolled UV override that used to sit here is DELETED,
     // and with it three defects in fourteen lines:
     //

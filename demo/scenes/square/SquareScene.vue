@@ -7,9 +7,13 @@
          `rounded-card` resolves SQ-4 for free. `grid place-items-center` on the
          stage cell resolves the off-center drift (SQ-1): the box is the
          geometric center of the plate by construction. -->
+    <!-- X-DS pass 2 · KF-C2-10 — ONE stage frame: the plate keeps the inline
+         gutter the easing, spring and sequence plates keep beside the rail
+         (`lg:px-8` on their roots; this root IS the plate, so the gutter is its
+         margin), so every plate scene's stage shares one inline box. -->
     <Card
         :shadow="false"
-        class="square-stage grid h-full w-full place-items-center"
+        class="square-stage grid h-full w-full lg:mx-8 lg:w-auto place-items-center"
     >
         <!-- X.KF.W13X · UIA-KF-090 / UIA-KF-296 / KFA-4 — the ARENA: the plate is
              the size container, and this layer (its first descendant) is where

@@ -243,6 +243,17 @@ const tetherPath = computed(() => {
     transform: translate(-50%, -50%);
     pointer-events: none;
 }
+/* X-DS pass 2 · KF-C2-05 — the field CLOSES on the right. `.stage-field-x`
+   rules its quarter lines at 0/25/50/75% only (the idiom's opening-edge ticks;
+   the spring rail, its other consumer, ends on its own dashed value-1 target,
+   so the idiom itself stays open), and the y layer has its closing baseline:
+   the square's x = +1 edge is this hairline, in the same `--border` ink.
+   The quarters still divide the WHOLE envelope (border-box origin), so the
+   50% line stays the home crosshair to the pixel. */
+.square-field.stage-field-x {
+    border-inline-end: 1px solid var(--border);
+    background-origin: border-box;
+}
 
 /* ── L.W11 S4 — the rubber-band TETHER (spring math made physical) ──
    An SVG line home-crosshair → box-centre, bowed by the live deflection, drawn

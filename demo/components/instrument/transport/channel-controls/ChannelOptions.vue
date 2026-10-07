@@ -47,11 +47,15 @@
                                  X-DS pass 1, C1 (KF-C1-15) — the label sits in
                                  the grid's label column at the label ink: no
                                  inline padding of its own, and the quiet
-                                 Button's ink token is the label's foreground. -->
+                                 Button's ink token is the label's foreground.
+                                 X-DS pass 2 (KF-C2-06) — and at the label's SIZE:
+                                 the row's text is the `.label` register
+                                 (`--control-label`, 500), not the Button's
+                                 `--control-text`, so the column has one size. -->
                             <Button
                                 ref="layerEntryEl"
                                 emphasis="quiet"
-                                class="w-full justify-between px-0 [--button-quiet-ink:var(--foreground)]"
+                                class="w-full justify-between px-0 text-[length:var(--control-label)] [--button-quiet-ink:var(--foreground)]"
                                 :aria-expanded="stack.isOpen('layer')"
                                 :aria-controls="layerPaneId"
                                 @click="openLayer"

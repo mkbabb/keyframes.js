@@ -61,3 +61,38 @@ describe("UIA-KF-085 — the expanded timeline keeps its Card's material", () =>
         w.unmount();
     });
 });
+
+// X-DS pass 2 (KF-C2-04) — the timeline's verbs travel with it. Docked in the
+// pane they are teleported to the frame's ribbon (one row under the pane's
+// hairline); expanded they are the floating card's footer — never left behind
+// in the rail as a titleless card of four buttons.
+describe("KF-C2-04 — the timeline's verbs go where the timeline goes", () => {
+    const withRibbon = (expanded: boolean) => {
+        const ribbon = document.createElement("div");
+        ribbon.id = "timeline-ribbon-target";
+        document.body.appendChild(ribbon);
+        const w = mountTimeline(expanded);
+        return { w, ribbon };
+    };
+    const snapshotIn = (root: Element) =>
+        [...root.querySelectorAll("button")].some((b) => b.textContent?.trim() === "Snapshot");
+
+    it("docked: the verbs are in the pane ribbon, not in the timeline body", async () => {
+        const { w, ribbon } = withRibbon(false);
+        await w.vm.$nextTick();
+        expect(snapshotIn(ribbon)).toBe(true);
+        expect(snapshotIn(w.element as Element)).toBe(false);
+        w.unmount();
+    });
+
+    it("expanded: the verbs are the floating card's footer, under a separator", async () => {
+        const { w, ribbon } = withRibbon(true);
+        await w.vm.$nextTick();
+        expect(snapshotIn(ribbon)).toBe(false);
+        const card = w.get(".cartoon-surface").element;
+        expect(snapshotIn(card)).toBe(true);
+        const lead = [...card.querySelectorAll("button")].find((b) => b.textContent?.trim() === "Snapshot")!;
+        expect(lead.parentElement?.previousElementSibling?.classList.contains("separator")).toBe(true);
+        w.unmount();
+    });
+});

@@ -24,6 +24,8 @@ import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { createApp, h, reactive } from "vue";
 import RibbonBar from "../../../demo/components/instrument/transport/controls-pane/RibbonBar.vue";
+import KeyframeTimeline from "../../../demo/components/instrument/timeline/KeyframeTimeline.vue";
+import { TooltipProvider } from "@mkbabb/glass-ui/tooltip";
 
 const ROOT = process.cwd();
 const read = (rel: string) => readFileSync(join(ROOT, rel), "utf8");
@@ -109,7 +111,6 @@ function mountRibbon(selectedControl: string, cssApplied = false) {
             h(RibbonBar, {
                 storedControls: storedControls as never,
                 activeKeyframesRef: { cssApplied },
-                activeTimelineRef: {},
             }),
     });
     app.mount(el);
@@ -117,18 +118,31 @@ function mountRibbon(selectedControl: string, cssApplied = false) {
     return el;
 }
 
-describe("(5) A2-KE-L3-15 · UIA-KF-179 — the Timeline ribbon is one row with a lead", () => {
+describe("(5) A2-KE-L3-15 · UIA-KF-179 — the Timeline verbs are one row with a lead", () => {
+    // X-DS pass 2 (KF-C2-04) — the row is KeyframeTimeline's own (it
+    // teleports into the ribbon while docked; timeline-expanded-surface pins
+    // where it lands), so its structure is read off the timeline.
     it("the lead is labelled, the others are named icon commands, and the row never wraps", () => {
-        const el = mountRibbon("timeline");
-        const buttons = [...el.querySelectorAll("button")];
+        const el = document.createElement("div");
+        document.body.appendChild(el);
+        const app = createApp({
+            render: () =>
+                h(TooltipProvider, null, () =>
+                    h(KeyframeTimeline, { targets: [document.createElement("div")], expanded: false }),
+                ),
+        });
+        app.component("CSSPasteDialog", { render: () => null });
+        app.mount(el);
+        mounted.push({ unmount: () => app.unmount(), el });
+        const lead = [...el.querySelectorAll("button")].find((b) => b.textContent?.trim() === "Snapshot")!;
+        const buttons = [...lead.parentElement!.querySelectorAll("button")];
         expect(buttons).toHaveLength(4);
         expect(buttons[0]?.hasAttribute("data-icon-only")).toBe(false);
-        expect(buttons[0]?.textContent?.trim()).toBe("Snapshot");
         for (const b of buttons.slice(1)) {
             expect(b.hasAttribute("data-icon-only")).toBe(true);
             expect(b.getAttribute("aria-label")).toBeTruthy();
         }
-        expect(buttons[0]?.parentElement?.className).not.toMatch(/flex-wrap/);
+        expect(lead.parentElement?.className).not.toMatch(/flex-wrap/);
     });
 });
 

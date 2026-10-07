@@ -158,10 +158,19 @@ const GRID_OPACITY = {
     light: { floor: 0.3, wall: 0.16 },
     dark: { floor: 0.16, wall: 0.08 },
 } as const;
-/** The contact shadow's peak: a dark pool on paper, a lifted pool on black. */
-const SHADOW_PEAK = { light: 0.5, dark: 0.32 } as const;
+/**
+ * X-DS pass 2 · KF-C2-02 — the contact shadow SUBTRACTS in both themes. It was
+ * painted in the room's ink, which is light on the dark ground, so in dark it
+ * was a lighter grey pool on the black floor (a glow, not a shadow), and in
+ * light a heavy 0.5-peak AO blob. Its tone is now never lighter than the floor:
+ * the ink on paper (a dark ink), black on the dark ground; and its peak is soft
+ * (dark needs more alpha to read against a near-black ground at all).
+ */
+const SHADOW_PEAK = { light: 0.25, dark: 0.5 } as const;
+const shadowTone = (palette: RoomPalette): THREE.Color =>
+    palette.dark ? new THREE.Color(0, 0, 0) : palette.ink;
 
-/** A soft radial ink→transparent blob for the fake contact shadow (T.A10). */
+/** A soft radial tone→transparent blob for the fake contact shadow (T.A10). */
 function makeShadowTexture(palette: RoomPalette): THREE.CanvasTexture {
     const size = 128;
     const canvas = document.createElement("canvas");
@@ -175,7 +184,7 @@ function makeShadowTexture(palette: RoomPalette): THREE.CanvasTexture {
         size / 2,
         size / 2,
     );
-    const { r, g: gr, b } = palette.ink.getRGB(
+    const { r, g: gr, b } = shadowTone(palette).getRGB(
         { r: 0, g: 0, b: 0 },
         THREE.SRGBColorSpace,
     );
@@ -210,6 +219,17 @@ function ruledPanel(width: number, height: number): THREE.LineSegments {
 
 /** The contact-shadow plate's side (world units). */
 const SHADOW_PLATE = 2.6;
+/**
+ * X-DS pass 2 · KF-C2-02 — the plate's DEPTH (world units along z) and its
+ * seat. The camera frames the bounce envelope (UIA-KF-196), so the frustum's
+ * lower edge meets the floor just in front of the ball's plane (z ≈ 0): a
+ * square plate centred under the ball had its front half cut there, a hard
+ * rectangular edge on the floor. The plate is now a flattened ellipse (the
+ * shadow seen at the camera's low elevation) that lies wholly BEHIND the ball's
+ * plane, its front edge on z = 0 — cast back by the top-front key — so it scales
+ * about that edge and never reaches the frame's cut.
+ */
+const SHADOW_DEPTH = SHADOW_PLATE * 0.5;
 
 /**
  * X.KF.W13X · KFA-125 — the contact shadow's scale for a ball at `px` lifted
@@ -347,17 +367,20 @@ export function useAmigaThree(
         // CSS paper-grid backdrop instead of a foreign gray slab.
         renderer.setClearColor(0xffffff, 0);
 
-        // Lighting: a soft sky/ground fill + a top-front key for the specular lobe.
+        // Lighting: a soft sky/ground fill + a gentle top-front key that only
+        // MODELS the ball (diffuse form), never a highlight.
         // X.KF.W13X · KFA-195 — three's lights are physical (r155+): the Lambert
         // term divides by π and a spot light falls off with the square of its
         // distance (decay 2). At the rig's old numbers the fill lit a white tile
-        // to ~0.5 linear (served ~181 of 255: a mid-grey "white") and the key,
-        // ~13 u away, arrived at 0.7/13² — no highlight at all. The key carries
+        // to ~0.5 linear (served ~181 of 255: a mid-grey "white"). The key carries
         // no falloff (decay 0: a studio key, not a bulb in the room) and the fill
         // is set so a sky-facing white tile reads white.
+        // X-DS pass 2 · KF-C2-01 — the ball is Lambert (no specular lobe), so the
+        // key has no highlight to make; it is lowered 1.4 → 0.8 so the tonal step
+        // from the lit crown to the flank stays restrained (flat-to-soft).
         const hemi = new THREE.HemisphereLight("white", "#c8c8c8", 2.4);
         scene.add(hemi);
-        const key = new THREE.SpotLight("white", 1.4, 0, Math.PI / 2, 0.9, 0);
+        const key = new THREE.SpotLight("white", 0.8, 0, Math.PI / 2, 0.9, 0);
         key.position.set(0, BOX_SIZE, BOX_SIZE / 2);
         scene.add(key);
 
@@ -391,8 +414,10 @@ export function useAmigaThree(
 
         // T.A10 — the fake contact-shadow blob on the floor plane, tracked to the
         // ball's x + scaled/faded by height each frame (by the scene's compose).
+        // The plane lies flat (−π/2 about x maps its local +y onto world −z),
+        // so a +y half-depth translate seats it behind z = 0.
         contactShadow = new THREE.Mesh(
-            new THREE.PlaneGeometry(SHADOW_PLATE, SHADOW_PLATE),
+            new THREE.PlaneGeometry(SHADOW_PLATE, SHADOW_DEPTH).translate(0, SHADOW_DEPTH / 2, 0),
             new THREE.MeshBasicMaterial({
                 map: makeShadowTexture(palette),
                 transparent: true,

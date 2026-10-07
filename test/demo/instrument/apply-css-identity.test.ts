@@ -304,7 +304,6 @@ describe("G-KFW12-5 — APPLY: one name, one lifetime", () => {
             props: {
                 storedControls,
                 activeKeyframesRef: seat.vm,
-                activeTimelineRef: null,
             },
             attachTo: document.body,
         });

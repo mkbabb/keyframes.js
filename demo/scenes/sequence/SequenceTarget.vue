@@ -3,7 +3,12 @@
          centred, full-height, width-bounded at lg (below lg it spans the page
          gutter, X.KF.W13W.m OA-64). One child, so no gap; no bespoke
          class, since no rule ever selected one (kf-SequenceTarget L-8). -->
-    <div class="flex flex-col items-center justify-center h-full w-full lg:px-8 lg:max-w-5xl mx-auto overflow-hidden">
+    <!-- X-DS pass 2 · KF-C2-10 — ONE stage frame: the plate stands at the
+         stage's top (the easing, spring and square plates' top) instead of
+         floating at the column's centre; it still hugs its rows. The
+         `lg:max-w-5xl` cap never bound beside the rail (the stage column is
+         narrower), so the inline box is already the siblings'. -->
+    <div class="flex flex-col items-center justify-start h-full w-full lg:px-8 lg:max-w-5xl mx-auto overflow-hidden">
         <!-- I5 — the standard NON-cartoon glass <Card> protagonist plate (rounded
              by construction, shadow off). J.W7c C-SEQ-1 (U6): the card no longer
              STRETCHES the whole .stage-cell (the former flex-1 floated 5 rows on a

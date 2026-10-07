@@ -10,7 +10,8 @@
  *  · KFA-64   — the back wall stands on the floor (its bottom edge at CONTACT_FLOOR).
  *  · KFA-194  — the ball turns at walls that exist (side walls at ±BOX_SIZE/2).
  *  · KFA-67 / UIA-KF-195 — the grid and the contact shadow are theme tokens, not
- *               literals, and the shadow is still an ink in dark.
+ *               literals; X-DS pass 2 (KF-C2-02): the shadow subtracts in both
+ *               themes (the ink on paper, black on the dark ground).
  *  · KFA-195  — the checker texture is sRGB, and the light rig (physical units)
  *               lights a white tile white and lets the key reach the ball.
  *  · UIA-KF-196 — the camera frames the bounce envelope, not the whole room.
@@ -128,17 +129,43 @@ describe("X.KF.W13X.amiga — the room", () => {
                 const m = g.material as THREE.LineBasicMaterial;
                 expect(m.color.getHexString()).toBe(ink.getHexString());
             }
-            // The contact shadow is painted in the ink too: never black on a near-black ground.
+            // X-DS pass 2 · KF-C2-02 — the contact shadow SUBTRACTS in both
+            // themes: on paper it is the (dark) ink, on the dark ground it is
+            // black — never the light ink, which painted a glow on the black
+            // floor. The light peak is soft (≤ 0.25).
             expect(stops.list.length).toBeGreaterThan(0);
-            for (const s of stops.list) expect(s).not.toMatch(/rgba\(0,\s*0,\s*0/);
+            const peak = Math.max(...stops.list.map((c) => Number(c.match(/,\s*([\d.]+)\)$/)![1])));
+            if (theme === "dark") {
+                for (const c of stops.list) expect(c).toMatch(/^rgba\(0,\s*0,\s*0,/);
+            } else {
+                for (const c of stops.list) expect(c).toMatch(/^rgba\(28,\s*25,\s*23,/);
+                expect(peak).toBeLessThanOrEqual(0.25);
+            }
             wrapper.unmount();
         }
     });
 
     it("KFA-195 — the checker texture is sRGB", () => {
         const { handle, wrapper } = build("light");
-        const mat = handle.getSphere()!.material as THREE.MeshPhongMaterial;
+        const mat = handle.getSphere()!.material as THREE.MeshLambertMaterial;
         expect(mat.map?.colorSpace).toBe(THREE.SRGBColorSpace);
+        wrapper.unmount();
+    });
+
+    it("X-DS pass 2 · KF-C2-01 — the ball is diffuse: no gloss (no specular material)", () => {
+        const { handle, wrapper } = build("light");
+        const mat = handle.getSphere()!.material;
+        expect(mat).toBeInstanceOf(THREE.MeshLambertMaterial);
+        expect(mat).not.toBeInstanceOf(THREE.MeshPhongMaterial);
+        expect(mat).not.toBeInstanceOf(THREE.MeshStandardMaterial);
+        wrapper.unmount();
+    });
+
+    it("X-DS pass 2 · KF-C2-02 — the shadow plate lies behind the ball's plane (the frame's cut is in front of it)", () => {
+        const { handle, box, wrapper } = build("light");
+        const plate = box(handle.getContactShadow()!);
+        expect(plate.max.z).toBeLessThanOrEqual(1e-6);
+        expect(plate.min.z).toBeLessThan(0);
         wrapper.unmount();
     });
 
@@ -157,7 +184,10 @@ describe("X.KF.W13X.amiga — the room", () => {
             }
         });
         expect(fill + key).toBeGreaterThan(0.9);
-        expect(key).toBeGreaterThan(0.2); // the key reaches the ball: a highlight exists
+        // the key reaches the ball and models its form; on a Lambert ball it
+        // makes no highlight (KF-C2-01), and it stays below the fill (soft).
+        expect(key).toBeGreaterThan(0.2);
+        expect(key).toBeLessThan(fill);
         wrapper.unmount();
     });
 

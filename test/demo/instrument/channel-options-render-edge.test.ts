@@ -338,7 +338,6 @@ function mountPane() {
                             storedControls.isControlsPanelOpen = open;
                         },
                         activeKeyframesRef: null,
-                        activeTimelineRef: null,
                         onLayerConfigUpdate: (
                             name: string,
                             config: Partial<AnimationLayerConfig>,

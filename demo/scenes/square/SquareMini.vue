@@ -21,7 +21,13 @@ import { SQUARE_TOUR_OPTIONS, TOUR_CORNER, squareTourKeyframes } from "./squareM
 const { live = false } = defineProps<{ live?: boolean }>();
 
 const SIDE = 120; // the authored subject, px
-const REGION = 2 * (TOUR_CORNER + SIDE * 0.75); // the corners + the turning subject's reach
+// X-DS pass 2 · KF-C2-11 — a SUBJECT-FIRST crop. The frame used to be the
+// tour's whole reach (corners + the turning subject, 360 px), so the box at
+// rest shrank to a ~3 px speck in the 16-20 px glyph. The frame is now two
+// subject-widths: at rest the box fills half the glyph, at the icons' common
+// weight, and the tour's corners carry it to the glyph's edge (clipped by the
+// root), so the motion and its data are unchanged (OA-32).
+const REGION = 2 * SIDE;
 const SCALE = 20 / REGION;
 
 interface TourVars extends Vars {

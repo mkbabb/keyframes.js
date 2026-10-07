@@ -69,7 +69,6 @@ async function mountOn(selectedControl: string) {
                             storedControls,
                             isPlaying: false,
                             activeKeyframesRef: null,
-                            activeTimelineRef: null,
                         },
                         { "tabs-content": () => h("section", { class: "facet-body" }, "facet") },
                     );

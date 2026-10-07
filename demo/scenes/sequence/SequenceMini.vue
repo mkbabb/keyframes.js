@@ -71,7 +71,7 @@ useLiveMini(storyboard, () => live, () => {
                 :key="i"
                 ref="balls"
                 class="ball"
-                :style="{ top: `${4 + i * 20}%`, background: `var(${INKS[i]}, currentColor)` }"
+                :style="{ top: `${1 + i * 20}%`, background: `var(${INKS[i]}, currentColor)` }"
             />
         </span>
     </span>
@@ -89,20 +89,27 @@ useLiveMini(storyboard, () => live, () => {
     inset: 0;
 }
 /* The box is 20 units: five rails at y 2, 6, 10, 14, 18 from x 2 to 18; a
-   traveller (2.4 units) rides 1 → 16.6 by `--ball-p` (650% of its own width). */
+   traveller rides x 1 → 16.6 (78% of the box) by `--ball-p`.
+   X-DS pass 2 · KF-C2-11 — the glyph's MINIMUM STROKE: the rails were 1px at
+   30% (near-invisible hairlines) and the travellers 12% of the box (~2 px), so
+   at rest the icon read as nothing beside its neighbours. The rails are now a
+   1.5px stroke at 45%, the travellers 18% of the box (~3 px), each centred on
+   its rail; the travel (78% of the box) and the data are unchanged (OA-32). */
 .rail {
     position: absolute;
     left: 10%;
     right: 10%;
-    height: 1px;
-    opacity: 0.3;
+    height: 1.5px;
+    margin-top: -0.75px;
+    border-radius: 1px;
+    opacity: 0.45;
 }
 .ball {
     position: absolute;
-    left: 5%;
-    width: 12%;
-    height: 12%;
+    left: 1%;
+    width: 18%;
+    height: 18%;
     border-radius: 50%;
-    translate: calc(var(--ball-p, 0) * 650%) 0;
+    translate: calc(var(--ball-p, 0) * 433%) 0;
 }
 </style>

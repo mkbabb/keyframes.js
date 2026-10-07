@@ -42,7 +42,6 @@
             :stage-mode="stageMode"
             :is-playing="isPlaying"
             :active-keyframes-ref="activeKeyframesRef"
-            :active-timeline-ref="activeTimelineRef"
             @slider-update="sliderUpdate"
             @keyframes-update="keyframesUpdate"
             @toggle-play="toggleAnimationGroup"
@@ -96,7 +95,7 @@
                 'timeline-expanded-cell z-dock overflow-hidden',
                 'transition-[max-height,opacity] duration-slow ease-standard',
                 storedControls.isTimelineExpanded
-                    ? 'max-h-[var(--panel-max-h)]'
+                    ? 'max-h-[var(--panel-max-h)] lg:pb-2'
                     : 'max-h-0',
             ]"
         ></div>

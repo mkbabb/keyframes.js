@@ -16,7 +16,10 @@
     <!-- X-DS pass 1, C1 (KF-C1-07) — no card of its own: the pane host draws the one frame (ControlsPaneWrapper), so this surface is flat inside it. -->
     <div class="w-full">
         <div class="panel-content p-0">
-            <ConfiguratorLayer label="Sequence" default-open body-class="flex flex-col gap-3">
+            <!-- X-DS pass 2 · KF-C2-08 — the pane is named for what it
+                 controls (the items' stagger, the word its reset already uses);
+                 the stage keeps the subject's name, so "Sequence" is said once. -->
+            <ConfiguratorLayer label="Stagger" default-open body-class="flex flex-col gap-3">
                 <template #actions>
                     <!-- The re-time's undo (SC-2): the one path back to the default
                          placement, in the header of the section it undoes. -->

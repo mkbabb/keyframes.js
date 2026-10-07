@@ -259,7 +259,10 @@ const onLaneKeydown = (index: number, e: KeyboardEvent) => {
     --ball-size: 1.25rem;
     left: 0;
     margin-left: calc(var(--ball-size) / -2);
-    transform: translate(calc(var(--seq-p, 0) * 100cqw), -50%);
+    /* X-DS pass 2 · KF-C2-13 — the idiom already centres the disc on the rail
+       (`.progress-ball`'s `top: 50%` + half-size negative margin); a second
+       −50% here lifted it half a disc (~10px) off the clock row's rule. */
+    transform: translateX(calc(var(--seq-p, 0) * 100cqw));
     will-change: transform;
 }
 /* One lane: the rail, the item's run as a bar in its tone, the handle. */

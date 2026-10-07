@@ -17,12 +17,15 @@
              re-seat; a custom quad, the step count and the term reach the
              MOUNTED picker through the vendor's own `modelValue`
              write-through, so the first drag off a preset-matched quad never
-             remounts, and a reopen on a custom stored quad seats THAT quad. -->
+             remounts, and a reopen on a custom stored quad seats THAT quad.
+             X-DS pass 2 · KF-C2-03 — `surface="bare"`, as the Easing scene's
+             sidebar: the controls frame is the one plate (no card in a card). -->
         <EasingPicker
             :key="seat.key.value"
             v-bind="seat.seed.value"
             :model-value="seat.model.value"
             :playback="false"
+            surface="bare"
             label="Easing curve editor"
             @update:model-value="seat.onPickerChange"
         />

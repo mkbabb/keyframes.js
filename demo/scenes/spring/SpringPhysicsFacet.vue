@@ -20,7 +20,10 @@
                  the section's `#actions` header slot, on the label's row: the
                  "Write physics to keyframes" caption button no longer sits alone
                  at the card's foot, away from the heading of what it acts on. -->
-            <ConfiguratorLayer label="Spring" default-open body-class="flex flex-col gap-3">
+            <!-- X-DS pass 2 · KF-C2-08 — the pane is named for the facet it
+                 controls ("Physics", the name the stage copy already uses); the
+                 stage keeps the subject's name, so "Spring" is said once. -->
+            <ConfiguratorLayer label="Physics" default-open body-class="flex flex-col gap-3">
                 <template #actions>
                     <!-- X.KF.W13V.s (OA-37/46/51) — NO inline keyframes editor. The
                          Sweep channel's keyframes are edited in the SHARED Keyframes
@@ -29,14 +32,18 @@
                          keyframes (an explicit re-seed, never a reactive overwrite). -->
                     <Tooltip>
                         <TooltipTrigger as-child>
+                            <!-- X-DS pass 2 · KF-C2-07 — a LABELLED quiet button: the
+                                 refresh glyph beside the chevron read as reset (the
+                                 Sequence pane's reset sits in the same seat), and the
+                                 meaning lived only in the tooltip. The visible words
+                                 are inside the accessible name (label-in-name). -->
                             <Button
                                 emphasis="quiet"
                                 size="sm"
-                                icon-only
                                 aria-label="Write physics to keyframes"
                                 @click.stop="demo.seedKeyframes()"
                             >
-                                <RefreshCw aria-hidden="true" />
+                                To keyframes
                             </Button>
                         </TooltipTrigger>
                         <TooltipContent>Write physics to keyframes: replace the Sweep keyframes with stops sampled from this spring</TooltipContent>
@@ -131,7 +138,6 @@ import { ConfiguratorLayer } from "@mkbabb/glass-ui/configurator";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@mkbabb/glass-ui/tooltip";
 import { LabeledSlider } from "@mkbabb/glass-ui/labeled-field";
 import { ToggleGroup, ToggleGroupItem } from "@mkbabb/glass-ui/toggle-group";
-import { RefreshCw } from "@lucide/vue";
 
 import SpringHeatmap, { DAMPING_AXIS, PARAM_STEP, RESPONSE_AXIS } from "./SpringHeatmap.vue";
 

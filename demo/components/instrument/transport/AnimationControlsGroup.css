@@ -224,5 +224,12 @@
     .timeline-expanded-cell {
         grid-column: rail;
         grid-row: bottom;
+        /* X-DS pass 2 (KF-C2-04) — the floating card stands in the RAIL'S
+           COLUMN: the same inline box as the pane frame above it (the pane
+           body's 0.75rem inset + the frame's 1rem start / 1.75rem end margins,
+           ControlsPaneWrapper), not flush with the track's edge 28px left of
+           it. (Its 0.5rem foot, so the clip never cuts the card's edge, is
+           the expanded state's `pb-2`, AnimationControlsGroup.vue.) */
+        padding-inline: calc(0.75rem + 1rem) calc(0.75rem + 1.75rem);
     }
 }

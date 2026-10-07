@@ -303,6 +303,59 @@
             </div>
         </Transition>
 
+        <!-- X-DS pass 2 · KF-C2-04 — THE VERBS TRAVEL WITH THEIR OBJECT. The
+             timeline's own authoring row (Snapshot leads, labelled; the three
+             CSS paths are named icon commands — A2-KE-L3-15 · UIA-KF-179) is
+             THIS component's. In the pane it is teleported to the frame's
+             ribbon section, under the pane's one hairline, as the Controls
+             surface's playback row is (ChannelOptions → #controls-ribbon-target).
+             Expanded, the teleport is off, so the row renders HERE, as the
+             floating card's footer: it used to stay behind in the rail as a
+             titleless card holding only these four buttons, ~450px from the
+             track they act on. A timeline mounted with no pane ribbon in the
+             document (`ribbonHost`, read once the tree is in) keeps the row
+             in place rather than teleporting into nothing. -->
+        <Teleport to="#timeline-ribbon-target" :disabled="props.expanded || !ribbonHost" defer>
+            <div class="flex flex-col gap-3">
+                <Separator v-if="props.expanded" />
+                <div class="flex items-center justify-center gap-2">
+                    <Button size="sm" emphasis="secondary" @click="snapshot()">
+                        <Camera class="icon-sm" /> Snapshot
+                    </Button>
+                    <Button
+                        size="sm"
+                        emphasis="secondary"
+                        icon-only
+                        aria-label="Import CSS, replacing the timeline"
+                        title="Import CSS (replaces the timeline)"
+                        @click="openImportDialog()"
+                    >
+                        <Download class="icon-sm" />
+                    </Button>
+                    <Button
+                        size="sm"
+                        emphasis="secondary"
+                        icon-only
+                        aria-label="Add CSS, merging into the timeline"
+                        title="Add CSS (merges into the timeline)"
+                        @click="openAddCSSDialog()"
+                    >
+                        <FilePlus2 class="icon-sm" />
+                    </Button>
+                    <Button
+                        size="sm"
+                        emphasis="secondary"
+                        icon-only
+                        aria-label="Export CSS"
+                        title="Export CSS"
+                        @click="exportCSS()"
+                    >
+                        <Upload class="icon-sm" />
+                    </Button>
+                </div>
+            </div>
+        </Teleport>
+
         </CardContent>
     </component>
 
@@ -324,9 +377,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed, h, ref, shallowRef, toRaw, useTemplateRef, watch } from "vue";
+import { computed, h, onMounted, ref, shallowRef, toRaw, useTemplateRef, watch } from "vue";
 import type { Ref } from "vue";
 import {
+    Camera,
     Download,
     Maximize2,
     Minimize2,
@@ -335,6 +389,7 @@ import {
     Trash2,
     Undo2,
     Redo2,
+    Upload,
 } from "@lucide/vue";
 import CSSPasteDialog from "./CSSPasteDialog.vue";
 import { Alert, AlertDescription, AlertTitle, Button, Card, CardContent, Separator } from "@mkbabb/glass-ui";
@@ -443,6 +498,14 @@ watch(
     },
     { immediate: true, flush: "sync" },
 );
+
+// X-DS pass 2 · KF-C2-04 — the pane ribbon the verbs teleport to while the
+// timeline sits in the pane. Read after mount: the ribbon is a LATER sibling in
+// the pane host, so its element exists only once the whole tree is inserted.
+const ribbonHost = ref(false);
+onMounted(() => {
+    ribbonHost.value = document.getElementById("timeline-ribbon-target") !== null;
+});
 
 const selectedKeyframeId = ref<string | null>(null);
 const importDialogOpen = ref(false);

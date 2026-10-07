@@ -31,7 +31,6 @@ function mountKeyframesRibbon() {
             h(RibbonBar, {
                 storedControls: storedControls as never,
                 activeKeyframesRef: { cssApplied: false },
-                activeTimelineRef: null,
             }),
     });
     app.mount(el);

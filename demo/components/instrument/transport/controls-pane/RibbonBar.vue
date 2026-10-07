@@ -9,12 +9,27 @@
          card, the transport rows inside it). An empty slot still hides the
          whole section, rule and all. -->
     <div class="ribbon-bar flex-shrink-0">
-        <Separator />
+        <!-- X-DS pass 2 · KF-C2-09 — ONE rule width per card: the ribbon's
+             hairline is inset to the content column (the surfaces' `px-4`), as
+             the field separators above it are; it ran full-bleed, edge to edge.
+             The end inset is the column's own: the surfaces' `px-4` plus the
+             `.panel-content` focus gutter (2px a side, its start pulled back). -->
+        <div class="ps-4 pe-5"><Separator /></div>
         <div class="p-3">
             <!-- Controls tab: filled via Teleport from ChannelOptions -->
             <div
                 id="controls-ribbon-target"
                 v-show="storedControls.selectedControl === 'controls'"
+            ></div>
+
+            <!-- Timeline tab — X-DS pass 2 (KF-C2-04): the timeline's verbs
+                 are KeyframeTimeline's own row, teleported here while the
+                 timeline sits in the pane (the Controls tab's idiom above);
+                 expanded, the row stays with the floating card as its footer.
+                 (A2-KE-L3-15 · UIA-KF-179's one-row hierarchy moved with it.) -->
+            <div
+                id="timeline-ribbon-target"
+                v-show="storedControls.selectedControl === 'timeline'"
             ></div>
 
             <!-- Keyframes tab — X.KF.W13X.mobile (UIA-KF-319): ONE row
@@ -103,59 +118,12 @@
                 </Button>
             </div>
 
-            <!-- Timeline tab — X.KF.W13X.sections (A2-KE-L3-15 · UIA-KF-179):
-                 ONE row with a lead. Snapshot (capture the subject's pose as
-                 a keyframe, the timeline's authoring verb) leads, labelled;
-                 the three CSS paths are named icon commands, each named for
-                 what it does (Import REPLACES the timeline, Add MERGES into
-                 it). Four labelled sm Buttons wrapped 3 + 1 at 1440 and
-                 2 + 2 at 390. -->
-            <div
-                v-else-if="storedControls.selectedControl === 'timeline'"
-                class="flex items-center justify-center gap-2"
-            >
-                <Button
-                    size="sm"
-                    emphasis="secondary"
-                    @click="activeTimelineRef?.snapshot?.()"
-                >
-                    <Camera class="icon-sm" /> Snapshot
-                </Button>
-                <Button
-                    size="sm"
-                    emphasis="secondary"
-                    icon-only
-                    aria-label="Import CSS, replacing the timeline"
-                    title="Import CSS (replaces the timeline)"
-                    @click="activeTimelineRef?.openImportDialog?.()"
-                >
-                    <Download class="icon-sm" />
-                </Button>
-                <Button
-                    size="sm"
-                    emphasis="secondary"
-                    icon-only
-                    aria-label="Add CSS, merging into the timeline"
-                    title="Add CSS (merges into the timeline)"
-                    @click="activeTimelineRef?.openAddCSSDialog?.()"
-                >
-                    <FilePlus2 class="icon-sm" />
-                </Button>
-                <Button
-                    size="sm"
-                    emphasis="secondary"
-                    icon-only
-                    aria-label="Export CSS"
-                    title="Export CSS"
-                    @click="activeTimelineRef?.exportCSS?.()"
-                >
-                    <Upload class="icon-sm" />
-                </Button>
-            </div>
-
             <!-- Other tabs (matrix controls, etc.) via slot -->
             <div
-                v-else-if="storedControls.selectedControl !== 'controls'"
+                v-else-if="
+                    storedControls.selectedControl !== 'controls' &&
+                    storedControls.selectedControl !== 'timeline'
+                "
                 class="ribbon-slot flex items-center justify-center gap-2 flex-wrap"
             >
                 <slot
@@ -168,21 +136,12 @@
 </template>
 
 <script setup lang="ts">
-import {
-    Camera,
-    Copy,
-    Download,
-    FileCode,
-    FilePlus2,
-    Paintbrush,
-    Sparkles,
-    Upload,
-} from "@lucide/vue";
+import { Copy, FileCode, Paintbrush, Sparkles } from "@lucide/vue";
 import { watch } from "vue";
 import { Button, Separator } from "@mkbabb/glass-ui";
 import type { StoredAnimationGroupControlOptions } from "@state";
 
-// The ribbon's eight Buttons carry NO class string of their own: `size="sm"` +
+// The ribbon's Buttons carry NO class string of their own: `size="sm"` +
 // `emphasis="secondary"` is the whole request, and the producer answers it
 // (CPW D-M11 + D-m12). The former RIBBON_BUTTON_CLASS was five tokens, each
 // one of: dead (the phantom `btn-*` utility token — zero rules in the demo,
@@ -195,7 +154,6 @@ import type { StoredAnimationGroupControlOptions } from "@state";
 const props = defineProps<{
     storedControls: StoredAnimationGroupControlOptions;
     activeKeyframesRef: any;
-    activeTimelineRef: any;
 }>();
 
 // RB-6 (X.KF.W12.e) — THE APPLY STATE AND ITS AFFORDANCE GET ONE LIFETIME.
