@@ -176,7 +176,7 @@
                     <span
                         v-if="!stopAtTick(tick)"
                         class="timeline-tick-label text-mono-caption tabular-nums absolute left-0 text-muted-foreground whitespace-nowrap"
-                        :class="edgeClass(percentToPosition(tick))"
+                        :data-edge="edgeOf(percentToPosition(tick))"
                     >{{ tick }}%</span>
                 </div>
 
@@ -383,12 +383,6 @@ type MarkEdge = "start" | "end" | "mid";
 const edgeOf = (position: number): MarkEdge =>
     position <= EDGE_BAND ? "start" : position >= 100 - EDGE_BAND ? "end" : "mid";
 
-const edgeClass = (position: number): string =>
-    ({
-        start: "translate-x-0",
-        end: "-translate-x-full",
-        mid: "-translate-x-1/2",
-    })[edgeOf(position)];
 
 /**
  * G9's FIRST reader — the panel's accessible description, PASSED.
@@ -771,12 +765,31 @@ const onMarkerKeydown = (event: KeyboardEvent, stop: TimelineStop) => {
     --timeline-diamond: 1.5rem;
 }
 
-.timeline-lane {
-    inset-inline: calc(var(--timeline-diamond) * 0.8839);
+/* The lane's inset, named once: the lane reads it, and the ruler's end labels
+   reach back across it to the rail's own ends (below). */
+.timeline-track {
+    --timeline-lane-inset: calc(var(--timeline-diamond) * 0.8839);
 }
 
+.timeline-lane {
+    inset-inline: var(--timeline-lane-inset);
+}
+
+/* X-DS pass 1, C1 (KF-C1-16) — the ruler registers with the RAIL. A mid
+   graduation's label is centred on its tick; the two end labels are set flush
+   with the rail's own ends, reaching across the lane inset, so "0%" starts
+   where the rail starts and "100%" ends where it ends (it stopped a lane inset
+   short and, end-aligned to its tick, crowded "75%"). The marks themselves stay
+   on the lane, so a 0% or 100% stop still sits on its tick. */
 .timeline-tick-label {
     top: calc(-1 * var(--timeline-tick-label-offset));
+    translate: -50% 0;
+}
+.timeline-tick-label[data-edge="start"] {
+    translate: calc(-1 * var(--timeline-lane-inset)) 0;
+}
+.timeline-tick-label[data-edge="end"] {
+    translate: calc(-100% + var(--timeline-lane-inset)) 0;
 }
 
 /* RR-A missed-5 — ONE CARD, ONE POINTER REGIME. Every glass control beside this

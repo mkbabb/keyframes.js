@@ -74,7 +74,8 @@
              default (N-6). D-15 / D-8 / N-1 — ONE pressed authority: the
              skin's `.btn-playback[aria-pressed="true"]` rule. -->
         <!-- X-DS pass 1 (KF-P1-01) — the transport row: Reverse and the ball
-             preview's eye, two labelled siblings of one size and emphasis. The
+             preview's eye, two labelled siblings (C1: the eye one rung
+             quieter, below). The
              eye floated over the ghost dot's corner (OA-61, out of flow, no
              frame, no label: the owner's "floating meaninglessly",
              2026-10-06); it is seated here, in the row of verbs it belongs
@@ -97,15 +98,23 @@
                 />
             </Button>
             <!-- UIA-KF-300 (X.KF.W13X.transport) — ONE stable name with
-                 `aria-pressed` (pressed = hidden: the APG toggle pattern), so
-                 its accessible reading is "Hide ball preview, pressed" when
-                 hidden; the tooltip states the action the next press takes. -->
+                 `aria-pressed`; the tooltip states the action the next press
+                 takes.
+                 X-DS pass 1, C1 (KF-C1-03) — the pressed state follows the
+                 visible label: "Ball preview", pressed while the preview is
+                 SHOWN (it was "Hide ball preview", pressed while hidden, so
+                 the accent skin lit the button exactly when the preview was
+                 off). The eye is subordinate to Reverse, the card's verb: it
+                 is glass's own `quiet` Button (no plate, no shadow) and it
+                 does not wear the `.btn-playback` skin, whose pressed accent
+                 is Reverse's. The eye / eye-off glyph is the state. -->
             <Tooltip v-if="showEye">
                 <TooltipTrigger as-child>
                     <Button
-                        class="btn-playback rounded-full gap-2"
-                        aria-label="Hide ball preview"
-                        :aria-pressed="preview === 'hidden'"
+                        emphasis="quiet"
+                        class="gap-2"
+                        aria-label="Ball preview"
+                        :aria-pressed="preview !== 'hidden'"
                         :data-preview="preview"
                         :style="{ '--preview-ease': PREVIEW_EASE }"
                         @click="emit('update:preview', preview === 'hidden' ? 'shown' : 'hidden')"
@@ -122,7 +131,7 @@
         </div>
 
         <!-- OA-10 (§0ao.1) → OA-61 (X.KF.W13W.e) — the ball preview; its
-             body fades in PreviewToggle (hidden keeps the box). The mount owns
+             body fades in PreviewToggle (hidden stays mounted; its row collapses, C1). The mount owns
              the state and its persistence; every mount binds it. -->
         <PreviewToggle v-if="animation" :state="preview">
             <AnimationVisualizer

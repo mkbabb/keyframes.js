@@ -36,9 +36,15 @@ export type BallVars = {
  * therefore declares only its two ends, and the engine reconciles it into a
  * single 0% → 100% segment under the spring; the fade and the pop keep their
  * own stops (their 70% peak is the pop's crest, not a travel waypoint).
+ *
+ * X-DS pass 1, C1 (KF-C1-17) — the travellers REST at full opacity. The 0%
+ * pose is the pose the stage shows before Play and after a reset, and its
+ * 0.25 fade-in start left the scene's subject the dimmest thing on the page
+ * (in dark the dots all but vanished). The run's motion is the travel and the
+ * scale pop; the fade-in from a near-disabled pose is gone.
  */
 export const sequenceRowKeyframes = () => ({
-    "0%": { "--ball-p": 0, opacity: 0.25, scale: 0.7 },
+    "0%": { "--ball-p": 0, opacity: 1, scale: 0.7 },
     "70%": { opacity: 1, scale: 1.12 },
     "100%": { "--ball-p": 1, opacity: 1, scale: 1 },
 });

@@ -4,11 +4,14 @@
          preview's corner (the owner's "floating meaninglessly", 2026-10-06):
          it is a labelled control seated beside Reverse in PlaybackRibbon's
          transport row, and this wrapper keeps only the fade. Hidden is NOT
-         absent — the preview keeps its box (visibility, not display/v-if), so
-         a toggle moves no other element by a pixel. The hide and the show are
-         a cross-fade + scale on the keyframes engine's own spring
-         (`springTimingFunction(...).css`, the same `linear()` the engine
-         hands WAAPI). Reduced motion toggles instantly. -->
+         absent — the preview stays mounted (visibility, not display/v-if).
+         X-DS pass 1, C1 (KF-C1-04) — but its ROW collapses: the wrapper is a
+         one-row grid whose track springs 1fr → 0fr, so a hidden preview no
+         longer leaves a ~70px empty slab at the bottom of the transport card.
+         The hide and the show are a cross-fade + scale + the row's collapse
+         on the keyframes engine's own spring (`springTimingFunction(...).css`,
+         the same `linear()` the engine hands WAAPI). Reduced motion toggles
+         instantly. -->
     <div
         class="preview-toggle"
         :data-state="state ?? 'shown'"
@@ -40,10 +43,20 @@ const { state } = defineProps<{
     position: relative;
     /* The spring's span: its `linear()` is normalized over this duration. */
     --preview-toggle-ms: 420ms;
+    display: grid;
+    grid-template-rows: 1fr;
+    transition: grid-template-rows var(--preview-toggle-ms) var(--preview-ease);
 }
 
-/* The preview's own rungs (its ball rides --z-bar) stay inside its box. */
+.preview-toggle[data-state="hidden"] {
+    grid-template-rows: 0fr;
+}
+
+/* The preview's own rungs (its ball rides --z-bar) stay inside its box. The
+   body may shrink with the row (min-block-size 0); while hidden it is
+   invisible, so what overflows the collapsed row paints nothing. */
 .preview-toggle__body {
+    min-block-size: 0;
     isolation: isolate;
     transition:
         opacity var(--preview-toggle-ms) var(--preview-ease),
@@ -55,11 +68,12 @@ const { state } = defineProps<{
     opacity: 0;
     transform: scale(0.9);
     visibility: hidden;
-    /* The box stays; visibility drops only once the fade has run. */
+    /* The body stays mounted; visibility drops only once the fade has run. */
     transition-delay: 0s, 0s, var(--preview-toggle-ms);
 }
 
 @media (prefers-reduced-motion: reduce) {
+    .preview-toggle,
     .preview-toggle__body,
     .preview-toggle[data-state="hidden"] .preview-toggle__body {
         transition: none;

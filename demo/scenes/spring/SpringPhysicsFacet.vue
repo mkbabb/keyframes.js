@@ -12,8 +12,9 @@
          heatmap is the live parameter-space surface until that design lands.)
          SPF-27 (KF.W6): this header was a tranche changelog naming files that
          no longer exist at any path; it now describes what mounts. -->
-    <Card tier="quiet" class="cartoon-surface w-full overflow-visible">
-        <CardContent class="panel-content p-0">
+    <!-- X-DS pass 1, C1 (KF-C1-07) — no card of its own: the pane host draws the one frame (ControlsPaneWrapper), so this surface is flat inside it. -->
+    <div class="w-full">
+        <div class="panel-content p-0">
             <!-- X.KF.W13X.spring (A2-KE-L3-9; KF-W13 addendum (c), glass 10.1.0
                  O-68) — the facet is ONE glass section, and its one action rides
                  the section's `#actions` header slot, on the label's row: the
@@ -118,13 +119,13 @@
                     </ToggleGroupItem>
                 </ToggleGroup>
             </ConfiguratorLayer>
-        </CardContent>
-    </Card>
+        </div>
+    </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from "vue";
-import { Card, CardContent, Separator } from "@mkbabb/glass-ui";
+import { Separator } from "@mkbabb/glass-ui";
 import { Button } from "@mkbabb/glass-ui/button";
 import { ConfiguratorLayer } from "@mkbabb/glass-ui/configurator";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@mkbabb/glass-ui/tooltip";

@@ -123,7 +123,7 @@ function mountScene(): VueWrapper {
 }
 
 const toggleOf = (root: ParentNode) =>
-    root.querySelector<HTMLButtonElement>('button[aria-label="Hide ball preview"]');
+    root.querySelector<HTMLButtonElement>('button[aria-label="Ball preview"]');
 // OA-61 (X.KF.W13W.e) — hidden keeps the preview's box (PreviewToggle's
 // data-state), so the SHOWN preview is the one under a `shown` toggle root.
 const previewOf = (root: ParentNode) =>
@@ -139,7 +139,8 @@ describe("G-KFW13T-6 — the preview toggle is persisted with the scene's view s
         await settle();
         const toggle = toggleOf(document.body);
         expect(toggle).not.toBeNull();
-        expect(toggle!.getAttribute("aria-pressed")).toBe("true");
+        // X-DS pass 1, C1 (KF-C1-03) — pressed = shown, so a hidden boot reads unpressed.
+        expect(toggle!.getAttribute("aria-pressed")).toBe("false");
         expect(previewOf(document.body)).toBeNull();
         wrapper.unmount();
     });
@@ -150,7 +151,7 @@ describe("G-KFW13T-6 — the preview toggle is persisted with the scene's view s
         const root = document.body;
         toggleOf(root)!.click();
         await settle();
-        expect(toggleOf(root)!.getAttribute("aria-pressed")).toBe("false");
+        expect(toggleOf(root)!.getAttribute("aria-pressed")).toBe("true");
         expect(previewOf(root)).not.toBeNull();
         expect(persisted()).toBe("shown");
 
@@ -161,7 +162,7 @@ describe("G-KFW13T-6 — the preview toggle is persisted with the scene's view s
 
         wrapper = mountScene();
         await settle();
-        expect(toggleOf(document.body)!.getAttribute("aria-pressed")).toBe("true");
+        expect(toggleOf(document.body)!.getAttribute("aria-pressed")).toBe("false");
         expect(previewOf(document.body)).toBeNull();
         wrapper.unmount();
     });

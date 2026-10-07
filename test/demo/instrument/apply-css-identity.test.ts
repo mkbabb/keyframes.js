@@ -75,6 +75,8 @@ vi.mock("@mkbabb/glass-ui", () => ({
     Skeleton: slotStub("div", "Skeleton"),
     Card: slotStub("div", "Card"),
     CardContent: slotStub("div", "CardContent"),
+    // X-DS pass 1, C1 (KF-C1-07) — the ribbon's section rule.
+    Separator: slotStub("hr", "Separator"),
 }));
 vi.mock("@mkbabb/glass-ui/card", () => ({
     Card: slotStub("div", "Card"),

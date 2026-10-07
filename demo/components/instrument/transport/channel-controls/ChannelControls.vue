@@ -33,8 +33,12 @@
                  X.KF.W13V.s (OA-40) — below lg (the mobile sheet) the inline
                  inset is SYMMETRIC (`pr-4`): the wider `pr-7` is the desktop
                  rail's, and on a phone it set the card off-centre in the
-                 sheet (left ≠ right). `lg:pr-7` keeps the rail byte-identical. -->
-            <div class="flex-1 min-h-0 overflow-y-auto flex flex-col pl-4 pr-4 lg:pr-7 pt-2 pb-3">
+                 sheet (left ≠ right). `lg:pr-7` keeps the rail byte-identical.
+                 X-DS pass 1, C1 (KF-C1-07) — the inset is GONE: no surface
+                 draws its own card any more (the one frame is the pane host's,
+                 ControlsPaneWrapper), so there is no stamp for the scroller to
+                 clip and the surface's own padding is the content's inset. -->
+            <div class="flex-1 min-h-0 overflow-y-auto flex flex-col">
                 <!-- The flat-mount PANEL HOST — the exact analogue of the
                      deleted `<TabsContent>` wrapper, on BOTH its axes:
                      · PIXEL PARITY: TabsContent carried a default `mt-2` (8px)
@@ -57,7 +61,7 @@
             class="w-full flex-1 min-h-0 flex flex-col justify-start"
         >
             <!-- OA-34 — the inset inside the scroller (see the flat mount). -->
-            <div class="flex-1 min-h-0 overflow-y-auto flex flex-col pl-4 pr-4 lg:pr-7 pt-2 pb-3">
+            <div class="flex-1 min-h-0 overflow-y-auto flex flex-col">
                 <!-- THE CONTROL SURFACES. Each is a plain div gated on the active
                      surface (`selectedControlSurface`) under the SAME DFA gate (a
                      scene whose valid set omits a surface mounts NO pane — the

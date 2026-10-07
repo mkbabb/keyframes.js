@@ -7,8 +7,9 @@
          sub-pane header both sub-panes wear (`SubPaneHeader`), and the ribbon
          mount below. -->
     <div>
-        <Card tier="quiet" class="cartoon-surface w-full overflow-visible">
-            <CardContent class="flex flex-col px-4 py-3">
+        <!-- X-DS pass 1, C1 (KF-C1-07) — no card of its own: the pane host draws the one frame (ControlsPaneWrapper). -->
+        <div class="w-full">
+            <div class="flex flex-col px-4 py-3">
                 <!-- Each pane in its own collapsible row. KF-CO-5 ≡ KF-TFP-7 +
                      KF-CO-46 — a COLLAPSED row is `inert` (out of the Tab order,
                      the pointer and the accessibility tree in one stroke). -->
@@ -42,11 +43,15 @@
                                  ring and hit area; the raw `<button>` with the
                                  demo's `.kf-focus-ring` is gone), and it names the
                                  CONTENT — `layer` compositing — not a bucket
-                                 ("advanced"). -->
+                                 ("advanced").
+                                 X-DS pass 1, C1 (KF-C1-15) — the label sits in
+                                 the grid's label column at the label ink: no
+                                 inline padding of its own, and the quiet
+                                 Button's ink token is the label's foreground. -->
                             <Button
                                 ref="layerEntryEl"
                                 emphasis="quiet"
-                                class="w-full justify-between"
+                                class="w-full justify-between px-0 [--button-quiet-ink:var(--foreground)]"
                                 :aria-expanded="stack.isOpen('layer')"
                                 :aria-controls="layerPaneId"
                                 @click="openLayer"
@@ -127,8 +132,8 @@
                         </div>
                     </div>
                 </div>
-            </CardContent>
-        </Card>
+            </div>
+        </div>
 
         <!-- Playback controls: teleported to the ribbon while this is the
              active channel. (A2-KE-L1-24 / UIA-KF-051 — the ribbon's single
@@ -169,7 +174,7 @@ import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 import type { AnimationLayerConfig } from "@mkbabb/keyframes.js";
 import type { EasingPickerValue } from "@mkbabb/glass-ui/easing";
 
-import { Button, Card, CardContent, Separator } from "@mkbabb/glass-ui";
+import { Button, Separator } from "@mkbabb/glass-ui";
 import { ChevronRight } from "@lucide/vue";
 import PlaybackRibbon from "@components/playback/PlaybackRibbon.vue";
 import { EASING_GROUPS } from "@utils/reference-data/easingGroups";

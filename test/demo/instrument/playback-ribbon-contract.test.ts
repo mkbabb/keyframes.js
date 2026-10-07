@@ -608,7 +608,7 @@ describe("G-KFW9-9 / K-5 — the focus affordance survives the two-deletion act"
  */
 describe("OA-10 — the ball preview hides behind an inline pressed toggle", () => {
     const toggleOf = (root: ParentNode) =>
-        root.querySelector<HTMLButtonElement>('button[aria-label="Hide ball preview"]');
+        root.querySelector<HTMLButtonElement>('button[aria-label="Ball preview"]');
     // OA-61 (X.KF.W13W.e) — hidden keeps the preview's box (PreviewToggle's
     // data-state), so the SHOWN preview is the one under a `shown` root.
     const previewOf = (root: ParentNode) =>
@@ -621,7 +621,9 @@ describe("OA-10 — the ball preview hides behind an inline pressed toggle", () 
         expect(previewOf(seat.root)).not.toBeNull();
     });
 
-    it("a bound ribbon: pressed=false shows the preview; a press asks to hide; hidden removes the twin", async () => {
+    // X-DS pass 1, C1 (KF-C1-03) — pressed follows the visible label: the
+    // "Ball preview" toggle is pressed while the preview is SHOWN.
+    it("a bound ribbon: pressed=true shows the preview; a press asks to hide; hidden removes the twin", async () => {
         const asked: string[] = [];
         const seat = mountRibbon({
             preview: "shown",
@@ -631,12 +633,12 @@ describe("OA-10 — the ball preview hides behind an inline pressed toggle", () 
         });
         await settle();
         const toggle = toggleOf(seat.root)!;
-        expect(toggle.getAttribute("aria-pressed")).toBe("false");
+        expect(toggle.getAttribute("aria-pressed")).toBe("true");
         expect(previewOf(seat.root)).not.toBeNull();
         toggle.click();
         expect(asked).toEqual(["hidden"]);
         await seat.setProps({ preview: "hidden" });
-        expect(toggleOf(seat.root)!.getAttribute("aria-pressed")).toBe("true");
+        expect(toggleOf(seat.root)!.getAttribute("aria-pressed")).toBe("false");
         expect(previewOf(seat.root)).toBeNull();
         // …and its box stays in the flow (hidden, not removed).
         expect(seat.root.querySelector('[data-stub="AnimationVisualizer"]')).not.toBeNull();

@@ -3,8 +3,16 @@
     <!-- UIA-KF-085 — the Card IS the surface in both modes: expanded, it
          floats over the stage at glass's floating tier instead of having its
          material stripped by class overrides inside a hand-dressed wash cell
-         (the cell is now a placement slot, AnimationControlsGroup.vue). -->
-    <Card :tier="props.expanded ? 'floating' : 'quiet'" class="cartoon-surface w-full overflow-visible">
+         (the cell is now a placement slot, AnimationControlsGroup.vue).
+         X-DS pass 1, C1 (KF-C1-07) — in the pane (collapsed) the timeline
+         draws no card of its own: the pane host draws the one frame
+         (ControlsPaneWrapper). Expanded, it floats over the stage, so there
+         the Card is still the surface. -->
+    <component
+        :is="props.expanded ? Card : 'div'"
+        v-bind="props.expanded ? { tier: 'floating' } : {}"
+        :class="['w-full overflow-visible', props.expanded ? 'cartoon-surface' : '']"
+    >
         <CardContent class="relative flex flex-col gap-3 p-4">
         <!-- Pane action buttons.
              D-6 + the wave's ONE min-block-size policy (D-8), both spent by
@@ -296,7 +304,7 @@
         </Transition>
 
         </CardContent>
-    </Card>
+    </component>
 
     <!-- L-16/L-17 — the two paste dialogs differed in four strings and nothing
              else, so they are ONE mount over a descriptor. An in-file `v-for`,

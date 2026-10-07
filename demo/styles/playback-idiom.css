@@ -157,16 +157,13 @@
 }
 
 /* ── X-DS pass 1 (KF-P1-01) — the ball-preview eye, seated beside Reverse in
-   the ribbon's transport row (it floated over the preview's corner). It wears
-   `.btn-playback` like its sibling; what is its own is the eye / eye-off
-   cross-fade, stacked in one cell, on the engine spring the preview body fades
-   on (`--preview-ease`, PreviewToggle's PREVIEW_EASE). The state rides
-   `data-preview` (the TooltipTrigger owns the button's `data-state`).
-   `auto`, not the skin's 100%: the eye takes its label's width and Reverse
-   takes the row's remainder. ── */
-.btn-playback[data-preview] {
-    width: auto;
-}
+   the ribbon's transport row (it floated over the preview's corner). C1
+   (KF-C1-03): it is glass's quiet Button and does not wear `.btn-playback`
+   (whose pressed accent is Reverse's), so it takes its label's width in the
+   row's `auto` track. What is its own is the eye / eye-off cross-fade, stacked
+   in one cell, on the engine spring the preview body fades on
+   (`--preview-ease`, PreviewToggle's PREVIEW_EASE). The state rides
+   `data-preview` (the TooltipTrigger owns the button's `data-state`). ── */
 .preview-eye__glyphs {
     display: grid;
 }

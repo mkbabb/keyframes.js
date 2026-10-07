@@ -2,159 +2,168 @@
     <!-- X.KF.W13X.sections (KF-W13 addendum (c)) — the ribbon card exists only
          while it carries verbs: a surface whose scene hands it nothing (the
          cube's matrix surface, whose Reset now rides its section header) shows
-         no empty second card (`.ribbon-bar:has(.ribbon-slot:empty)`). -->
-    <div class="ribbon-bar flex-shrink-0 pl-4 pr-4 lg:pr-7 pb-2">
-        <Card tier="quiet" class="cartoon-surface overflow-visible">
-            <CardContent class="p-3">
-                <!-- Controls tab: filled via Teleport from ChannelOptions -->
-                <div
-                    id="controls-ribbon-target"
-                    v-show="storedControls.selectedControl === 'controls'"
-                ></div>
+         no empty second card (`.ribbon-bar:has(.ribbon-slot:empty)`).
+         X-DS pass 1, C1 (KF-C1-07) — the ribbon is no longer a second card:
+         it is the LAST SECTION of the pane host's one frame
+         (ControlsPaneWrapper), under a hairline, at ORIGIN's proportion (one
+         card, the transport rows inside it). An empty slot still hides the
+         whole section, rule and all. -->
+    <div class="ribbon-bar flex-shrink-0">
+        <Separator />
+        <div class="p-3">
+            <!-- Controls tab: filled via Teleport from ChannelOptions -->
+            <div
+                id="controls-ribbon-target"
+                v-show="storedControls.selectedControl === 'controls'"
+            ></div>
 
-                <!-- Keyframes tab — X.KF.W13X.mobile (UIA-KF-319): ONE row
-                     with a hierarchy. Apply CSS is the stateful toggle (the
-                     only undo of an applied identity), so it LEADS, labelled;
-                     Copy / Format / Export CSS are secondary icon commands
-                     (glass `iconOnly`, each accessibly named). Four labelled
-                     sm Buttons wrapped 3 + 1 in the 26rem rail and left Apply
-                     alone on a second row. -->
-                <div
-                    v-if="storedControls.selectedControl === 'keyframes'"
-                    class="flex items-center justify-center gap-2"
+            <!-- Keyframes tab — X.KF.W13X.mobile (UIA-KF-319): ONE row
+                 with a hierarchy. Apply CSS is the stateful toggle (the
+                 only undo of an applied identity), so it LEADS, labelled;
+                 Copy / Format / Export CSS are secondary icon commands
+                 (glass `iconOnly`, each accessibly named). Four labelled
+                 sm Buttons wrapped 3 + 1 in the 26rem rail and left Apply
+                 alone on a second row. -->
+            <div
+                v-if="storedControls.selectedControl === 'keyframes'"
+                class="flex items-center justify-center gap-2"
+            >
+                <!-- UIA-KF-175 (X.KF.W13X.sections) — Apply CSS is a toggle,
+                     so it says so: `aria-pressed` reads the pane's own
+                     `cssApplied` (the rainbow skin is the app's identity
+                     hue, kept). -->
+                <Button
+                    size="sm"
+                    emphasis="secondary"
+                    :aria-pressed="Boolean(activeKeyframesRef?.cssApplied)"
+                    :class="
+                        activeKeyframesRef?.cssApplied
+                            ? 'rainbow-vivid text-white ribbon-apply--active'
+                            : ''
+                    "
+                    @click="activeKeyframesRef?.applyCSSStyles?.()"
                 >
-                    <!-- UIA-KF-175 (X.KF.W13X.sections) — Apply CSS is a toggle,
-                         so it says so: `aria-pressed` reads the pane's own
-                         `cssApplied` (the rainbow skin is the app's identity
-                         hue, kept). -->
-                    <Button
-                        size="sm"
-                        emphasis="secondary"
-                        :aria-pressed="Boolean(activeKeyframesRef?.cssApplied)"
-                        :class="
-                            activeKeyframesRef?.cssApplied
-                                ? 'rainbow-vivid text-white ribbon-apply--active'
-                                : ''
+                    <Paintbrush
+                        class="icon-sm"
+                        :style="
+                            !activeKeyframesRef?.cssApplied
+                                ? { stroke: 'url(#rainbow-gradient)' }
+                                : {}
                         "
-                        @click="activeKeyframesRef?.applyCSSStyles?.()"
-                    >
-                        <Paintbrush
-                            class="icon-sm"
-                            :style="
-                                !activeKeyframesRef?.cssApplied
-                                    ? { stroke: 'url(#rainbow-gradient)' }
-                                    : {}
-                            "
-                        />
-                        Apply CSS
-                    </Button>
-                    <!-- UIA-KF-173 — the two clipboard verbs are named for what
-                         they copy: the keyframes source, or the zero-runtime CSS
-                         compiled from the orchestration graph. -->
-                    <Button
-                        size="sm"
-                        emphasis="secondary"
-                        icon-only
-                        aria-label="Copy keyframes"
-                        title="Copy keyframes"
-                        @click="activeKeyframesRef?.copyCSS?.()"
-                    >
-                        <Copy class="icon-sm" />
-                    </Button>
-                    <!-- The PRIMARY format path (M-3/C-8 ≡ KF-CE-37): this
-                         call is un-awaited BY DESIGN — `formatCSS` is the
-                         keyframes pane's `formatEditor`, the ONE format
-                         boundary, which catches prettier's rejection, toasts
-                         it with Retry and releases the pane's latch, so the
-                         promise it returns never rejects. -->
-                    <Button
-                        size="sm"
-                        emphasis="secondary"
-                        icon-only
-                        aria-label="Format"
-                        title="Format"
-                        @click="activeKeyframesRef?.formatCSS?.()"
-                    >
-                        <Sparkles class="icon-sm text-gold" />
-                    </Button>
-                    <!-- K.W10 CC-4 — Export CSS: compile the orchestration graph
-                         to a zero-runtime CSS artifact via the gated compileToCSS
-                         (the round-trip's BACKWARD half) + the honest CC-3
-                         ineligibility report. The editor is a CSS-animation IDE. -->
-                    <Button
-                        size="sm"
-                        emphasis="secondary"
-                        icon-only
-                        aria-label="Copy compiled CSS"
-                        title="Copy compiled CSS"
-                        @click="activeKeyframesRef?.exportCompiledCSS?.()"
-                    >
-                        <FileCode class="icon-sm text-emerald-500" />
-                    </Button>
-                </div>
-
-                <!-- Timeline tab — X.KF.W13X.sections (A2-KE-L3-15 · UIA-KF-179):
-                     ONE row with a lead. Snapshot (capture the subject's pose as
-                     a keyframe, the timeline's authoring verb) leads, labelled;
-                     the three CSS paths are named icon commands, each named for
-                     what it does (Import REPLACES the timeline, Add MERGES into
-                     it). Four labelled sm Buttons wrapped 3 + 1 at 1440 and
-                     2 + 2 at 390. -->
-                <div
-                    v-else-if="storedControls.selectedControl === 'timeline'"
-                    class="flex items-center justify-center gap-2"
+                    />
+                    Apply CSS
+                </Button>
+                <!-- UIA-KF-173 — the two clipboard verbs are named for what
+                     they copy: the keyframes source, or the zero-runtime CSS
+                     compiled from the orchestration graph. -->
+                <Button
+                    size="sm"
+                    emphasis="secondary"
+                    icon-only
+                    aria-label="Copy keyframes"
+                    title="Copy keyframes"
+                    @click="activeKeyframesRef?.copyCSS?.()"
                 >
-                    <Button
-                        size="sm"
-                        emphasis="secondary"
-                        @click="activeTimelineRef?.snapshot?.()"
-                    >
-                        <Camera class="icon-sm" /> Snapshot
-                    </Button>
-                    <Button
-                        size="sm"
-                        emphasis="secondary"
-                        icon-only
-                        aria-label="Import CSS, replacing the timeline"
-                        title="Import CSS (replaces the timeline)"
-                        @click="activeTimelineRef?.openImportDialog?.()"
-                    >
-                        <Download class="icon-sm" />
-                    </Button>
-                    <Button
-                        size="sm"
-                        emphasis="secondary"
-                        icon-only
-                        aria-label="Add CSS, merging into the timeline"
-                        title="Add CSS (merges into the timeline)"
-                        @click="activeTimelineRef?.openAddCSSDialog?.()"
-                    >
-                        <FilePlus2 class="icon-sm" />
-                    </Button>
-                    <Button
-                        size="sm"
-                        emphasis="secondary"
-                        icon-only
-                        aria-label="Export CSS"
-                        title="Export CSS"
-                        @click="activeTimelineRef?.exportCSS?.()"
-                    >
-                        <Upload class="icon-sm" />
-                    </Button>
-                </div>
-
-                <!-- Other tabs (matrix controls, etc.) via slot -->
-                <div
-                    v-else-if="storedControls.selectedControl !== 'controls'"
-                    class="ribbon-slot flex items-center justify-center gap-2 flex-wrap"
+                    <!-- X-DS pass 1, C1 (KF-C1-14) — the three icon
+                         commands share one neutral ink (currentColor): the
+                         gold Format and emerald Export tints carried no
+                         state and no identity. The rainbow brush on Apply
+                         CSS stays, the app's identity CTA. -->
+                    <Copy class="icon-sm" />
+                </Button>
+                <!-- The PRIMARY format path (M-3/C-8 ≡ KF-CE-37): this
+                     call is un-awaited BY DESIGN — `formatCSS` is the
+                     keyframes pane's `formatEditor`, the ONE format
+                     boundary, which catches prettier's rejection, toasts
+                     it with Retry and releases the pane's latch, so the
+                     promise it returns never rejects. -->
+                <Button
+                    size="sm"
+                    emphasis="secondary"
+                    icon-only
+                    aria-label="Format"
+                    title="Format"
+                    @click="activeKeyframesRef?.formatCSS?.()"
                 >
-                    <slot
-                        name="ribbon-content"
-                        :selected-control="storedControls.selectedControl"
-                    ></slot>
-                </div>
-            </CardContent>
-        </Card>
+                    <Sparkles class="icon-sm" />
+                </Button>
+                <!-- K.W10 CC-4 — Export CSS: compile the orchestration graph
+                     to a zero-runtime CSS artifact via the gated compileToCSS
+                     (the round-trip's BACKWARD half) + the honest CC-3
+                     ineligibility report. The editor is a CSS-animation IDE. -->
+                <Button
+                    size="sm"
+                    emphasis="secondary"
+                    icon-only
+                    aria-label="Copy compiled CSS"
+                    title="Copy compiled CSS"
+                    @click="activeKeyframesRef?.exportCompiledCSS?.()"
+                >
+                    <FileCode class="icon-sm" />
+                </Button>
+            </div>
+
+            <!-- Timeline tab — X.KF.W13X.sections (A2-KE-L3-15 · UIA-KF-179):
+                 ONE row with a lead. Snapshot (capture the subject's pose as
+                 a keyframe, the timeline's authoring verb) leads, labelled;
+                 the three CSS paths are named icon commands, each named for
+                 what it does (Import REPLACES the timeline, Add MERGES into
+                 it). Four labelled sm Buttons wrapped 3 + 1 at 1440 and
+                 2 + 2 at 390. -->
+            <div
+                v-else-if="storedControls.selectedControl === 'timeline'"
+                class="flex items-center justify-center gap-2"
+            >
+                <Button
+                    size="sm"
+                    emphasis="secondary"
+                    @click="activeTimelineRef?.snapshot?.()"
+                >
+                    <Camera class="icon-sm" /> Snapshot
+                </Button>
+                <Button
+                    size="sm"
+                    emphasis="secondary"
+                    icon-only
+                    aria-label="Import CSS, replacing the timeline"
+                    title="Import CSS (replaces the timeline)"
+                    @click="activeTimelineRef?.openImportDialog?.()"
+                >
+                    <Download class="icon-sm" />
+                </Button>
+                <Button
+                    size="sm"
+                    emphasis="secondary"
+                    icon-only
+                    aria-label="Add CSS, merging into the timeline"
+                    title="Add CSS (merges into the timeline)"
+                    @click="activeTimelineRef?.openAddCSSDialog?.()"
+                >
+                    <FilePlus2 class="icon-sm" />
+                </Button>
+                <Button
+                    size="sm"
+                    emphasis="secondary"
+                    icon-only
+                    aria-label="Export CSS"
+                    title="Export CSS"
+                    @click="activeTimelineRef?.exportCSS?.()"
+                >
+                    <Upload class="icon-sm" />
+                </Button>
+            </div>
+
+            <!-- Other tabs (matrix controls, etc.) via slot -->
+            <div
+                v-else-if="storedControls.selectedControl !== 'controls'"
+                class="ribbon-slot flex items-center justify-center gap-2 flex-wrap"
+            >
+                <slot
+                    name="ribbon-content"
+                    :selected-control="storedControls.selectedControl"
+                ></slot>
+            </div>
+        </div>
     </div>
 </template>
 
@@ -170,7 +179,7 @@ import {
     Upload,
 } from "@lucide/vue";
 import { watch } from "vue";
-import { Button, Card, CardContent } from "@mkbabb/glass-ui";
+import { Button, Separator } from "@mkbabb/glass-ui";
 import type { StoredAnimationGroupControlOptions } from "@state";
 
 // The ribbon's eight Buttons carry NO class string of their own: `size="sm"` +

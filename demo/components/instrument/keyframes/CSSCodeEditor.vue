@@ -29,7 +29,11 @@
         :class="['code-well w-full overflow-hidden', border ? 'cartoon-surface' : '']"
     >
         <slot name="header" />
-        <div class="relative">
+        <!-- X-DS pass 1, C1 (KF-C1-19) — the well has a right gutter: Monaco
+             has no inline padding, so the code ran flush into the card's edge.
+             The box insets its end by the gutter and paints it in the active
+             theme's own editor ground, so the inset reads as the editor's. -->
+        <div class="code-well__body relative" :style="{ '--code-well-ground': wellGround }">
             <div
                 ref="containerEl"
                 class="w-full"
@@ -57,7 +61,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref, useTemplateRef, watch } from "vue";
+import { computed, onMounted, onUnmounted, ref, useTemplateRef, watch } from "vue";
 import { useMediaQuery, useResizeObserver } from "@vueuse/core";
 // Monaco is the demo's single largest module (`vendor-monaco`, ~2.5 MB
 // minified at the `editor.api` surface this boot loads). A static
@@ -199,6 +203,14 @@ const themeName = () =>
         : isDark.value
           ? "dark-theme"
           : "light-theme";
+
+/** The editor ground under the well's right gutter: the active theme's own
+ *  `editor.background` (the system Canvas under forced colours). */
+const wellGround = computed(() =>
+    forcedColors.value
+        ? "Canvas"
+        : ((isDark.value ? DarkTheme : LightTheme).colors["editor.background"] ?? "transparent"),
+);
 
 /** booting → ready, or booting → failed (Retry re-enters booting). */
 const phase = ref<"booting" | "ready" | "failed">("booting");
@@ -352,6 +364,12 @@ const initEditor = async () => {
                 .getPropertyValue("--font-mono")
                 .trim() || "monospace",
         minimap: { enabled: false },
+        // X-DS pass 1, C1 (KF-C1-19) — no overview ruler: its lanes drew a
+        // stray tick at the well's top-right with nothing to say in a short
+        // snippet editor.
+        overviewRulerLanes: 0,
+        overviewRulerBorder: false,
+        hideCursorInOverviewRuler: true,
         // UIA-KF-174 (X.KF.W13X.keyframes) — code does not wrap. In the
         // 316–403 px pane Monaco's soft wrap cut inside identifiers and before
         // `(` / `:` (`rotateY` / `(0turn)`, a selector over three visual lines
@@ -487,6 +505,11 @@ defineExpose({
 .code-well:has(:focus-visible) {
     outline: var(--focus-ring-width) solid var(--focus-ring-color);
     outline-offset: 2px;
+}
+
+.code-well__body {
+    padding-inline-end: var(--space-body);
+    background: var(--code-well-ground);
 }
 
 .code-well :deep(.monaco-editor :focus-visible) {

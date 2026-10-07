@@ -54,93 +54,112 @@
             ]"
         >
             <div class="controls-content h-full flex flex-col">
-                <!-- J.W2 S2 — the v-for is KEYED by the animation name so an
-                     ChannelControls instance is BORN with its animation (and
-                     dies with it). T.B1-β STAGE 1 — the hosts derive from the
-                     CHANNEL axis when the scene exposes a facility. -->
-                <template
-                    v-for="host in controlHosts"
-                    :key="host.animation.id"
+                <!-- X-DS pass 1, C1 (KF-C1-07 · KF-C1-06 · KF-C1-08) — ONE frame
+                     for the one control group. The pane and the transport
+                     ribbon were two separately stamped cards with a gap
+                     between them (two frames, two shadow stacks); ORIGIN had
+                     ONE card with the transport rows inside it. The frame is
+                     now the host's: on the desktop rail it is the one glass
+                     Card (cartoon stamp, glass-owned under O-87), the surface
+                     scroller sits INSIDE it (so a surface taller than the rail
+                     scrolls and fades within a closed card, never cut at the
+                     card's own edge), and the ribbon is its last section under
+                     a hairline. In the mobile sheet the sheet IS the plate, so
+                     the body renders flat on it (a plain box): no plate in a
+                     plate. The surfaces themselves draw no card. -->
+                <component
+                    :is="isMobileLayout ? 'div' : Card"
+                    v-bind="isMobileLayout ? {} : { tier: 'quiet' }"
+                    :class="['pane-frame', isMobileLayout ? '' : 'cartoon-surface']"
                 >
-                    <!-- X.KF.W13V.c (C1-1) — `.controls-surface` is the
-                         desktop rail's ONE scroller: the rail is bounded above
-                         the menubar band (ControlsPaneWrapper.css), so a
-                         surface taller than the rail scrolls HERE while the
-                         persistent ribbon below stays in view. -->
+                    <!-- J.W2 S2 — the v-for is KEYED by the animation name so an
+                         ChannelControls instance is BORN with its animation (and
+                         dies with it). T.B1-β STAGE 1 — the hosts derive from the
+                         CHANNEL axis when the scene exposes a facility. -->
+                    <template
+                        v-for="host in controlHosts"
+                        :key="host.animation.id"
+                    >
+                        <!-- X.KF.W13V.c (C1-1) — `.controls-surface` is the
+                             desktop rail's ONE scroller: the rail is bounded above
+                             the menubar band (ControlsPaneWrapper.css), so a
+                             surface taller than the rail scrolls HERE while the
+                             persistent ribbon below stays in view. -->
+                        <div
+                            v-show="storedControls.selectedAnimation == host.name"
+                            class="controls-surface"
+                        >
+                            <!-- LP-1 — THE WRITE→RENDER EDGE. `host.layer` and
+                                 `host.blendAvailable` are re-read from the engine
+                                 at this edge on every layer write (see
+                                 `controlHosts` + `onLayerConfigUpdate`), so the
+                                 panel below renders the engine's post-write truth
+                                 rather than a snapshot taken at mount. -->
+                            <ChannelControls
+                                :ref="(el) => { if (el) emit('channelControlsRef', host.name, el) }"
+                                @slider-update="(v) => emit('sliderUpdate', v)"
+                                @keyframes-update="(v) => emit('keyframesUpdate', v)"
+                                @toggle-play="emit('togglePlay')"
+                                @layer-config-update="
+                                    (v) => onLayerConfigUpdate(host.name, v)
+                                "
+                                @scrub-start="emit('scrubStart')"
+                                @scrub-end="emit('scrubEnd')"
+                                :animation="host.animation"
+                                :is-playing="isPlaying"
+                                :layer-config="host.layer"
+                                :blend-available="host.blendAvailable"
+                                :active="storedControls.selectedAnimation == host.name"
+                            >
+                                <!-- X.KF.W13X.mobile (UIA-KF-008) — the scene
+                                     facet body renders ONLY on its own surface,
+                                     gated here in the one pane host so no scene
+                                     can forget (easing Curve and spring Physics
+                                     were ungated and stacked under Controls,
+                                     Keyframes and Timeline). -->
+                                <template v-if="selectedIsFacet" #tabs-content>
+                                    <slot
+                                        name="tabs-content"
+                                        :selected-animation="
+                                            storedControls.selectedAnimation
+                                        "
+                                        :is-playing="isPlaying"
+                                    ></slot>
+                                </template>
+                            </ChannelControls>
+                        </div>
+                    </template>
+
+                    <!-- X.KF.W13V.s2 (§0cw ESC-s-1 (b)) — a master-clock channel
+                         (Sequence) paints no one Animation, so no ChannelControls
+                         host is born for it; its one surface is the Timeline pane
+                         in Sequence mode — the items as lanes, re-timed on the lane,
+                         the master scrub as the playhead. -->
                     <div
+                        v-for="host in sequenceHosts"
+                        :key="host.name"
                         v-show="storedControls.selectedAnimation == host.name"
                         class="controls-surface"
                     >
-                        <!-- LP-1 — THE WRITE→RENDER EDGE. `host.layer` and
-                             `host.blendAvailable` are re-read from the engine
-                             at this edge on every layer write (see
-                             `controlHosts` + `onLayerConfigUpdate`), so the
-                             panel below renders the engine's post-write truth
-                             rather than a snapshot taken at mount. -->
-                        <ChannelControls
-                            :ref="(el) => { if (el) emit('channelControlsRef', host.name, el) }"
-                            @slider-update="(v) => emit('sliderUpdate', v)"
-                            @keyframes-update="(v) => emit('keyframesUpdate', v)"
-                            @toggle-play="emit('togglePlay')"
-                            @layer-config-update="
-                                (v) => onLayerConfigUpdate(host.name, v)
-                            "
-                            @scrub-start="emit('scrubStart')"
-                            @scrub-end="emit('scrubEnd')"
-                            :animation="host.animation"
-                            :is-playing="isPlaying"
-                            :layer-config="host.layer"
-                            :blend-available="host.blendAvailable"
-                            :active="storedControls.selectedAnimation == host.name"
-                        >
-                            <!-- X.KF.W13X.mobile (UIA-KF-008) — the scene
-                                 facet body renders ONLY on its own surface,
-                                 gated here in the one pane host so no scene
-                                 can forget (easing Curve and spring Physics
-                                 were ungated and stacked under Controls,
-                                 Keyframes and Timeline). -->
-                            <template v-if="selectedIsFacet" #tabs-content>
-                                <slot
-                                    name="tabs-content"
-                                    :selected-animation="
-                                        storedControls.selectedAnimation
-                                    "
-                                    :is-playing="isPlaying"
-                                ></slot>
-                            </template>
-                        </ChannelControls>
+                        <SequenceTimeline :source="host.sequence" />
                     </div>
-                </template>
 
-                <!-- X.KF.W13V.s2 (§0cw ESC-s-1 (b)) — a master-clock channel
-                     (Sequence) paints no one Animation, so no ChannelControls
-                     host is born for it; its one surface is the Timeline pane
-                     in Sequence mode — the items as lanes, re-timed on the lane,
-                     the master scrub as the playhead. -->
-                <div
-                    v-for="host in sequenceHosts"
-                    :key="host.name"
-                    v-show="storedControls.selectedAnimation == host.name"
-                    class="controls-surface pl-4 pr-4 lg:pr-7 pt-2 pb-3"
-                >
-                    <SequenceTimeline :source="host.sequence" />
-                </div>
-
-                <!-- Persistent controls ribbon (its actions address one
-                     Animation's keyframes, so a Sequence host carries none). -->
-                <RibbonBar
-                    v-if="storedControls.selectedAnimation && !selectedIsSequence"
-                    :stored-controls="storedControls"
-                    :active-keyframes-ref="activeKeyframesRef"
-                    :active-timeline-ref="activeTimelineRef"
-                >
-                    <template #ribbon-content="{ selectedControl }">
-                        <slot
-                            name="ribbon-content"
-                            :selected-control="selectedControl"
-                        ></slot>
-                    </template>
-                </RibbonBar>
+                    <!-- Persistent controls ribbon (its actions address one
+                         Animation's keyframes, so a Sequence host carries none). -->
+                    <RibbonBar
+                        v-if="storedControls.selectedAnimation && !selectedIsSequence"
+                        :stored-controls="storedControls"
+                        :active-keyframes-ref="activeKeyframesRef"
+                        :active-timeline-ref="activeTimelineRef"
+                    >
+                        <template #ribbon-content="{ selectedControl }">
+                            <slot
+                                name="ribbon-content"
+                                :selected-control="selectedControl"
+                            ></slot>
+                        </template>
+                    </RibbonBar>
+                </component>
             </div>
         </div>
     </DefinePaneBody>
@@ -229,6 +248,7 @@ import {
     type ControlSurface,
     type StoredAnimationGroupControlOptions,
 } from "@state";
+import { Card } from "@mkbabb/glass-ui/card";
 import { Dialog, DialogTitle } from "@mkbabb/glass-ui/dialog";
 import { SheetContent } from "@mkbabb/glass-ui/sheet";
 import { createReusableTemplate, useMediaQuery } from "@vueuse/core";

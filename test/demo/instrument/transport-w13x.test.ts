@@ -396,11 +396,13 @@ describe("X.KF.W13X.transport — the ball-preview eye", () => {
             { attachTo: document.body },
         );
         mounted.push(w);
+        // X-DS pass 1, C1 (KF-C1-03) — the name is the visible label's, and
+        // pressed means SHOWN: a hidden preview reads unpressed.
         const eye = (w.element as HTMLElement).querySelector<HTMLButtonElement>(
-            'button[aria-label="Hide ball preview"]',
+            'button[aria-label="Ball preview"]',
         )!;
-        expect(eye.getAttribute("aria-label")).toBe("Hide ball preview");
-        expect(eye.getAttribute("aria-pressed")).toBe("true");
+        expect(eye.getAttribute("aria-label")).toBe("Ball preview");
+        expect(eye.getAttribute("aria-pressed")).toBe("false");
         eye.dispatchEvent(new FocusEvent("focus"));
         eye.dispatchEvent(new FocusEvent("focusin", { bubbles: true }));
         await nextTick();

@@ -11,12 +11,12 @@
          AUTHORING surface (the clean BG-8 division: the gallery is the
          scene's, the editor is EasingPicker's — the bounce family stays
          kf-owned until glass-ui's named catalogue covers it). -->
-    <Card
-        tier="quiet"
-        class="cartoon-surface w-full overflow-visible"
+    <!-- X-DS pass 1, C1 (KF-C1-07) — no card of its own: the pane host draws the one frame (ControlsPaneWrapper), so this surface is flat inside it. -->
+    <div
+        class="w-full"
         :style="seat.containerStyle"
     >
-        <CardContent class="panel-content p-0">
+        <div class="panel-content p-0">
             <!-- X.KF.W13X.sq+dh (§0dz, addendum (e)) — the pane wears glass's
                  section anatomy (the ConfiguratorLayer the Spring and Sequence
                  panes wear): one labelled section holding the curve editor and
@@ -107,13 +107,13 @@
                     <output class="param-value" aria-hidden="true">{{ demo.duration.value }} ms</output>
                 </div>
             </ConfiguratorLayer>
-        </CardContent>
-    </Card>
+        </div>
+    </div>
 </template>
 
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
-import { Card, CardContent, Separator } from "@mkbabb/glass-ui";
+import { Separator } from "@mkbabb/glass-ui";
 import { Button } from "@mkbabb/glass-ui/button";
 import { LabeledSlider } from "@mkbabb/glass-ui/labeled-field";
 import { ConfiguratorLayer } from "@mkbabb/glass-ui/configurator";

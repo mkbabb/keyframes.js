@@ -40,6 +40,14 @@
     position: relative;
     gap: 0.75rem;
 }
+/* X-DS pass 1, C1 (KF-C1-07) — the ONE frame the surfaces and the ribbon share
+   (the desktop Card, or a plain box on the mobile sheet). A column, so the
+   surface scroller can take the bounded height and the ribbon keeps its own. */
+.pane-frame {
+    display: flex;
+    flex-direction: column;
+    min-block-size: 0;
+}
 
 /* ── MOBILE (< 1024px): the adopted glass-ui Sheet body ──
    The Sheet (`[data-slot=sheet-content]` — sheet/styles.css) portals the shared
@@ -146,6 +154,12 @@
         flex-direction: column;
         min-block-size: 0;
     }
+    /* The frame sits where the two cards sat (the former scroller and ribbon
+       insets: 0.5rem above and below, 1rem start, 1.75rem end), so the rail's
+       composition against the stage is unchanged. */
+    .pane-frame {
+        margin: 0.5rem 1.75rem 0.5rem 1rem;
+    }
     .controls-surface {
         flex: 1 1 auto;
         min-block-size: 0;
@@ -159,7 +173,10 @@
        it fades over the single-sourced --mask-fade — the same mask the mobile
        sheet wears — driven by the scroller's OWN scroll timeline, so a surface
        that fits (no scroll range, an inactive timeline) wears no mask at all
-       and an edge at its limit is crisp. No JS, no scroll listener. */
+       and an edge at its limit is crisp. No JS, no scroll listener.
+       C1 (KF-C1-06): the scroller now sits INSIDE the one pane frame
+       (`.pane-frame`), so the fade dissolves content within a closed card and
+       never the card's own border. */
     @supports (animation-timeline: scroll()) {
         .controls-surface {
             mask-image: linear-gradient(

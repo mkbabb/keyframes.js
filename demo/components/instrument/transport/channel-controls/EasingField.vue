@@ -32,13 +32,19 @@
              mutex. OA-28 / OA-31 — the closed trigger shows the CURRENT curve:
              its glyph (sampled from the easing the key installs) and its name.
              UIA-KF-271 — a parametric curve (the `cubic-bezier` / `steps` draft
-             kinds) is named `custom`, beside the stored curve's own glyph. -->
+             kinds) is named `custom`, beside the stored curve's own glyph.
+             X-DS pass 1, C1 (KF-C1-05) — the trigger is a FIELD, so it wears
+             the field skin the direction and fill-mode Selects above it wear
+             (glass's own Select-trigger recipe: `control-surface` +
+             `glass-control-edge`, at the control height), not a lifted
+             secondary capsule Button: the label/field column is one tone and
+             one edge. -->
         <Popover :open="open" @update:open="(v: boolean) => emit('update:open', v)">
             <PopoverTrigger as-child>
-                <Button
+                <button
                     ref="triggerEl"
-                    emphasis="secondary"
-                    class="col-start-2 w-full min-w-0 justify-between"
+                    type="button"
+                    class="control-surface glass-control-edge glass-capsule-hover tap-squish focus-ring transition-control col-start-2 flex h-(--control-h-md) w-full min-w-0 cursor-pointer items-center justify-between gap-1.5 rounded-pill px-3 text-dropdown"
                     :aria-labelledby="`${labelId} ${valueId}`"
                 >
                     <span :id="valueId" class="flex min-w-0 flex-1 items-center gap-1.5">
@@ -62,7 +68,7 @@
                         <template v-else>{{ CURVE_PLACEHOLDER }}</template>
                     </span>
                     <ChevronDown class="icon-sm shrink-0 opacity-60" aria-hidden="true" />
-                </Button>
+                </button>
             </PopoverTrigger>
             <PopoverContent
                 align="start"
@@ -117,11 +123,10 @@ const labelId = useId();
 const valueId = useId();
 const CURVE_PLACEHOLDER = "Pick a curve";
 
-const triggerEl = useTemplateRef<InstanceType<typeof Button>>("triggerEl");
+const triggerEl = useTemplateRef<HTMLButtonElement>("triggerEl");
 /** Where focus returns when an editor opened from a draft-kind pick closes. */
 defineExpose({
-    triggerControl: (): HTMLElement | null =>
-        (triggerEl.value?.$el as HTMLElement | undefined) ?? null,
+    triggerControl: (): HTMLElement | null => triggerEl.value ?? null,
 });
 </script>
 

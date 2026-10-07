@@ -8,7 +8,10 @@
          politely where it changes, beside the buffer it describes.
          X-DS pass 1 (KF-P1-16) — the header is the code well's FIRST ROW,
          inside the card (the editor's `#header` slot), under a hairline: it
-         hung on the page grid above the card, anchored to no surface. -->
+         hung on the page grid above the card, anchored to no surface.
+         C1 (KF-C1-07) — the well is unframed (`border` false): the pane host
+         draws the one frame (ControlsPaneWrapper), so a framed well here was a
+         card in a card. -->
     <section class="min-w-0" :aria-labelledby="headingId">
         <!-- D-4 (X.KF.W12.e) — the editor WELL is the parse-error shake's
              target: the element whose buffer failed to parse is the element
@@ -21,7 +24,7 @@
                 height="450px"
                 :font-size="14"
                 :line-numbers="true"
-                :border="true"
+                :border="false"
                 @update:model-value="onEditorChange"
             >
                 <template #header>

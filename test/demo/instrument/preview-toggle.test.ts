@@ -59,7 +59,7 @@ describe("OA-61 · KF-P1-01 — one seated eye toggle for the ball preview", () 
         expect(read("demo/components/playback/PlaybackRibbon.vue")).toMatch(/<PreviewToggle\b/);
     });
 
-    it("(3) the eye is seated in the ribbon's transport row, in flow; hidden keeps the box", () => {
+    it("(3) the eye is seated in the ribbon's transport row, in flow; hidden collapses its row", () => {
         const src = read(TOGGLE);
         // No control, and nothing out of flow, is left on the preview itself.
         expect(src).not.toMatch(/<Button\b|preview-toggle__eye/);
@@ -68,16 +68,24 @@ describe("OA-61 · KF-P1-01 — one seated eye toggle for the ball preview", () 
         expect(hidden).toMatch(/visibility:\s*hidden/);
         expect(hidden).not.toMatch(/display:/);
         expect(src).not.toMatch(/v-if="state === 'hidden'|v-show/);
+        // X-DS pass 1, C1 (KF-C1-04) — the hidden preview stays mounted but its
+        // row collapses (1fr → 0fr on the same spring), leaving no empty slab.
+        const root = src.match(/\.preview-toggle\[data-state="hidden"\]\s*\{([^}]*)\}/)![1]!;
+        expect(root).toMatch(/grid-template-rows:\s*0fr/);
+        expect(src).toMatch(/grid-template-rows var\(--preview-toggle-ms\) var\(--preview-ease\)/);
 
-        // The ribbon: Reverse and the eye are siblings of ONE row, the same
-        // skin, and the eye is labelled.
+        // The ribbon: Reverse and the eye are siblings of ONE row, and the eye
+        // is labelled. X-DS pass 1, C1 (KF-C1-03): the eye is glass's quiet
+        // Button, subordinate to Reverse, and does not wear Reverse's skin.
         const ribbon = read(RIBBON);
         const template = ribbon.slice(0, ribbon.indexOf("<script"));
         const row = template.match(/<div\s+class="grid gap-2"[\s\S]*?<\/Tooltip>\s*<\/div>/)![0];
         expect(row).toMatch(/<span>Reverse<\/span>/);
-        expect(row).toMatch(/aria-label="Hide ball preview"/);
+        expect(row).toMatch(/aria-label="Ball preview"/);
+        expect(row).toMatch(/:aria-pressed="preview !== 'hidden'"/);
         expect(row).toMatch(/<span>Preview<\/span>/);
-        expect(row.match(/class="btn-playback rounded-full gap-2"/g)).toHaveLength(2);
+        expect(row).toMatch(/emphasis="quiet"/);
+        expect(row.match(/class="btn-playback rounded-full gap-2"/g)).toHaveLength(1);
         expect(ribbon).not.toMatch(/position:\s*absolute/);
     });
 

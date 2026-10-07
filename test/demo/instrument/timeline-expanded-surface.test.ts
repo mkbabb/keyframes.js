@@ -30,19 +30,28 @@ const mountTimeline = (expanded: boolean) =>
     );
 
 describe("UIA-KF-085 — the expanded timeline keeps its Card's material", () => {
-    for (const expanded of [false, true]) {
-        it(`${expanded ? "expanded" : "collapsed"}: no class strips the Card's border, shadow or fill`, () => {
-            const w = mountTimeline(expanded);
-            const card = w.get(".cartoon-surface");
-            for (const stripped of ["border-0", "shadow-none", "bg-transparent"]) {
-                expect(card.classes()).not.toContain(stripped);
-            }
-            const content = card.get(".relative.flex.flex-col");
-            expect(content.classes()).toContain("p-4");
-            expect(content.classes()).not.toContain("px-0");
-            w.unmount();
-        });
-    }
+    it("expanded: no class strips the Card's border, shadow or fill", () => {
+        const w = mountTimeline(true);
+        const card = w.get(".cartoon-surface");
+        for (const stripped of ["border-0", "shadow-none", "bg-transparent"]) {
+            expect(card.classes()).not.toContain(stripped);
+        }
+        const content = card.get(".relative.flex.flex-col");
+        expect(content.classes()).toContain("p-4");
+        expect(content.classes()).not.toContain("px-0");
+        w.unmount();
+    });
+
+    // X-DS pass 1, C1 (KF-C1-07) — in the pane the timeline draws no card of
+    // its own: the pane host draws the one frame, so a second stamp would be a
+    // card in a card. Its content keeps its own inset.
+    it("collapsed (in the pane): no card of its own, the content keeps its inset", () => {
+        const w = mountTimeline(false);
+        expect(w.find(".cartoon-surface").exists()).toBe(false);
+        const content = w.get(".relative.flex.flex-col");
+        expect(content.classes()).toContain("p-4");
+        w.unmount();
+    });
 
     it("expanded, the Card floats at glass's floating tier", () => {
         const w = mountTimeline(true);

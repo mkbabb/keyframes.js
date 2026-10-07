@@ -13,8 +13,9 @@
          (#actions, addendum (c)), the item count and span as ONE subordinate
          caption in the body (it was an uppercase mono header competing with the
          lanes), then the lanes. -->
-    <Card tier="quiet" class="cartoon-surface w-full overflow-visible">
-        <CardContent class="panel-content p-0">
+    <!-- X-DS pass 1, C1 (KF-C1-07) — no card of its own: the pane host draws the one frame (ControlsPaneWrapper), so this surface is flat inside it. -->
+    <div class="w-full">
+        <div class="panel-content p-0">
             <ConfiguratorLayer label="Sequence" default-open body-class="flex flex-col gap-3">
                 <template #actions>
                     <!-- The re-time's undo (SC-2): the one path back to the default
@@ -35,12 +36,12 @@
                 </p>
                 <SequenceLanes :source="source" />
             </ConfiguratorLayer>
-        </CardContent>
-    </Card>
+        </div>
+    </div>
 </template>
 
 <script setup lang="ts">
-import { Button, Card, CardContent } from "@mkbabb/glass-ui";
+import { Button } from "@mkbabb/glass-ui";
 import { ConfiguratorLayer } from "@mkbabb/glass-ui/configurator";
 import { RotateCcw } from "@lucide/vue";
 import SequenceLanes from "./components/SequenceLanes.vue";

@@ -1,6 +1,7 @@
 <template>
-    <Card tier="quiet" class="cartoon-surface w-full overflow-visible">
-        <CardContent class="panel-content px-4 py-3">
+    <!-- X-DS pass 1, C1 (KF-C1-07) — no card of its own: the pane host draws the one frame (ControlsPaneWrapper), so this surface is flat inside it. -->
+    <div class="w-full">
+        <div class="panel-content px-4 py-3">
             <!-- X.KF.W13X.matrix (UIA-KF-161 · UIA-KF-267) — the surface is ONE
                  titled glass section, the Spring facet's anatomy: the title names
                  what the panel edits (the facet had no heading and an unnamed
@@ -96,14 +97,14 @@
                     <output class="param-value" aria-hidden="true">{{ readout(matrixCellValue(selectedCell)) }}</output>
                 </div>
             </ConfiguratorLayer>
-        </CardContent>
-    </Card>
+        </div>
+    </div>
 </template>
 
 <script setup lang="ts">
 import { computed, ref, useId } from "vue";
 import { RotateCcw } from "@lucide/vue";
-import { Button, Card, CardContent } from "@mkbabb/glass-ui";
+import { Button } from "@mkbabb/glass-ui";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@mkbabb/glass-ui/tooltip";
 import { LabeledSlider } from "@mkbabb/glass-ui/labeled-field";
 import { ConfiguratorLayer } from "@mkbabb/glass-ui/configurator";
