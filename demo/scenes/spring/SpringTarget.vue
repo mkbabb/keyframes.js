@@ -246,9 +246,16 @@
                 class="spring-rail-verbs flex flex-wrap items-center justify-center gap-x-3 gap-y-1"
                 :class="{ 'spring-rail-verbs--veiled': demo.derbyActive.value }"
             >
+                <!-- X-DS pass 5 (KF-C5-11) — the copy names what is WHERE.
+                     OA-56 moved the ball off the rail onto the plotted trace,
+                     and this line still said the ball springs along the rail,
+                     whose only disc is the dashed ring: a reader could not tell
+                     the ring (the target) from the ball (on the curve). One
+                     protagonist disc per figure; the copy says which is which. -->
                 <p id="spring-rail-hint" class="text-small text-muted-foreground text-center text-pretty">
-                    Tap or drag the rail &mdash; the ball springs to the new target. Tune
-                    response and damping in the Physics pane.
+                    Tap or drag the rail to move the target (the dashed ring) &mdash; the
+                    ball on the curve below springs to it. Tune response and damping in
+                    the Physics pane.
                 </p>
                 <Button emphasis="quiet" size="sm" class="spring-reseat" @click="demo.toggleTarget()">
                     <Shuffle aria-hidden="true" />

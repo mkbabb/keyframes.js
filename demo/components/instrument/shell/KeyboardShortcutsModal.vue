@@ -80,9 +80,16 @@
         <!-- X.KF.W13X.overlays · UIA-KF-147 — at >= md the dialog widens to hold
              the groups in TWO columns (below), so the whole map reads without
              scrolling at 1440x900 (11 of 22 rows showed in a 540px port). -->
+        <!-- X-DS pass 5 (KF-C5-08) — the md widening never took: the
+             content is fixed and shrink-to-fit, and a two-column flow's
+             intrinsic width is narrow, so the dialog sat at 512 px under its
+             672 px cap and half its rows wrapped (the label column squeezed
+             by its caps). `md:w-full` lets it take the cap; the longest
+             labels are tightened at their registrations (×10, "Orbit on X
+             axis"), so every row is one line. -->
         <DialogContent
             scroll
-            class="max-w-md md:max-w-2xl"
+            class="max-w-md md:w-full md:max-w-2xl"
             @interact-outside="
                 (event) => {
                     if (isInsideToaster(event.target))

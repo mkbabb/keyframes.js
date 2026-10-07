@@ -94,15 +94,18 @@ describe("the Timeline rail's geometry", () => {
         expect(collapse.find(".timeline-pan-row").attributes("aria-hidden")).toBe("true");
     });
 
-    it("UIA-KF-181/185 — the rail wears the field radius role, and a shared stop's count is a glass Badge", () => {
+    it("UIA-KF-181/185 · KF-C5-03 — the rail wears the field radius role, and a shared stop's count reads in its caret, not on the diamond", () => {
         const w = mountTrack([kf("a", 30), kf("b", 30), kf("c", 90)]);
         const rail = w.get(".timeline-track");
         expect(rail.classes()).toContain("rounded-[var(--radius-field)]");
         expect(rail.classes()).not.toContain("rounded-lg");
-        const count = w.get(".stop-count");
+        // X-DS pass 5 (KF-C5-03): the Badge covered the 16px mark it annotated.
+        expect(w.findAll(".keyframe-marker .stop-count")).toHaveLength(0);
+        const count = w.get(".timeline-caret-readout .stop-count");
         expect(count.text()).toBe("×2");
-        expect(count.classes()).not.toContain("rounded-full");
-        expect(count.attributes("data-slot") ?? count.classes().join(" ")).toMatch(/badge/);
+        const readout = count.element.closest(".timeline-caret-readout")!;
+        expect(readout.textContent?.replace(/\s+/g, "")).toBe("30%×2");
+        expect(readout.getAttribute("aria-label")).toContain("2 keyframes");
     });
 
     it("UIA-KF-181/185 · UIA-KF-083 — the stage wears the media radius role and waits for an animation", () => {

@@ -61,23 +61,34 @@
              (W6-G role (c)); the redundant mono family utility goes with the
              swap. `leading-none` carries the old register's line-height so the
              caret's hang below the rail grows only by the glyph's own 2–6px,
-             inside the rail's 1rem bottom margin — the box law, honoured. -->
+             inside the rail's 1rem bottom margin — the box law, honoured.
+             X-DS pass 5 (KF-C5-07) — the readout takes the STOP's register,
+             not the ruler's: it wore the graduations' muted mono caption, so
+             the stop's "0%" under the rail read as a misplaced ruler label
+             beside "25% 50% 75% 100%" above it. It now inks `--primary`, the
+             playhead's and the selected diamond's ink, at rest and selected
+             alike; selection still rides the non-colour channel above (the
+             solid underline and the weight), so nothing leans on the
+             light-arm identity of `--primary` and `--foreground`. The hover
+             ink step goes with the muted rest it stepped from.
+             KF-C5-03 — a stop holding several keyframes says so HERE ("0% ×2"),
+             in the same row as its value, instead of a Badge on the diamond. -->
         <button
             v-if="!isEditing"
             ref="readoutEl"
             type="button"
-            class="kf-focus-ring timeline-caret-readout text-mono-caption leading-none cursor-pointer select-none transition-colors whitespace-nowrap tabular-nums underline-offset-2"
+            class="kf-focus-ring timeline-caret-readout text-mono-caption text-primary leading-none cursor-pointer select-none whitespace-nowrap tabular-nums underline-offset-2"
             :class="
                 isSelected
-                    ? 'text-primary font-semibold underline decoration-solid decoration-2'
-                    : 'text-muted-foreground hover:text-foreground decoration-dotted hover:underline'
+                    ? 'font-semibold underline decoration-solid decoration-2'
+                    : 'decoration-dotted hover:underline'
             "
             :aria-controls="markerId"
-            :aria-label="`Keyframe at ${display}% — edit the position`"
+            :aria-label="readoutLabel"
             @click="startEdit"
             @pointerdown.stop
         >
-            {{ display }}%
+            {{ display }}%<span v-if="(count ?? 1) > 1" class="stop-count ms-1 font-normal">×{{ count }}</span>
         </button>
         <!-- D·M-7 + MISS-α3 — the editor had NO perceivable boundary against the
              surface it replaces: `bg-background` is `--neutral-0`, the PAGE
@@ -135,6 +146,8 @@ const props = defineProps<{
      */
     edge?: "start" | "end" | "mid";
     isSelected: boolean;
+    /** How many keyframes the stop holds (KF-C5-03); shown when above one. */
+    count?: number;
 }>();
 
 const emit = defineEmits<{
@@ -170,6 +183,12 @@ const markerId = computed(() => `timeline-marker-${props.keyframeId}`);
  * user typed a different one.
  */
 const display = computed(() => String(Number(props.percent.toFixed(2))));
+
+/** The readout's name: its value, the stop's count when it holds several. */
+const readoutLabel = computed(
+    () =>
+        `Keyframe at ${display.value}%${(props.count ?? 1) > 1 ? `, ${props.count} keyframes` : ""} — edit the position`,
+);
 
 const edgeTransform = computed(() =>
     props.edge === "start"

@@ -46,6 +46,17 @@ export function createPreviewSubject(source: HTMLElement): HTMLElement {
     // the playhead until the first scrub. The clone starts from the element's
     // authored rest; the timeline's own engine (or a keyframe's vars) poses it.
     subject.style.removeProperty("transform");
+    // X-DS pass 5 · KF-C5-01 — the clone FILLS its frame. A subject sized by
+    // custom properties its scene declares on an ancestor (the square's
+    // `width: var(--square-size)`, set on the plate's arena) loses them outside
+    // the scene: the clone's size fell back to `auto` and the box collapsed to
+    // its text line (a 68x15 "drag me" strip pinned to the well's top edge).
+    // `fitPreviewSubject` frames the clone at the source's resolved border box,
+    // so 100% of that frame IS the source's size, and it follows every re-fit.
+    // Set before a pose's vars, so a keyframe that animates a size still wins.
+    subject.style.width = "100%";
+    subject.style.height = "100%";
+    subject.style.boxSizing = "border-box";
     return subject;
 }
 

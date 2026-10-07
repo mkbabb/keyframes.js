@@ -47,14 +47,15 @@
         </LabeledInput>
 
         <!-- N-4 (KF-CO-40) — ONE stored spelling of forever: the store holds
-             `"infinite"`; the field DISPLAYS it as `∞`, and a typed `∞` (which
-             the engine accepts) is persisted as `"infinite"`. -->
+             `"infinite"`, and a typed `∞` (which the engine accepts) is
+             persisted as `"infinite"`.
+             X-DS pass 5 (KF-C5-06) — and the field DISPLAYS that spelling. It
+             showed the `∞` glyph, which Plus Jakarta Sans draws at x-height
+             (~7 px wide): beside "2000ms" and "0ms" it read as a speck and the
+             field looked empty. "infinite" is the CSS keyword, at cap height in
+             the fields' one face. -->
         <LabeledInput
-            :model-value="
-                stored.animationOptions.iterationCount === 'infinite'
-                    ? '∞'
-                    : String(stored.animationOptions.iterationCount ?? 'infinite')
-            "
+            :model-value="String(stored.animationOptions.iterationCount ?? 'infinite')"
             label="iterations"
             :invalid="invalidField === 'iterationCount'"
             @update:model-value="

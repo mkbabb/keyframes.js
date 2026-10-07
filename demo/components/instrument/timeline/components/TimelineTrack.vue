@@ -240,16 +240,12 @@
                             @pointerdown.stop="onMarkerPointerDown($event, stop)"
                             @keydown="onMarkerKeydown($event, stop)"
                         >
-                            <!-- Said so: a multi-member stop wears its count. -->
-                            <!-- UIA-KF-181 — the count is a glass Badge, not a
-                                 hand-rolled rounded-full chip. -->
-                            <Badge
-                                v-if="stop.keyframes.length > 1"
-                                size="sm"
-                                class="stop-count absolute -top-2.5 -right-3 -rotate-45 tabular-nums"
-                                aria-hidden="true"
-                                >×{{ stop.keyframes.length }}</Badge
-                            >
+                            <!-- X-DS pass 5 (KF-C5-03) — a multi-member stop's
+                                 count is NOT worn on the diamond: the Badge
+                                 (about 30x20 on a 16px mark) covered it docked
+                                 and left half of it as a stray chevron
+                                 unfolded. The count reads in the stop's own
+                                 caret below ("0% ×2"), one labelled row. -->
                         </div>
                     </TooltipTrigger>
                     <!-- m-17 (W6-I; G-W6-9's VARIANT member): the caller's `p-2`
@@ -302,6 +298,7 @@
                     :position="percentToPosition(stop.percent)"
                     :edge="edgeOf(percentToPosition(stop.percent))"
                     :is-selected="isStopSelected(stop)"
+                    :count="stop.keyframes.length"
                     @commit-percent="(p) => moveStop(stop.keyframes.map((kf) => kf.id), p)"
                     @select="emit('select', selectionIdFor(stop))"
                 />
@@ -313,7 +310,6 @@
 <script setup lang="ts">
 import { computed, shallowRef, useId, useTemplateRef } from "vue";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@mkbabb/glass-ui/tooltip";
-import { Badge } from "@mkbabb/glass-ui/badge";
 import { useElementSize } from "@vueuse/core";
 import { clamp } from "@mkbabb/value.js/math";
 import { useZoomPan } from "../composables/useZoomPan";

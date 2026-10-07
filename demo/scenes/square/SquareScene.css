@@ -51,13 +51,24 @@
 
      1440 (plate 878x646): size 192 px · travel 191.5 px (was 110)
      390  (plate 334x641): size 100 px · travel ~87 px, ring 16 px inside the edge */
+/* X-DS pass 5 · KF-C5-04 — THE BOX AND THE FIELD ARE ONE MEASURE. The two
+   were clamped independently (size 30cqmin, travel what the plate had left), so
+   the field's quarter cells (travel / 2) met the box's edges only at 1440: at
+   390 the 100 px box covered ~2.3 of the 43 px cells and its edges landed
+   mid-cell. The travel now IS the size, so a quarter cell is half the box and
+   the resting box covers exactly 2x2 cells at every width. The size is the
+   largest that still keeps the swollen box on the plate at full travel
+   (travel + 0.56 x size + 1.5 rem <= the plate's half-extent, with
+   travel = size), capped at the desktop 12 rem.
+     1440 (plate 878x646): size = travel ~191.7 px (unchanged)
+     390: size = travel = (half the plate's short side − 1.5 rem) / 1.56 */
 .square-arena {
     position: absolute;
     inset: 0;
     display: grid;
     place-items: center;
-    --square-size: clamp(6rem, 30cqmin, 12rem);
-    --square-travel: max(4rem, calc(50cqmin - 0.56 * var(--square-size) - 1.5rem));
+    --square-size: clamp(5rem, calc((50cqmin - 1.5rem) / 1.56), 12rem);
+    --square-travel: var(--square-size);
 }
 
 /* The instrument layer (field · tether · telemetry · legend) is styled inside

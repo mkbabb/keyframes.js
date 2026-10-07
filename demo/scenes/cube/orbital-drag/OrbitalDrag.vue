@@ -295,7 +295,9 @@ const AXIS_KEYS = [
 ] as const;
 
 for (const { axis, code } of AXIS_KEYS) {
-    const label = `Constrain orbit to the ${axis.toUpperCase()} axis (hold)`;
+    // X-DS pass 5 (KF-C5-08) — one line in the shortcuts map ("Constrain
+    // orbit to the X axis (hold)" wrapped to two in its column).
+    const label = `Orbit on ${axis.toUpperCase()} axis (hold)`;
     registerShortcut(code, () => pointer.setAxisLatch(axis, true), {
         label,
         group: "Cube",

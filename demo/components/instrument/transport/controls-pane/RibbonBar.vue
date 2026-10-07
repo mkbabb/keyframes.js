@@ -43,10 +43,20 @@
                  file-code) said nothing a reader could act on without a
                  tooltip, and each wore the full floating skin. The quiet
                  rung has no capsule at rest, so the three short labels fit
-                 the one row beside Apply. -->
+                 the one row beside Apply.
+                 X-DS pass 5 (KF-C5-02) — the row checked its y and not its
+                 label wrap: four shrinkable Buttons squeezed the LEADING one,
+                 so the primary broke "Apply / CSS" in its 36px pill. Apply
+                 now holds its intrinsic width (`shrink-0 whitespace-nowrap`)
+                 and every label is one line; the secondaries YIELD instead,
+                 by the row's own width (it is the inline-size container):
+                 "Compiled" goes to its glyph below 29rem (the four labels'
+                 measured one-row width) and "Format" below 22rem. Each
+                 accessible name and `title` is unchanged, so the glyph-only
+                 form still names itself and tooltips its word. -->
             <div
                 v-if="storedControls.selectedControl === 'keyframes'"
-                class="flex items-center justify-center gap-2"
+                class="@container flex items-center justify-center gap-2"
             >
                 <!-- UIA-KF-175 (X.KF.W13X.sections) — Apply CSS is a toggle,
                      so it says so: `aria-pressed` reads the pane's own
@@ -55,6 +65,7 @@
                 <Button
                     size="sm"
                     emphasis="secondary"
+                    class="shrink-0 whitespace-nowrap"
                     :aria-pressed="Boolean(activeKeyframesRef?.cssApplied)"
                     :class="
                         activeKeyframesRef?.cssApplied
@@ -79,6 +90,7 @@
                 <Button
                     size="sm"
                     emphasis="quiet"
+                    class="whitespace-nowrap"
                     aria-label="Copy keyframes"
                     title="Copy keyframes"
                     @click="activeKeyframesRef?.copyCSS?.()"
@@ -100,12 +112,13 @@
                 <Button
                     size="sm"
                     emphasis="quiet"
+                    class="whitespace-nowrap"
                     aria-label="Format"
                     title="Format"
                     @click="activeKeyframesRef?.formatCSS?.()"
                 >
                     <Sparkles class="icon-sm" />
-                    Format
+                    <span class="@max-[22rem]:sr-only">Format</span>
                 </Button>
                 <!-- K.W10 CC-4 — Export CSS: compile the orchestration graph
                      to a zero-runtime CSS artifact via the gated compileToCSS
@@ -114,12 +127,13 @@
                 <Button
                     size="sm"
                     emphasis="quiet"
+                    class="whitespace-nowrap"
                     aria-label="Copy compiled CSS"
                     title="Copy compiled CSS"
                     @click="activeKeyframesRef?.exportCompiledCSS?.()"
                 >
                     <FileCode class="icon-sm" />
-                    Compiled
+                    <span class="@max-[29rem]:sr-only">Compiled</span>
                 </Button>
             </div>
 

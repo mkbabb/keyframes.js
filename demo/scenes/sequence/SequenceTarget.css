@@ -103,6 +103,23 @@
     width: calc(100cqw / (1 + var(--seq-room, 0)));
     --rail-tint: 18%;
 }
+/* X-DS pass 5 (KF-C5-05) — THE OVERSHOOT ROOM IS DRAWN, quietly. The lane
+   reserves `--seq-room` past its time column for the springs' crest, and that
+   band was blank: every rail stopped ~100 px short of the card's inner edge and
+   the gutters read lopsided. The rail now continues through the room as a
+   dashed line in the lane's own rail tint (the spring rail's dashed value-1
+   rule, the same "past the scale" mark), so the lane spans the card and the
+   band says what it is for. */
+.seq-track::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: calc(100% / (1 + var(--seq-room, 0)));
+    right: 0;
+    border-top: 2px dashed color-mix(in srgb, var(--ball-tone, var(--color-progress)) 18%, transparent);
+    transform: translateY(-50%);
+    pointer-events: none;
+}
 
 /* THE TRAVELLER. The ball IS the child animation's TARGET (J.WZ): the engine
    writes --ball-p + the fade-in opacity + the settle scale-pop onto THIS ball, so

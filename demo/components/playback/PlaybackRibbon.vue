@@ -79,12 +79,17 @@
              eye floated over the ghost dot's corner (OA-61, out of flow, no
              frame, no label: the owner's "floating meaninglessly",
              2026-10-06); it is seated here, in the row of verbs it belongs
-             to, and the ghost dot carries nothing. -->
-        <div
-            class="grid gap-2"
-            :class="showEye ? 'grid-cols-[minmax(0,1fr)_auto]' : 'grid-cols-1'"
-        >
+             to, and the ghost dot carries nothing.
+             X-DS pass 5 (KF-C5-10) — the two are PEERS. Reverse was a filled
+             capsule stretched over ~60% of the pane (the `1fr` track), the
+             heaviest mass on the card for a modifier verb, while Preview beside
+             it was bare text; ORIGIN set this row's verbs as equal quiet peers.
+             Reverse now sits at its content width and one rung lower (glass's
+             `quiet`, like Preview); its pressed state is still the skin's one
+             pressed authority. The dock's Play is the only loud verb. -->
+        <div class="flex flex-wrap items-center gap-2">
             <Button
+                emphasis="quiet"
                 class="btn-playback rounded-full gap-2"
                 :aria-pressed="userReversed"
                 @click="onReverse"

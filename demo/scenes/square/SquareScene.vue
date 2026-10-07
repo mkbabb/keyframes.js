@@ -11,9 +11,15 @@
          gutter the easing, spring and sequence plates keep beside the rail
          (`lg:px-8` on their roots; this root IS the plate, so the gutter is its
          margin), so every plate scene's stage shares one inline box. -->
+    <!-- X-DS pass 5 · KF-C5-04 — below lg the plate HUGS its field: it filled
+         the phone's stage cell (334x641) around a 172 px field, ~150 px of
+         empty plate above and below. Its block size now follows its inline
+         size (3:4, room for the header and the legend about the square field),
+         capped by the cell, standing at the stage's top like its siblings;
+         at lg it takes the stage cell as before. -->
     <Card
         :shadow="false"
-        class="square-stage grid h-full w-full lg:mx-8 lg:w-auto place-items-center"
+        class="square-stage grid aspect-[3/4] max-h-full w-full lg:aspect-auto lg:h-full lg:mx-8 lg:w-auto place-items-center"
     >
         <!-- X.KF.W13X · UIA-KF-090 / UIA-KF-296 / KFA-4 — the ARENA: the plate is
              the size container, and this layer (its first descendant) is where

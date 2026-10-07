@@ -18,8 +18,10 @@
    the skin reach the scene consumers that never import it.
    ════════════════════════════════════════════════════════════════════════ */
 
+/* X-DS pass 5 (KF-C5-10) — the skin no longer SIZES its host: `width: 100%`
+   stretched Reverse across the pane. A host that wants the full track gets it
+   from its own layout (the Spring CTA's grid cell stretches it). */
 .btn-playback {
-    width: 100%;
     gap: 0.5rem;
     border-radius: var(--radius-pill);
     /* T.D3 (OD-6 / T-TY2) — the K.W2 display bind dies: transport buttons are

@@ -17,7 +17,15 @@
         <!-- OVERFLOW POSTURE (kf-SequenceScene D8 / kf-SequenceTarget D-8): the
              card hugs its content but SCROLLS when the cell is shorter than it,
              so a short viewport never silently discards a storyboard row. -->
-        <Card :shadow="false" class="seq-target w-full h-fit max-h-full min-h-0 flex flex-col overflow-y-auto overflow-x-hidden">
+        <!-- X-DS pass 5 (KF-C5-05) — ONE PLATE PROPORTION across the scenes:
+             the hugging plate stood 336 px tall at 1440 while the square, easing
+             and spring plates all take the stage cell (y 128 → 748), so this
+             page alone was top-heavy over ~300 px of bare field. At lg the
+             plate now takes the cell (`lg:h-full`) and centres its lanes in it
+             (the storyboard's `my-auto`, which collapses to 0 when the cell is
+             shorter, so the overflow posture below still scrolls). Below lg it
+             still hugs its rows, as the square's plate hugs its field there. -->
+        <Card :shadow="false" class="seq-target w-full h-fit lg:h-full max-h-full min-h-0 flex flex-col overflow-y-auto overflow-x-hidden">
             <!-- Header: the scene's name and ONE live readout, and the reel
                  (X.KF.W13X.sequence — UIA-KF-210 · UIA-KF-211 · KFA-220). The
                  Metric is the canonical clock's one visual-numeric exposure
@@ -93,7 +101,7 @@
                  its own end time (`--row-span`, UIA-KF-214), so the stagger reads as
                  a diagonal cascade at every instant. The Card is the only frame
                  (UIA-KF-212 · UIA-KF-312): no second tinted, bordered plate. -->
-            <div class="seq-storyboard px-4 py-4 shrink-0">
+            <div class="seq-storyboard px-4 py-4 my-auto shrink-0">
                 <!-- L.W11 S7 — the IGNITION-CASCADE host (`.cascade-chase`): scrubbing
                      (the Timeline pane's master scrub, X.KF.W13V.s2) lifts the
                      lanes' glow (`--scrub-dir` flips on drag-back);
