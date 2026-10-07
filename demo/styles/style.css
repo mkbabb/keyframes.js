@@ -267,24 +267,6 @@
     font-size: max(16px, var(--type-small));
 }
 
-/* ── Glass content-tier translucency reclaim (the glass-ui consume edge) ──
-   glass-ui made the content-tier ink-darken UNCONDITIONAL (a 0-specificity :where()
-   block lifts --glass-tint-strength from the 0% rest default to the AA floor with no
-   dark-substrate gate). The keyframes.js stage is a DARK substrate, so that self-
-   darken pushed every cartoon-panel Card's quiet plate past proof:glass-and-cartoon's
-   ≤0.55 α ceiling. We neutralise the AA FLOOR (glass-ui's own documented dark-
-   substrate opt-out) so the mix resolves as a ZERO-delta and the pristine translucent
-   plate (0.50) returns. Scoped to the demo's glass CONTENT tiers (the cartoon panels
-   are .glass-quiet); the dock + overlay band keep glass-ui's adaptive darken. The
-   class/attr selectors out-specify glass-ui's 0-specificity :where() self-engage;
-   this is a CONSUME-seam token re-point, never a node_modules patch. */
-:where(.glass-quiet, .glass-wash, .glass-resting),
-[data-tier="quiet"],
-[data-tier="wash"],
-[data-tier="resting"] {
-    --glass-tint-strength-aa: 0%;
-}
-
 @layer base {
     * {
         @apply border-border;

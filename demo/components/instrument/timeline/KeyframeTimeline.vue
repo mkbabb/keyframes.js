@@ -150,7 +150,12 @@
                  for the control saying what it does.
                  X-DS pass 3 · KF-C3-08 — with nothing to clear it is disabled,
                  so glass's quiet disabled ink mutes the red at rest; the tone
-                 returns with the first keyframe. -->
+                 returns with the first keyframe.
+                 X-DS pass 4 (KF-C4-13) — and at REST it wears its siblings'
+                 neutral ink: an alarm hue on an idle control was the loudest
+                 mark in the pane. The tone stays bound, so the red arrives
+                 where it means something: on hover (glass's quiet hover inks
+                 `--button-tone`) and in the press. -->
             <Tooltip>
                 <TooltipTrigger as-child>
                     <Button
@@ -158,6 +163,7 @@
                         emphasis="quiet"
                         tone="destructive"
                         icon-only
+                        class="[--button-quiet-ink:var(--muted-foreground)]"
                         aria-label="Clear all keyframes"
                         :disabled="state.keyframes.length === 0"
                         @click="clearAll()"
@@ -336,35 +342,37 @@
                     <Button size="sm" emphasis="secondary" @click="snapshot()">
                         <Camera class="icon-sm" /> Snapshot
                     </Button>
+                    <!-- X-DS pass 4 (KF-C4-12) — the three CSS paths are QUIET
+                         and LABELLED: download / file-plus / upload never said
+                         which was import and which export, and each wore the
+                         full capsule skin. The visible word leads each
+                         accessible name. -->
                     <Button
                         size="sm"
-                        emphasis="secondary"
-                        icon-only
+                        emphasis="quiet"
                         aria-label="Import CSS, replacing the timeline"
                         title="Import CSS (replaces the timeline)"
                         @click="openImportDialog()"
                     >
-                        <Download class="icon-sm" />
+                        <Download class="icon-sm" /> Import
                     </Button>
                     <Button
                         size="sm"
-                        emphasis="secondary"
-                        icon-only
+                        emphasis="quiet"
                         aria-label="Add CSS, merging into the timeline"
                         title="Add CSS (merges into the timeline)"
                         @click="openAddCSSDialog()"
                     >
-                        <FilePlus2 class="icon-sm" />
+                        <FilePlus2 class="icon-sm" /> Add
                     </Button>
                     <Button
                         size="sm"
-                        emphasis="secondary"
-                        icon-only
+                        emphasis="quiet"
                         aria-label="Export CSS"
                         title="Export CSS"
                         @click="exportCSS()"
                     >
-                        <Upload class="icon-sm" />
+                        <Upload class="icon-sm" /> Export
                     </Button>
                 </div>
             </div>

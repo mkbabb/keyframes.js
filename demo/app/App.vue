@@ -42,6 +42,7 @@
         :show-start-screen="isHome"
         :auto-play="autoPlayNext"
         :stage-mode="stageMode"
+        :grid-background="resolvedScene.id !== AMIGA_SCENE_ID"
         :has-control-surfaces="controlSurfaces.length > 0"
         @play-state-change="onPlayStateChange"
         @start-state-change="onStartStateChange"
@@ -180,6 +181,10 @@ import { useSceneMachineShellBinding } from "./scene/useSceneMachineShellBinding
 import { useSceneSwap } from "./transition/useSceneSwap";
 import { useSceneTransition } from "./transition/useSceneTransition";
 import { scenes, sceneMap, warmScene, homeScene } from "./scene/scenes";
+// X-DS pass 4 (KF-C4-16) — the Boing room draws its own floor and wall grid,
+// so the shell's graph paper stays off on that one scene: two grids at two
+// pitches interleaved behind the ball as a moiré. The room is the only ground.
+import { AMIGA_SCENE_ID } from "../scenes/amiga/amigaKeys";
 import type { SceneExposedApi } from "./scene/sceneExposedApi";
 import { useMonacoCancellationGuard } from "./lifecycle/useMonacoCancellationGuard";
 
@@ -437,10 +442,7 @@ const { sceneSwapStyle } = useSceneSwap(activeSceneKey, lastSwapBackend);
    (`::view-transition-* { animation: none }`) rides glass-ui's
    view-transition.css, already loaded via the demo's `@import
    "@mkbabb/glass-ui/styles"` — no demo-side VT CSS duplicates it. */
-.scene-host {
-    view-transition-name: scene-subject;
-
-    /* T.G1 (THE BLUR DE-LAYER — the perf keystone). The former `contain: paint`
+/* T.G1 (THE BLUR DE-LAYER — the perf keystone). The former `contain: paint`
        here was a FALSIFIED mitigation: lane-11 CDP sampling measured it
        neutral-to-WORSE (cube 90→73, home 95→84), and the mechanism proves why —
        `contain: paint` on the scene-host *sibling* cannot remove the moving
@@ -458,6 +460,18 @@ const { sceneSwapStyle } = useSceneSwap(activeSceneKey, lastSwapBackend);
        pure-CSS kf-side cure (isolation/z-index/radius-cap/geometry all measured
        neutral); it is the glass-ui `blur-source="static"` frozen-backdrop
        capability, queued to Glass BI for its 6.0.0 cut. */
+
+/* X-DS pass 4 (KF-C4-03) — THE NAME EXISTS ONLY WHILE A TRANSITION RUNS. A
+   `view-transition-name` makes its element a BACKDROP ROOT (filter-effects-2),
+   so a standing name on this host cut every stage plate's `backdrop-filter`
+   off from the page behind the host: the plates computed `blur(16px)` and
+   sampled nothing, and the fixed graph paper ran through every instrument at
+   full sharpness (served: hiding the name alone took the paper's line contrast
+   inside the square plate from 26.5 to 0). `:active-view-transition` matches
+   from `startViewTransition()` until the transition ends, which covers the old
+   state's capture and the new state's, so the morph is unchanged. */
+:root:active-view-transition .scene-host {
+    view-transition-name: scene-subject;
 }
 
 /* X.KF.W13W.m (OA-64) — below lg the stage sits on the page gutter HERE, at the

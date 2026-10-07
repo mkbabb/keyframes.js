@@ -95,17 +95,20 @@
                 </svg>
                 <!-- D-6 — the value-axis labels, in HTML (an SVG `<text>` under
                      `preserveAspectRatio="none"` would stretch with the box), placed
-                     from the SAME constants as the lines: `1` above the target line at
-                     the left, where the trace has not yet risen; `0` above the
-                     baseline at the right, where the trace has settled at 1. -->
+                     from the SAME constants as the lines.
+                     X-DS pass 4 (KF-C4-09) — both sit on ONE edge, the value
+                     axis's: right-aligned in the gutter just left of the plot,
+                     centred on their line. `0` used to sit at the baseline's
+                     far end, so two `0`s marked opposite corners for two axes;
+                     the time axis below keeps its own `0` and `2000 ms`. -->
                 <span
                     class="plot-tick plot-tick--value code-token tabular-nums text-muted-foreground"
-                    :style="{ top: targetTop, left: 0 }"
+                    :style="{ top: targetTop }"
                     aria-hidden="true"
                 >1</span>
                 <span
                     class="plot-tick plot-tick--value code-token tabular-nums text-muted-foreground"
-                    :style="{ top: zeroTop, right: 0 }"
+                    :style="{ top: zeroTop }"
                     aria-hidden="true"
                 >0</span>
                 <!-- X.KF.W13W.b (OA-56) — the balls that ride the trace (the
@@ -402,15 +405,17 @@ const figureLabel = computed(
     stroke-linejoin: round;
     vector-effect: non-scaling-stroke;
 }
-/* The tick labels: the value ticks sit just ABOVE their line (translated up by
-   their own height from the line's `top`); `line-height: 1` keeps the `1` inside
-   the 24 px headroom above the target line at the caption size. */
+/* The tick labels. The value ticks stand in the gutter left of the plot (the
+   rail's overshoot band, which insets the plot; KF-C3-05), right-aligned to the
+   plot's edge and centred on their line (KF-C4-09), standing clear of the
+   sampler ball that sits on the origin. */
 .plot-tick {
     line-height: 1;
 }
 .plot-tick--value {
     position: absolute;
-    transform: translateY(calc(-100% - 2px));
+    right: calc(100% + 0.75rem);
+    transform: translateY(-50%);
     pointer-events: none;
 }
 </style>

@@ -36,7 +36,11 @@
                                 />
                             </ChannelOptionsForm>
 
-                            <Separator class="my-1" />
+                            <!-- X-DS pass 4 (KF-C4-18) — the disclosure keeps the
+                                 field rows' rhythm: the column's 0.5rem gap either
+                                 side of its one separator, no extra margin, so the
+                                 row is one control height, not a padded band. -->
+                            <Separator />
 
                             <!-- X.KF.W13X.controls · UIA-KF-269 · 273 — the drill
                                  row is the producer's quiet Button (its own focus

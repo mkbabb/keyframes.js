@@ -95,7 +95,7 @@
                 'timeline-expanded-cell z-dock overflow-hidden',
                 'transition-[max-height,opacity] duration-slow ease-standard',
                 storedControls.isTimelineExpanded
-                    ? 'max-h-[var(--panel-max-h)] lg:pb-2'
+                    ? 'max-h-[var(--panel-max-h)] lg:pt-2 lg:pb-2'
                     : 'max-h-0',
             ]"
         ></div>

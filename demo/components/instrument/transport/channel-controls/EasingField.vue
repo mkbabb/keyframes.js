@@ -1,31 +1,19 @@
 <template>
     <!-- X.KF.W13X.controls · A2-KE-L1-7 — the easing row, carved out of the
-         card: the label with its edit pencil in the label track, the one
-         easing picker in the value track (X.KF.W13V.c · OA-47 — ONE control
+         card: the bare label in the label track, the one easing picker (with
+         its edit pencil in the field's trailing slot) in the value track (X.KF.W13V.c · OA-47 — ONE control
          row of the options grid's two tracks, after a divider that separates
          timing from the curve). -->
     <Separator class="my-1" />
     <div class="col-span-full grid grid-cols-subgrid items-center">
-        <div class="col-start-1 flex items-center gap-1">
-            <!-- X.KF.W13X.controls · UIA-KF-271 — the label is the fields'
-                 one register and carries no status: the gold-shimmer that
-                 flagged "a custom curve is stored" was a signal used nowhere
-                 else on the card. The trigger carries that state now. -->
-            <Label :id="labelId">easing</Label>
-            <!-- KF-CO-42 — the pencil is the producer's quiet icon Button, at
-                 its own `sm` size (UIA-KF-269: the `h-auto p-1` override that
-                 shrank its hit area and focus ring is gone); ONE name, the
-                 `aria-label`. -->
-            <Button
-                emphasis="quiet"
-                icon-only
-                size="sm"
-                aria-label="Edit easing curve"
-                @click.stop="(e: MouseEvent) => emit('edit', e.currentTarget as HTMLElement)"
-            >
-                <Pencil class="icon-sm" />
-            </Button>
-        </div>
+        <!-- X.KF.W13X.controls · UIA-KF-271 — the label is the fields'
+             one register and carries no status: the gold-shimmer that
+             flagged "a custom curve is stored" was a signal used nowhere
+             else on the card. The trigger carries that state now.
+             X-DS pass 4 (KF-C4-15) — and the label is BARE, like its
+             siblings': the edit pencil left the label column for the field's
+             trailing slot (below), so one control shows one set of glyphs. -->
+        <Label :id="labelId" class="col-start-1">easing</Label>
         <!-- X.KF.W13W.p (OA-58) — the dropdown IS the one easing picker: a
              glass Popover over `EasingCatalogue`, the SAME body the Easing
              scene's gallery renders. It rides the card's one-open-at-a-time
@@ -38,13 +26,18 @@
              (glass's own Select-trigger recipe: `control-surface` +
              `glass-control-edge`, at the control height), not a lifted
              secondary capsule Button: the label/field column is one tone and
-             one edge. -->
+             one edge.
+             X-DS pass 4 (KF-C4-07) — and one FACE: the curve's name is set in
+             the field's text stack like `5s`, `alternate` and `forwards` in the
+             fields above it (all CSS literals); the mono value was the only
+             Fira Code leaf in the column. -->
+        <div class="relative col-start-2 min-w-0">
         <Popover :open="open" @update:open="(v: boolean) => emit('update:open', v)">
             <PopoverTrigger as-child>
                 <button
                     ref="triggerEl"
                     type="button"
-                    class="control-surface glass-control-edge glass-capsule-hover tap-squish focus-ring transition-control col-start-2 flex h-(--control-h-md) w-full min-w-0 cursor-pointer items-center justify-between gap-1.5 rounded-pill px-3 text-dropdown"
+                    class="control-surface glass-control-edge glass-capsule-hover tap-squish focus-ring transition-control flex h-(--control-h-md) w-full min-w-0 cursor-pointer items-center justify-between gap-1.5 rounded-pill ps-3 pe-10 text-dropdown"
                     :aria-labelledby="`${labelId} ${valueId}`"
                 >
                     <span :id="valueId" class="flex min-w-0 flex-1 items-center gap-1.5">
@@ -61,7 +54,7 @@
                                     vector-effect="non-scaling-stroke"
                                 />
                             </svg>
-                            <span data-register="code" class="truncate font-mono">{{
+                            <span class="truncate">{{
                                 isDraftKind(selectedCurveKey) ? "custom" : selectedCurveKey
                             }}</span>
                         </template>
@@ -86,6 +79,23 @@
                 />
             </PopoverContent>
         </Popover>
+        <!-- KF-CO-42 — the pencil is the producer's quiet icon Button (UIA-KF-269:
+             no override shrinks its hit area or focus ring); ONE name, the
+             `aria-label`. X-DS pass 4 (KF-C4-15) — it sits in the field's
+             trailing slot, a sibling of the trigger (a button never nests in a
+             button), so the field reads as picker plus edit, and the label
+             column is bare. -->
+        <Button
+            emphasis="quiet"
+            icon-only
+            size="sm"
+            class="absolute inset-y-0 end-1 my-auto"
+            aria-label="Edit easing curve"
+            @click.stop="(e: MouseEvent) => emit('edit', e.currentTarget as HTMLElement)"
+        >
+            <Pencil class="icon-sm" />
+        </Button>
+        </div>
     </div>
 </template>
 

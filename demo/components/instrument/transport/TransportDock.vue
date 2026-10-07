@@ -324,7 +324,10 @@ defineExpose({ resetIconSpin });
    cross-fades in place, instead of double-exposing inside the root fade at two
    offsets. A fixed pill paints above the stage, so its group paints above the
    `scene-subject` group too (KFA-26). One pill per state, so the name is unique. */
-.dock-vt-group {
+/* X-DS pass 4 (KF-C4-03) — named only while a transition runs: a standing
+   name makes the group a backdrop root, and the dock plate inside it then
+   blurred nothing behind the dock (App.vue's `.scene-host` note). */
+:root:active-view-transition .dock-vt-group {
     view-transition-name: transport-dock;
 }
 

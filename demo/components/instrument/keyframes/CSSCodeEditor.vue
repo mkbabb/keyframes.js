@@ -143,20 +143,55 @@ function bootMonaco(): Promise<typeof Monaco> {
                 return new EditorWorker();
             },
         };
-        m.editor.defineTheme(
-            "dark-theme",
-            DarkTheme as Monaco.editor.IStandaloneThemeData,
-        );
-        m.editor.defineTheme(
-            "light-theme",
-            LightTheme as Monaco.editor.IStandaloneThemeData,
-        );
         m.languages.register({ id: "css" });
         m.languages.setLanguageConfiguration("css", css.conf);
         m.languages.setMonarchTokensProvider("css", css.language);
         monaco = m;
         return m;
     }));
+}
+
+// X-DS pass 4 (KF-C4-01) — THE WELL'S GROUND IS THE APP'S. The vendored
+// themes keep their syntax colours, but their editor ground, line highlight and
+// gutter were stock (GitHub's ghost-white #F8F8FF with a cream highlight;
+// Dracula's slate-blue #282a36), the coolest surface on a warm page in both
+// schemes. Those three colours are re-derived from the app's tokens: the ground
+// is `--muted`, the highlight a quiet `--foreground` step over it. Monaco takes
+// hex strings, not CSS, so the tokens are resolved on the page (a probe
+// element's computed colour, then one canvas pixel for the sRGB bytes), and the
+// ACTIVE scheme's theme is re-defined on every flip, after the tokens flip.
+function resolveTokenHex(css: string): string {
+    const probe = document.createElement("div");
+    probe.style.color = css;
+    document.body.appendChild(probe);
+    const computed = getComputedStyle(probe).color;
+    probe.remove();
+    const ctx = document.createElement("canvas").getContext("2d", {
+        willReadFrequently: true,
+    });
+    if (!ctx) return "#00000000";
+    ctx.fillStyle = computed;
+    ctx.fillRect(0, 0, 1, 1);
+    const [r = 0, g = 0, b = 0, a = 255] = ctx.getImageData(0, 0, 1, 1).data;
+    return `#${[r, g, b, a].map((v) => v.toString(16).padStart(2, "0")).join("")}`;
+}
+
+function defineGroundedTheme(m: typeof Monaco, dark: boolean): void {
+    const base = (dark ? DarkTheme : LightTheme) as Monaco.editor.IStandaloneThemeData;
+    const ground = resolveTokenHex("var(--muted)");
+    const highlight = resolveTokenHex(
+        "color-mix(in srgb, var(--foreground) 6%, var(--muted))",
+    );
+    m.editor.defineTheme(dark ? "dark-theme" : "light-theme", {
+        ...base,
+        colors: {
+            ...base.colors,
+            "editor.background": ground,
+            "editorGutter.background": ground,
+            "editor.lineHighlightBackground": highlight,
+            "editor.lineHighlightBorder": highlight,
+        },
+    });
 }
 
 const props = withDefaults(
@@ -204,13 +239,9 @@ const themeName = () =>
           ? "dark-theme"
           : "light-theme";
 
-/** The editor ground under the well's right gutter: the active theme's own
- *  `editor.background` (the system Canvas under forced colours). */
-const wellGround = computed(() =>
-    forcedColors.value
-        ? "Canvas"
-        : ((isDark.value ? DarkTheme : LightTheme).colors["editor.background"] ?? "transparent"),
-);
+/** The editor ground under the well's right gutter: the editor's own ground,
+ *  `--muted` (KF-C4-01; the system Canvas under forced colours). */
+const wellGround = computed(() => (forcedColors.value ? "Canvas" : "var(--muted)"));
 
 /** booting → ready, or booting → failed (Retry re-enters booting). */
 const phase = ref<"booting" | "ready" | "failed">("booting");
@@ -336,6 +367,7 @@ const initEditor = async () => {
     // create an editor over the now-detached container.
     if (disposed || !containerEl.value) return;
 
+    if (!forcedColors.value) defineGroundedTheme(m, isDark.value);
     editor = m.editor.create(el, {
         value: modelValue.value,
         language: "css",
@@ -415,7 +447,9 @@ const initEditor = async () => {
 const setCodeTheme = () => {
     // No-op until Monaco has booted; `initEditor` sets the correct theme at
     // create time, so a dark-mode toggle before boot loses nothing.
-    monaco?.editor.setTheme(themeName());
+    if (!monaco) return;
+    if (!forcedColors.value) defineGroundedTheme(monaco, isDark.value);
+    monaco.editor.setTheme(themeName());
 };
 
 // KF-CE-28: the dark flip re-themes in glass-ui's ONE coalesced post-flip

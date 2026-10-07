@@ -58,17 +58,23 @@
                          Button's shipped `loading` contract — it emits `aria-busy`,
                          shows the busy glyph in the header and suppresses activation,
                          which is the announcement, the affordance and the visible form
-                         of `playReel`'s lock in one binding. -->
+                         of `playReel`'s lock in one binding.
+                         X-DS pass 4 (KF-C4-04) — ONE STAGE-ACTION REGISTER: the
+                         reel wears Spring's Re-seat idiom (the quiet emphasis, a
+                         visible label beside the glyph), not the default filled
+                         capsule, which was the heaviest object in the header and
+                         competed with the transport's play. -->
                     <Button
-                        size="xs"
-                        icon-only
+                        emphasis="quiet"
+                        size="sm"
                         class="shrink-0"
                         :loading="demo.isReeling.value"
-                        aria-label="Play the reel — a cascading wave replay"
+                        aria-label="Reel — play a cascading wave replay"
                         title="Play the reel"
                         @click="demo.playReel()"
                     >
-                        <Clapperboard class="w-3.5 h-3.5" />
+                        <Clapperboard aria-hidden="true" />
+                        <span>Reel</span>
                     </Button>
                 </template>
             </SceneStageHeader>

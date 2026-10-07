@@ -122,7 +122,10 @@ describe("(5) A2-KE-L3-15 · UIA-KF-179 — the Timeline verbs are one row with 
     // X-DS pass 2 (KF-C2-04) — the row is KeyframeTimeline's own (it
     // teleports into the ribbon while docked; timeline-expanded-surface pins
     // where it lands), so its structure is read off the timeline.
-    it("the lead is labelled, the others are named icon commands, and the row never wraps", () => {
+    // X-DS pass 4 (KF-C4-12) — the three CSS paths are quiet and labelled
+    // (they were icon-only capsules whose glyphs did not say which was import
+    // and which export).
+    it("the lead is labelled, the others are quiet labelled commands, and the row never wraps", () => {
         const el = document.createElement("div");
         document.body.appendChild(el);
         const app = createApp({
@@ -138,8 +141,10 @@ describe("(5) A2-KE-L3-15 · UIA-KF-179 — the Timeline verbs are one row with 
         const buttons = [...lead.parentElement!.querySelectorAll("button")];
         expect(buttons).toHaveLength(4);
         expect(buttons[0]?.hasAttribute("data-icon-only")).toBe(false);
+        expect(buttons.slice(1).map((b) => b.textContent?.trim())).toEqual(["Import", "Add", "Export"]);
         for (const b of buttons.slice(1)) {
-            expect(b.hasAttribute("data-icon-only")).toBe(true);
+            expect(b.hasAttribute("data-icon-only")).toBe(false);
+            expect(b.getAttribute("data-emphasis")).toBe("quiet");
             expect(b.getAttribute("aria-label")).toBeTruthy();
         }
         expect(lead.parentElement?.className).not.toMatch(/flex-wrap/);

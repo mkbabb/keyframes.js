@@ -362,9 +362,17 @@ watch(
 }
 
 /* ── 4 · the tile idiom ── */
+/* X-DS pass 4 (KF-C4-06) — never fewer than two tiles a row: the track floor is
+   the smaller of --tile-min and half the row (less half the gap). At 390 the
+   ~295px box fell to ONE column of full-width tiles (two 152px tracks and the
+   gap did not fit), and with the 2:1 stage (KF-C3-03) each tile doubled in
+   height, so two specimens filled the plate. */
 .specimen-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(var(--tile-min, 9.5rem), 1fr));
+    grid-template-columns: repeat(
+        auto-fill,
+        minmax(min(var(--tile-min, 9.5rem), calc(50% - 0.25rem)), 1fr)
+    );
     gap: 0.5rem;
 }
 [data-density="menu"] .specimen-grid {

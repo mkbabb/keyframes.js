@@ -74,11 +74,16 @@
                 </div>
             </template>
             <template #aside>
-                <!-- N-2 — `text-mono-small` (transform-free): the velocity
-                     label must not render as "V". -->
-                <span class="text-mono-small text-muted-foreground tabular-nums">
-                    velocity {{ demo.liveVelocity.value.toFixed(2) }}
-                </span>
+                <!-- X-DS pass 4 (KF-C4-08) — position's peer readout wears the
+                     same anatomy: a sans muted label and a Fira Code tabular
+                     value, one rung below position (it was one fused mono
+                     string, so the pair read as a headline and a footnote).
+                     N-2 — the label is lowercase and transform-free, so it
+                     never renders as "V". -->
+                <div class="flex items-baseline gap-2">
+                    <span class="text-small text-muted-foreground">velocity</span>
+                    <span class="spring-readout-secondary">{{ demo.liveVelocity.value.toFixed(2) }}</span>
+                </div>
             </template>
         </SceneStageHeader>
 
@@ -629,6 +634,14 @@ const onKeydown = (e: KeyboardEvent) => {
     font-variant-numeric: tabular-nums;
 }
 
+.spring-readout-secondary {
+    font-family: var(--font-mono);
+    font-size: var(--type-body);
+    line-height: 1;
+    color: var(--muted-foreground);
+    font-variant-numeric: tabular-nums;
+}
+
 .spring-rail {
     /* T.G4 — the balls ride `translateX(<cqw>)`; `cqw` resolves against the nearest
        inline-size container, so the rail/track ARE that container (the value axis
@@ -660,6 +673,21 @@ const onKeydown = (e: KeyboardEvent) => {
     top: 0;
     bottom: 0;
     pointer-events: none;
+}
+
+/* X-DS pass 4 (KF-C4-11) — the track's own gridlines start at the FIRST
+   quarter: its left edge is the origin, and the shared recipe's line at value 0
+   bisected the resting target ring into a ⦶. The groove takes the ticks' ink,
+   so the rail is one tone (it was a violet tint between tan ticks). */
+.spring-track.stage-field-x {
+    background-image: repeating-linear-gradient(
+        to right,
+        transparent 0 calc(100% / 4 - 1px),
+        var(--border) calc(100% / 4 - 1px) calc(100% / 4)
+    );
+}
+.spring-track .progress-rail {
+    background: var(--border);
 }
 
 /* The rail + ball geometry now come from the shared .progress-rail /

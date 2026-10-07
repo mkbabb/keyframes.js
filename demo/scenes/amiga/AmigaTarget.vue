@@ -7,9 +7,9 @@
              back-wall paper-grid), the boing ball and its contact-shadow are all
              drawn IN the canvas, and nothing stands on the DOM stage between the
              canvas and the page (T.A10). The canvas composites over the SHELL's
-             themed paper-grid backdrop (`.grid-background`, fixed behind every
-             scene) — renderer alpha:true, and nothing of this scene's own paints
-             over it. X.KF.W13X · UIA-KF-194 — and it wears no chrome: the
+             page ground — renderer alpha:true, and nothing of this scene's own
+             paints over it. X-DS pass 4 (KF-C4-16): the shell's graph paper is
+             off on this scene (App.vue), so the room's own grid is the only one. X.KF.W13X · UIA-KF-194 — and it wears no chrome: the
              `rounded-card` radius (a content-card role) and the inset hairline
              made amiga the one scene that framed its stage, where DESIGN.md §3/§8
              let a full-bleed 3D canvas omit a plate; the canvas now fills the

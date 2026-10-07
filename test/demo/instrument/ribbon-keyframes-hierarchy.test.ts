@@ -1,8 +1,8 @@
 /**
  * X.KF.W13X.mobile · UIA-KF-319 — the Keyframes ribbon has ONE row and a
  * hierarchy: Apply CSS (the stateful toggle, the primary) leads with its
- * label; Copy / Format / Export CSS are secondary icon commands (glass
- * `iconOnly`, each accessibly named).
+ * label; Copy / Format / Export CSS are secondary commands — quiet and
+ * labelled since X-DS pass 4 (KF-C4-12), each accessibly named.
  *
  * Served (1440x900, every scene): the four labelled sm Buttons wrapped 3 + 1
  * inside the 26rem rail, leaving Apply CSS alone on a second row (distinct
@@ -46,12 +46,17 @@ describe("UIA-KF-319 — the Keyframes ribbon hierarchy", () => {
         expect(buttons[0]?.hasAttribute("data-icon-only")).toBe(false);
     });
 
-    it("Copy, Format and Export CSS are named icon commands", () => {
+    // X-DS pass 4 (KF-C4-12) — the secondaries are quiet and labelled: each
+    // shows a short word that its accessible name contains (label-in-name),
+    // and none wears the icon-only capsule.
+    it("Copy, Format and Export CSS are quiet labelled commands", () => {
         const buttons = mountKeyframesRibbon().slice(1);
         expect(buttons.map((b) => b.getAttribute("aria-label"))).toEqual(["Copy keyframes", "Format", "Copy compiled CSS"]);
+        expect(buttons.map((b) => b.textContent?.trim())).toEqual(["Copy", "Format", "Compiled"]);
         for (const b of buttons) {
-            expect(b.hasAttribute("data-icon-only")).toBe(true);
-            expect(b.textContent?.trim()).toBe("");
+            expect(b.hasAttribute("data-icon-only")).toBe(false);
+            expect(b.getAttribute("data-emphasis")).toBe("quiet");
+            expect(b.getAttribute("aria-label")!.toLowerCase()).toContain(b.textContent!.trim().toLowerCase());
         }
     });
 });

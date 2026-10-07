@@ -100,13 +100,15 @@
                 </span>
 
                 <!-- The four presets, plotted where they live (the Chips below
-                     stay the ONE preset surface; these are marks, not controls;
-                     the name sits above the dot). -->
+                     stay the ONE preset surface; these are marks, not controls).
+                     X-DS pass 4 (KF-C4-10) — each name sits on the side of its dot
+                     AWAY from the critical line: above for ζ ≥ 1, below for an
+                     underdamped preset, so no name is ever crossed by the rule. -->
                 <span
                     v-for="pip in PRESET_PIPS"
                     :key="pip.name"
                     class="spring-heatmap-pip"
-                    :class="{ 'is-current': pip.name === currentPipName }"
+                    :class="{ 'is-current': pip.name === currentPipName, 'is-under': pip.under }"
                     :style="{ left: pip.left, top: pip.top }"
                     aria-hidden="true"
                 >
@@ -281,6 +283,8 @@ export const PRESET_PIPS = SPRING_PRESETS.map((preset) => ({
     name: preset.name,
     left: `${(axisFraction(preset.response, RESPONSE_AXIS) * 100).toFixed(3)}%`,
     top: `${((1 - axisFraction(preset.dampingFraction, DAMPING_AXIS)) * 100).toFixed(3)}%`,
+    /** Underdamped (ζ < 1): the dot sits below the critical line. */
+    under: preset.dampingFraction < 1,
 }));
 
 /** ζ = 1 — the critical line's y, from the top. */
@@ -573,10 +577,12 @@ function onKeydown(e: KeyboardEvent): void {
     border-top: 1px dashed color-mix(in srgb, var(--foreground) 45%, transparent);
     pointer-events: none;
 }
+/* X-DS pass 4 (KF-C4-10) — the tag stands clear of its rule: bottom-anchored
+   to the line with a descender's clearance (`ζ` descends below the baseline). */
 .spring-heatmap-tag {
     position: absolute;
     left: 0.5rem;
-    bottom: 0.1875rem;
+    bottom: 0.375rem;
     line-height: 1;
     white-space: nowrap;
 }
@@ -617,10 +623,16 @@ function onKeydown(e: KeyboardEvent): void {
     bottom: 100%;
     left: 50%;
     transform: translateX(-50%);
-    margin-bottom: 0.1875rem;
+    margin-bottom: 0.375rem;
     line-height: 1;
     white-space: nowrap;
     color: var(--foreground);
+}
+.spring-heatmap-pip.is-under > span {
+    bottom: auto;
+    top: 100%;
+    margin-bottom: 0;
+    margin-top: 0.25rem;
 }
 
 /* ── The hover cell — the lattice, surfaced. ── */
