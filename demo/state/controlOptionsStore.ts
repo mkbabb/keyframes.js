@@ -101,11 +101,18 @@ export const getStoredAnimationGroupControlOptions = (
         superKey
     ] as StoredAnimationGroupControlOptions;
 
-    // Persisted pre-U.B4 buckets may predate the editor-state member. The store
-    // owns this one migration/default boundary; editor components only consume it.
-    controls.keyframeControls ??= structuredClone(
-        defaultStoredAnimationGroupControlOptions.keyframeControls,
-    );
+    // The store owns this one migration/default boundary; consumers only read.
+    // A bucket can arrive PARTIAL — persisted before a member existed (pre-U.B4
+    // `keyframeControls`), or written by a share patch or a probe that sets only
+    // the surface — so every default member is backfilled, not one by name
+    // (X-DS kf pass 3 · KF-C3-15: `isControlsPanelOpen` read `undefined` and
+    // ChromeDock's toggle logic ran on it).
+    // `null` is a stored value (no animation selected), so only an ABSENT
+    // member is filled.
+    const bucket = controls as Record<string, unknown>;
+    for (const [key, value] of Object.entries(defaultStoredAnimationGroupControlOptions)) {
+        if (bucket[key] === undefined) bucket[key] = structuredClone(value);
+    }
 
     return controls;
 };

@@ -247,7 +247,7 @@ describe("X.KF.W13X.transport — the transport dock", () => {
 
     it("(6) UIA-KF-153 · UIA-KF-283 — no timeline Collapse chip and no inert 'Timeline' label in the transport", () => {
         const w = mountTransport(storedOptions({ isTimelineExpanded: true }));
-        expect(w.element.querySelector('[aria-label="Collapse timeline"]')).toBeNull();
+        expect(w.element.querySelector('[aria-label^="Fold timeline"]')).toBeNull();
         const labels = [...w.element.querySelectorAll("span")].filter((s) => s.textContent?.trim() === "Timeline");
         expect(labels).toHaveLength(0);
     });

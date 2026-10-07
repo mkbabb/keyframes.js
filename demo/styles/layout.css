@@ -64,6 +64,15 @@
         var(--dock-bottom-anchor) +
             var(--dock-band-reserve-stable, var(--dock-band-reserve))
     );
+    /* X-DS pass 3 · KF-C3-02 / KF-C3-10 — THE TRANSPORT BAND: the y-distance
+       from the viewport bottom that a stage plate must stay above. It is the
+       whole transport band (its anchor + the stable band, the top edge of the
+       bottom pill; on a phone also the resting sheet's lip, which the sheet
+       pins at the same inset) plus the dock's own gap. The stage cell's
+       block-end reads it (AnimationControlsGroup.css); before it, the cell
+       reserved the band DEPTH only and every full-height plate ran ~9px under
+       the transport at 1440x900 and ~20px under the sheet lip at 390. */
+    --transport-band: calc(var(--stage-bottom-inset) + var(--dock-margin));
 
     /* The graph / stage-field substrate PITCHES: two-tier engineering-graph-paper
        (fine 1rem lines + 5rem majors). The line strengths (--graph-opacity /

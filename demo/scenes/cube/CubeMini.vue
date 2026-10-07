@@ -10,7 +10,12 @@
  * The die is authored at `SIDE` px and the stage is scaled by `SCALE`, so every
  * authored amplitude (the 5px bob, the face offsets) shrinks with it; the root
  * clips and contains its paint. The Matrix channel is the user's editor state
- * (scene-local), so the pose layer rests at identity here. `live` plays the
+ * (scene-local), so the pose layer never reads it; it holds a fixed off-axis
+ * VIEW tilt instead (X-DS pass 3 · KF-C3-13): at identity the die faced the
+ * viewer at rest, at t = 0 and again mid-cycle (Rx·Ry·Rz at 180° each is the
+ * identity), and a flat 12px red or green square over the transport read as a
+ * stop or record control, not as a cube. Tilted, every one of those poses
+ * shows three faces. `live` plays the
  * group (the dock's chosen scene); otherwise the icon rests. Reduced motion:
  * the group's own gate snaps to rest.
  */
@@ -25,6 +30,7 @@ const { live = false } = defineProps<{ live?: boolean }>();
 
 const SIDE = 120; // the authored die, px
 const SCALE = 0.1; // the miniature: a 12px die in the 20px box
+const VIEW_TILT = "rotateX(-24deg) rotateY(32deg)"; // KF-C3-13: never face-on
 
 const FACES = [
     { color: "var(--face-1)", transform: "rotateY(0deg)" },
@@ -60,7 +66,7 @@ useLiveMini(group, () => live, () => {
     <span class="scene-mini" :data-live="live ? '' : undefined">
         <span class="stage" :style="{ width: `${SIDE}px`, height: `${SIDE}px`, transform: `translate(-50%, -50%) scale(${SCALE})` }">
             <span ref="bobEl" class="layer" data-layer="bob">
-                <span class="layer" data-layer="pose">
+                <span class="layer" data-layer="pose" :style="{ transform: VIEW_TILT }">
                     <span ref="cubeEl" class="layer die" data-layer="cube">
                         <span
                             v-for="(face, i) in FACES"

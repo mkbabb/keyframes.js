@@ -95,6 +95,19 @@
 .stage-cell {
     box-sizing: border-box;
     padding-block: var(--dock-band-reserve);
+    /* X-DS pass 3 · KF-C3-02 — the block-end clears the TRANSPORT BAND
+       (layout.css `--transport-band`), not the band depth alone: the pill
+       floats at its anchor above the band, so a full-height plate (square,
+       easing, spring) ran under it. The cell is the centred work area, whose
+       bottom sits half the vertical slack above the viewport's, so that half
+       is credited back. One rule on the cell, never per scene. */
+    padding-block-end: max(
+        var(--dock-band-reserve),
+        calc(
+            var(--transport-band) -
+                (100dvh - min(100dvh, var(--work-area-max-height, 100dvh))) / 2
+        )
+    );
 }
 
 /* ── MOBILE — the stack→overlay transposition (H.W7.S1) ──
@@ -169,6 +182,14 @@
            the sheet anchor (ControlsPaneWrapper) keeps the live token so it still
            clears the menubar the user sees (proof:live-session-mobile). */
         padding-block: var(--dock-top-band-reserve-stable);
+        /* X-DS pass 3 · KF-C3-10 — the cell IS the viewport here, so the
+           block-end is the transport band whole: the resting sheet's lip sits
+           at that inset, and the plates' last row (the square's caption, the
+           spring's time axis) rode on it. */
+        padding-block-end: max(
+            var(--dock-top-band-reserve-stable),
+            var(--transport-band)
+        );
         /* The orbit surface keeps `touch-action: none` (OrbitalDrag/AmigaScene
            own it on their own roots); this cell is a passive frame, so the swipe
            is owned by the sheet GRAB HANDLE — spatially disjoint (BLK-6). */

@@ -14,14 +14,15 @@
          D-M1) is written in the wave's evidence BEFORE this file was touched;
          this header describes what ships, the evidence says why. -->
     <div class="spring-heatmap-section grid gap-2">
-        <!-- X.KF.W13V.y (OA-51; DESIGN-NOTE N-5) — ONE title line, and the y
-             axis named beside it (the ζ ticks run down the plot's left edge).
+        <!-- X.KF.W13V.y (OA-51; DESIGN-NOTE N-5) — ONE title line, and the
+             field's legend beside it (X-DS pass 3; the y axis is named on its
+             own ticks, below).
              The live (response, ζ) is NOT restated here — the param rows above
              show it; it stays the field's accessible description (sr-only). -->
-        <div class="flex items-baseline justify-between gap-2 whitespace-nowrap">
+        <div class="flex flex-wrap items-baseline justify-between gap-x-2 gap-y-0.5 whitespace-nowrap">
             <span class="text-small font-medium text-foreground" data-figure-title>Peak overshoot</span>
             <!-- X.KF.W13X.spring (UIA-KF-308) — while the pointer hovers the
-                 field, the axis caption yields to what a click there would
+                 field, the legend yields to what a click there would
                  write: '(r, ζ) → peak %'. It reverts on leave. -->
             <span
                 v-if="hoverNode"
@@ -29,13 +30,24 @@
                 data-heatmap-hover
                 aria-hidden="true"
             >{{ hoverNode.r.toFixed(2) }} s · ζ {{ hoverNode.d.toFixed(2) }} → {{ Math.round(overshoot(hoverNode.d) * 100) }} %</span>
-            <span v-else class="text-caption text-muted-foreground" aria-hidden="true">damping ζ ↕</span>
+            <!-- X-DS pass 3 · KF-C3-06 — the legend rides the caption row (it
+                 was the scroller's last row at rest, so the rail's end fade
+                 ate it to ~1.7:1); KF-C3-11 — the ζ axis title went to its
+                 axis, so this slot was free. -->
+            <span v-else class="flex items-center gap-1.5 min-w-0 text-caption text-muted-foreground" data-figure-legend>
+                <span class="spring-heatmap-swatch shrink-0" aria-hidden="true"></span>
+                <span class="min-w-0 tabular-nums" title="Peak overshoot varies with damping ζ only; response sets the tempo, not the peak">0 → {{ OVERSHOOT_MAX_PERCENT }} % overshoot · set by damping alone</span>
+            </span>
             <span :id="readoutId" class="sr-only">
                 {{ response.toFixed(2) }} s / ζ {{ dampingFraction.toFixed(2) }}
             </span>
         </div>
 
         <div class="spring-heatmap-plot">
+            <!-- KF-C3-11 — the y axis's title sits ON its axis, read along it
+                 (the x axis's "response (s) →" is seated the same way); the
+                 axis shows its own direction, so no arrow. -->
+            <span class="spring-heatmap-y-title text-caption text-muted-foreground" aria-hidden="true">damping ζ</span>
             <!-- The ζ axis — ticks at their true positions (the top is calm,
                  the bottom rings). -->
             <div class="spring-heatmap-zeta text-caption text-muted-foreground tabular-nums" aria-hidden="true">
@@ -131,14 +143,6 @@
             </div>
         </div>
 
-        <!-- The legend — ONE legend (N-5): the ramp, its scale, and what it
-             varies with. X.KF.W13X.sq+dh (§0dz, no ellipsis in effect): it
-             WRAPS beside its swatch when the pane is narrower than the line;
-             it was clipped to "…set by damping alon…" in the 1440 rail. -->
-        <div class="flex items-start gap-1.5 min-w-0 text-caption text-muted-foreground" data-figure-legend>
-            <span class="spring-heatmap-swatch shrink-0 mt-1" aria-hidden="true"></span>
-            <span class="min-w-0 tabular-nums" title="Peak overshoot varies with damping ζ only; response sets the tempo, not the peak">0 → {{ OVERSHOOT_MAX_PERCENT }} % overshoot · set by damping alone</span>
-        </div>
     </div>
 </template>
 
@@ -495,12 +499,20 @@ function onKeydown(e: KeyboardEvent): void {
 /* ── The plot: a ζ gutter, the field, the response axis under it. ── */
 .spring-heatmap-plot {
     display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-columns: auto auto minmax(0, 1fr);
     column-gap: 0.375rem;
     row-gap: 0.125rem;
 }
 .spring-heatmap-x {
-    grid-column: 2;
+    grid-column: 3;
+}
+/* KF-C3-11 — the y-axis title, read bottom-to-top along the ζ ticks. */
+.spring-heatmap-y-title {
+    writing-mode: vertical-rl;
+    rotate: 180deg;
+    align-self: center;
+    line-height: 1;
+    white-space: nowrap;
 }
 .spring-heatmap-section {
     --spring-field-block: 12rem;

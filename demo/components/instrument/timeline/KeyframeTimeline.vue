@@ -147,7 +147,10 @@
                  reads as destructive before the pointer arrives rather than
                  only on hover. Undo is the standing mitigation that holds the
                  row at MAJOR instead of promoting it; it is not a substitute
-                 for the control saying what it does. -->
+                 for the control saying what it does.
+                 X-DS pass 3 · KF-C3-08 — with nothing to clear it is disabled,
+                 so glass's quiet disabled ink mutes the red at rest; the tone
+                 returns with the first keyframe. -->
             <Tooltip>
                 <TooltipTrigger as-child>
                     <Button
@@ -156,6 +159,7 @@
                         tone="destructive"
                         icon-only
                         aria-label="Clear all keyframes"
+                        :disabled="state.keyframes.length === 0"
                         @click="clearAll()"
                     >
                         <Trash class="icon-sm" />
@@ -163,19 +167,26 @@
                 </TooltipTrigger>
                 <TooltipContent>Clear all keyframes</TooltipContent>
             </Tooltip>
+            <!-- X-DS pass 3 · KF-C3-09 — the affordance says what it does. The
+                 unfolded timeline stays in the rail's column (H.W3.S4: a
+                 vertical extension of the rail, never a full-grid span, and the
+                 stage column's foot is the transport's), so unfolding buys the
+                 track HEIGHT (46 → 126px of lanes), not width. "Expand" and the
+                 maximize glyph promised a larger surface it never delivered;
+                 the vertical unfold/fold pair names the real change. -->
             <Tooltip>
                 <TooltipTrigger as-child>
                     <Button
                         size="sm"
                         emphasis="quiet"
                         icon-only
-                        :aria-label="props.expanded ? 'Collapse timeline' : 'Expand timeline'"
+                        :aria-label="props.expanded ? 'Fold timeline into the pane' : 'Unfold timeline'"
                         @click="emit('toggleExpand')"
                     >
-                        <component :is="props.expanded ? Minimize2 : Maximize2" class="icon-sm" />
+                        <component :is="props.expanded ? FoldVertical : UnfoldVertical" class="icon-sm" />
                     </Button>
                 </TooltipTrigger>
-                <TooltipContent>{{ props.expanded ? "Collapse timeline" : "Expand timeline" }}</TooltipContent>
+                <TooltipContent>{{ props.expanded ? "Fold timeline into the pane" : "Unfold timeline (taller track)" }}</TooltipContent>
             </Tooltip>
         </div>
 
@@ -220,16 +231,19 @@
              one that never said anything. A failed rebuild is rendered here
              beside the track, with the message and the same Retry the house
              channel offers. -->
+        <!-- X-DS pass 3 · KF-C3-12 — both captions take ONE alignment,
+             centred and balanced: at 0 keyframes the long line filled the
+             card and read start-aligned, at 1 it read centred. -->
         <p
             v-if="state.keyframes.length === 0"
-            class="text-body text-muted-foreground text-center py-2"
+            class="text-body text-muted-foreground text-center text-balance py-2"
         >
             No keyframes yet — <strong>Snapshot</strong> the target's current
             pose, or <strong>Import</strong> CSS <code>@keyframes</code>.
         </p>
         <p
             v-else-if="state.keyframes.length === 1"
-            class="text-body text-muted-foreground text-center py-2"
+            class="text-body text-muted-foreground text-center text-balance py-2"
         >
             One keyframe — one more builds the animation.
         </p>
@@ -382,8 +396,8 @@ import type { Ref } from "vue";
 import {
     Camera,
     Download,
-    Maximize2,
-    Minimize2,
+    FoldVertical,
+    UnfoldVertical,
     FilePlus2,
     Trash,
     Trash2,

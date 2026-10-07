@@ -375,18 +375,20 @@ watch(
 .specimen-tile {
     border-radius: var(--radius-field);
     content-visibility: auto;
-    contain-intrinsic-size: auto 104px;
+    contain-intrinsic-size: auto 132px;
     align-items: stretch;
     height: auto;
 }
+/* X-DS pass 3 · KF-C3-03 — the stage keeps a 2:1 aspect, not a fixed 3.25rem
+   band: on a ~180px tile the band drew each sparkline ~165x34 (5:1), so ease,
+   ease-in, ease-in-sine and ease-out-sine flattened into one another and the
+   comparative read the gallery exists for was lost. The plot's overshoot
+   headroom (below) is unchanged. */
 .tile-stage {
     position: relative;
     display: block;
     width: 100%;
-    height: 3.25rem;
-}
-[data-density="menu"] .tile-stage {
-    height: 2.5rem;
+    aspect-ratio: 2 / 1;
 }
 /* The plot box: the sparkline and the ball's carriage share it (curvePlot's
    placement idiom, design-idioms `.curve-carriage`). 18% headroom top and

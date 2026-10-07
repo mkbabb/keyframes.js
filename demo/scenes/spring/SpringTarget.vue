@@ -241,7 +241,7 @@
                 class="spring-rail-verbs flex flex-wrap items-center justify-center gap-x-3 gap-y-1"
                 :class="{ 'spring-rail-verbs--veiled': demo.derbyActive.value }"
             >
-                <p id="spring-rail-hint" class="text-small text-muted-foreground text-center">
+                <p id="spring-rail-hint" class="text-small text-muted-foreground text-center text-pretty">
                     Tap or drag the rail &mdash; the ball springs to the new target. Tune
                     response and damping in the Physics pane.
                 </p>
@@ -261,8 +261,13 @@
              plot (`SpringTrace`'s exposed `plot`, the shared curvePlot): the
              live simulator ball at sim time since its target was set, the sweep
              sampler at its leg's normalized time. Neither sits on a rail. -->
+        <!-- X-DS pass 3 · KF-C3-05 — ONE horizontal origin for the figure: the
+             trace is inset by the rail's overshoot band (the same `railPct` map
+             the track reads), so value 0 on the rail and t = 0 on the plot
+             share an x, and the horizon sits under the value-1 tick. -->
         <SpringTrace
             ref="traceEl"
+            :style="figureInset"
             :response="demo.response.value"
             :damping-fraction="demo.dampingFraction.value"
             :sweep="demo.sampled.value"
@@ -402,6 +407,8 @@ const railPct = (v: number): number =>
 /** The rail's 0-1 pointer ratio → value space (`railPct`'s inverse). */
 const railValue = (ratio: number): number => ratio * RAIL_SPAN - OVERSHOOT_ALLOWANCE;
 
+/** KF-C3-05 — the trace's inline inset: the rail's overshoot band, both ends. */
+const figureInset = { paddingInline: `${railPct(0)}% ${100 - railPct(1)}%` };
 /** The value TRACK: value 0 → value 1, inset inside the rail by the reserved
  *  band. `.stage-field-x`'s quarter gridlines ride this element, so they mark
  *  true value quarters (D-16's field stays honest under the new axis). */
@@ -603,41 +610,21 @@ const onKeydown = (e: KeyboardEvent) => {
     justify-content: safe center;
 }
 
-/* ── K.W4 S5 (U-K18) — the PRIMARY readout, display-tier ──
-   The live displacement x is the one number that proves the engine runs; it
-   gets the audacious-poster register (the missing display-type IN the pane),
-   wearing the scene accent (the cascaded --ball-tone), while v + the settled
-   badge demote to a quiet caption column. The former flat row gave x and v the
-   SAME small MetricBadge size (the equal-weight inversion U-K18 named). */
-/* D-9 — `6cqi` HAD NO QUERY CONTAINER. Container query units fall back to the
-   SMALL VIEWPORT when no ancestor is a query container, and the census is
-   unambiguous: this file's own two `container-type` sites (the rail and the
-   sampler track) are not ancestors of the readout, the demo's container utility
-   is applied only in AnimationVisualizer, and glass-ui's only card-side container
-   is the un-rendered `.card-header`. So `clamp(2.25rem, 6cqi, 3.25rem)` was
-   resolving as `6svw` — a VIEWPORT-keyed middle term that collapses to within
-   ~3px of `--type-display-2` at both ends of the range, i.e. the exact opposite
-   of the author's intent, which was a number that scales with the column it sits
-   in. Containerizing the header is the cure that KEEPS the intent; adopting the
-   static rung would have thrown it away. One declaration, and the clamp finally
-   measures what it names. */
-.spring-header {
-    container-type: inline-size;
-}
-
+/* ── X-DS pass 3 · KF-C3-04 — the PRIMARY readout, a value in the value face ──
+   The live position stays the stage's one primary readout and keeps the scene's
+   violet ink (the cascaded --ball-tone, §0dm), but it is a VALUE, so it is set
+   in the mono face (tabular) at the subheading rung: the same register as its
+   twin, velocity, one step up, and below the "Spring" title. It had been the
+   body sans at display size (clamp 2.25-3.25rem, 600), the largest and heaviest
+   thing on the stage, outranking the scene's own name (K.W4 U-K18's audacious
+   re-tier, superseded by the canon: display numerals belong to the display
+   face, values to Fira Code). The header's query container existed only for
+   that clamp and goes with it. */
 .spring-readout-primary {
-    font-size: clamp(2.25rem, 6cqi, 3.25rem);
-    /* T.D2 (RULED #24) — the `650` magic weight dies: weights step the ladder
-       (100-multiples only); the readout numeral reads the semibold token. */
-    font-weight: var(--font-weight-semibold, 600);
+    font-family: var(--font-mono);
+    font-size: var(--type-subheading);
+    font-weight: var(--font-weight-medium, 500);
     line-height: 1;
-    /* C-7 (narrowed) — the literal `-0.01em` IS the published `--type-tracking-snug`
-       to the digit. A literal that happens to equal a token is a token nobody can
-       find: write the name, and the next retune reaches this numeral too. (The
-       axis's own prescription — the audacious display rung and `--type-tracking-tight`
-       — is dead: audacious resolves to 139.6-352px inside a ~279px box, and tight
-       would have changed the design 2.5x.) */
-    letter-spacing: var(--type-tracking-snug);
     color: var(--ball-tone, var(--color-progress));
     font-variant-numeric: tabular-nums;
 }
@@ -823,7 +810,11 @@ const onKeydown = (e: KeyboardEvent) => {
        deliberately NOT touched: design-idioms.css documents that fallback form as
        the multi-scene idiom, and the row folds to its banked home rather than
        being re-decided here.) */
-    border-right: 2px dashed color-mix(in srgb, var(--ball-tone, var(--color-progress)) 35%, transparent);
+    /* X-DS pass 3 · KF-C3-05 — the scale's end is a plain hairline tick in the
+       --border ink (the quarter ticks' language), so the ONE dashed violet mark
+       on the rail is the target. Same dash, same hue, it read as a second
+       target, and at rest (target 1) the two sat on one another. */
+    border-right: 1px solid var(--border);
     pointer-events: none;
 }
 /* The settle-pulse resting state (no flash); `--fire` plays the one pulse.

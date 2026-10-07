@@ -65,9 +65,13 @@
     min-width: 0;
     color: var(--muted-foreground);
 }
+/* X-DS pass 3 · KF-C3-16 — the literal breaks at its comma-spaces, balanced
+   (it orphaned "1.00)" on its own line at 390 under `anywhere`); a token
+   breaks inside itself only when it cannot fit a line at all. */
 .literal-text {
     text-transform: none;
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
+    text-wrap: balance;
 }
 /* The two-rule pair that stood here (the easing literal's own copy-control
    class and its hover) is DELETED — routed to this unit by the S-7 reshell that
