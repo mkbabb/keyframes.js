@@ -13,14 +13,25 @@
          X.KF.W11.f — the field decision (kf-SpringHeatmap D-B1 · D-B2 · D-M8 ·
          D-M1) is written in the wave's evidence BEFORE this file was touched;
          this header describes what ships, the evidence says why. -->
-    <div class="spring-heatmap-section grid gap-2">
+    <!-- X-DS pass 15 (KF-C15-01) — the figure is a DISCLOSURE where the rail
+         cannot hold it: the app's one chevron-row idiom (StartingStyleTarget's
+         'compileToEntry() CSS' row), here 'Peak overshoot'. Closed by default
+         where the facet overflows the rail's scroll body, open where it fits.
+         It replaces the C14 margin spacer, which was whitespace in the scroll
+         content at rest AND scrolled (a 90 px void under the presets). -->
+    <Collapsible ref="sectionEl" v-model:open="figureOpen" class="spring-heatmap-section grid gap-2">
         <!-- X.KF.W13V.y (OA-51; DESIGN-NOTE N-5) — ONE title line, and the
              field's legend beside it (X-DS pass 3; the y axis is named on its
              own ticks, below).
              The live (response, ζ) is NOT restated here — the param rows above
              show it; it stays the field's accessible description (sr-only). -->
         <div class="flex flex-wrap items-baseline justify-between gap-x-2 gap-y-0.5 whitespace-nowrap">
-            <span class="text-small font-medium text-foreground" data-figure-title>Peak overshoot</span>
+            <CollapsibleTrigger as-child>
+                <Button emphasis="quiet" size="sm" class="button-text-flush" data-figure-title>
+                    <ChevronRight class="disclosure-chevron size-4" aria-hidden="true" />
+                    <span class="text-small font-medium text-foreground">Peak overshoot</span>
+                </Button>
+            </CollapsibleTrigger>
             <!-- X.KF.W13X.spring (UIA-KF-308) — while the pointer hovers the
                  field, the legend yields to what a click there would
                  write: '(r, ζ) → peak %'. It reverts on leave. -->
@@ -43,113 +54,114 @@
             </span>
         </div>
 
-        <div class="spring-heatmap-plot">
-            <!-- KF-C3-11 — the y axis's title sits ON its axis, read along it
-                 (the x axis's "response (s) →" is seated the same way); the
-                 axis shows its own direction, so no arrow. -->
-            <span class="spring-heatmap-y-title text-caption text-muted-foreground" aria-hidden="true">damping ζ</span>
-            <!-- The ζ axis — ticks at their true positions (the top is calm,
-                 the bottom rings). -->
-            <div class="spring-heatmap-zeta text-caption text-muted-foreground tabular-nums" aria-hidden="true">
-                <span v-for="tick in ZETA_TICKS" :key="tick.label" :style="{ top: tick.top }">
-                    {{ tick.label }}
-                </span>
-            </div>
+        <CollapsibleContent>
+            <div class="spring-heatmap-plot">
+                <!-- KF-C3-11 — the y axis's title sits ON its axis, read along it
+                     (the x axis's "response (s) →" is seated the same way); the
+                     axis shows its own direction, so no arrow. -->
+                <span class="spring-heatmap-y-title text-caption text-muted-foreground" aria-hidden="true">damping ζ</span>
+                <!-- The ζ axis — ticks at their true positions (the top is calm,
+                     the bottom rings). -->
+                <div class="spring-heatmap-zeta text-caption text-muted-foreground tabular-nums" aria-hidden="true">
+                    <span v-for="tick in ZETA_TICKS" :key="tick.label" :style="{ top: tick.top }">
+                        {{ tick.label }}
+                    </span>
+                </div>
 
-            <!-- The field. `role="application"` keeps the arrow keys with the
-                 widget in screen-reader browse mode; the readout above is its
-                 accessible description, and the live region inside announces
-                 the writes THIS field makes (the sliders announce their own).
-                 The demo-owned `kf-focus-ring` draws the keyboard ring; the
-                 scoped `:focus` arm below draws the SAME ring after a pointer
-                 grants focus, because a widget that swallows the arrow keys
-                 while focused must show that it has focus. -->
-            <div
-                ref="fieldEl"
-                class="spring-heatmap kf-focus-ring relative select-none cursor-crosshair rounded-md"
-                role="application"
-                :aria-label="FIELD_LABEL"
-                :aria-describedby="readoutId"
-                tabindex="0"
-                :style="{ backgroundImage: FIELD_RAMP }"
-                @pointerdown="onPointerDown"
-                @pointermove="onPointerMove"
-                @pointerup="onPointerRelease"
-                @pointercancel="onPointerRelease"
-                @lostpointercapture="onPointerRelease"
-                @pointerleave="onPointerLeave"
-                @keydown="onKeydown"
-            >
-                <span class="sr-only" aria-live="polite">{{ announced }}</span>
-
-                <!-- The critical line — the boundary between the two regimes,
-                     drawn at ζ = 1's true y; the regime labels sit ON the
-                     vertical axis they describe, either side of it. -->
-                <span class="spring-heatmap-critical" :style="{ top: CRITICAL_TOP }" aria-hidden="true">
-                    <span class="spring-heatmap-tag text-caption text-muted-foreground">ζ = 1 · critical</span>
-                </span>
-                <span class="spring-heatmap-regime spring-heatmap-regime--over text-caption text-muted-foreground" aria-hidden="true">
-                    overdamped · no overshoot
-                </span>
-                <!-- X-DS pass 10 (KF-C10-05b) — the ringing regime is named IN
-                     its field (right, at the underdamped band's middle), not
-                     under the rule, where it sat beside gentle's pip on ζ = 1
-                     and read as a second name for that dot. -->
-                <span
-                    class="spring-heatmap-regime spring-heatmap-regime--under text-caption text-muted-foreground"
-                    :style="{ top: UNDER_TAG_TOP }"
-                    aria-hidden="true"
+                <!-- The field. `role="application"` keeps the arrow keys with the
+                     widget in screen-reader browse mode; the readout above is its
+                     accessible description, and the live region inside announces
+                     the writes THIS field makes (the sliders announce their own).
+                     The demo-owned `kf-focus-ring` draws the keyboard ring; the
+                     scoped `:focus` arm below draws the SAME ring after a pointer
+                     grants focus, because a widget that swallows the arrow keys
+                     while focused must show that it has focus. -->
+                <div
+                    ref="fieldEl"
+                    class="spring-heatmap kf-focus-ring relative select-none cursor-crosshair rounded-md"
+                    role="application"
+                    :aria-label="FIELD_LABEL"
+                    :aria-describedby="readoutId"
+                    tabindex="0"
+                    :style="{ backgroundImage: FIELD_RAMP }"
+                    @pointerdown="onPointerDown"
+                    @pointermove="onPointerMove"
+                    @pointerup="onPointerRelease"
+                    @pointercancel="onPointerRelease"
+                    @lostpointercapture="onPointerRelease"
+                    @pointerleave="onPointerLeave"
+                    @keydown="onKeydown"
                 >
-                    underdamped · rings
-                </span>
+                    <span class="sr-only" aria-live="polite">{{ announced }}</span>
 
-                <!-- The four presets, plotted where they live (the Chips below
-                     stay the ONE preset surface; these are marks, not controls).
-                     X-DS pass 4 (KF-C4-10) — each name sits on the side of its dot
-                     AWAY from the critical line: above for ζ ≥ 1, below for an
-                     underdamped preset, so no name is ever crossed by the rule. -->
-                <span
-                    v-for="pip in PRESET_PIPS"
-                    :key="pip.name"
-                    class="spring-heatmap-pip"
-                    :class="{ 'is-current': pip.name === currentPipName, 'is-under': pip.under }"
-                    :style="{ left: pip.left, top: pip.top }"
-                    aria-hidden="true"
-                >
-                    <span class="text-caption">{{ pip.name }}</span>
-                </span>
+                    <!-- The critical line — the boundary between the two regimes,
+                         drawn at ζ = 1's true y; the regime labels sit ON the
+                         vertical axis they describe, either side of it. -->
+                    <span class="spring-heatmap-critical" :style="{ top: CRITICAL_TOP }" aria-hidden="true">
+                        <span class="spring-heatmap-tag text-caption text-muted-foreground">ζ = 1 · critical</span>
+                    </span>
+                    <span class="spring-heatmap-regime spring-heatmap-regime--over text-caption text-muted-foreground" aria-hidden="true">
+                        overdamped · no overshoot
+                    </span>
+                    <!-- X-DS pass 10 (KF-C10-05b) — the ringing regime is named IN
+                         its field (right, at the underdamped band's middle), not
+                         under the rule, where it sat beside gentle's pip on ζ = 1
+                         and read as a second name for that dot. -->
+                    <span
+                        class="spring-heatmap-regime spring-heatmap-regime--under text-caption text-muted-foreground"
+                        :style="{ top: UNDER_TAG_TOP }"
+                        aria-hidden="true"
+                    >
+                        underdamped · rings
+                    </span>
 
-                <!-- The lattice cell under the pointer — the node a click would
-                     write, shown before it is written. -->
-                <span
-                    v-if="hoverCell"
-                    class="spring-heatmap-cell"
-                    :style="hoverCell"
-                    aria-hidden="true"
-                ></span>
+                    <!-- The four presets, plotted where they live (the Chips below
+                         stay the ONE preset surface; these are marks, not controls).
+                         X-DS pass 4 (KF-C4-10) — each name sits on the side of its dot
+                         AWAY from the critical line: above for ζ ≥ 1, below for an
+                         underdamped preset, so no name is ever crossed by the rule. -->
+                    <span
+                        v-for="pip in PRESET_PIPS"
+                        :key="pip.name"
+                        class="spring-heatmap-pip"
+                        :class="{ 'is-current': pip.name === currentPipName, 'is-under': pip.under }"
+                        :style="{ left: pip.left, top: pip.top }"
+                        aria-hidden="true"
+                    >
+                        <span class="text-caption">{{ pip.name }}</span>
+                    </span>
 
-                <!-- The live marker — the current (response, ζ). An isolated
-                     write glides; a STREAM of writes (a slider drag, a key-repeat,
-                     this field's own sweep) is tracked 1:1, so the tracker never
-                     trails the gesture. -->
-                <span
-                    ref="markerEl"
-                    class="spring-heatmap-marker"
-                    :class="{ 'is-streaming': streaming }"
-                    :style="markerStyle"
-                    aria-hidden="true"
-                ></span>
+                    <!-- The lattice cell under the pointer — the node a click would
+                         write, shown before it is written. -->
+                    <span
+                        v-if="hoverCell"
+                        class="spring-heatmap-cell"
+                        :style="hoverCell"
+                        aria-hidden="true"
+                    ></span>
+
+                    <!-- The live marker — the current (response, ζ). An isolated
+                         write glides; a STREAM of writes (a slider drag, a key-repeat,
+                         this field's own sweep) is tracked 1:1, so the tracker never
+                         trails the gesture. -->
+                    <span
+                        ref="markerEl"
+                        class="spring-heatmap-marker"
+                        :class="{ 'is-streaming': streaming }"
+                        :style="markerStyle"
+                        aria-hidden="true"
+                    ></span>
+                </div>
+
+                <!-- The response axis. -->
+                <div class="spring-heatmap-x flex items-baseline justify-between gap-2 text-caption text-muted-foreground tabular-nums" aria-hidden="true">
+                    <span>{{ RESPONSE_AXIS.min.toFixed(1) }} s</span>
+                    <span>response (s) →</span>
+                    <span>{{ RESPONSE_AXIS.max.toFixed(1) }} s</span>
+                </div>
             </div>
-
-            <!-- The response axis. -->
-            <div class="spring-heatmap-x flex items-baseline justify-between gap-2 text-caption text-muted-foreground tabular-nums" aria-hidden="true">
-                <span>{{ RESPONSE_AXIS.min.toFixed(1) }} s</span>
-                <span>response (s) →</span>
-                <span>{{ RESPONSE_AXIS.max.toFixed(1) }} s</span>
-            </div>
-        </div>
-
-    </div>
+        </CollapsibleContent>
+    </Collapsible>
 </template>
 
 <script lang="ts">
@@ -313,6 +325,9 @@ const FIELD_LABEL =
 
 <script setup lang="ts">
 import { computed, onMounted, ref, useId, useTemplateRef, watch } from "vue";
+import { ChevronRight } from "@lucide/vue";
+import { Button } from "@mkbabb/glass-ui/button";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@mkbabb/glass-ui/collapsible";
 
 // ── The contract — two models, the same two refs the facet's sliders write
 // through their own declared `@update:model-value`. Instantiable with two
@@ -321,6 +336,21 @@ const response = defineModel<number>("response", { required: true });
 const dampingFraction = defineModel<number>("dampingFraction", { required: true });
 
 const fieldEl = useTemplateRef<HTMLElement>("fieldEl");
+const sectionEl = useTemplateRef<{ $el: HTMLElement }>("sectionEl");
+
+// ── X-DS pass 15 (KF-C15-01) — the figure's disclosure. Open by default; closed
+// at mount where the rail's scroll body (`.controls-surface`, the pane's one
+// scroller) cannot hold the facet whole, so the pane ends on the whole
+// 'Peak overshoot' row instead of a sliced figure. Read once from layout (the
+// facet's own overflow, not a restated rem budget); the reader's toggle is
+// theirs after that. Outside the rail (the phone sheet, a test mount) there is
+// no such scroller and the figure stays open. ─────────────────────────────────
+const figureOpen = ref(true);
+onMounted(() => {
+    const body = sectionEl.value?.$el?.closest?.(".controls-surface");
+    if (!(body instanceof HTMLElement) || body.clientHeight === 0) return;
+    if (body.scrollHeight - body.clientHeight > 1) figureOpen.value = false;
+});
 const markerEl = useTemplateRef<HTMLElement>("markerEl");
 const readoutId = useId();
 
@@ -357,11 +387,11 @@ const streaming = ref(false);
 let gestureStreaming = false;
 let glideMs = 0;
 let lastWriteAt = Number.NEGATIVE_INFINITY;
-onMounted(() => {
-    const marker = markerEl.value;
-    if (!marker) return;
+// X-DS pass 15 — read when the marker mounts (the figure may open after mount).
+watch(markerEl, (marker) => {
+    if (!marker || glideMs) return;
     glideMs = (Number.parseFloat(getComputedStyle(marker).transitionDuration) || 0) * 1000;
-});
+}, { immediate: true, flush: "post" });
 watch([response, dampingFraction], () => {
     const now = performance.now();
     streaming.value = gestureStreaming || now - lastWriteAt < glideMs;
@@ -511,6 +541,11 @@ function onKeydown(e: KeyboardEvent): void {
 <style scoped>
 /* ── The plot: a ζ gutter, the field, the response axis under it. ── */
 .spring-heatmap-plot {
+    /* X-DS pass 15 (KF-C15-01) — the top ζ tick is centred ON the field's top
+       edge (translateY(-50%)), so half its line rides above the plot; inside
+       the disclosure's content (glass clips it, `overflow: hidden`, for the
+       height motion) that half was cut. The plot holds the overhang itself. */
+    padding-block-start: calc(var(--type-caption) / 2);
     display: grid;
     grid-template-columns: auto auto minmax(0, 1fr);
     column-gap: 0.375rem;
@@ -559,18 +594,19 @@ function onKeydown(e: KeyboardEvent): void {
    less the chrome above the section, 24.625rem served at 1440). The pane then
    ends on the presets and their divider, and the heading, legend and field
    scroll in together. Where the facet fits, the step is 0 (the ×1000 term is a
-   hard switch, not a ramp). No mask, and the field is not raised. */
+   hard switch, not a ramp). No mask, and the field is not raised.
+   X-DS pass 15 (KF-C15-01) — the switch is RETIRED: a margin spacer is
+   whitespace in the scroll content at rest and scrolled alike (a 90 px void
+   between the presets' divider and the transport, ~100 px above the heading
+   once scrolled). Where the facet overflows, the figure is now a closed
+   disclosure row (`figureOpen`, the script), so the pane ends on a whole
+   'Peak overshoot' row above the fold. */
 @media (min-width: 1024px) {
     .spring-heatmap-section {
         --spring-field-block: clamp(
             8rem,
             calc(var(--rail-block, 100dvh) - (45rem + var(--mask-fade, 2.5rem))),
             12rem
-        );
-        margin-block-start: clamp(
-            0px,
-            calc((52.75rem - var(--rail-block, 100dvh)) * 1000),
-            max(0px, calc(var(--rail-block, 100dvh) - 39.625rem))
         );
     }
 }

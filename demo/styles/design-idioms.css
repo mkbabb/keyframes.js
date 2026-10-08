@@ -329,6 +329,18 @@
     color: var(--muted-foreground);
 }
 
+/* .disclosure-chevron — X-DS pass 15 (KF-C15-01): the app's ONE chevron-row
+   disclosure (a quiet glass Button as the CollapsibleTrigger, a ChevronRight,
+   the row's name). It turns a quarter when its trigger is open. Stated once:
+   the entry artifact's 'compileToEntry() CSS' row and the spring field's
+   'Peak overshoot' row both read it. */
+.disclosure-chevron {
+    transition: transform var(--duration-fast, 150ms) ease;
+}
+[data-state="open"] > .disclosure-chevron {
+    transform: rotate(90deg);
+}
+
 /* .code-token — inline-code for in-prose API names (camelCase, case-preserving mono). */
 .code-token {
     font-family: var(--font-mono);

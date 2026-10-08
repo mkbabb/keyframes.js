@@ -24,8 +24,13 @@
              plate now takes the cell (`lg:h-full`) and centres its lanes in it
              (the storyboard's `my-auto`, which collapses to 0 when the cell is
              shorter, so the overflow posture below still scrolls). Below lg it
-             still hugs its rows, as the square's plate hugs its field there. -->
-        <Card :shadow="false" class="seq-target w-full h-fit lg:h-full max-h-full min-h-0 flex flex-col overflow-y-auto overflow-x-hidden">
+             still hugs its rows, as the square's plate hugs its field there.
+             X-DS pass 15 (KF-C15-02) — ONE plate rule at every width: below lg
+             the hugged plate sat at the top over ~360 px of bare grid while
+             Spring and Easing fill the column to the sheet. The plate now takes
+             the stage cell at every width (`h-full`) and the storyboard's
+             `my-auto` centres the lanes in it; the lane spacing is unchanged. -->
+        <Card :shadow="false" class="seq-target w-full h-full max-h-full min-h-0 flex flex-col overflow-y-auto overflow-x-hidden">
             <!-- Header: the scene's name and ONE live readout
                  (X.KF.W13X.sequence — UIA-KF-210 · UIA-KF-211 · KFA-220).
                  X.KF.W13X.dh2 (UIA-KF-098) — the reel left the stage for the

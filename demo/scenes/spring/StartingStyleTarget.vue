@@ -98,7 +98,7 @@
                     <div class="flex items-center justify-start gap-2">
                         <CollapsibleTrigger as-child>
                             <Button emphasis="quiet" size="sm" class="artifact-trigger button-text-flush">
-                                <ChevronRight class="artifact-chevron size-4" aria-hidden="true" />
+                                <ChevronRight class="disclosure-chevron size-4" aria-hidden="true" />
                                 <span :id="labelId" class="whitespace-nowrap">compileToEntry() CSS</span>
                             </Button>
                         </CollapsibleTrigger>
@@ -414,9 +414,8 @@ const artifact = computed<ArtifactState>(() => {
    `data-allow-motion` — opts the element OUT of the house kill switch. PRM here
    is the producer's, deliberately. */
 
-.artifact-chevron {
-    transition: transform var(--duration-fast, 150ms) ease;
-}
+/* X-DS pass 15 — the chevron's turn is the shared `.disclosure-chevron` idiom
+   (design-idioms.css), read by the spring field's row too. */
 
 /* X-DS pass 12 (KF-C12-04) — the copy pair is spaced INK TO INK, as the
    easing literal's pair is (KF-C11-06). `button-text-flush` cancels the
@@ -425,10 +424,6 @@ const artifact = computed<ArtifactState>(() => {
    literal's sits at 15). The same expression, mirrored on the end side. */
 .artifact-trigger {
     margin-inline-end: calc(-1 * (var(--button-size) / 2 - var(--space-residue)) - 1px);
-}
-
-.artifact-trigger[data-state="open"] .artifact-chevron {
-    transform: rotate(90deg);
 }
 
 .artifact {
