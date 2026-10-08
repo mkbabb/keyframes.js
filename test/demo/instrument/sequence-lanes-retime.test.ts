@@ -55,12 +55,18 @@ afterEach(() => {
 function mountLanes() {
     const s = source();
     const wrapper = mount(SequenceLanes, { props: { source: s.src }, attachTo: document.body });
-    for (const track of wrapper.findAll(".seq-lane-track")) {
-        (track.element as HTMLElement).getBoundingClientRect = () =>
-            ({ left: LANE.left, width: LANE.width, right: LANE.left + LANE.width }) as DOMRect;
-        (track.element as HTMLElement).setPointerCapture = () => {};
-    }
-    return { wrapper, ...s };
+    // ESC-W13X-tl-1 — the lanes ride the one LaneTrack: a pointer projects onto
+    // its time column (every lane spans it), and the drag's pointer is captured
+    // by the track's host, which is where a browser then delivers its moves.
+    const column = wrapper.get(".lane-track-column").element as HTMLElement;
+    column.getBoundingClientRect = () =>
+        ({ left: LANE.left, width: LANE.width, right: LANE.left + LANE.width }) as DOMRect;
+    const host = column.closest<HTMLElement>('[role="slider"]')!;
+    const captured = new Set<number>();
+    host.setPointerCapture = (id: number) => void captured.add(id);
+    host.releasePointerCapture = (id: number) => void captured.delete(id);
+    host.hasPointerCapture = (id: number) => captured.has(id);
+    return { wrapper, host, ...s };
 }
 
 /** The handle's drawn centre, in client px, from its `left: %` on the lane. */
@@ -68,7 +74,7 @@ const drawnX = (el: HTMLElement) => LANE.left + (parseFloat(el.style.left) / 100
 
 describe("UIA-KF-031 — the re-time handle stays under the pointer", () => {
     it("draws every step of a span-growing drag where the pointer is", async () => {
-        const { wrapper, duration } = mountLanes();
+        const { wrapper, host, duration } = mountLanes();
         const handle = wrapper.findAll<HTMLElement>(".seq-lane-handle")[2]!;
         const start = drawnX(handle.element);
         handle.element.dispatchEvent(
@@ -76,18 +82,18 @@ describe("UIA-KF-031 — the re-time handle stays under the pointer", () => {
         );
         const spanAtPress = duration();
         for (const dx of [20, 40, 60, 80]) {
-            window.dispatchEvent(new PointerEvent("pointermove", { clientX: start + dx, bubbles: true }));
+            host.dispatchEvent(new PointerEvent("pointermove", { clientX: start + dx, bubbles: true }));
             await nextTick();
             expect(duration()).toBeGreaterThan(spanAtPress); // the span DID grow under the drag
             expect(drawnX(handle.element)).toBeCloseTo(start + dx, 5);
         }
-        window.dispatchEvent(new PointerEvent("pointerup", { bubbles: true }));
+        host.dispatchEvent(new PointerEvent("pointerup", { bubbles: true }));
         await nextTick();
         wrapper.unmount();
     });
 
     it("UIA-KF-317 — marks the held handle for the life of the drag", async () => {
-        const { wrapper } = mountLanes();
+        const { wrapper, host } = mountLanes();
         const handle = wrapper.findAll<HTMLElement>(".seq-lane-handle")[1]!;
         expect(handle.attributes("data-dragging")).toBeUndefined();
         handle.element.dispatchEvent(
@@ -95,7 +101,7 @@ describe("UIA-KF-031 — the re-time handle stays under the pointer", () => {
         );
         await nextTick();
         expect(handle.attributes("data-dragging")).toBe("");
-        window.dispatchEvent(new PointerEvent("pointerup", { bubbles: true }));
+        host.dispatchEvent(new PointerEvent("pointerup", { bubbles: true }));
         await nextTick();
         expect(handle.attributes("data-dragging")).toBeUndefined();
         wrapper.unmount();
@@ -104,16 +110,16 @@ describe("UIA-KF-031 — the re-time handle stays under the pointer", () => {
 
 describe("UIA-KF-317 — a settled re-time previews the retimed row (X.KF.W13X.dh2)", () => {
     it("previews on release, never under a held drag", async () => {
-        const { wrapper, src } = mountLanes();
+        const { wrapper, host, src } = mountLanes();
         const handle = wrapper.findAll<HTMLElement>(".seq-lane-handle")[2]!;
         const start = drawnX(handle.element);
         handle.element.dispatchEvent(
             new PointerEvent("pointerdown", { clientX: start, bubbles: true, isPrimary: true, button: 0 }),
         );
-        window.dispatchEvent(new PointerEvent("pointermove", { clientX: start + 30, bubbles: true }));
+        host.dispatchEvent(new PointerEvent("pointermove", { clientX: start + 30, bubbles: true }));
         await nextTick();
         expect(src.preview).not.toHaveBeenCalled();
-        window.dispatchEvent(new PointerEvent("pointerup", { bubbles: true }));
+        host.dispatchEvent(new PointerEvent("pointerup", { bubbles: true }));
         await nextTick();
         expect(src.preview).toHaveBeenCalledTimes(1);
         expect(src.preview).toHaveBeenCalledWith(2);

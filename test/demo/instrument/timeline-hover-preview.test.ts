@@ -488,7 +488,7 @@ describe("G9 — the tooltip announces what it shows", () => {
 
     it("hides the graduations — they are a ruler, not content", () => {
         const t = mountTrack([kf()]);
-        const ticks = t.w.findAll(".timeline-tick-label");
+        const ticks = t.w.findAll(".lane-track-tick-label");
         expect(ticks.length).toBeGreaterThan(0);
         for (const tick of ticks) {
             expect(

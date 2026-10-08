@@ -51,7 +51,7 @@ const mountTrack = (keyframes: TimelineKeyframe[], scrubT = 0.37) => {
 describe("the Timeline rail's geometry", () => {
     it("KFA-172 — places the playhead by a whole-pixel translate", () => {
         const w = mountTrack([kf("a", 0), kf("b", 100)]);
-        const head = w.get<HTMLElement>(".timeline-playhead").element;
+        const head = w.get<HTMLElement>(".lane-track-playhead").element;
         expect(head.style.left).toBe("");
         expect(head.style.transform).toMatch(/^translateX\(-?\d+px\)$/);
     });
@@ -67,7 +67,7 @@ describe("the Timeline rail's geometry", () => {
 
     it("UIA-KF-187 — puts every mark on the inset lane, the end diamonds centred on their stop", () => {
         const w = mountTrack([kf("a", 0), kf("b", 100)]);
-        const lane = w.get(".timeline-track > .timeline-lane");
+        const lane = w.get(".timeline-track > .lane-track-column");
         const markers = lane.findAll(".keyframe-marker");
         expect(markers).toHaveLength(2);
         for (const marker of markers) {
@@ -76,12 +76,12 @@ describe("the Timeline rail's geometry", () => {
             expect(marker.classes()).not.toContain("-translate-x-full");
         }
         expect(lane.find(".timeline-caret").exists()).toBe(true);
-        expect(lane.find(".timeline-playhead").exists()).toBe(true);
+        expect(lane.find(".lane-track-playhead").exists()).toBe(true);
     });
 
     it("UIA-KF-178 — does not label a graduation a stop already labels", () => {
         const w = mountTrack([kf("a", 0), kf("b", 100)]);
-        const ticks = w.findAll(".timeline-tick-label").map((t) => t.text());
+        const ticks = w.findAll(".lane-track-tick-label").map((t) => t.text());
         expect(ticks).not.toContain("0%");
         expect(ticks).not.toContain("100%");
         expect(ticks).toContain("50%");

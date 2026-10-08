@@ -120,7 +120,7 @@ describe("KF.W13V.s2 — Sequence re-timing lives in the shared Timeline pane", 
             expect(demo.progress.value).toBe(1);
             await wrapper.vm.$nextTick();
             expect(scrub.attributes("aria-valuenow")).toBe("100");
-            expect(wrapper.find("[data-sequence-playhead]").exists()).toBe(true);
+            expect(wrapper.find("[data-lane-track-playhead]").exists()).toBe(true);
         } finally {
             wrapper.unmount();
             app.unmount();

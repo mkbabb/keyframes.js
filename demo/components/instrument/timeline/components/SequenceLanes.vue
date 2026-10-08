@@ -1,51 +1,52 @@
 <template>
     <!-- THE SEQUENCE MODE's lanes (X.KF.W13V.s2 · §0cw ESC-s-1 (b) · OA-46).
-         One grid: a label column and ONE time column the master playhead, every
-         lane's rail and every re-time handle resolve their x from — the master
-         clock in ms, `x = t / duration` (the stage's canonical domain). The
-         glass-free leaf of the pane (SequenceTimeline is its shell). -->
-    <div class="seq-lanes" :style="{ '--seq-p': (source.progress() * source.duration()) / axis }">
-        <!-- The master scrub — the pane's playhead. Its rail heads the time
-             column; the playhead line it seats runs down through every lane. -->
-        <span class="seq-lane-label text-mono-caption text-muted-foreground" style="grid-row: 1">clock</span>
-        <div
-            ref="scrubEl"
-            class="seq-lane-scrub"
-            style="grid-row: 1"
-            :class="{ 'is-scrubbing': source.isScrubbing() }"
-            role="slider"
-            aria-label="Scrub the sequence master clock"
-            :aria-valuenow="Math.round(source.progress() * 100)"
-            :aria-valuetext="`${Math.round(source.progress() * source.duration())} ms of ${source.duration()} ms`"
-            aria-valuemin="0"
-            aria-valuemax="100"
-            tabindex="0"
-            @pointerdown="onScrubDown"
-            @keydown="onScrubKeydown"
-            @keyup="onScrubKeyup"
-            @blur="source.setScrubbing(false)"
-        >
-            <div class="progress-rail"></div>
-            <div class="progress-ball seq-lane-scrub-ball"></div>
-        </div>
-
-        <template v-for="lane in source.lanes()" :key="lane.index">
-            <!-- Every cell names its row: the playhead spans the column, so
-                 auto-placement would flow the lanes around it. -->
-            <span
-                class="seq-lane-label text-mono-caption text-muted-foreground tabular-nums"
-                :style="{ gridRow: lane.index + 2 }"
-            >
-                <!-- X.KF.W13X.sq+dh (§0dz) — ONE label register per row: the
-                     index and its offset are one muted mono caption (the index
-                     wore a second, foreground ink — two competing stacks, the
-                     owner's frame). The lane's tone already keys the row. -->
+         ESC-W13X-tl-1 (A2-KE-L1-9 consumer half · UIA-KF-099), steps 1–2 —
+         this is now a DATA ADAPTER of the one LaneTrack the keyframe Timeline
+         also renders: the master clock is the track's scrub (its scrub row
+         carries the clock's ball), the items are its lanes (each its run as a
+         bar in its tone, and its re-time handle), and the ruler, the playhead
+         through every row, the keyboard map and the pointer policy are the
+         track's. The domain is the master clock in ms, placed `x = t / axis`.
+         Step 3 (glass `Slider` draggable marks, O-59) is ADOPT-AT-LANDING. -->
+    <LaneTrack
+        class="seq-lane-scrub"
+        :class="{ 'is-scrubbing': source.isScrubbing() }"
+        :style="{ '--seq-p': playhead / 100 }"
+        labelled
+        scrub-label="Scrub the sequence master clock"
+        :value="source.progress() * 100"
+        :value-text="`${Math.round(source.progress() * source.duration())} ms of ${source.duration()} ms`"
+        :step="SCRUB_KEY_STEP"
+        :page-step="SCRUB_PAGE_STEP"
+        :lanes="lanes"
+        :ticks="ticks"
+        :playhead="playhead"
+        @scrub-start="onScrubStart"
+        @scrub="applyScrub"
+        @scrub-end="source.setScrubbing(false)"
+    >
+        <template #scrub-label>
+            <span class="seq-lane-label text-mono-caption text-muted-foreground">clock</span>
+        </template>
+        <template #scrub>
+            <!-- The clock's own row: its rail and its ball, at the playhead. -->
+            <div class="seq-lane-clock">
+                <div class="progress-rail"></div>
+                <div class="progress-ball seq-lane-scrub-ball"></div>
+            </div>
+        </template>
+        <template #lane-label="{ lane }">
+            <!-- X.KF.W13X.sq+dh (§0dz) — ONE label register per row: the index
+                 and its offset are one muted mono caption. The lane's tone
+                 already keys the row. -->
+            <span class="seq-lane-label text-mono-caption text-muted-foreground tabular-nums">
                 {{ lane.index + 1 }} @{{ Math.round(lane.at) }}ms
             </span>
+        </template>
+        <template #lane="{ lane, beginDrag }">
             <div
-                :ref="(el) => setLaneEl(lane.index, el as HTMLElement | null)"
                 class="seq-lane-track"
-                :style="{ '--ball-tone': lane.tone, gridRow: lane.index + 2 }"
+                :style="{ '--ball-tone': lane.tone }"
             >
                 <div class="progress-rail"></div>
                 <!-- The item's run on the master clock: [at, at + span]. -->
@@ -58,7 +59,9 @@
                 ></div>
                 <!-- The re-time handle: drag or key re-authors the item's `at`
                      on the master Sequence (the engine's `add(child, at)`). Its
-                     CONTROL range is the editable [0, atMax] domain. -->
+                     CONTROL range is the editable [0, atMax] domain. Its press
+                     begins a drag on the track (one gesture with the scrub);
+                     it never reaches the scrub. -->
                 <div
                     class="seq-lane-handle"
                     :style="{ left: `${(lane.at / axis) * 100}%` }"
@@ -70,29 +73,18 @@
                     aria-valuemin="0"
                     :aria-valuemax="source.atMax"
                     tabindex="0"
-                    @pointerdown="onLaneDown(lane.index, $event)"
+                    @pointerdown.stop="onLaneDown(lane.index, $event, beginDrag)"
                     @keydown="onLaneKeydown(lane.index, $event)"
                 ></div>
             </div>
         </template>
-
-        <!-- The playhead line — the master scrub's position carried through
-             every lane (paint only; the scrub rail above owns the gesture). -->
-        <div
-            class="seq-lanes-playhead"
-            data-sequence-playhead
-            aria-hidden="true"
-            :style="{ gridRow: `1 / span ${source.lanes().length + 1}` }"
-        >
-            <div class="seq-lanes-playhead-line"></div>
-        </div>
-    </div>
+    </LaneTrack>
 </template>
 
 <script setup lang="ts">
-import { computed, ref, useTemplateRef } from "vue";
+import { computed, ref } from "vue";
 import { clamp } from "@mkbabb/value.js/math";
-import { useDragScrub } from "@composables/useDragScrub";
+import LaneTrack, { type LaneTrackBeginDrag, type LaneTrackTick } from "./LaneTrack.vue";
 import type { SequenceTimelineSource } from "../timelineTypes";
 
 const props = defineProps<{ source: SequenceTimelineSource }>();
@@ -106,16 +98,20 @@ if (!props.source) {
 }
 
 // ── The master scrub (the pane's playhead) ───────────────────────────────────
-/** 5% of the clock per arrow press — a scrub of the WHOLE clock (KF-SCR-6). */
-const SCRUB_KEY_STEP = 0.05;
-const SCRUB_KEYS = new Set(["ArrowRight", "ArrowUp", "ArrowLeft", "ArrowDown", "Home", "End"]);
-const scrubEl = useTemplateRef<HTMLElement>("scrubEl");
-let lastP = 0;
+// The track's value is the clock's progress in percent. An arrow press moves 5 %
+// of the clock (a scrub of the WHOLE clock, KF-SCR-6); Shift or a Page key, 25 %.
+const SCRUB_KEY_STEP = 5;
+const SCRUB_PAGE_STEP = 25;
 
-/** One scrub sample: latch the direction (the stage cascade chases it), hold
- *  the scrub heat, seek the master clock. */
-const applyScrub = (p: number) => {
-    const next = clamp(p, 0, 1);
+/** One scrub sample (pointer or key): latch the direction PER SAMPLE (the
+ *  stage cascade chases it), hold the scrub heat, seek the master clock. A
+ *  gesture's first sample is read against the clock where the gesture began. */
+let lastP = 0;
+const onScrubStart = () => {
+    lastP = props.source.progress();
+};
+const applyScrub = (percent: number) => {
+    const next = clamp(percent / 100, 0, 1);
     if (next !== lastP) {
         props.source.setScrubDir(next > lastP ? 1 : -1);
         lastP = next;
@@ -124,42 +120,6 @@ const applyScrub = (p: number) => {
     props.source.scrub(next);
 };
 
-const { onPointerDown: onScrubDown } = useDragScrub({
-    el: scrubEl,
-    project: (e) => {
-        const el = scrubEl.value;
-        if (!el) return props.source.progress();
-        const rect = el.getBoundingClientRect();
-        if (rect.width === 0) return props.source.progress();
-        return clamp((e.clientX - rect.left) / rect.width, 0, 1);
-    },
-    onScrub: applyScrub,
-    onStart: () => {
-        lastP = props.source.progress();
-    },
-    onEnd: () => props.source.setScrubbing(false),
-});
-
-const onScrubKeydown = (e: KeyboardEvent) => {
-    if (!SCRUB_KEYS.has(e.key)) return;
-    e.preventDefault();
-    const p = props.source.progress();
-    lastP = p;
-    if (e.key === "ArrowRight" || e.key === "ArrowUp") applyScrub(p + SCRUB_KEY_STEP);
-    else if (e.key === "ArrowLeft" || e.key === "ArrowDown") applyScrub(p - SCRUB_KEY_STEP);
-    else applyScrub(e.key === "Home" ? 0 : 1);
-};
-const onScrubKeyup = (e: KeyboardEvent) => {
-    if (SCRUB_KEYS.has(e.key)) props.source.setScrubbing(false);
-};
-
-// ── The lanes' re-time handles ───────────────────────────────────────────────
-// ONE shared `useDragScrub` drives every handle: the pressed lane is latched,
-// `project` reads THAT lane's track rect → an `at` in ms on the master clock's
-// axis (x = at / duration, the handle's own placement), clamped by `reseat` to
-// the editable [0, atMax] domain. The axis is READ ONCE at the press: a
-// re-time changes the clock's span (duration = max(at + span)), and a
-// projection over the live span would chase its own write under a held pointer.
 /**
  * UIA-KF-031 — THE AXIS HOLDS STILL UNDER A DRAG. A re-time re-derives the
  * master clock's span (the last item's start plus its run), and the lanes were
@@ -172,43 +132,43 @@ const onScrubKeyup = (e: KeyboardEvent) => {
 const dragAxis = ref<number | null>(null);
 const axis = computed(() => dragAxis.value ?? props.source.duration());
 
-let laneAxis = 1;
-const laneEls: (HTMLElement | null)[] = [];
-const setLaneEl = (i: number, el: HTMLElement | null) => {
-    laneEls[i] = el;
-};
-const activeLane = ref<number | null>(null);
-const activeLaneEl = computed<HTMLElement | null>(() =>
-    activeLane.value == null ? null : (laneEls[activeLane.value] ?? null),
+/** The playhead's place in the time column (%), on the drawn axis. */
+const playhead = computed(() => ((props.source.progress() * props.source.duration()) / axis.value) * 100);
+
+/** The lanes, keyed for the track. */
+const lanes = computed(() => props.source.lanes().map((lane) => ({ key: lane.index, ...lane })));
+
+/** The ruler: the clock's quarters on the drawn axis, in ms. The unit is said
+ *  once, by the pane's caption above ("5 items · 1940 ms"); a unit on the end
+ *  graduation ran its label into the three-quarter one on a rail-width column. */
+const RULER_QUARTERS = [0, 0.25, 0.5, 0.75, 1];
+const ticks = computed<LaneTrackTick[]>(() =>
+    RULER_QUARTERS.map((q) => ({ key: q, at: q * 100, label: `${Math.round(q * axis.value)}` })),
 );
-const { onPointerDown: onLaneScrubDown } = useDragScrub({
-    el: activeLaneEl,
-    project: (e) => {
-        const i = activeLane.value;
-        const el = i == null ? null : laneEls[i];
-        if (i == null || !el) return 0;
-        const rect = el.getBoundingClientRect();
-        if (rect.width === 0) return props.source.lanes()[i]?.at ?? 0;
-        return clamp((e.clientX - rect.left) / rect.width, 0, 1) * laneAxis;
-    },
-    onStart: () => {
-        laneAxis = props.source.duration();
-        dragAxis.value = laneAxis;
-    },
-    onScrub: (at) => {
-        if (activeLane.value != null) props.source.reseat(activeLane.value, at);
-    },
-    onEnd: () => {
-        // UIA-KF-317 — the re-time settles on release: the stage runs the
-        // retimed row once, so the new offset shows its motion before Play.
-        if (activeLane.value != null) props.source.preview(activeLane.value);
-        activeLane.value = null;
-        dragAxis.value = null;
-    },
-});
-const onLaneDown = (index: number, e: PointerEvent) => {
+
+// ── The lanes' re-time handles ───────────────────────────────────────────────
+// A handle's press begins a drag on the track (one pointer policy with the
+// scrub). The track projects the pointer onto its time column in percent; the
+// handle maps that to an `at` in ms on the axis READ ONCE at the press, and
+// `reseat` clamps it to the editable [0, atMax] domain.
+const activeLane = ref<number | null>(null);
+
+const onLaneDown = (index: number, e: PointerEvent, beginDrag: LaneTrackBeginDrag) => {
+    const laneAxis = props.source.duration();
+    const pressed = beginDrag(e, {
+        move: (percent) => props.source.reseat(index, (percent / 100) * laneAxis),
+        end: () => {
+            // UIA-KF-317 — the re-time settles on release: the stage runs the
+            // retimed row once, so the new offset shows its motion before Play.
+            props.source.preview(index);
+            activeLane.value = null;
+            dragAxis.value = null;
+        },
+    });
+    if (pressed === null) return;
     activeLane.value = index;
-    onLaneScrubDown(e);
+    dragAxis.value = laneAxis;
+    props.source.reseat(index, (pressed / 100) * laneAxis);
 };
 
 const LANE_AT_STEP = 40; // ms per arrow press (the slider keyboard posture)
@@ -230,33 +190,33 @@ const onLaneKeydown = (index: number, e: KeyboardEvent) => {
 </script>
 
 <style scoped>
-/* ONE grid: the label column hugs its widest label; the time column is the
-   master clock's axis every rail, bar, handle and the playhead share — their
-   x resolves from the same column box, so they agree by construction. */
-.seq-lanes {
-    display: grid;
-    grid-template-columns: max-content minmax(0, 1fr);
-    column-gap: 0.75rem;
+/* The LaneTrack's grid (its root carries this component's scope): the label
+   column hugs its widest label; the time column is the master clock's axis
+   every rail, bar, handle, the ruler and the playhead share. */
+.lane-track {
     row-gap: 0.25rem;
-    align-items: center;
 }
 
 .seq-lane-label {
-    grid-column: 1;
     white-space: nowrap;
     text-transform: none;
     letter-spacing: 0;
 }
 
-/* The master scrub rail — the pane's playhead control. The ball rides
-   `translateX(<cqw>)` against the rail's own inline size (compositor-only). */
-.seq-lane-scrub {
-    grid-column: 2;
-    position: relative;
-    height: 2.25rem;
+/* The master scrub — the LaneTrack's host (rendered there, so reached through
+   :deep). The playhead wears the clock's progress ink, as the line it replaces
+   did (identity kept, §0dm). */
+:deep(.seq-lane-scrub) {
+    --lane-track-playhead-ink: color-mix(in srgb, var(--color-progress) 70%, transparent);
     cursor: pointer;
     user-select: none;
     touch-action: none;
+}
+/* The clock's row: its rail and its ball. The ball rides `translateX(<cqw>)`
+   against the row's own inline size (compositor-only). */
+.seq-lane-clock {
+    position: relative;
+    height: 2.25rem;
     container-type: inline-size;
 }
 .seq-lane-scrub-ball {
@@ -271,7 +231,6 @@ const onLaneKeydown = (index: number, e: KeyboardEvent) => {
 }
 /* One lane: the rail, the item's run as a bar in its tone, the handle. */
 .seq-lane-track {
-    grid-column: 2;
     position: relative;
     height: 2rem;
 }
@@ -340,39 +299,19 @@ const onLaneKeydown = (index: number, e: KeyboardEvent) => {
 /* UIA-KF-313 — the focus ring sits on the control's OWN shape: the grip of a
    re-time handle and the master clock's ball, not a square around their
    invisible hit hosts (a 44×32 box, a full-width rectangle). */
-.seq-lane-scrub:focus-visible,
+:deep(.seq-lane-scrub:focus-visible),
 .seq-lane-handle:focus-visible {
     outline: none;
 }
-.seq-lane-scrub:focus-visible .seq-lane-scrub-ball,
+:deep(.seq-lane-scrub:focus-visible) .seq-lane-scrub-ball,
 .seq-lane-handle:focus-visible::after {
     box-shadow: var(--focus-ring-shadow);
 }
 @media (forced-colors: active) {
-    .seq-lane-scrub:focus-visible .seq-lane-scrub-ball,
+    :deep(.seq-lane-scrub:focus-visible) .seq-lane-scrub-ball,
     .seq-lane-handle:focus-visible::after {
         outline: 2px solid Highlight;
         outline-offset: 2px;
     }
-}
-
-/* The playhead line through every lane, at the master clock's position. */
-.seq-lanes-playhead {
-    grid-column: 2;
-    align-self: stretch;
-    position: relative;
-    pointer-events: none;
-    container-type: inline-size;
-}
-.seq-lanes-playhead-line {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    width: 2px;
-    margin-left: -1px;
-    translate: calc(var(--seq-p, 0) * 100cqw) 0;
-    background: var(--color-progress);
-    opacity: 0.7;
 }
 </style>

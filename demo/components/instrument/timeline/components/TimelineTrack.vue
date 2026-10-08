@@ -113,206 +113,140 @@
              declares `--timeline-hit-floor` and `--timeline-caret-gap` for
              them. Neither is this gate's cure and neither is spent here. -->
 
-        <div
+        <!-- ESC-W13X-tl-1 — the rail is the one LaneTrack (its scrub row is
+             this timeline's one lane): the ruler, the whole-pixel playhead, the
+             scrub's keyboard map and the one pointer policy are the primitive's;
+             this adapter supplies the percent domain through its zoom/pan map
+             and paints the stops (markers, carets) in the scrub row. -->
+        <LaneTrack
+            ref="laneTrack"
             :id="railId"
-            ref="trackEl"
             :data-expanded="expanded ? 'true' : undefined"
             :class="[
                 'kf-focus-ring timeline-track relative rounded-[var(--radius-field)] border border-border bg-muted/50 hover:bg-muted/70 transition-colors duration-fast cursor-pointer select-none overflow-x-clip overflow-y-visible touch-pan-y',
                 expanded ? 'h-32' : 'h-12',
             ]"
-            role="slider"
-            tabindex="0"
-            aria-label="Playhead — scrub the animation"
-            aria-orientation="horizontal"
-            aria-valuemin="0"
-            aria-valuemax="100"
-            :aria-valuenow="Math.round(scrubT * 100)"
-            :aria-valuetext="`${Math.round(scrubT * 100)}%`"
-            @keydown="onTrackKeydown"
-            @pointerdown="onTrackPointerDown"
-            @pointermove="onTrackPointerMove"
-            @pointerup="onTrackPointerUp"
-            @pointercancel="onTrackPointerUp"
-            @lostpointercapture="onTrackPointerUp"
+            scrub-label="Playhead — scrub the animation"
+            :value="scrubT * 100"
+            :value-text="`${Math.round(scrubT * 100)}%`"
+            :ticks="ticks"
+            :playhead="percentToPosition(scrubT * 100)"
+            :unplace="positionToPercent"
+            @scrub="(percent: number) => emit('update:scrubT', percent / 100)"
+            @keydown="onZoomKeydown"
             @wheel="onTrackWheel"
             @touchstart.passive="onTouchStart"
             @touchmove.passive="onTouchMove"
             @touchend.passive="onTouchEnd"
         >
-            <!-- KFA-173 / UIA-KF-187 — THE LANE. Every mark (ticks, playhead,
-                 diamonds, carets) is placed on this inner box, inset from the
-                 rail by half a (selected) diamond, so the 0% and 100% diamonds
-                 and their labels sit INSIDE the rail instead of half outside
-                 its border. Pointer → percent reads this box too, so the
-                 projection and the paint share one geometry. -->
-            <div
-                ref="laneEl"
-                class="timeline-lane absolute inset-y-0"
-            >
-                <!-- Tick marks. The label hangs ABOVE the rail by exactly the
-                     margin the rail reserves for it — one constant, declared once
-                     in this file's scoped block and read by both (D-14/i-1: the two
-                     were the same magic number 174 lines apart with nothing stating
-                     the coupling). C-9's contract, said at the node that needs it:
-                     the labels are why this subtree is provisioned
-                     `overflow-y-visible` while the rail clips in x.
-                     RR-A missed-1's second attribute — THE GRADUATIONS ARE
-                     DECORATION AND ARE HIDDEN. Un-hidden, the ladder interleaved
-                     ~5-15 bare percent strings ("0%", "10%", …) into the AT tree
-                     between the markers, as CONTENT; they carry no information the
-                     rail and its markers do not already announce through
-                     `aria-valuetext`, and their count changes with zoom, so a
-                     browse-mode reader paid for a ruler by hearing it read out. -->
-                <div
-                    v-for="tick in visibleTicks"
-                    :key="tick"
-                    class="absolute top-0 h-full border-l border-border/30"
-                    :style="{ left: `${percentToPosition(tick)}%` }"
-                    aria-hidden="true"
-                >
-                    <!-- UIA-KF-178 — a graduation that coincides with a stop
-                         is not labelled twice: the stop's caret says it. -->
-                    <span
-                        v-if="!stopAtTick(tick)"
-                        class="timeline-tick-label text-mono-caption tabular-nums absolute left-0 text-muted-foreground whitespace-nowrap"
-                        :data-edge="edgeOf(percentToPosition(tick))"
-                    >{{ tick }}%</span>
-                </div>
-
-                <!-- Playhead. KFA-172 — placed by a WHOLE-PIXEL translate, not
-                     a sub-pixel `left: %`, so it no longer alternates crisp and
-                     soft while it moves. -->
-                <div
-                    class="timeline-playhead absolute top-0 left-0 h-full w-0.5 bg-primary z-content pointer-events-none"
-                    :style="{ transform: `translateX(${playheadPx}px)` }"
-                ></div>
-
-                <!-- Keyframe markers — ONE PER STOP (KF.W7 G5: the partition the
-                     engine compiles from; keyframes sharing a selector are one rule
-                     in the animation, so they are one marker that SAYS how many it
-                     holds). Each a keyboard-accessible slider (the SpringTarget
-                     role="slider" template): drag OR arrow-key the stop along the
-                     0–100% track. The visible diamond keeps its 16/24px size; an
-                     invisible ≥24px hit pad (::before) meets the touch-target
-                     minimum without moving a pixel of the diamond. Keyed by the
-                     stop's head id, which is stable across a drag.
-                     D-20 (KeyframeTimeline) — ONE FOCUS VOCABULARY. These three
-                     bespoke hosts (the rail `role="slider"`, the pan
-                     `role="scrollbar"` and every marker) are all keyboard-reachable
-                     and all took the UA ring, a fourth dialect standing beside the
-                     glass Buttons one card up that carry the house one. No global
-                     `:focus-visible` rule ships in this demo, so "the UA ring" was
-                     never a choice anyone made. All three now wear the demo's ring,
-                     which is also the only one of the four that paints under
-                     forced-colors. -->
-                <Tooltip v-for="stop in stops" :key="stop.keyframes[0].id">
-                    <!-- D-10 (KeyframeTimeline) — ONE CAPTURE SEAM, BOTH
-                         MODALITIES. The capture was armed on the marker's
-                         `@mouseenter` ALONE, while the tooltip opens on FOCUS too
-                         (reka's `TooltipTrigger` wires `focus` straight to
-                         `onOpen`). A keyboard user therefore opened the panel and
-                         got the ghost branch forever — the preview entry for their
-                         keyframe was never requested, by anything. Hover and focus
-                         now ask the same question; the emit NAME is kept, because
-                         renaming it is not the cure. -->
-                    <TooltipTrigger as-child>
-                        <div
-                            :class="[
-                                'kf-focus-ring keyframe-marker absolute top-1/2 -translate-y-1/2 -translate-x-1/2 z-controls',
-                                expanded ? 'w-6 h-6' : 'w-4 h-4',
-                                'rotate-45 rounded-sm cursor-grab',
-                                'border-2',
-                                isStopSelected(stop)
-                                    ? 'bg-primary border-primary scale-125 hover:ring-2 hover:ring-primary/40'
-                                    : 'bg-background border-foreground/50 hover:border-primary scale-on-hover',
-                            ]"
-                            :id="`timeline-marker-${stop.keyframes[0].id}`"
-                            role="slider"
-                            :aria-label="stopLabel(stop)"
-                            :aria-valuenow="Math.round(stop.percent)"
-                            :aria-valuetext="`${Math.round(stop.percent)}%`"
-                            aria-valuemin="0"
-                            aria-valuemax="100"
-                            :data-state="isStopSelected(stop) ? 'selected' : undefined"
-                            tabindex="0"
-                            :style="{ left: `${percentToPosition(stop.percent)}%` }"
-                            @pointerdown.stop="onMarkerPointerDown($event, stop)"
-                            @keydown="onMarkerKeydown($event, stop)"
+            <template #scrub="{ beginDrag }">
+                    <Tooltip v-for="stop in stops" :key="stop.keyframes[0].id">
+                        <!-- D-10 (KeyframeTimeline) — ONE CAPTURE SEAM, BOTH
+                             MODALITIES. The capture was armed on the marker's
+                             `@mouseenter` ALONE, while the tooltip opens on FOCUS too
+                             (reka's `TooltipTrigger` wires `focus` straight to
+                             `onOpen`). A keyboard user therefore opened the panel and
+                             got the ghost branch forever — the preview entry for their
+                             keyframe was never requested, by anything. Hover and focus
+                             now ask the same question; the emit NAME is kept, because
+                             renaming it is not the cure. -->
+                        <TooltipTrigger as-child>
+                            <div
+                                :class="[
+                                    'kf-focus-ring keyframe-marker absolute top-1/2 -translate-y-1/2 -translate-x-1/2 z-controls',
+                                    expanded ? 'w-6 h-6' : 'w-4 h-4',
+                                    'rotate-45 rounded-sm cursor-grab',
+                                    'border-2',
+                                    isStopSelected(stop)
+                                        ? 'bg-primary border-primary scale-125 hover:ring-2 hover:ring-primary/40'
+                                        : 'bg-background border-foreground/50 hover:border-primary scale-on-hover',
+                                ]"
+                                :id="`timeline-marker-${stop.keyframes[0].id}`"
+                                role="slider"
+                                :aria-label="stopLabel(stop)"
+                                :aria-valuenow="Math.round(stop.percent)"
+                                :aria-valuetext="`${Math.round(stop.percent)}%`"
+                                aria-valuemin="0"
+                                aria-valuemax="100"
+                                :data-state="isStopSelected(stop) ? 'selected' : undefined"
+                                tabindex="0"
+                                :style="{ left: `${percentToPosition(stop.percent)}%` }"
+                                @pointerdown.stop="onMarkerPointerDown($event, stop, beginDrag)"
+                                @keydown="onMarkerKeydown($event, stop)"
+                            >
+                                <!-- X-DS pass 5 (KF-C5-03) — a multi-member stop's
+                                     count is NOT worn on the diamond: the Badge
+                                     (about 30x20 on a 16px mark) covered it docked
+                                     and left half of it as a stray chevron
+                                     unfolded. The count reads in the stop's own
+                                     caret below ("0% ×2"), one labelled row. -->
+                            </div>
+                        </TooltipTrigger>
+                        <!-- m-17 (W6-I; G-W6-9's VARIANT member): the caller's `p-2`
+                             is gone — merged LAST through the package's tailwind-merge
+                             it flattened the tooltip's designed 1.272 block/inline
+                             optical padding ratio (`px-(--overlay-pad-inline)
+                             py-(--overlay-pad-block)`) to 1.0. The width cap stays
+                             (`max-w-72` since UIA-KF-279) and collides with nothing
+                             the primitive declares. Pairs with THP D-11 (`.e`,
+                             RETAINED). -->
+                        <!-- MISSED-1 + M7 — THE PANEL'S NAME IS PASSED, NEVER SCRAPED.
+                             `TooltipContentImpl.js:87` builds the accessible
+                             description as `props.ariaLabel || currentElement.value
+                             ?.textContent`. With nothing passed, the second arm won:
+                             an UNTRACKED DOM read, taken ONCE at first mount, of a
+                             panel whose `<img alt>` `textContent` cannot see and whose
+                             block boundaries it runs together — so an AT user got one
+                             unpunctuated stylesheet, frozen before the capture landed,
+                             and on the focus path (D-10) frozen on the ghost that has
+                             no name at all. Passing the prop takes the FIRST arm, and
+                             because the prop is a `computed`-shaped expression over the
+                             keyframe and its preview source, reka's own `computed`
+                             re-evaluates whenever either changes. It is also M7's cure
+                             at the only place it matters for AT: a prop is a string, so
+                             no `text-transform` register can reach it and the property
+                             values arrive in the case the author typed them. -->
+                        <!-- UIA-KF-183 — the panel opens BELOW the rail, away from
+                             the card's own toolbar and tick labels it used to cover.
+                             UIA-KF-279 — the declarations are the content: the cap is
+                             wide enough for common values, and a long one wraps. -->
+                        <TooltipContent
+                            side="bottom"
+                            :side-offset="8"
+                            class="max-w-72"
+                            :aria-label="describeStop(stop)"
                         >
-                            <!-- X-DS pass 5 (KF-C5-03) — a multi-member stop's
-                                 count is NOT worn on the diamond: the Badge
-                                 (about 30x20 on a 16px mark) covered it docked
-                                 and left half of it as a stray chevron
-                                 unfolded. The count reads in the stop's own
-                                 caret below ("0% ×2"), one labelled row. -->
-                        </div>
-                    </TooltipTrigger>
-                    <!-- m-17 (W6-I; G-W6-9's VARIANT member): the caller's `p-2`
-                         is gone — merged LAST through the package's tailwind-merge
-                         it flattened the tooltip's designed 1.272 block/inline
-                         optical padding ratio (`px-(--overlay-pad-inline)
-                         py-(--overlay-pad-block)`) to 1.0. The width cap stays
-                         (`max-w-72` since UIA-KF-279) and collides with nothing
-                         the primitive declares. Pairs with THP D-11 (`.e`,
-                         RETAINED). -->
-                    <!-- MISSED-1 + M7 — THE PANEL'S NAME IS PASSED, NEVER SCRAPED.
-                         `TooltipContentImpl.js:87` builds the accessible
-                         description as `props.ariaLabel || currentElement.value
-                         ?.textContent`. With nothing passed, the second arm won:
-                         an UNTRACKED DOM read, taken ONCE at first mount, of a
-                         panel whose `<img alt>` `textContent` cannot see and whose
-                         block boundaries it runs together — so an AT user got one
-                         unpunctuated stylesheet, frozen before the capture landed,
-                         and on the focus path (D-10) frozen on the ghost that has
-                         no name at all. Passing the prop takes the FIRST arm, and
-                         because the prop is a `computed`-shaped expression over the
-                         keyframe and its preview source, reka's own `computed`
-                         re-evaluates whenever either changes. It is also M7's cure
-                         at the only place it matters for AT: a prop is a string, so
-                         no `text-transform` register can reach it and the property
-                         values arrive in the case the author typed them. -->
-                    <!-- UIA-KF-183 — the panel opens BELOW the rail, away from
-                         the card's own toolbar and tick labels it used to cover.
-                         UIA-KF-279 — the declarations are the content: the cap is
-                         wide enough for common values, and a long one wraps. -->
-                    <TooltipContent
-                        side="bottom"
-                        :side-offset="8"
-                        class="max-w-72"
-                        :aria-label="describeStop(stop)"
-                    >
-                        <TimelineHoverPreview
-                            :keyframe="stop.keyframes[0]"
-                            :source="previewSource ?? null"
-                        />
-                    </TooltipContent>
-                </Tooltip>
+                            <TimelineHoverPreview
+                                :keyframe="stop.keyframes[0]"
+                                :source="previewSource ?? null"
+                            />
+                        </TooltipContent>
+                    </Tooltip>
 
-                <!-- Timeline Carets — one per stop, same partition -->
-                <TimelineCaret
-                    v-for="stop in stops"
-                    :key="'caret-' + stop.keyframes[0].id"
-                    :keyframe-id="stop.keyframes[0].id"
-                    :percent="stop.percent"
-                    :position="percentToPosition(stop.percent)"
-                    :edge="edgeOf(percentToPosition(stop.percent))"
-                    :is-selected="isStopSelected(stop)"
-                    :count="stop.keyframes.length"
-                    @commit-percent="(p) => moveStop(stop.keyframes.map((kf) => kf.id), p)"
-                    @select="emit('select', selectionIdFor(stop))"
-                />
-            </div>
-        </div>
+                    <!-- Timeline Carets — one per stop, same partition -->
+                    <TimelineCaret
+                        v-for="stop in stops"
+                        :key="'caret-' + stop.keyframes[0].id"
+                        :keyframe-id="stop.keyframes[0].id"
+                        :percent="stop.percent"
+                        :position="percentToPosition(stop.percent)"
+                        :edge="edgeOf(percentToPosition(stop.percent))"
+                        :is-selected="isStopSelected(stop)"
+                        :count="stop.keyframes.length"
+                        @commit-percent="(p) => moveStop(stop.keyframes.map((kf) => kf.id), p)"
+                        @select="emit('select', selectionIdFor(stop))"
+                    />
+            </template>
+        </LaneTrack>
     </div>
 </template>
 
 <script setup lang="ts">
-import { computed, shallowRef, useId, useTemplateRef } from "vue";
+import { computed, useId, useTemplateRef } from "vue";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@mkbabb/glass-ui/tooltip";
-import { useElementSize } from "@vueuse/core";
 import { clamp } from "@mkbabb/value.js/math";
 import { useZoomPan } from "../composables/useZoomPan";
+import LaneTrack, { edgeOf, type LaneTrackBeginDrag, type LaneTrackTick } from "./LaneTrack.vue";
 import TimelineCaret from "../TimelineCaret.vue";
 import TimelineHoverPreview, { describeKeyframe } from "./TimelineHoverPreview.vue";
 import { coalesceKeyframes } from "../timelineTypes";
@@ -336,10 +270,11 @@ const emit = defineEmits<{
     (e: "select", id: string): void;
 }>();
 
-const trackEl = useTemplateRef<HTMLElement>("trackEl");
-/** The inset lane every mark is placed on — and the box a pointer projects onto. */
-const laneEl = useTemplateRef<HTMLElement>("laneEl");
-const { width: laneWidth } = useElementSize(laneEl);
+/** The LaneTrack's exposed time column (a generic SFC: its exposed shape, typed here). */
+const laneTrack = useTemplateRef<{ columnEl: HTMLElement | null }>("laneTrack");
+/** The inset lane every mark is placed on — the LaneTrack's time column, and
+ *  the box a pointer projects onto (the zoom's anchor reads it too). */
+const laneEl = computed<HTMLElement | null>(() => laneTrack.value?.columnEl ?? null);
 const panBarEl = useTemplateRef<HTMLElement>("panBarEl");
 /** The rail's id — what the pan scrollbar declares it controls. */
 const railId = useId();
@@ -355,29 +290,9 @@ const selectionIdFor = (stop: TimelineStop): string =>
     stop.keyframes.find((kf) => kf.id === props.selectedKeyframeId)?.id ??
     stop.keyframes[0].id;
 
-/**
- * EDGE AWARENESS — one band for every mark on the rail (M1 + D-m2).
- *
- * The rail clips in x (`overflow-x-clip`, deliberate and kept, S-1/S-2/S-3), so
- * a mark at 0% or 100% — the two positions a keyframe timeline almost always
- * occupies — was cut in half. The tick LABELS got three-way edge handling in
- * this same file and the markers and carets did not; that asymmetry is the
- * proof of oversight, so they share the handling now.
- *
- * The band is 5% of the rail, and it is derived, not chosen: half a "100%"
- * label is ≈5% of the 400px low end of `--rail-width` `clamp(25rem, 33svi,
- * 32rem)` (400–512px), and the widest mark — the expanded, selected diamond —
- * is 24 × √2 ÷ 2 × 1.25 = 21.21px = 5.3% of the same rail. The old 2%/98%
- * pair was sized for a ~1025px rail that does not exist here (D-m2: re-tune the
- * constant, never delete the mechanism). Full derivation:
- * `docs/tranches/X/keyframes/evidence/W7/D-19-GEOMETRY-REDERIVATION.md`.
- */
-const EDGE_BAND = 5;
-
-type MarkEdge = "start" | "end" | "mid";
-
-const edgeOf = (position: number): MarkEdge =>
-    position <= EDGE_BAND ? "start" : position >= 100 - EDGE_BAND ? "end" : "mid";
+// EDGE AWARENESS (M1 + D-m2) — one band for every mark on the rail: the band
+// and its derivation live with the one LaneTrack (`edgeOf`), which reads it for
+// the ruler's labels; the carets read the same function.
 
 
 /**
@@ -429,14 +344,20 @@ const {
     onTouchEnd,
 } = useZoomPan(laneEl);
 
-/** KFA-172 — the playhead's whole-pixel offset along the lane. */
-const playheadPx = computed(() =>
-    Math.round((percentToPosition(props.scrubT * 100) / 100) * laneWidth.value),
-);
-
 /** UIA-KF-178 — whether a stop already labels this graduation. */
 const stopAtTick = (tick: number): boolean =>
     stops.value.some((stop) => Math.round(stop.percent) === tick);
+
+/** The ruler, handed to the LaneTrack: the zoom's graduations placed through
+ *  its map; a graduation that coincides with a stop is not labelled twice (the
+ *  stop's caret says it). */
+const ticks = computed<LaneTrackTick[]>(() =>
+    visibleTicks.value.map((tick) => ({
+        key: tick,
+        at: percentToPosition(tick),
+        label: stopAtTick(tick) ? null : `${tick}%`,
+    })),
+);
 
 // L-D8/C-4(a) + D-7 + MISSED-4 — `getGhostStyle` lived HERE, in the geometry
 // component, computing a required prop for a leaf that had every input it
@@ -447,191 +368,25 @@ const stopAtTick = (tick: number): boolean =>
 // that clips. The whole function is gone; `TimelineHoverPreview` derives its
 // own ghost, decomposed, with the scale on a wrapper.
 
-/**
- * Project a pointer onto the model's 0–100 percent. `null` — never an in-band
- * `0` — when the rail is not mounted: a failed projection scrubs nowhere.
- */
-const getPercentFromPointer = (event: PointerEvent): number | null => {
-    const lane = laneEl.value;
-    if (!lane) return null;
-    const rect = lane.getBoundingClientRect();
-    if (rect.width <= 0) return null;
-    const posPercent = ((event.clientX - rect.left) / rect.width) * 100;
-    return clamp(positionToPercent(posPercent), 0, 100);
-};
-
-// --- The pointer policy (KF.W7 G2) — ONE gesture, ONE policy, whole handler set ---
-//
-// • A gesture is EXPLICIT state (`gesture`), never inferred from `buttons`: a
-//   pointermove that is not the live gesture's pointer does nothing, so a
-//   button-held pointer ENTERING the band (a text-selection drag begun
-//   elsewhere) scrubs nothing.
-// • Only a PRIMARY press (`isPrimary && button === 0`) begins a gesture. A
-//   right/middle press neither scrubs nor captures — the context menu opens.
-// • A second contact is a PINCH: it ends the live gesture and suppresses every
-//   gesture until all contacts lift; the pinch belongs to the touch handlers
-//   (zoom) alone. The primary finger does not scrub under a pinch.
-// • Capture is taken on the RAIL — the element that owns every gesture and the
-//   one node here that no keyed re-render moves — never on `event.target`
-//   (a caret's transient node, a marker whose stop head may change mid-drag).
-// • A drag carries its GRAB OFFSET (`grabDx`, in model percent). A grab is not
-//   a teleport: the pointer lands up to ~12px off the mark's centre inside the
-//   24px pad — ~3% of the 400–512px rail at z=1, itself 3× the component's own
-//   finest keyboard increment — and projecting the bare pointer percent would
-//   jump the keyframe there before the first move. The offset is captured once,
-//   at pointerdown, and subtracted on every move (GradientStopEditor C11/G5 is
-//   the severity precedent, not the identity).
-type Gesture =
-    | { kind: "scrub"; pointerId: number }
-    | { kind: "drag"; pointerId: number; ids: string[]; grabDx: number };
-
-const gesture = shallowRef<Gesture | null>(null);
-const activePointers = new Set<number>();
-let gestureSuppressed = false;
-
+// THE POINTER POLICY (KF.W7 G2) and the scrub's keyboard map (G8) are the
+// LaneTrack's (ESC-W13X-tl-1): one gesture state for the scrub and for a stop
+// drag (begun below through its `beginDrag`), primary presses only, a pinch
+// suppressing both, capture on the rail. The pan bar keeps its own press rule.
 const acceptsPress = (event: PointerEvent): boolean =>
     event.isPrimary && event.button === 0;
 
-const endGesture = () => {
-    const live = gesture.value;
-    if (!live) return;
-    gesture.value = null;
-    const rail = trackEl.value;
-    if (rail?.hasPointerCapture(live.pointerId)) {
-        rail.releasePointerCapture(live.pointerId);
-    }
-};
-
-/**
- * Register a contact and say whether it may begin a gesture. A second contact
- * (pinch) ends the live gesture and suppresses until every contact lifts; a
- * non-primary press is declined.
- */
-const admitPress = (event: PointerEvent): boolean => {
-    activePointers.add(event.pointerId);
-    if (activePointers.size > 1) {
-        gestureSuppressed = true;
-        endGesture();
-        return false;
-    }
-    return !gestureSuppressed && acceptsPress(event);
-};
-
-const beginGesture = (event: PointerEvent, next: Gesture): boolean => {
-    const rail = trackEl.value;
-    if (!rail) return false;
-    rail.setPointerCapture(event.pointerId);
-    gesture.value = next;
-    return true;
-};
-
-const onTrackPointerDown = (event: PointerEvent) => {
-    if (!admitPress(event)) return;
-    const percent = getPercentFromPointer(event);
-    if (percent === null) return;
-    if (!beginGesture(event, { kind: "scrub", pointerId: event.pointerId })) return;
-    emit("update:scrubT", percent / 100);
-};
-
-const onTrackPointerMove = (event: PointerEvent) => {
-    const live = gesture.value;
-    if (!live || live.pointerId !== event.pointerId) return;
-    const percent = getPercentFromPointer(event);
-    if (percent === null) return;
-    if (live.kind === "drag") {
-        // The dragged set is reconciled against the LIVE collection every move:
-        // a mid-drag delete, undo or import leaves the latched id dangling, and
-        // the sink's `find` would no-op in silence (L-m-14). An empty set ends
-        // the gesture instead — one identity policy with L-8/C-9.
-        const ids = live.ids.filter((id) =>
-            props.sortedKeyframes.some((kf) => kf.id === id),
-        );
-        if (ids.length === 0) {
-            endGesture();
-            return;
-        }
-        if (ids.length !== live.ids.length) gesture.value = { ...live, ids };
-        moveStop(ids, clamp(percent - live.grabDx, 0, 100));
-        return;
-    }
-    emit("update:scrubT", percent / 100);
-};
-
-/** pointerup · pointercancel · lostpointercapture — the contact is gone. */
-const onTrackPointerUp = (event: PointerEvent) => {
-    activePointers.delete(event.pointerId);
-    if (activePointers.size === 0) gestureSuppressed = false;
-    if (gesture.value?.pointerId === event.pointerId) gesture.value = null;
-};
-
-/**
- * The playhead's KEYBOARD route (D-1). Scrubbing had none anywhere in the tree:
- * a bare `div` with six pointer listeners and a `@wheel`, no role, no tabindex,
- * no keydown — and `defineExpose` published neither `scrub` nor `scrubT`, so no
- * ancestor could drive it either. The emit is the SAME one the pointer uses, so
- * the wire stays ONE (`KeyframeTimeline` → `scrub`), and with the playhead
- * reachable the ribbon's argless `snapshot()` finally captures at the keyboard
- * user's position instead of always at 0% — the row's one adopted harm.
- *
- * Only the rail's OWN keystrokes are read: a marker's arrows retime a keyframe
- * and the caret's editor types numbers, and neither may also scrub.
- */
-const onTrackKeydown = (event: KeyboardEvent) => {
+/** The rail's zoom keys, beside the LaneTrack's scrub keys on the same host. */
+const onZoomKeydown = (event: KeyboardEvent) => {
     if (event.target !== event.currentTarget) return;
-
-    const percent = props.scrubT * 100;
-    const step = event.shiftKey ? 10 : 1;
-    let next: number | null = null;
-
-    switch (event.key) {
-        case "ArrowRight":
-        case "ArrowUp":
-            next = percent + step;
-            break;
-        case "ArrowLeft":
-        case "ArrowDown":
-            next = percent - step;
-            break;
-        case "PageUp":
-            next = percent + 10;
-            break;
-        case "PageDown":
-            next = percent - 10;
-            break;
-        case "Home":
-            next = 0;
-            break;
-        case "End":
-            next = 100;
-            break;
-        // The zoom's keyboard route (D-11): wheel and pinch were its only
-        // gestures, so zoom was unreachable without a pointer.
-        case "+":
-        case "=":
-            event.preventDefault();
-            zoomBy(1.25);
-            return;
-        case "-":
-        case "_":
-            event.preventDefault();
-            zoomBy(1 / 1.25);
-            return;
+    if (event.key === "+" || event.key === "=") {
+        event.preventDefault();
+        zoomBy(1.25);
+    } else if (event.key === "-" || event.key === "_") {
+        event.preventDefault();
+        zoomBy(1 / 1.25);
     }
-
-    if (next === null) return;
-    event.preventDefault();
-    emit("update:scrubT", clamp(next, 0, 100) / 100);
 };
 
-/**
- * ONE WHEEL POLICY: prevent only on CONSUMED events. `useZoomPan.onWheel` says
- * whether it consumed the wheel (ctrl/⌘ zoom, shift pan); a plain wheel is
- * consumed by nobody and reaches the ancestor, which is what scrolls the pane
- * the instrument lives in. The old `@wheel.prevent` cancelled the page's scroll
- * BEFORE the handler could decide, and `touch-none` removed the touch escape on
- * top of it — hence `touch-pan-y`: the rail owns the horizontal gestures, the
- * page keeps the vertical one.
- */
 const onTrackWheel = (event: WheelEvent) => {
     if (onWheel(event)) event.preventDefault();
 };
@@ -688,28 +443,33 @@ const onPanPointerUp = (event: PointerEvent) => {
     panPointerId = null;
 };
 
-const onMarkerPointerDown = (event: PointerEvent, stop: TimelineStop) => {
-    if (!admitPress(event)) return;
-    const percent = getPercentFromPointer(event);
+/**
+ * A stop drag, begun on the LaneTrack (one gesture with the scrub). It carries
+ * its GRAB OFFSET (`grabDx`, model percent), captured once at the press and
+ * subtracted on every move: a grab is not a teleport (the pointer lands up to
+ * ~12px off the mark's centre inside its 24px pad). A dragged stop whose
+ * keyframes are all gone ends the gesture.
+ */
+const onMarkerPointerDown = (
+    event: PointerEvent,
+    stop: TimelineStop,
+    beginDrag: LaneTrackBeginDrag,
+) => {
+    let ids = stop.keyframes.map((kf) => kf.id);
+    let grabDx = 0;
+    const percent = beginDrag(event, {
+        move: (p) => {
+            const live = ids.filter((id) => props.sortedKeyframes.some((kf) => kf.id === id));
+            if (live.length === 0) return false;
+            ids = live;
+            moveStop(ids, clamp(p - grabDx, 0, 100));
+        },
+    });
     if (percent === null) return;
-    if (
-        !beginGesture(event, {
-            kind: "drag",
-            pointerId: event.pointerId,
-            ids: stop.keyframes.map((kf) => kf.id),
-            grabDx: percent - stop.percent,
-        })
-    ) {
-        return;
-    }
+    grabDx = percent - stop.percent;
     emit("select", selectionIdFor(stop));
 };
 
-/**
- * Keyboard slider control — mirrors SpringTarget's arrow/Home/End template.
- * Arrows step ±1% (±10% with Shift), Home/End jump to the rail ends; the
- * percent is clamped 0–100 by `moveKeyframe`. A stop moves as one.
- */
 const onMarkerKeydown = (event: KeyboardEvent, stop: TimelineStop) => {
     // NON-DESTRUCTIVE SELECTION (M3). A bare `div` synthesizes no click, so
     // Enter and Space fell through and a keyboard user could not select a
@@ -738,11 +498,10 @@ const onMarkerKeydown = (event: KeyboardEvent, stop: TimelineStop) => {
 </script>
 
 <style scoped>
-.timeline-track {
-    /* The tick labels hang above the rail; the rail reserves exactly that much
-       room for them. ONE constant, read by both (D-14/i-1). */
-    --timeline-tick-label-offset: 1.25rem;
-
+/* The rail is the LaneTrack's scrub host (rendered in that component, so
+   reached through :deep): the ruler's label room is the LaneTrack's own
+   (`--lane-track-ruler`, D-14/i-1). */
+:deep(.timeline-track) {
     /* KFA-173 / UIA-KF-178 — the carets hang BELOW the rail. They were
        placed at the rail's centre line plus a fixed 16px/23px, so on the 48px
        rail every readout sat on the bottom border ("0% / 50% / 100%" struck
@@ -753,39 +512,19 @@ const onMarkerKeydown = (event: KeyboardEvent, stop: TimelineStop) => {
        (√2⁄2 × scale-125 = 0.8839), so an end stop sits inside the rail. */
     --timeline-diamond: 1rem;
 
-    margin-top: var(--timeline-tick-label-offset);
     margin-bottom: 1.5rem;
 }
 
-.timeline-track[data-expanded] {
+:deep(.timeline-track[data-expanded]) {
     --timeline-diamond: 1.5rem;
 }
 
-/* The lane's inset, named once: the lane reads it, and the ruler's end labels
-   reach back across it to the rail's own ends (below). */
-.timeline-track {
-    --timeline-lane-inset: calc(var(--timeline-diamond) * 0.8839);
-}
-
-.timeline-lane {
-    inset-inline: var(--timeline-lane-inset);
-}
-
-/* X-DS pass 1, C1 (KF-C1-16) — the ruler registers with the RAIL. A mid
-   graduation's label is centred on its tick; the two end labels are set flush
-   with the rail's own ends, reaching across the lane inset, so "0%" starts
-   where the rail starts and "100%" ends where it ends (it stopped a lane inset
-   short and, end-aligned to its tick, crowded "75%"). The marks themselves stay
-   on the lane, so a 0% or 100% stop still sits on its tick. */
-.timeline-tick-label {
-    top: calc(-1 * var(--timeline-tick-label-offset));
-    translate: -50% 0;
-}
-.timeline-tick-label[data-edge="start"] {
-    translate: calc(-1 * var(--timeline-lane-inset)) 0;
-}
-.timeline-tick-label[data-edge="end"] {
-    translate: calc(-100% + var(--timeline-lane-inset)) 0;
+/* The lane's inset, named once: the LaneTrack's column reads it, and the
+   ruler's end labels reach back across it to the rail's own ends (X-DS pass 1,
+   C1 (KF-C1-16): "0%" starts where the rail starts, "100%" ends where it ends;
+   the marks stay on the lane, so a 0% or 100% stop sits on its tick). */
+:deep(.timeline-track) {
+    --lane-track-inset: calc(var(--timeline-diamond) * 0.8839);
 }
 
 /* RR-A missed-5 — ONE CARD, ONE POINTER REGIME. Every glass control beside this
@@ -801,13 +540,13 @@ const onMarkerKeydown = (event: KeyboardEvent, stop: TimelineStop) => {
    reaches is the target that has no floor in EITHER regime: the pan scrollbar,
    which paints 6px and is dragged, clicked and arrow-keyed. Rendered magnitudes
    remain KF.W9/SS-13's. */
-.timeline-track,
+:deep(.timeline-track),
 .timeline-pan-bar {
     --timeline-hit-floor: 24px;
 }
 
 @media (pointer: coarse) {
-    .timeline-track,
+    :deep(.timeline-track),
     .timeline-pan-bar {
         --timeline-hit-floor: var(--touch-target, 2.75rem);
     }

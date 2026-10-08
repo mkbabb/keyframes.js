@@ -74,9 +74,18 @@ function mountScrubber(stub: ScrubberStub) {
     });
     const rail = wrapper.get('[role="slider"]');
     // jsdom lays nothing out; the rail's geometry is the projector's only input.
-    (rail.element as HTMLElement).getBoundingClientRect = () =>
-        ({ left: RAIL.left, width: RAIL.width, right: RAIL.left + RAIL.width })
-            .valueOf() as DOMRect;
+    // ESC-W13X-tl-1 — the rail is the one LaneTrack's host: a pointer projects
+    // onto its time column (the rail's own box here, no inset), and the host
+    // takes the gesture's pointer capture, so a browser delivers the moves to it.
+    const box = () =>
+        ({ left: RAIL.left, width: RAIL.width, right: RAIL.left + RAIL.width }).valueOf() as DOMRect;
+    const host = rail.element as HTMLElement;
+    host.getBoundingClientRect = box;
+    host.querySelector<HTMLElement>(".lane-track-column")!.getBoundingClientRect = box;
+    const captured = new Set<number>();
+    host.setPointerCapture = (id: number) => void captured.add(id);
+    host.releasePointerCapture = (id: number) => void captured.delete(id);
+    host.hasPointerCapture = (id: number) => captured.has(id);
     return { wrapper, rail };
 }
 
@@ -111,6 +120,7 @@ describe("The Timeline pane's master scrub — the mount (KF.W7 G11 fixture 4)",
             new PointerEvent("pointerdown", {
                 clientX: RAIL.left + RAIL.width * 0.5,
                 bubbles: true,
+                isPrimary: true,
             }),
         );
         expect(stub.setScrubbing).toHaveBeenCalledWith(true);
@@ -121,10 +131,10 @@ describe("The Timeline pane's master scrub — the mount (KF.W7 G11 fixture 4)",
         const stub = stubDemo(0);
         const { rail } = mountScrubber(stub);
         rail.element.dispatchEvent(
-            new PointerEvent("pointerdown", { clientX: 0, bubbles: true }),
+            new PointerEvent("pointerdown", { clientX: 0, bubbles: true, isPrimary: true }),
         );
         expect(stub.scrub).toHaveBeenLastCalledWith(0);
-        window.dispatchEvent(at(2));
+        rail.element.dispatchEvent(at(2));
         expect(stub.scrub).toHaveBeenLastCalledWith(1);
     });
 
@@ -135,14 +145,15 @@ describe("The Timeline pane's master scrub — the mount (KF.W7 G11 fixture 4)",
             new PointerEvent("pointerdown", {
                 clientX: RAIL.left + RAIL.width * 0.2,
                 bubbles: true,
+                isPrimary: true,
             }),
         );
-        window.dispatchEvent(at(0.6));
-        window.dispatchEvent(at(0.9));
-        window.dispatchEvent(at(0.4));
+        rail.element.dispatchEvent(at(0.6));
+        rail.element.dispatchEvent(at(0.9));
+        rail.element.dispatchEvent(at(0.4));
         const dirs = stub.setScrubDir.mock.calls.map((c) => c[0]);
         expect(dirs.slice(-3)).toEqual([1, 1, -1]);
-        window.dispatchEvent(new PointerEvent("pointerup", { bubbles: true }));
+        rail.element.dispatchEvent(new PointerEvent("pointerup", { bubbles: true }));
         expect(stub.setScrubbing).toHaveBeenLastCalledWith(false);
     });
 
@@ -192,13 +203,14 @@ describe("The Timeline pane's master scrub — the mount (KF.W7 G11 fixture 4)",
             new PointerEvent("pointerdown", {
                 clientX: RAIL.left + RAIL.width * 0.5,
                 bubbles: true,
+                isPrimary: true,
             }),
         );
-        window.dispatchEvent(at(0.5));
-        window.dispatchEvent(at(0.5));
+        rail.element.dispatchEvent(at(0.5));
+        rail.element.dispatchEvent(at(0.5));
         expect(stub.setScrubDir).toHaveBeenCalledTimes(1);
         expect(stub.scrub).toHaveBeenCalledTimes(3);
-        window.dispatchEvent(new PointerEvent("pointerup", { bubbles: true }));
+        rail.element.dispatchEvent(new PointerEvent("pointerup", { bubbles: true }));
     });
 
     it("announces the canonical unit — milliseconds on the master clock (N-14, after N-1)", () => {
@@ -213,13 +225,14 @@ describe("The Timeline pane's master scrub — the mount (KF.W7 G11 fixture 4)",
     it("a rail without geometry projects the current clock, never NaN (the projector guard)", () => {
         const stub = stubDemo(0.25);
         const { rail } = mountScrubber(stub);
-        (rail.element as HTMLElement).getBoundingClientRect = () =>
-            ({ left: 0, width: 0, right: 0 }).valueOf() as DOMRect;
+        const none = () => ({ left: 0, width: 0, right: 0 }).valueOf() as DOMRect;
+        (rail.element as HTMLElement).getBoundingClientRect = none;
+        (rail.element as HTMLElement).querySelector<HTMLElement>(".lane-track-column")!.getBoundingClientRect = none;
         rail.element.dispatchEvent(
-            new PointerEvent("pointerdown", { clientX: 50, bubbles: true }),
+            new PointerEvent("pointerdown", { clientX: 50, bubbles: true, isPrimary: true }),
         );
         expect(stub.scrub).toHaveBeenLastCalledWith(0.25);
         expect(Number.isNaN(stub.scrub.mock.calls.at(-1)?.[0])).toBe(false);
-        window.dispatchEvent(new PointerEvent("pointerup", { bubbles: true }));
+        rail.element.dispatchEvent(new PointerEvent("pointerup", { bubbles: true }));
     });
 });
