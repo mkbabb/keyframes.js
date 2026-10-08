@@ -57,7 +57,6 @@
                 <EasingPicker
                     v-show="!showGapPlot"
                     :key="seat.key.value"
-                    class="max-w-(--picker-cap)"
                     v-bind="seat.seed.value"
                     :model-value="seat.model.value"
                     :playback="false"
@@ -270,9 +269,30 @@ watch(
    the surface still scrolls, the KF-C3-06 class). At 1080 tall the plot is
    361 px, uncapped.
    Desktop only: on the phone sheet the rail budget does not apply. */
+/* X-DS pass 8 (KF-C8-01) — THE BUDGET CAPS THE PLOT, NOT THE PICKER. Pass 7
+   spent the rail's block budget as an inline cap on the whole picker, so the
+   mode strip, the preset select and the readout sat in a ~200 px column of a
+   367 px pane, the mode rows wrapped, and the readout literal truncated. The
+   plot is a square, so its block size IS its inline size: the cap now lands on
+   the plot's frame alone (glass's `easing-curve` slot and the handle overlay
+   share that one box), centred, and the control row takes the pane's full
+   measure on one line. At lg the pane's readout chip goes: the stage header
+   already prints the complete literal with its copy control (one print per
+   fact, UIA-KF-091), and this chip was the lesser, truncated one. Below lg the
+   chip stays. glass exposes no plot-size or readout hook yet (O-87 rider), so
+   both reach the picker through its data-slot contract — layout only, no paint.
+   With the strip on one line and no chip row, the measured chrome under the
+   budget is 25.5rem (was 31.5rem with the three-line wrap). */
 @media (min-width: 1024px) {
     .easing-sidebar {
-        --picker-cap: max(11rem, calc(var(--rail-block, 100dvh) - 31.5rem));
+        --picker-cap: max(11rem, calc(var(--rail-block, 100dvh) - 25.5rem));
+    }
+    .easing-sidebar :deep([data-slot="easing-picker"] > :has(> [data-slot="easing-curve"])) {
+        inline-size: min(100%, var(--picker-cap));
+        margin-inline: auto;
+    }
+    .easing-sidebar :deep([data-slot="easing-controls"] > button:has(> code)) {
+        display: none;
     }
 }
 </style>

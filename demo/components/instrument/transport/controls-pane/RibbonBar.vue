@@ -57,7 +57,16 @@
                  "Compiled" goes to its glyph below 29rem (the four labels'
                  measured one-row width) and "Format" below 22rem. Each
                  accessible name and `title` is unchanged, so the glyph-only
-                 form still names itself and tooltips its word. -->
+                 form still names itself and tooltips its word.
+                 X-DS pass 8 (KF-C8-06) — the yield order is REVERSED: the
+                 least-known glyph keeps its word longest. The row is never
+                 29rem wide, so "Compiled" was glyph-only at every served width:
+                 an unanchored document glyph after three labelled verbs. Copy's
+                 clipboard is universal, so "Copy" goes first (below 29rem, the
+                 four labels' one-row width), "Format" second (below 25rem:
+                 Apply + Copy's glyph + two words), "Compiled" last (below
+                 22rem: Apply + two glyphs + "Compiled", measured 344 px in the
+                 367 px row). -->
             <div
                 v-if="storedControls.selectedControl === 'keyframes'"
                 class="@container flex items-center justify-center gap-2"
@@ -105,7 +114,7 @@
                          state and no identity. The rainbow brush on Apply
                          CSS stays, the app's identity CTA. -->
                     <Copy class="icon-sm" />
-                    Copy
+                    <span class="@max-[29rem]:sr-only">Copy</span>
                 </Button>
                 <!-- The PRIMARY format path (M-3/C-8 ≡ KF-CE-37): this
                      call is un-awaited BY DESIGN — `formatCSS` is the
@@ -122,7 +131,7 @@
                     @click="activeKeyframesRef?.formatCSS?.()"
                 >
                     <Sparkles class="icon-sm" />
-                    <span class="@max-[22rem]:sr-only">Format</span>
+                    <span class="@max-[25rem]:sr-only">Format</span>
                 </Button>
                 <!-- K.W10 CC-4 — Export CSS: compile the orchestration graph
                      to a zero-runtime CSS artifact via the gated compileToCSS
@@ -137,7 +146,7 @@
                     @click="activeKeyframesRef?.exportCompiledCSS?.()"
                 >
                     <FileCode class="icon-sm" />
-                    <span class="@max-[29rem]:sr-only">Compiled</span>
+                    <span class="@max-[22rem]:sr-only">Compiled</span>
                 </Button>
             </div>
 

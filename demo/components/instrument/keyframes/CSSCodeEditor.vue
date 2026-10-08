@@ -424,6 +424,16 @@ const initEditor = async () => {
         scrollBeyondLastLine: false,
         automaticLayout: true,
         lineNumbers: props.lineNumbers ? "on" : "off",
+        // X-DS pass 8 (KF-C8-03) — a snippet gutter, not a file gutter.
+        // Monaco's defaults (a five-character number column, a fold margin,
+        // a glyph margin, a 10 px decoration lane) took ~70 px of a ~405 px
+        // well while the code itself clipped mid-token. An 18-line buffer
+        // needs two digits and nothing else; the original editor had no
+        // gutter of this weight.
+        lineNumbersMinChars: 2,
+        lineDecorationsWidth: 8,
+        folding: false,
+        glyphMargin: false,
         // KF-CE-3 (WCAG 2.1.2): Tab MOVES FOCUS out of this editor. With the
         // `editor.api` boot the `toggleTabFocusMode` contribution (Ctrl+M) is
         // not loaded, so without this option Tab is bound to indentation

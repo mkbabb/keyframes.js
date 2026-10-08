@@ -242,8 +242,15 @@
                  row, so the row steps back (opacity only: its box, its
                  description role and the layout all stay; Re-seat is inert
                  during a derby anyway — `reseat` refuses while it runs). -->
+            <!-- X-DS pass 8 (KF-C8-04) — ONE stage-caption register, Square's:
+                 the caption is `text-caption`, muted, start-aligned under the
+                 figure it describes and held to the rail's measure (this row
+                 is the rail's sibling, so its width IS the rail's). It was a
+                 centred two-line paragraph at the small rung, near the weight
+                 of the "Sampled curve" heading, with Re-seat floating centred
+                 below; the verb now trails on the caption's row. -->
             <div
-                class="spring-rail-verbs flex flex-wrap items-center justify-center gap-x-3 gap-y-1"
+                class="spring-rail-verbs flex items-baseline gap-x-3"
                 :class="{ 'spring-rail-verbs--veiled': demo.derbyActive.value }"
             >
                 <!-- X-DS pass 5 (KF-C5-11) — the copy names what is WHERE.
@@ -252,12 +259,12 @@
                      whose only disc is the dashed ring: a reader could not tell
                      the ring (the target) from the ball (on the curve). One
                      protagonist disc per figure; the copy says which is which. -->
-                <p id="spring-rail-hint" class="text-small text-muted-foreground text-center text-pretty">
+                <p id="spring-rail-hint" class="min-w-0 flex-1 text-caption text-muted-foreground text-pretty">
                     Tap or drag the rail to move the target (the dashed ring) &mdash; the
                     ball on the curve below springs to it. Tune response and damping in
                     the Physics pane.
                 </p>
-                <Button emphasis="quiet" size="sm" class="spring-reseat" @click="demo.toggleTarget()">
+                <Button emphasis="quiet" size="sm" class="spring-reseat shrink-0" @click="demo.toggleTarget()">
                     <Shuffle aria-hidden="true" />
                     <span>Re-seat</span>
                 </Button>

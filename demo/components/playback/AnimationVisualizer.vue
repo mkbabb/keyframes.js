@@ -4,7 +4,10 @@
          AT slider per scrub value — the <Slider> is it; this is sighted-only
          flair, so it is hidden from the accessibility tree (the spec's
          "redundant twin → aria-hidden" disposition). -->
-    <div class="p-2 w-full h-full" aria-hidden="true">
+    <!-- X-DS pass 8 (KF-C8-02) — block padding only: the ball track spans the
+         pane's column edge to edge (the rail's own gutter insets the ball
+         centres by their radius), as the scrub rail above it does. -->
+    <div class="py-2 w-full h-full" aria-hidden="true">
         <div
             ref="trackEl"
             class="w-full h-12 relative"

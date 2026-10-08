@@ -39,8 +39,12 @@
                          at rest, playing and scrubbing (the owner's "timeline is
                          always greyed out"). The paint stays the PRODUCER's (OA-8):
                          no local thumb/track/range overrides. -->
+                    <!-- X-DS pass 8 (KF-C8-02) — the hit area grows on the BLOCK
+                         axis only. All-round p-2 also padded the inline axis, so
+                         the rail ran 8 px inside the label/field column KF-C6-01
+                         aligned; it now spans the column edge to edge. -->
                     <Slider
-                        class="p-2"
+                        class="py-2"
                         variant="scrubber"
                         aria-label="Scrub animation timeline"
                         :min="0"
