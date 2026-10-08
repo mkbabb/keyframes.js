@@ -187,7 +187,9 @@ describe("(9) KFA-44 — Reverse runs the sweep backwards", () => {
         try {
             demo.play();
             expect(machine.status.value).toBe("playing");
-            for (let i = 0; i < 20; i++) frame();
+            // 40 frames (640 ms): the cycle is two horizons now (4000 ms at the
+            // born response, ESC-spring-1), so the forward run is sized in its time.
+            for (let i = 0; i < 40; i++) frame();
             const before = demo.springLive.phase;
             expect(before, "the sweep ran forward first").toBeGreaterThan(0.1);
             // The scene's Reverse act. At the pre-cure bytes the only reverse

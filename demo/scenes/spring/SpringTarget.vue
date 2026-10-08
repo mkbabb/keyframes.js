@@ -320,7 +320,8 @@ import { clamp } from "@mkbabb/value.js/math";
 import { useDragScrub } from "@composables/useDragScrub";
 import { useDoubleTap } from "@composables/useDoubleTap";
 import { SPRING_DEMO_KEY } from "./springKeys";
-import SpringTrace, { springHorizonMs } from "./SpringTrace.vue";
+import SpringTrace from "./SpringTrace.vue";
+import { springHorizonMs } from "./springHorizon";
 import { DOUBLE_TAP_MS } from "./useSpringDemo";
 import { overshoot } from "./SpringHeatmap.vue";
 import { SPRING_PRESETS } from "./springPresets";
@@ -497,15 +498,16 @@ onMounted(() => {
         // at its sim time over the trace's horizon (4 × response); settled, it
         // rests at the trace's end (PRM snaps and settles on the first frame,
         // so a reduced-motion re-seat rests there at once). The sweep sampler is
-        // at its leg's normalized time: the sweep plays the timing function
-        // 0 → 1 then 1 → 0, and each leg is f(u) over u ∈ [0, 1).
+        // at its leg's time on the SAME labelled axis (ESC-spring-1 · KFA-191):
+        // each leg spans the horizon, and `direction: alternate` is folded, so
+        // the sampler runs 0 → horizon along the trace, then back (`sweepU`).
         const plot = traceEl.value?.plot;
         if (plot && liveCarriageEl.value) {
             const t = live.settled ? 1 : live.simMs / springHorizonMs(demo.response.value);
             liveCarriageEl.value.style.transform = plot.place(t);
         }
         if (plot && samplerCarriageEl.value) {
-            samplerCarriageEl.value.style.transform = plot.place((live.phase * 2) % 1);
+            samplerCarriageEl.value.style.transform = plot.place(live.sweepU);
         }
         // L.W11 S6 — position the four derby-lane balls from the live tracker
         // values (the live lanes remain relaxed so the bouncy lane visibly rings

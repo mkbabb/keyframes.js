@@ -92,6 +92,11 @@ export function useSpringHotPath(tracks: SpringTrack[]) {
         trackValues: SPRING_PRESETS.map(() => 0),
         sampled: 0,
         phase: 0,
+        /** ESC-spring-1 (KFA-191) — the sweep's position on the labelled time
+         *  axis, `[0, 1]` of the horizon: `phase` with `direction: alternate`
+         *  folded (one forward sweep of the horizon, then its mirror). The
+         *  scrubber, the channel clock and the stage sampler all read it. */
+        sweepU: 0,
         /** X.KF.W13W.b — simulation time (ms) since the live target was last
          *  written: the live ball rides the plotted step response at this time. */
         simMs: 0,
@@ -122,11 +127,14 @@ export function useSpringHotPath(tracks: SpringTrack[]) {
         readout.maybeFlush(now, flushReadouts);
     };
 
-    /** K.W4 S2 — push the CONTINUOUS sweep phase into the scrubber-position
+    /** K.W4 S2 — push the CONTINUOUS sweep position into the scrubber-position
      *  channel. Called EVERY frame (60 Hz) from the loop AND on every scrub /
-     *  reset so the thumb tracks born-continuous, never the 6 Hz text mirror. */
+     *  reset so the thumb tracks born-continuous, never the 6 Hz text mirror.
+     *  ESC-spring-1 (KFA-191) — the thumb reads the FOLDED leg time
+     *  (`sweepU`), so it rises over the horizon and then falls back on the
+     *  same axis the trace labels, never a sawtooth. */
     const paintScrubberPhase = (): void => {
-        scrubberPhase.value = springLive.phase;
+        scrubberPhase.value = springLive.sweepU;
     };
 
     return {

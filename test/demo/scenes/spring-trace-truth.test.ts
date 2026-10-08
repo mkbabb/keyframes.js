@@ -40,6 +40,9 @@ import { mount } from "@vue/test-utils";
 // `tsc` can know of an SFC — and all the mount needs).
 import SpringTraceComponent from "../../../demo/scenes/spring/SpringTrace.vue";
 import { DAMPING_AXIS } from "../../../demo/scenes/spring/SpringHeatmap.vue";
+// ESC-spring-1 — the horizon is the scene's one time base, a plain module the
+// trace and the sweep both read (no SFC narrowing needed).
+import { springHorizonMs } from "../../../demo/scenes/spring/springHorizon";
 
 import { springLinearStops } from "../../../src/animation/physics/spring";
 import { sampleNormalizedSpring } from "../../../src/animation/physics/spring/solver/sample";
@@ -56,7 +59,6 @@ interface SpringTraceExports {
     resolveLinearStopPoints: (css: string) => LinearStopPoint[];
     tracePathOf: (points: readonly LinearStopPoint[]) => string;
     plotY: (v: number) => number;
-    springHorizonMs: (response: number) => number;
     PLOT: { width: number; height: number; yTarget: number; yZero: number };
     PLOT_CEILING: number;
     PLOT_DAMPING_FLOOR: number;
@@ -104,7 +106,6 @@ function narrowSpringTraceModule(candidate: unknown): SpringTraceExports {
     const resolver = fn(candidate, "resolveLinearStopPoints");
     const pathOf = fn(candidate, "tracePathOf");
     const y = fn(candidate, "plotY");
-    const horizon = fn(candidate, "springHorizonMs");
     const plot = member(candidate, "PLOT", "object");
     if (typeof plot !== "object" || plot === null) throw new Error("SpringTrace.vue's `PLOT` is not an object");
     const expectNumber = (value: unknown, what: string): number => {
@@ -123,7 +124,6 @@ function narrowSpringTraceModule(candidate: unknown): SpringTraceExports {
         },
         tracePathOf: (points) => expectString(pathOf(points), "tracePathOf"),
         plotY: (v) => expectNumber(y(v), "plotY"),
-        springHorizonMs: (response) => expectNumber(horizon(response), "springHorizonMs"),
         PLOT: {
             width: num(plot, "width"),
             height: num(plot, "height"),
@@ -141,7 +141,6 @@ const {
     resolveLinearStopPoints,
     tracePathOf,
     plotY,
-    springHorizonMs,
     PLOT,
     PLOT_CEILING,
     PLOT_DAMPING_FLOOR,

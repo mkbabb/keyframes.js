@@ -276,17 +276,6 @@ export const plotY = (v: number): number =>
     PLOT.yZero + (PLOT.yTarget - PLOT.yZero) * v;
 
 /**
- * The emitter's default sampling horizon — `springLinearStops` spreads its
- * stops over `maxDuration = 4 × response` seconds — in milliseconds. This is
- * the coupling N-1's cure rests on; the unit test binds it to the engine by
- * sampling `sampleNormalizedSpring` at `horizon / 25` and requiring the stop
- * values to match.
- */
-export const SPRING_HORIZON_PERIODS = 4;
-export const springHorizonMs = (response: number): number =>
-    Math.round(response * SPRING_HORIZON_PERIODS * 1000);
-
-/**
  * X.KF.W13W.b (OA-56) — the trace's frame for the ONE curve-to-point primitive
  * (`demo/utils/curvePlot.ts`): normalized time → x over the plot's width, value
  * → `plotY`. The stroke AND the balls that ride it (the live simulator ball at
@@ -316,6 +305,7 @@ export const tracePathOf = (points: readonly LinearStopPoint[]): string =>
 import { computed } from "vue";
 
 import { useSpringLinearStops } from "./useSpringLinearStops";
+import { springHorizonMs } from "./springHorizon";
 
 // `sweep` — the timing-function sweep's sampled value (the sampler ball's
 // height), printed in the figure's one legend line (§0dz: the stage's stray

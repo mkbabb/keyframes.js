@@ -132,7 +132,9 @@ const tabsContent = () => h(SpringPhysicsFacet, { demo });
 const userReversed = ref(false);
 
 const onScrubUpdate = (v: { t: number }) => {
-    const dur = demo.springEditAnim.options.duration;
+    // ESC-spring-1 — the rail's ONE scale is the sweep leg (the horizon the
+    // trace labels), the same read the ribbon's `duration` publishes.
+    const dur = demo.sweepLegMs.value;
     // K.W4 S2 + F5 — route the scrub through `scrubTo` (the ONE continuous seam):
     // it moves the thumb + the visualizer + the live ball together AND works
     // while idle (scrub-while-idle — the playhead is set without play first). The
@@ -181,8 +183,12 @@ const standardRibbon = () =>
         // made the thumb visibly STEP (live-spring-sequence-mp-verdict.md §2). A
         // single position read per frame moves only the thumb (the badges ride
         // the 6 Hz throttle elsewhere) — the slider is born-continuous.
-        currentT:
-            demo.scrubberPhase.value * demo.springEditAnim.options.duration,
+        currentT: demo.scrubberPhase.value * demo.sweepLegMs.value,
+        // ESC-spring-1 (KFA-191) — the rail spans one sweep leg, the settle
+        // horizon the stage trace labels (4 × response), published reactively
+        // so a response change re-scales it; the thumb reads the folded leg
+        // time, one forward sweep then its mirror on that same axis.
+        duration: demo.sweepLegMs.value,
         isAnimPlaying: demo.isPlaying.value,
         userReversed: userReversed.value,
         // OA-61 — the ball preview's eye: this scene's view state, in its bucket.

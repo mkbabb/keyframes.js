@@ -18,7 +18,8 @@ import { SPRING_SCENE_ID } from "./springKeys";
  *
  * @param response         getter for the live spring response (s)
  * @param dampingFraction  getter for the live damping fraction ζ
- * @param duration         the animation's clock (the sampler duration)
+ * @param duration         one iteration = one sweep leg = the settle horizon the
+ *                         trace labels (ESC-spring-1); `alternate` plays its mirror
  */
 export function useSpringSweepAnimation(
     response: () => number,

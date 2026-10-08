@@ -1,4 +1,4 @@
-import { markRaw, ref, watch } from "vue";
+import { computed, markRaw, ref, watch } from "vue";
 
 import { SpringProgress } from "@mkbabb/keyframes.js";
 import { clamp } from "@mkbabb/value.js/math";
@@ -13,6 +13,7 @@ import { SPRING_SCENE_ID } from "./springKeys";
 import { SPRING_BASE, SPRING_PRESETS } from "./springPresets";
 import { useSpringHotPath, type SpringTrack } from "./useSpringHotPath";
 import { useSpringSweepAnimation } from "./useSpringSweepAnimation";
+import { foldSweepPhase, springHorizonMs } from "./springHorizon";
 import { useCompiledEntry } from "./useCompiledEntry";
 import { useSpringDerby } from "./useSpringDerby";
 
@@ -20,8 +21,6 @@ import { useSpringDerby } from "./useSpringDerby";
 // sidebar consumes it here); the interface itself lives with the hot-path seam.
 export type { SpringPreset } from "./springPresets";
 export type { SpringTrack } from "./useSpringHotPath";
-
-const SAMPLER_DURATION = 1400;
 
 /** The rail's double-tap window (ms) — the derby gesture's, shared by the demo's
  *  pre-gesture snapshot and SpringTarget's `useDoubleTap` (KFA-42). */
@@ -158,9 +157,18 @@ export function useSpringDemo() {
 
     // ── springTimingFunction sampler → NumericAnimation ──────────────
     // Sample the *same* (response, dampingFraction) the user is editing so the
-    // sampled JS easing visibly mirrors the live physics tracker. The ping-pong
-    // (0→1→0) is the keyframe sequence itself — a linear phase sweep through it
-    // alternates for free, so the showcase owns no hand-synced phase math.
+    // sampled JS easing visibly mirrors the live physics tracker.
+    //
+    // ESC-spring-1 (KFA-191, KF-W13.md addendum (g), COHESION §0er) — ONE TIME
+    // BASE. The trace labels its axis with the settle horizon (4 × response,
+    // 2000 ms at the born response), and each sampler leg now spans exactly
+    // that horizon (`sweepLegMs`; it was a fixed 700 ms leg of a 1400 ms
+    // cycle). `direction: alternate` is FOLDED into the clock: the sweep's cycle
+    // is a forward leg then its mirror (`2 × horizon`), and the leg's position
+    // on the axis is `sweepU = foldSweepPhase(phase)`. The sampler animation is
+    // one leg (0 → 1) read at `sweepU`, so its value is the trace's value at the
+    // axis time the scrubber shows; the former 0 → 1 → 0 keyframes eased each
+    // leg from its own start, a sawtooth against the axis.
     //
     // KF-SS-33 — `samplerCss` IS GONE. It was a live `computed` re-formatting a
     // `springTimingFunction({…})` call string 6×/s and rendered NOWHERE: its one
@@ -175,10 +183,13 @@ export function useSpringDemo() {
     // Keyframes pane on the Sweep channel (no inline editor, OA-37/46/51); a
     // typed edit PERSISTS, and `seedKeyframes()` re-seeds only on the Physics
     // facet's explicit action.
+    const sweepLegMs = computed(() => springHorizonMs(response.value));
+    /** The sweep's whole cycle: a forward leg of the horizon, then its mirror. */
+    const sweepCycleMs = (): number => 2 * sweepLegMs.value;
     const { springEditAnim, seedKeyframes } = useSpringSweepAnimation(
         () => response.value,
         () => dampingFraction.value,
-        SAMPLER_DURATION,
+        sweepLegMs.value,
     );
 
     let samplerAnim = markRaw(buildSamplerAnimation());
@@ -187,11 +198,22 @@ export function useSpringDemo() {
             response: response.value,
             dampingFraction: dampingFraction.value,
         });
-        return new NumericAnimation<{ x: number }>(
-            [{ x: 0 }, { x: 1 }, { x: 0 }],
-            { timingFunction: fn },
-        );
+        return new NumericAnimation<{ x: number }>([{ x: 0 }, { x: 1 }], {
+            timingFunction: fn,
+        });
     }
+
+    /** Seat every sweep reader from one cycle phase: the folded axis position,
+     *  the sampled value at it, and the Sweep channel's clock (one leg = one
+     *  iteration of its `alternate` keyframes, so `t` is the folded leg time). */
+    const seatSweep = (phase: number): void => {
+        springLive.phase = phase;
+        springLive.sweepU = foldSweepPhase(phase);
+        springLive.sampled = samplerAnim.at(springLive.sweepU).x;
+    };
+    const seatSweepClock = (): void => {
+        springEditAnim.t = springLive.sweepU * springEditAnim.options.duration;
+    };
 
     // ── Playback intent: DERIVED from the machine, NOT a private shadow ──
     // The former private `isPlaying = ref(true)` + the dummy-group paused-mirror
@@ -216,7 +238,7 @@ export function useSpringDemo() {
     let reversed = false;
     const elapsedFor = (phase: number): number => (reversed ? (1 - phase) % 1 : phase);
     const rebaseClock = (now: number): void => {
-        startTime = now - elapsedFor(springLive.phase) * SAMPLER_DURATION;
+        startTime = now - elapsedFor(springLive.phase) * sweepCycleMs();
     };
     const setReversed = (next: boolean): void => {
         if (next === reversed) return;
@@ -265,7 +287,7 @@ export function useSpringDemo() {
     const reconcileOnStop = (): void => {
         flushReadouts();
         paintScrubberPhase();
-        springEditAnim.t = springLive.phase * springEditAnim.options.duration;
+        seatSweepClock();
     };
 
     const frame = (now: DOMHighResTimeStamp): boolean => {
@@ -306,10 +328,9 @@ export function useSpringDemo() {
         tickField(dt);
         reconcileReadoutEdges(dt);
 
-        // springTimingFunction sweep — `direction: alternate` as keyframes. The
-        // normalized phase IS `progress`, so a restore re-seeds it directly.
-        springLive.phase = elapsedFor(((now - startTime) / SAMPLER_DURATION) % 1);
-        springLive.sampled = samplerAnim.at(springLive.phase).x;
+        // springTimingFunction sweep — `direction: alternate` folded (ESC-spring-1).
+        // The normalized cycle phase IS `progress`, so a restore re-seeds it directly.
+        seatSweep(elapsedFor(((now - startTime) / sweepCycleMs()) % 1));
 
         // Hot path — direct DOM writes, NO Vue reactivity (D4 transposed).
         repaintSprings();
@@ -320,7 +341,7 @@ export function useSpringDemo() {
         // (those ride the 6 Hz throttle below) — the painter channel, NOT a
         // re-paint storm.
         paintScrubberPhase();
-        springEditAnim.t = springLive.phase * springEditAnim.options.duration;
+        seatSweepClock();
         advanceSelectedChannel();
 
         // Cold path — the reactive readout mirrors at a few Hz only.
@@ -385,7 +406,7 @@ export function useSpringDemo() {
         // The painters read `springLive` directly — the hot path never routes
         // through this reactive ref.
         getProgress: () => progress.value,
-        setProgress: (t) => scrubTo(t),
+        setProgress: (t) => seatPhase(t),
         getPlaying: () => machine.status.value === "playing",
     });
 
@@ -397,15 +418,25 @@ export function useSpringDemo() {
     // first (F5). The SAME body the adapter's `setProgress` restore uses; the
     // transport-scrubber drag calls it directly (the former `progress.value = v`
     // wrote only the 6 Hz mirror + repainted nothing while idle).
-    function scrubTo(t: number): void {
-        const clamped = clamp(t, 0, 1);
-        springLive.phase = clamped;
-        springLive.sampled = samplerAnim.at(clamped).x;
+    function seatPhase(phase: number): void {
+        seatSweep(clamp(phase, 0, 1));
         flushReadouts();
         repaintSprings();
         paintScrubberPhase();
-        springEditAnim.t = clamped * springEditAnim.options.duration;
+        seatSweepClock();
         advanceSelectedChannel();
+    }
+
+    /**
+     * ESC-spring-1 — a scrub writes a position on the LABELLED AXIS (`u`, the
+     * fraction of the horizon the scrubber shows), not a cycle phase. It lands
+     * in the leg the sweep is in: the forward leg's `u / 2`, or the mirror
+     * leg's `1 − u / 2`, so the thumb sits where the user put it and a resumed
+     * play continues in the direction it was travelling.
+     */
+    function scrubTo(u: number): void {
+        const at = clamp(u, 0, 1) / 2;
+        seatPhase(springLive.phase > 0.5 ? 1 - at : at);
     }
 
     // ── Methods ──────────────────────────────────────────────────────
@@ -553,6 +584,13 @@ export function useSpringDemo() {
         liveSpring.target = target.value;
         // Re-sample the timing function on the new params.
         samplerAnim = markRaw(buildSamplerAnimation());
+        // ESC-spring-1 — the legs follow the horizon the axis now labels: the
+        // channel's iteration is re-sized, the sampled value is re-read at the
+        // same axis position, and the clock is rebased so the phase is continuous.
+        springEditAnim.setDuration(sweepLegMs.value);
+        seatSweep(springLive.phase);
+        seatSweepClock();
+        rebaseClock(performance.now());
         // C-1 — a rebuild carries value + velocity, so a spring that was MID-CHASE
         // stays mid-chase across a slider move: the intent is re-asserted, never
         // manufactured (a settled field re-arms nothing and the loop rests).
@@ -591,14 +629,13 @@ export function useSpringDemo() {
         for (const t of tracks) t.spring.reset(SPRING_BASE.initial);
         // Re-seed the live snapshot + phase, then drive the readouts and the
         // painted balls to the reset state at once (a discrete event).
-        springLive.phase = 0;
         springLive.simMs = 0;
         seatReadoutsFromSolvers();
-        springLive.sampled = samplerAnim.at(0).x;
+        seatSweep(0);
         flushReadouts();
         repaintSprings();
         paintScrubberPhase();
-        springEditAnim.t = 0;
+        seatSweepClock();
         startTime = performance.now();
         // C-1 — a reset is a discrete event, fully painted above: nothing is left
         // chasing, so the intent is withdrawn rather than left armed.
@@ -659,7 +696,8 @@ export function useSpringDemo() {
 
     // The one-time mount sync so the Sweep twin is seated before the loop's
     // first frame (the per-frame write lives in `frame()` — K.W4 S2).
-    springEditAnim.t = progress.value * springEditAnim.options.duration;
+    seatSweep(progress.value);
+    seatSweepClock();
 
     const facility: SceneFacility = {
         identity: scenePlayback,
@@ -667,7 +705,8 @@ export function useSpringDemo() {
             {
                 name: "Sweep",
                 animation: springEditAnim,
-                progress: () => springLive.phase,
+                // The channel's own normalized time: the folded leg position.
+                progress: () => springLive.sweepU,
                 setProgress: (t: number) => scrubTo(t),
             },
             {
@@ -745,6 +784,9 @@ export function useSpringDemo() {
         // K.W4 S2 + F5 — the transport-scrubber scrub seam (scrub-while-idle).
         scrubTo,
         setReversed,
+        // ESC-spring-1 — the one leg length (the horizon the axis labels), for
+        // the transport rail's reactive scale.
+        sweepLegMs,
         // The Sweep channel's keyframes (edited in the shared Keyframes pane)
         // + the Physics facet's explicit re-seed action.
         springEditAnim,
