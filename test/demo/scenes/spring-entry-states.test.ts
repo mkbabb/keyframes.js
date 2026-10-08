@@ -2,7 +2,7 @@
  * X.KF.W13X.springd — the Entry view's states and surfaces, as behaviour:
  * UIA-KF-207 (compiling / refused / mismatched are three surfaces), UIA-KF-208
  * (the dismissed stage names the card's slot), UIA-KF-209 (canon radius roles;
- * the preset label is the glass Chip) and UIA-KF-097 (an intrinsic-width verb,
+ * the preset is named inline in the caption, X-DS KF-C12-02) and UIA-KF-097 (an intrinsic-width verb,
  * a folded artifact, one meta caption, no disclaimer).
  *
  * Born RED at `034c8a44`. The stub demo publishes BOTH generations of the
@@ -140,12 +140,18 @@ describe("X.KF.W13X.springd — the Entry view's states and surfaces", () => {
         }
     });
 
-    it("UIA-KF-209 — canon radius roles, and the preset label is the glass Chip", () => {
+    // X-DS pass 12 (KF-C12-02) re-points the label half: the preset NAME is
+    // printed inline in the caption run at the name's weight (the C11-02
+    // rule); the static Chip read as a second action. Still no bespoke pill.
+    it("UIA-KF-209 — canon radius roles, and the preset is named inline in the caption", () => {
         expect(rule(SFC_STYLE, ".artifact")).toMatch(/border-radius:\s*var\(--radius-field\)/);
         expect(rule(SFC_STYLE, ".discrete-card")).toMatch(/border-radius:\s*var\(--radius-card\)/);
         const w = mountWith(null);
         try {
-            expect(w.find('[data-stub="Chip"]').text()).toMatch(/smooth/i);
+            const name = w.get(".entry-caption .entry-preset");
+            expect(name.text()).toMatch(/smooth/i);
+            expect(name.classes()).toEqual(expect.arrayContaining(["font-medium", "text-foreground"]));
+            expect(w.find('[data-stub="Chip"]').exists()).toBe(false);
             expect(w.find(".active-preset-chip").exists()).toBe(false);
         } finally {
             w.unmount();

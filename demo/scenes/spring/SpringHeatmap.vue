@@ -538,10 +538,18 @@ function onKeydown(e: KeyboardEvent): void {
    laptop sizes), and the facet's chrome above the field plus the response
    axis under it and a half-rung of clearance is 18.5rem (260-265 + 21 + 8 px).
    12rem stays the cap (the regime tags and pips were sized for it); 8rem is
-   the floor, where the rail is too short to hold the figure whole. */
+   the floor, where the rail is too short to hold the figure whole.
+   X-DS pass 12 (KF-C12-01) — the budget also counts the scroller's own end
+   fade (--mask-fade, layout.css): the axis ended INSIDE the fade band and
+   read at a third of its ink, as if disabled. The axis now sits above
+   fold − mask-fade, so the fade falls on the presets that continue below. */
 @media (min-width: 1024px) {
     .spring-heatmap-section {
-        --spring-field-block: clamp(8rem, calc(var(--rail-block, 100dvh) - 33.5rem), 12rem);
+        --spring-field-block: clamp(
+            8rem,
+            calc(var(--rail-block, 100dvh) - (33.5rem + var(--mask-fade, 2.5rem))),
+            12rem
+        );
     }
 }
 

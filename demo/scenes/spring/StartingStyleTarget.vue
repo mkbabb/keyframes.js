@@ -154,11 +154,16 @@
                  under a start-aligned row). -->
             <p class="entry-caption flex w-full shrink-0 flex-wrap items-center justify-start gap-x-2 gap-y-1">
                 <span class="text-caption text-muted-foreground">eased by</span>
-                <!-- UIA-KF-209 — a static label pill is the glass Chip, on the
-                     progress register the card itself wears. -->
-                <Chip size="sm" tone="var(--color-progress)" class="capitalize">{{
+                <!-- X-DS pass 12 (KF-C12-02) — the preset NAME carries the
+                     weight, inline in the caption run (the C11-02 rule). The
+                     static glass Chip it replaced (UIA-KF-209) painted the
+                     neutral capsule (glass 10.1.0 reads `tone` only in the
+                     selectable 'on' state), so a fact read as a second action
+                     beside Dismiss. Glass rider under O-87: a static Chip
+                     should honour `tone`. -->
+                <span class="entry-preset text-caption font-medium text-foreground capitalize">{{
                     activePresetName
-                }}</Chip>
+                }}</span>
                 <span class="text-mono-small text-muted-foreground tabular-nums whitespace-nowrap">
                     ζ {{ demo.dampingFraction.value.toFixed(2) }} · in {{ timing.enter.durationMs }} ms · out
                     {{ timing.exit.durationMs }} ms
@@ -214,7 +219,6 @@ import { Alert, AlertDescription, AlertTitle, Skeleton } from "@mkbabb/glass-ui"
 import { Button } from "@mkbabb/glass-ui/button";
 import { Card } from "@mkbabb/glass-ui/card";
 import SceneStageHeader from "../SceneStageHeader.vue";
-import { Chip } from "@mkbabb/glass-ui/chip";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@mkbabb/glass-ui/collapsible";
 import type { EntryRefusal } from "@mkbabb/keyframes.js";
 
@@ -412,6 +416,15 @@ const artifact = computed<ArtifactState>(() => {
 
 .artifact-chevron {
     transition: transform var(--duration-fast, 150ms) ease;
+}
+
+/* X-DS pass 12 (KF-C12-04) — the copy pair is spaced INK TO INK, as the
+   easing literal's pair is (KF-C11-06). `button-text-flush` cancels the
+   trigger's start padding; its trailing padding and 1px edge stayed inside the
+   row's gap, so Copy's glyph sat ~31 px after the label's last letter (the
+   literal's sits at 15). The same expression, mirrored on the end side. */
+.artifact-trigger {
+    margin-inline-end: calc(-1 * (var(--button-size) / 2 - var(--space-residue)) - 1px);
 }
 
 .artifact-trigger[data-state="open"] .artifact-chevron {
