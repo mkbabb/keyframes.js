@@ -10,6 +10,10 @@
  *   UIA-KF-317 a held handle says it is held (`data-dragging`).
  *   UIA-KF-313 the focus ring is on the grip and the ball, not on the square
  *              hit hosts (no `kf-focus-ring` on the hosts).
+ *   UIA-KF-317 (X.KF.W13X.dh2, the preview limb) a SETTLED re-time — a drag
+ *              released, a key step — asks the stage to run the retimed row
+ *              once (`source.preview`); a held drag never does (served
+ *              witness: `evidence/W13X/dh2/dh2.mjs` D4/D5).
  *
  * Served witness: `evidence/W13X/timeline/seqpane.mjs` (before/after ×2).
  */
@@ -37,6 +41,9 @@ function source() {
         setScrubbing: vi.fn(),
         setScrubDir: vi.fn(),
         reset: vi.fn(),
+        preview: vi.fn(),
+        playReel: vi.fn(),
+        isReeling: () => false,
     };
     return { src, ats, duration };
 }
@@ -91,6 +98,36 @@ describe("UIA-KF-031 — the re-time handle stays under the pointer", () => {
         window.dispatchEvent(new PointerEvent("pointerup", { bubbles: true }));
         await nextTick();
         expect(handle.attributes("data-dragging")).toBeUndefined();
+        wrapper.unmount();
+    });
+});
+
+describe("UIA-KF-317 — a settled re-time previews the retimed row (X.KF.W13X.dh2)", () => {
+    it("previews on release, never under a held drag", async () => {
+        const { wrapper, src } = mountLanes();
+        const handle = wrapper.findAll<HTMLElement>(".seq-lane-handle")[2]!;
+        const start = drawnX(handle.element);
+        handle.element.dispatchEvent(
+            new PointerEvent("pointerdown", { clientX: start, bubbles: true, isPrimary: true, button: 0 }),
+        );
+        window.dispatchEvent(new PointerEvent("pointermove", { clientX: start + 30, bubbles: true }));
+        await nextTick();
+        expect(src.preview).not.toHaveBeenCalled();
+        window.dispatchEvent(new PointerEvent("pointerup", { bubbles: true }));
+        await nextTick();
+        expect(src.preview).toHaveBeenCalledTimes(1);
+        expect(src.preview).toHaveBeenCalledWith(2);
+        wrapper.unmount();
+    });
+
+    it("previews each key step on the stepped row", async () => {
+        const { wrapper, src, ats } = mountLanes();
+        const handle = wrapper.findAll<HTMLElement>(".seq-lane-handle")[1]!;
+        await handle.trigger("keydown", { key: "ArrowRight" });
+        expect(ats[1]).toBe(300);
+        expect(src.preview).toHaveBeenCalledWith(1);
+        await handle.trigger("keydown", { key: "Tab" });
+        expect(src.preview).toHaveBeenCalledTimes(1); // a non-step key re-times nothing
         wrapper.unmount();
     });
 });

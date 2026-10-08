@@ -136,11 +136,17 @@ describe("G-KFW11-2 — one canonical domain (N-1 · N-2 · N-10 · N-14 · ST-4
 
     it("ST-4 — the reel's running state is the Button `loading` contract, and it locks the transport", () => {
         vi.useFakeTimers();
+        // X.KF.W13X.dh2 (UIA-KF-098) — the reel lives in the Timeline pane's
+        // Stagger header now; the binding travels with it, and the stage card
+        // carries no reel at all.
+        const pane = readFileSync(path.join(SEQ, "../../components/instrument/timeline/SequenceTimeline.vue"), "utf8");
         const target = read("SequenceTarget.vue");
         // The one binding that closes D-9.2 / D-15 / ST-4 — and the dead ring it
         // replaces (ST-2) is gone with it.
-        expect(target).toContain(':loading="demo.isReeling.value"');
-        expect(target).not.toContain("reel-active");
+        expect(pane).toContain(':loading="source.isReeling()"');
+        expect(pane).toContain('@click="source.playReel()"');
+        expect(target).not.toMatch(/playReel\(\)"|Clapperboard|<Button/);
+        expect(pane + target).not.toContain("reel-active");
         const { demo, app } = realDemo();
         try {
             expect(demo.isReeling.value).toBe(false);

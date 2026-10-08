@@ -199,6 +199,9 @@ const { onPointerDown: onLaneScrubDown } = useDragScrub({
         if (activeLane.value != null) props.source.reseat(activeLane.value, at);
     },
     onEnd: () => {
+        // UIA-KF-317 — the re-time settles on release: the stage runs the
+        // retimed row once, so the new offset shows its motion before Play.
+        if (activeLane.value != null) props.source.preview(activeLane.value);
         activeLane.value = null;
         dragAxis.value = null;
     },
@@ -222,6 +225,7 @@ const onLaneKeydown = (index: number, e: KeyboardEvent) => {
     if (next === null) return;
     e.preventDefault();
     props.source.reseat(index, next);
+    props.source.preview(index); // UIA-KF-317 — a key step is a settled re-time
 };
 </script>
 

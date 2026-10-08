@@ -21,6 +21,24 @@
                  the stage keeps the subject's name, so "Sequence" is said once. -->
             <ConfiguratorLayer label="Stagger" default-open body-class="flex flex-col gap-3">
                 <template #actions>
+                    <!-- X.KF.W13X.dh2 (UIA-KF-098) — THE REEL, homed off the
+                         stage: a verb on the items, so it sits with their other
+                         verb in this layer's header, in Reset's register (glass
+                         Button, quiet, icon-only). Its running state is the
+                         Button's shipped `loading` contract (KFA-220: aria-busy,
+                         the busy glyph, activation suppressed while it runs).
+                         The stage card keeps the subject and its one readout. -->
+                    <Button
+                        size="sm"
+                        emphasis="quiet"
+                        icon-only
+                        :loading="source.isReeling()"
+                        aria-label="Reel — play a cascading wave replay"
+                        title="Play the reel"
+                        @click="source.playReel()"
+                    >
+                        <Clapperboard class="icon-sm" aria-hidden="true" />
+                    </Button>
                     <!-- The re-time's undo (SC-2): the one path back to the default
                          placement, in the header of the section it undoes. -->
                     <Button
@@ -46,7 +64,7 @@
 <script setup lang="ts">
 import { Button } from "@mkbabb/glass-ui";
 import { ConfiguratorLayer } from "@mkbabb/glass-ui/configurator";
-import { RotateCcw } from "@lucide/vue";
+import { Clapperboard, RotateCcw } from "@lucide/vue";
 import SequenceLanes from "./components/SequenceLanes.vue";
 import type { SequenceTimelineSource } from "./timelineTypes";
 

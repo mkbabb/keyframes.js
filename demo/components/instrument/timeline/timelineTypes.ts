@@ -132,6 +132,13 @@ export interface SequenceTimelineSource {
     setScrubDir(dir: number): void;
     /** Restore the default placement (the re-time's undo). */
     reset(): void;
+    /** Run item `index` once on the stage after a settled re-time (UIA-KF-317). */
+    preview(index: number): void;
+    /** The reel: replay every item as a cascading wave (UIA-KF-098 — the
+     *  pane's verb beside `reset`, off the stage). */
+    playReel(): void;
+    /** Whether the reel runs (its Button's `loading` state). */
+    isReeling(): boolean;
 }
 
 /**

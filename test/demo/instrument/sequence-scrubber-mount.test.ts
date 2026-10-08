@@ -58,6 +58,9 @@ function stubDemo(progress = 0): ScrubberStub {
         setScrubbing,
         setScrubDir,
         reset: vi.fn(),
+        preview: vi.fn(),
+        playReel: vi.fn(),
+        isReeling: () => false,
     };
     return { source, scrub, setScrubDir, setScrubbing };
 }

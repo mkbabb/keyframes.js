@@ -4,15 +4,16 @@
  *
  *   A2-KE-L3-7 — one primary per region: the Timeline pane owns timing, so the
  *     stage carries no ruler, no playhead and no `@ms` label (an index at most).
- *   UIA-KF-210 — one readout per datum: the header is the title, ONE clock
- *     readout and the reel; no `stagger × N` caption, no ready/playing badge.
+ *   UIA-KF-210 — one readout per datum: the header is the title and ONE clock
+ *     readout; no `stagger × N` caption, no ready/playing badge, and no reel
+ *     (X.KF.W13X.dh2, UIA-KF-098: the reel is the Timeline pane's verb).
  *   UIA-KF-212 · UIA-KF-312 — the Card is the only frame (no 0px-radius tinted
  *     plate) and the lane rail reads at a visible tint.
  *   UIA-KF-214 — a lane is time: `--ball-p` spans ROW_DURATION / duration.
  *   KFA-48 — the springs' crest lands in reserved room inside the lane.
  *   KFA-47 — `--ball-p` is ONE spring segment (no 70% stall).
  *   KFA-107 · KFA-108 — the reel starts and ends on the master pose.
- *   KFA-162 · KFA-220 — the reel resumes a held play; its status is the header's.
+ *   KFA-162 · KFA-220 — the reel resumes a held play; its status is the pane's Reel.
  *   KFA-161 — the boot's lane drop holds no forward fill (no late re-raster).
  *
  * Born RED at kf `dade65bd`. The producer realm wall is answered as
@@ -123,7 +124,7 @@ describe("the stage is the subject — A2-KE-L3-7 · UIA-KF-210", () => {
         }
     });
 
-    it("UIA-KF-210 — the header is the title, ONE clock readout and the reel: no caption, no badge", { timeout: 30_000 }, async () => {
+    it("UIA-KF-210 — the header is the title and ONE clock readout: no reel, no caption, no badge", { timeout: 30_000 }, async () => {
         const m = await mountTarget();
         try {
             const header = m.host.querySelector(".seq-target")!.firstElementChild as HTMLElement;
@@ -136,7 +137,8 @@ describe("the stage is the subject — A2-KE-L3-7 · UIA-KF-210", () => {
             expect(clock.children[0]!.textContent?.trim()).toBe("clock");
             expect((clock.children[1]!.textContent ?? "").trim()).toMatch(/^-?\d+ ms$/);
             expect(header.querySelector('[role="status"]')).toBeNull();
-            expect(header.textContent).not.toMatch(/stagger|ready|playing/i);
+            expect(header.querySelector('[data-stub="Button"]')).toBeNull(); // UIA-KF-098 (.dh2): the reel is the pane's
+            expect(header.textContent).not.toMatch(/stagger|ready|playing|reel/i);
             // UIA-KF-211 — the row never wraps (the served probe reads the lines).
             expect(header.className).toMatch(/\bflex-nowrap\b/);
             expect(header.className).not.toMatch(/\bflex-wrap\b/);
@@ -281,7 +283,7 @@ describe("the reel — KFA-107 · KFA-108 · KFA-162 · KFA-220", () => {
         }
     });
 
-    it("KFA-162 · KFA-220 — a reel fired mid-play shows its status in the header and resumes the master when it settles", { timeout: 30_000 }, async () => {
+    it("KFA-162 · KFA-220 — a reel fired mid-play holds its status off the stage header and resumes the master when it settles", { timeout: 30_000 }, async () => {
         vi.useFakeTimers({ toFake: [...FAKE] });
         const m = await mountTarget();
         const machine = useSceneMachine();
@@ -298,7 +300,11 @@ describe("the reel — KFA-107 · KFA-108 · KFA-162 · KFA-220", () => {
             await nextTick();
             const header = m.host.querySelector(".seq-target")!.firstElementChild as HTMLElement;
             expect(header.querySelector('[role="status"]')).toBeNull(); // no "ready" beside a flying reel
-            expect(header.querySelector('[data-stub="Button"]')!.getAttribute("data-loading")).toBe("true");
+            // X.KF.W13X.dh2 (UIA-KF-098) — the reel's status is the Timeline
+            // pane's Reel Button `loading` (sequence-instrument-truth ST-4); the
+            // stage header carries no verb at all.
+            expect(header.querySelector('[data-stub="Button"]')).toBeNull();
+            expect(demo.isReeling.value).toBe(true);
             for (let f = 0; f < 400 && demo.isReeling.value; f++) await vi.advanceTimersByTimeAsync(16);
             expect(demo.isReeling.value).toBe(false);
             expect(machine.status.value).toBe("playing");

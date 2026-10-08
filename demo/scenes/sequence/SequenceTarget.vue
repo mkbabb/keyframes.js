@@ -26,8 +26,11 @@
              shorter, so the overflow posture below still scrolls). Below lg it
              still hugs its rows, as the square's plate hugs its field there. -->
         <Card :shadow="false" class="seq-target w-full h-fit lg:h-full max-h-full min-h-0 flex flex-col overflow-y-auto overflow-x-hidden">
-            <!-- Header: the scene's name and ONE live readout, and the reel
-                 (X.KF.W13X.sequence — UIA-KF-210 · UIA-KF-211 · KFA-220). The
+            <!-- Header: the scene's name and ONE live readout
+                 (X.KF.W13X.sequence — UIA-KF-210 · UIA-KF-211 · KFA-220).
+                 X.KF.W13X.dh2 (UIA-KF-098) — the reel left the stage for the
+                 Timeline pane's Stagger header, beside Reset (SequenceTimeline):
+                 the card is the subject and its readout, no verb. The
                  Metric is the canonical clock's one visual-numeric exposure
                  (milliseconds on the master clock, kf-SequencePlayhead N-14's
                  rider) at a rung below the title (D-6), wearing the master accent
@@ -46,7 +49,6 @@
                 class="seq-header flex flex-nowrap items-center justify-between gap-3 px-4 py-2.5 shrink-0"
                 title-class="whitespace-nowrap m-0"
                 id-class="flex flex-nowrap items-baseline gap-3 min-w-0"
-                aside-class="shrink-0"
             >
                 <template #readouts>
                     <!-- X-DS pass 7 (KF-C7-07) — the one stage readout anatomy
@@ -61,33 +63,6 @@
                         <span>clock</span>
                         <span class="readout-accent text-mono-small">{{ clockMs }} ms</span>
                     </div>
-                </template>
-                <template #aside>
-                    <!-- EE-SEQ-1 "the reel" — the discoverable twin of the hidden
-                         typed "reel" trigger: cascading-wave overshoot replay.
-                         THE STATE SIGNAL (kf-SequenceTarget ST-4 · D-9 · D-15 · ST-2 ·
-                         ST-10 · C-2; KFA-220): the reel's running state IS the
-                         Button's shipped `loading` contract — it emits `aria-busy`,
-                         shows the busy glyph in the header and suppresses activation,
-                         which is the announcement, the affordance and the visible form
-                         of `playReel`'s lock in one binding.
-                         X-DS pass 4 (KF-C4-04) — ONE STAGE-ACTION REGISTER: the
-                         reel wears Spring's Re-seat idiom (the quiet emphasis, a
-                         visible label beside the glyph), not the default filled
-                         capsule, which was the heaviest object in the header and
-                         competed with the transport's play. -->
-                    <Button
-                        emphasis="quiet"
-                        size="sm"
-                        class="shrink-0"
-                        :loading="demo.isReeling.value"
-                        aria-label="Reel — play a cascading wave replay"
-                        title="Play the reel"
-                        @click="demo.playReel()"
-                    >
-                        <Clapperboard aria-hidden="true" />
-                        <span>Reel</span>
-                    </Button>
                 </template>
             </SceneStageHeader>
 
@@ -167,10 +142,9 @@
 import { computed, inject, onMounted } from "vue";
 import { clamp } from "@mkbabb/value.js/math";
 import { useTypedTrigger } from "./useTypedTrigger";
-import { Button, Card } from "@mkbabb/glass-ui";
+import { Card } from "@mkbabb/glass-ui";
 // Glass 7 canonical poster-metric primitive.
 import SceneStageHeader from "../SceneStageHeader.vue";
-import { Clapperboard } from "@lucide/vue";
 
 import { SEQUENCE_DEMO_KEY } from "./sequenceKeys";
 import { ROW_COUNT, ROW_TONES } from "./sequenceMotion";
@@ -219,7 +193,8 @@ onMounted(() => {
 // ── EE-SEQ-1 "the reel" trigger (H.W12.S6 / I3 egg) ──────────────────────────
 // A HIDDEN typed trigger: type "reel" → the storyboard plays the cascading-wave
 // egg. Scene-scoped via `useTypedTrigger` (R.W5 B.4); ignores typing in editable
-// targets. The Reel button beside the readout is the discoverable twin.
+// targets. The Reel button in the Timeline pane's Stagger header is the
+// discoverable twin (X.KF.W13X.dh2).
 useTypedTrigger("reel", () => demo.playReel());
 </script>
 

@@ -205,6 +205,22 @@ export function useSequenceDemo() {
         progress.value = clamp(sequence.progress, 0, 1);
     };
 
+    // ── UIA-KF-317 — the re-time PREVIEW's lifetime (X.KF.W13X.dh2) ──────────
+    // A settled re-time runs the retimed row's traveller once (`previewRow`,
+    // below, beside the reel whose pass it shares). Anything else that moves
+    // the balls — a newer re-time, a scrub, a play, the reel, the scene's
+    // dispose — cancels it first, so one writer owns a ball at any moment.
+    const previewAnims: CSSKeyframesAnimationT<BallVars>[] = [];
+    let previewEpoch = 0;
+    const cancelPreview = () => {
+        previewEpoch++;
+        if (!previewAnims.some(Boolean)) return;
+        for (const anim of previewAnims) anim?.stop();
+        previewAnims.length = 0;
+        // Hand the ball back at its master pose before the next writer reads it.
+        sequence.seek(sequence.time);
+    };
+
     // The reactivity mirror — the master progress read-out — rides the engine's
     // OWN `RAFPlayback.loop` driver (NOT a parallel raw rAF). It GATES on the
     // machine (the single authority): when the machine leaves `playing` the loop
@@ -252,6 +268,7 @@ export function useSequenceDemo() {
             playHeldByReel = true;
             return;
         }
+        cancelPreview();
         startMirror();
         if (isMidPlay()) {
             // Continue from the current playhead (the engine no-jump re-anchor).
@@ -310,6 +327,7 @@ export function useSequenceDemo() {
 
     const scrub = (p: number) => {
         if (isReeling.value) return; // the reel owns the balls (one guard)
+        cancelPreview();
         if (isPlaying.value) pause();
         sequence.progress = clamp(p, 0, 1);
         syncFromSequence();
@@ -326,6 +344,7 @@ export function useSequenceDemo() {
     // loop halts, its children settle back to standalone ownership and any held
     // play promise resolves — nothing of it outlives the rebuild.
     const retime = (next: readonly number[]) => {
+        cancelPreview();
         const time = sequence.time;
         sequence.stop();
         sequence = buildSequence(next);
@@ -465,26 +484,35 @@ export function useSequenceDemo() {
     };
     /** Bumped on dispose: a reel loop that wakes into a newer epoch stops. */
     let reelEpoch = 0;
-    /** One ball's reel: rewind → overshoot glide → return, phase after phase. */
-    const runBallReel = async (i: number, epoch: number) => {
+    /** One ball's pass off its master pose: rewind → its run on `glide` →
+     *  return, phase after phase, each held in `slot[i]` while it plays; it
+     *  stops at the next phase once `alive()` fails. The reel runs it on the
+     *  overshoot spring; the re-time preview (UIA-KF-317) on the row's glide. */
+    const runBallPass = async (
+        i: number,
+        glide: typeof reelOvershoot,
+        alive: () => boolean,
+        slot: CSSKeyframesAnimationT<BallVars>[],
+    ) => {
         const pre = masterPose(i);
         const p = clamp(pre["--ball-p"], 0, 1);
         const origin = sequenceRowKeyframes()["0%"];
         const end = sequenceRowKeyframes()["100%"];
         const phases: [BallVars, BallVars, number, typeof reelOvershoot | "ease-in-out"][] = [];
         if (p > 1e-3) phases.push([pre, origin, REWIND_MS * p, "ease-in-out"]);
-        phases.push([origin, end, ROW_DURATION, reelOvershoot]);
+        phases.push([origin, end, ROW_DURATION, glide]);
         if (1 - p > 1e-3) phases.push([end, pre, RETURN_MS * (1 - p), rowGlideEase]);
         for (const [from, to, ms, ease] of phases) {
-            if (epoch !== reelEpoch) return;
+            if (!alive()) return;
             const anim = reelPhase(i, from, to, ms, ease);
-            reelAnims[i] = anim;
+            slot[i] = anim;
             await anim.play();
         }
     };
     const playReel = () => {
         if (isReeling.value) return;
         if (prefersReducedMotion()) return; // decorative — declined, not snapped
+        cancelPreview();
         // Pause the master so the reel owns the balls; remember a running play
         // AFTER the pause (the pause's own stopLoop clears the hold).
         const wasPlaying = isPlaying.value;
@@ -500,7 +528,7 @@ export function useSequenceDemo() {
             reelTimers.push(
                 window.setTimeout(() => {
                     const epoch = reelEpoch;
-                    void runBallReel(i, epoch).finally(() => {
+                    void runBallPass(i, reelOvershoot, () => epoch === reelEpoch, reelAnims).finally(() => {
                         if (epoch !== reelEpoch) return;
                         if (++settled >= ROW_COUNT) {
                             isReeling.value = false;
@@ -532,6 +560,30 @@ export function useSequenceDemo() {
             reelAnims.length = 0;
             isReeling.value = false;
         }
+    };
+
+    // ── UIA-KF-317 — the retimed row MOVES (X.KF.W13X.dh2) ───────────────────
+    // A re-time with the master parked moved only the pane's handle and bar:
+    // the stage traveller sat where it was, so the new offset showed no motion
+    // until Play. Once a re-time settles (a key step, or a drag released — the
+    // pane calls this), the retimed row's traveller runs its run once on the
+    // row's own glide: from its master pose to the origin, across, and back to
+    // the pose the master clock gives it, so it ends where it started. The
+    // reel's pass on the engine's keyframes path (no hand-rolled clock); only
+    // that row moves. Feedback motion, so it declines under reduced motion, as
+    // the reel does; the reel and a running play own the balls and refuse it.
+    const previewRow = (index: number) => {
+        if (index < 0 || index >= ROW_COUNT) return;
+        if (isReeling.value || isPlaying.value || prefersReducedMotion()) return;
+        cancelPreview();
+        const epoch = previewEpoch;
+        void runBallPass(index, rowGlideEase, () => epoch === previewEpoch, previewAnims).finally(() => {
+            if (epoch !== previewEpoch) return;
+            previewAnims.length = 0;
+            // The pass ended ON the master pose: this repaint writes the values
+            // already on screen and hands the ball back to the master.
+            sequence.seek(sequence.time);
+        });
     };
 
     // ── The travel geometry the stage paints (UIA-KF-214 · KFA-48) ───────────
@@ -602,6 +654,9 @@ export function useSequenceDemo() {
         setScrubbing,
         setScrubDir,
         reset: () => reset(),
+        preview: (index) => previewRow(index),
+        playReel: () => playReel(),
+        isReeling: () => isReeling.value,
     };
 
     // ── The SceneFacility (T.B1 STAGE 1) ─────────────────────────────────────
@@ -640,6 +695,7 @@ export function useSequenceDemo() {
     // the host has NO <KeepAlive>, so onDeactivated never fires; this gives the
     // mid-play swap an honest stop instead of letting the loop wind down detached.
     onScopeDispose(() => {
+        cancelPreview();
         disposeReel();
         stopMirror();
         sequence.stop();
