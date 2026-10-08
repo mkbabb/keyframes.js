@@ -542,12 +542,18 @@ function onKeydown(e: KeyboardEvent): void {
    X-DS pass 12 (KF-C12-01) — the budget also counts the scroller's own end
    fade (--mask-fade, layout.css): the axis ended INSIDE the fade band and
    read at a third of its ink, as if disabled. The axis now sits above
-   fold − mask-fade, so the fade falls on the presets that continue below. */
+   fold − mask-fade.
+   X-DS pass 13 (KF-C13-02) — the presets now ride ABOVE the field
+   (SpringPhysicsFacet: the seed before the figure), so the chrome above the
+   field grows by the preset grid, its separator and their gaps (181 px served
+   at 1440x900 and 1440x1080): 18.5rem + 11.5rem = 30rem, plus the 15rem frame.
+   Where the rail cannot hold the figure whole the fold now cuts the figure,
+   never the controls. */
 @media (min-width: 1024px) {
     .spring-heatmap-section {
         --spring-field-block: clamp(
             8rem,
-            calc(var(--rail-block, 100dvh) - (33.5rem + var(--mask-fade, 2.5rem))),
+            calc(var(--rail-block, 100dvh) - (45rem + var(--mask-fade, 2.5rem))),
             12rem
         );
     }
@@ -673,6 +679,27 @@ function onKeydown(e: KeyboardEvent): void {
 .spring-heatmap-pip.is-current.is-under > span {
     margin-bottom: 0;
     margin-top: 0.5rem;
+}
+/* X-DS pass 13 (KF-C13-01) — the names were sized for the 12rem field. At a
+   short field (the 8rem floor binds on laptop rails) the three underdamped
+   names stack down one column into a 40 px cluster, and 'smooth' sat over
+   bouncy's dot as if it named it. Below 10rem only the CURRENT pip keeps its
+   name: the preset tiles above the field already name every preset and its
+   values, and the hollow dots stay as the marks they are. The current name
+   sits BESIDE its marker (the side facing away from the cluster: every other
+   underdamped preset lies left of or below it), so it can never read as the
+   name of the dot under it. The query reads the field's own block size
+   (`container-type: size`), so the rule follows the figure, not the viewport. */
+@container (max-height: 10rem) {
+    .spring-heatmap-pip:not(.is-current) > span {
+        display: none;
+    }
+    .spring-heatmap-pip.is-current.is-under > span {
+        top: 50%;
+        left: 100%;
+        transform: translateY(-50%);
+        margin: 0 0 0 0.5rem;
+    }
 }
 
 /* ── The hover cell — the lattice, surfaced. ── */

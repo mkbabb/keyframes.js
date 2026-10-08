@@ -85,16 +85,11 @@
                     </div>
                 </div>
                 <Separator />
-                <!-- ── P.W6 S3 — THE PARAMETER FIELD ─────────────────────────────
-                     The (response × damping) surface tinted by the EXACT analytic
-                     peak overshoot `exp(-ζπ/√(1-ζ²))`; clicking, sweeping or arrowing
-                     across it writes the live (response, damping) through the SAME
-                     two refs the rows above write. -->
-                <SpringHeatmap
-                    v-model:response="demo.response.value"
-                    v-model:damping-fraction="demo.dampingFraction.value"
-                />
-                <Separator />
+                <!-- X-DS pass 13 (KF-C13-02) — THE SEED BEFORE THE FIGURE: the
+                     presets ride above the field, so the rail's fold cuts the
+                     figure's lower part and never the controls (it ran along the
+                     tiles' top edge at 1440x900 and left two orphan rims in the
+                     end fade, the pane's quickest action wholly under the fold). -->
                 <!-- X.KF.W13V.y (OA-51; DESIGN-NOTE N-2 · N-4) — the presets are ONE
                      glass ToggleGroup of TILES on `--radius-field` (16 px — a tile
                      holds two lines, so it is never a stadium): the preset's name and
@@ -135,6 +130,16 @@
                         <span class="text-mono-small text-muted-foreground tabular-nums"><span class="whitespace-nowrap">{{ t.preset.response }} s</span> · <span class="whitespace-nowrap">ζ {{ t.preset.dampingFraction }}</span></span>
                     </ToggleGroupItem>
                 </ToggleGroup>
+                <Separator />
+                <!-- ── P.W6 S3 — THE PARAMETER FIELD ─────────────────────────────
+                     The (response × damping) surface tinted by the EXACT analytic
+                     peak overshoot `exp(-ζπ/√(1-ζ²))`; clicking, sweeping or arrowing
+                     across it writes the live (response, damping) through the SAME
+                     two refs the rows above write. -->
+                <SpringHeatmap
+                    v-model:response="demo.response.value"
+                    v-model:damping-fraction="demo.dampingFraction.value"
+                />
             </ConfiguratorLayer>
         </div>
     </div>
