@@ -17,8 +17,18 @@
              the inline inset is glass's `--configurator-pad-inline` and the
              title wears glass's configurator section label, as every scene
              facet's ConfiguratorLayer does (16 px and `text-subheading` made a
-             second anatomy in the same pane slot). -->
-        <CardContent class="relative flex flex-col gap-3 px-(--configurator-pad-inline) py-4">
+             second anatomy in the same pane slot).
+             X-DS pass 11 (KF-C11-04) — ONE block start too: in the pane the
+             title takes the header line every sibling facet's title sits on
+             (the configurator header's and the Keyframes header's 0.5rem), so
+             it no longer drops 8 px when the dock switches facets. The floating
+             Card keeps its py-4. -->
+        <CardContent
+            :class="[
+                'relative flex flex-col gap-3 px-(--configurator-pad-inline)',
+                props.expanded ? 'py-4' : 'pt-2 pb-4',
+            ]"
+        >
         <!-- Pane action buttons.
              D-6 + the wave's ONE min-block-size policy (D-8), both spent by
              deleting the same class attribute rather than by writing a second

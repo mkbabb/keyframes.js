@@ -563,7 +563,14 @@ defineExpose({
     outline-offset: 2px;
 }
 
+/* X-DS pass 11 (KF-C11-01) — the well starts on the pane's one inset. The
+   wide default gutter (KF-C8-03 cut it to a snippet gutter) had been acting as
+   the well's start margin; with it gone the numerals sat on the frame's inner
+   edge (0 px) while the title and footer sit on the 20 px column. The inset is
+   padding in the well's own ground, so the gutter stays narrow and the
+   numerals land on the column. */
 .code-well__body {
+    padding-inline-start: var(--configurator-pad-inline);
     padding-inline-end: var(--space-body);
     background: var(--code-well-ground);
 }

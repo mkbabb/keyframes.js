@@ -118,7 +118,7 @@
             ref="trackEl"
             :data-expanded="expanded ? 'true' : undefined"
             :class="[
-                'kf-focus-ring timeline-track relative rounded-[var(--radius-field)] border border-muted-foreground bg-muted/50 hover:bg-muted/70 transition-colors duration-fast cursor-pointer select-none overflow-x-clip overflow-y-visible touch-pan-y',
+                'kf-focus-ring timeline-track relative rounded-[var(--radius-field)] border border-border bg-muted/50 hover:bg-muted/70 transition-colors duration-fast cursor-pointer select-none overflow-x-clip overflow-y-visible touch-pan-y',
                 expanded ? 'h-32' : 'h-12',
             ]"
             role="slider"

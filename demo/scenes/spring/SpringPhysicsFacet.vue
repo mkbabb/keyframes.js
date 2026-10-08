@@ -116,9 +116,13 @@
                         :key="t.preset.name"
                         :value="t.preset.name"
                         :title="t.preset.blurb"
-                        class="preset-cell w-full min-w-0 flex-col items-start gap-0.5 px-3 py-2 text-start font-medium leading-normal"
+                        class="preset-cell w-full min-w-0 flex-col items-start gap-0.5 px-3 py-2 text-start font-normal leading-normal"
                     >
-                        <span class="text-small text-foreground capitalize">{{ t.preset.name }}</span>
+                        <!-- X-DS pass 11 (KF-C11-02) — the weight is the NAME's: the
+                             tile sets 400 (the producer item's own weight is 600,
+                             which the value line inherited and outranked its label
+                             with); the name alone wears font-medium. -->
+                        <span class="text-small font-medium text-foreground capitalize">{{ t.preset.name }}</span>
                         <!-- X.KF.W13X.spring (A2-KE-L3-12) — the line breaks BETWEEN
                              its two quantities, never inside one: at a coarse phone the
                              unbreakable 'r s · ζ z' ran into the tile's right edge.

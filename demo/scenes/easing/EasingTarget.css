@@ -57,13 +57,26 @@
 }
 
 /* The complete re-parseable literal: Fira Code, wraps (never truncates),
-   copy affordance beside it. */
+   copy affordance beside it.
+   X-DS pass 11 (KF-C11-06) — ONE inline flow: the literal and its Copy are
+   inline items of the same lines, so Copy trails the last line of the
+   arguments at the same gap at every width. As an inline-flex pair, a wrapped
+   <code> box filled its line and threw Copy to the plate's far edge (~95 px
+   from the paren at 390). */
 .specimen-literal {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.45rem;
+    display: block;
     min-width: 0;
     color: var(--muted-foreground);
+    text-wrap: balance;
+}
+/* The control's box (36 px, 54 px at the coarse floor) overhangs its line
+   instead of setting the literal's leading: the negative block margin leaves a
+   margin box no taller than the line, so a wrapped literal keeps its own
+   line pitch and the hit target keeps its full size. */
+.specimen-literal :deep(.literal-text + *) {
+    margin-inline-start: 0.45rem;
+    margin-block: -1rem;
+    vertical-align: middle;
 }
 /* X-DS pass 3 · KF-C3-16 — the literal breaks at its comma-spaces, balanced
    (it orphaned "1.00)" on its own line at 390 under `anywhere`); a token
@@ -71,7 +84,6 @@
 .literal-text {
     text-transform: none;
     overflow-wrap: break-word;
-    text-wrap: balance;
 }
 /* X-DS pass 10 (KF-C10-06) — the argument list is ONE atomic inline: it drops
    whole under `fn(` when the line cannot hold the call, and breaks inside

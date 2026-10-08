@@ -51,7 +51,8 @@ describe("UIA-KF-085 — the expanded timeline keeps its Card's material", () =>
         expect(w.find(".cartoon-surface").exists()).toBe(false);
         const content = w.get(".relative.flex.flex-col");
         // X-DS pass 9 (KF-C9-07): the inline inset is the pane's one token.
-        expect(content.classes()).toEqual(expect.arrayContaining(["px-(--configurator-pad-inline)", "py-4"]));
+        // X-DS pass 11 (KF-C11-04): the block start is the pane header line's.
+        expect(content.classes()).toEqual(expect.arrayContaining(["px-(--configurator-pad-inline)", "pt-2", "pb-4"]));
         w.unmount();
     });
 

@@ -3,8 +3,9 @@
          off. X-DS pass 10 (KF-C10-01) — the title and the artifact row span the
          plate from its ONE inset, as the other four stages' do: their
          `max-w-3xl` cap, centred, set them 2 px in from the inset on a 814 px
-         plate (and further on a wider one). The stage and the caption are
-         centred, so their cap draws nothing and stays.
+         plate (and further on a wider one). The stage is centred, so its cap
+         draws nothing and stays; the caption joins the artifact row's start
+         column (KF-C11-07).
          KF-SST-25 — `tier="resting"` is reached through Card's `material`
          default and Surface's private material→tier map, which is what stamps
          `data-tier="resting"`; it is NOT a prop this element passes. -->
@@ -31,8 +32,13 @@
             />
 
             <!-- UIA-KF-097 — the demonstrand is the hero: the stage takes the
-                 free height, and the verb under it is intrinsic-width. -->
-            <div class="entry-stage flex w-full max-w-3xl flex-1 flex-col items-center gap-4">
+                 free height, and the verb under it is intrinsic-width.
+                 X-DS pass 11 (KF-C11-07) — the card and its verb are ONE centred
+                 group at one fixed gap (`--space-body`): the viewport no longer
+                 grows into the free height, so the leftover space falls around
+                 the group, not between the card and the verb that dismisses it
+                 (it floated ~135 px below the card). -->
+            <div class="entry-stage flex w-full max-w-3xl flex-1 flex-col items-center justify-center gap-(--space-body)">
                 <!-- The card never leaves the DOM: `.is-open` is the open state,
                      and removing it transitions to `display: none` through
                      `allow-discrete`, so the spring eases entry and exit alike.
@@ -143,7 +149,10 @@
                  the settle-derived duration retires (UIA-KF-096).
                  `text-mono-small` is the case-preserving rung: `text-mono-caption`
                  would uppercase ζ into Ζ, a different letter (KF-SST-5). -->
-            <p class="entry-caption flex w-full max-w-3xl shrink-0 flex-wrap items-center justify-center gap-x-2 gap-y-1">
+            <!-- X-DS pass 11 (KF-C11-07) — one footer, one alignment: the
+                 caption sits on the artifact row's start column (it was centred
+                 under a start-aligned row). -->
+            <p class="entry-caption flex w-full shrink-0 flex-wrap items-center justify-start gap-x-2 gap-y-1">
                 <span class="text-caption text-muted-foreground">eased by</span>
                 <!-- UIA-KF-209 — a static label pill is the glass Chip, on the
                      progress register the card itself wears. -->
@@ -308,7 +317,7 @@ const artifact = computed<ArtifactState>(() => {
     display: grid;
     place-items: center;
     width: 100%;
-    flex: 1 0 auto;
+    flex: none;
     padding-block: 1.25rem;
     --entry-card-inline: min(100%, 22rem);
     --entry-card-block: 8rem;

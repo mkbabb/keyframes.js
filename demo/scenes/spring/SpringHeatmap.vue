@@ -530,6 +530,20 @@ function onKeydown(e: KeyboardEvent): void {
 .spring-heatmap-section {
     --spring-field-block: 12rem;
 }
+/* X-DS pass 11 (KF-C11-05) — THE FIGURE TAKES A SHARE OF THE RAIL, as the
+   easing plot does (KF-C9-10). The 12rem field ran the pane's scroll fold
+   through its own axis at 1440x900 (the ζ tick '0.2' halved, the response
+   axis hidden), so the figure read as cropped. The pane's scroll body is the
+   rail less 15rem (the transport and the frame; measured 240-241 px at five
+   laptop sizes), and the facet's chrome above the field plus the response
+   axis under it and a half-rung of clearance is 18.5rem (260-265 + 21 + 8 px).
+   12rem stays the cap (the regime tags and pips were sized for it); 8rem is
+   the floor, where the rail is too short to hold the figure whole. */
+@media (min-width: 1024px) {
+    .spring-heatmap-section {
+        --spring-field-block: clamp(8rem, calc(var(--rail-block, 100dvh) - 33.5rem), 12rem);
+    }
+}
 
 /* X.KF.W13V.y (OA-49 "space used by the subject, not by chrome"; R-c-1) — the
    field's block size is the facet's largest single spend: 12rem keeps every
