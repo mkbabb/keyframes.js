@@ -73,6 +73,28 @@
     --rail-track: 0px;
 }
 
+/* X.KF.W13X.esc2 · ESC-dock-2 (A2-KE-L3-6; KF-W13.md addendum (g), COHESION
+   §0er) — the dock bands' stage anchor, PUBLISHED by the layout that owns the
+   rail. With the desktop rail open the page had two centring axes: the plates
+   centre in the [stage] column, the two fixed dock bands on the viewport
+   (served 1440: docks cx 720, stage cx 957.6), so the transport sat over the
+   plate's left third. The bands live outside this grid (ChromeDock is App's;
+   TransportDock is `fixed`), so the layout publishes ONE token on the root, the
+   inline-start inset at which the stage column begins, and both bands start
+   there: the work area is centred, so a band from that inset to the viewport's
+   end centres exactly on the stage column (stage cx = viewport cx + rail / 2).
+   It is the open [rail] track's own width (`--rail-width`, a viewport-relative
+   token, so it resolves the same on the root), set only while this layout's
+   rail is open and inhabited, and only above the file's own mobile fork
+   (`max-width: 1023px`, where the rail is a sheet and the bands stay centred on
+   the viewport). Closed or railless, the token is unset and the bands span the
+   viewport again. The bands ease with the track (`--spring-dock`). */
+@media (min-width: 1024px) {
+    :global(:root:has(.controls-layout--open:not(.controls-layout--railless))) {
+        --dock-band-inset-start: var(--rail-width);
+    }
+}
+
 /* ── G8 (H.W10.S5) — the [stage]-track dock-safe containment PRIMITIVE ──
    The SINGLE dock-safe envelope for EVERY scene subject. The TOP ChromeDock
    (`fixed`) and the BOTTOM TransportDock (`fixed`) each occupy a

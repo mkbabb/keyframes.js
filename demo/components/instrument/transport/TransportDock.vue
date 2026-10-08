@@ -4,7 +4,7 @@
         data-dock-tether="bottom"
         :class="[
             'menubar-safe-pb px-2 py-1.5 m-0 flex items-center justify-center justify-items-center',
-            'fixed left-0 right-0 z-dock pointer-events-none',
+            'dock-band fixed right-0 z-dock pointer-events-none',
         ]"
         style="bottom: var(--dock-bottom-anchor, var(--work-area-bottom-offset, 0px));"
     >
@@ -319,6 +319,15 @@ defineExpose({ resetIconSpin });
 </script>
 
 <style scoped>
+/* X.KF.W13X.esc2 · ESC-dock-2 (A2-KE-L3-6) — the band starts where the stage
+   column does (`--dock-band-inset-start`, published by the controls layout
+   while its desktop rail is open; unset, the band spans the viewport), the
+   same token and spring the ChromeDock band reads: one axis for both docks. */
+.dock-band {
+    left: var(--dock-band-inset-start, 0px);
+    transition: left var(--spring-dock-duration) var(--spring-dock);
+}
+
 /* KFA-77 (X.KF.W13X.scene) — the pill is its own View-Transition group, so a
    scene swap morphs it from the old width to the new one and its label
    cross-fades in place, instead of double-exposing inside the root fade at two

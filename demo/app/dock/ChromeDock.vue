@@ -362,7 +362,7 @@ watch(isSelectOpen, (open) => {
 <template>
     <div
         data-dock-tether="top"
-        class="fixed left-0 right-0 z-dock flex items-center justify-center pointer-events-none"
+        class="dock-band fixed right-0 z-dock flex items-center justify-center pointer-events-none"
         style="top: var(--dock-top-anchor);"
     >
         <div class="pointer-events-auto dock-vt-group">
@@ -372,8 +372,9 @@ watch(isSelectOpen, (open) => {
                  dead single-layer DockLayerGroup/DockLayer costume is collapsed —
                  the items mount directly in the GlassDock default slot. -->
             <!-- X.KF.W13T.k (OA-6) — the dock CONTAINS its controls, by layout.
-                 The band spans the viewport (left-0 right-0, the TransportDock
-                 band's idiom): the former `left-1/2 -translate-x-1/2` gave the
+                 The band spans the viewport (right-0 and `.dock-band`'s left,
+                 the TransportDock band's idiom; from the stage column's start
+                 while the desktop rail is open, ESC-dock-2): the former `left-1/2 -translate-x-1/2` gave the
                  dock a shrink-to-fit containing block of 50vw, a cap no token
                  declared, so at 390/768 with a scene active the Controls tab,
                  the panel toggle and @mbabb painted past the capsule. The
@@ -567,6 +568,17 @@ watch(isSelectOpen, (open) => {
 </template>
 
 <style scoped>
+/* X.KF.W13X.esc2 · ESC-dock-2 (A2-KE-L3-6) — the band starts where the stage
+   column does: `--dock-band-inset-start` is published by the controls layout
+   (AnimationControlsGroup.css) while its desktop rail is open, and is unset
+   otherwise, so the band spans the viewport. The TransportDock band reads the
+   same token, so the two docks share one axis, and both ease with the rail
+   track's own spring. */
+.dock-band {
+    left: var(--dock-band-inset-start, 0px);
+    transition: left var(--spring-dock-duration) var(--spring-dock);
+}
+
 /* KFA-77 (X.KF.W13X.scene) — the pill is its own View-Transition group, so a
    scene swap morphs it from the old width to the new one and its label
    cross-fades in place, instead of double-exposing inside the root fade at two
