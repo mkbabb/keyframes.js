@@ -385,6 +385,11 @@ const figureLabel = computed(
        8rem OA-56 set so a ball still reads ON the trace in a short card. */
     flex: 1 1 auto;
     min-height: 8rem;
+    /* X-DS pass 14 (KF-C18-02) — the size of the largest ball that rides this
+       plot (the live spring ball; SpringTarget's `.spring-ball` reads it). The
+       value ticks derive their gutter from it, so they clear the ball resting
+       on the origin by one fixed gap at every width. */
+    --plot-ball-size: 1.5rem;
 }
 .plot-layer {
     position: absolute;
@@ -428,13 +433,14 @@ const figureLabel = computed(
 /* The tick labels. The value ticks stand in the gutter left of the plot (the
    rail's overshoot band, which insets the plot; KF-C3-05), right-aligned to the
    plot's edge and centred on their line (KF-C4-09), standing clear of the
-   sampler ball that sits on the origin. */
+   balls that rest on the origin: the gutter is half the largest ball plus a
+   fixed gap (KF-C18-02), so the label never touches the disc. */
 .plot-tick {
     line-height: 1;
 }
 .plot-tick--value {
     position: absolute;
-    right: calc(100% + 0.75rem);
+    right: calc(100% + var(--plot-ball-size) / 2 + 0.375rem);
     transform: translateY(-50%);
     pointer-events: none;
 }

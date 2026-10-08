@@ -813,7 +813,9 @@ const onKeydown = (e: KeyboardEvent) => {
    scene accent + full glow), the sweep sampler the quiet translucent sibling.
    Sized for the trace's plot box rather than the 3rem rail they used to ride. */
 .spring-ball {
-    --ball-size: 1.5rem;
+    /* the plot's own token (SpringTrace `.plot-frame`), which the value ticks'
+       gutter also derives from (KF-C18-02) */
+    --ball-size: var(--plot-ball-size, 1.5rem);
 }
 .sampler-ball {
     --ball-size: 1rem;
