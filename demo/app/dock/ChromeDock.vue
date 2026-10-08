@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, inject, nextTick, ref, watch, useTemplateRef, type Component } from "vue";
 import { CONTROLS_PANE_HOVER_KEY } from "@components/instrument/transport/injectionKeys";
-import { Activity, Home, SlidersHorizontal, Braces, Clock, Grid3X3 } from "@lucide/vue";
+import { Activity, Atom, Home, SlidersHorizontal, Braces, Clock, Grid3X3 } from "@lucide/vue";
 import {
     GlassDock,
     DockControl,
@@ -15,13 +15,11 @@ import { provideDockPlate, useDockEdgeOffset } from "./dockEdge";
 // dual-formula rule).
 import {
     BUILT_IN_SURFACES,
-    type ControlSurface,
-} from "@state/controlSurfaces";
-import {
     dockSurfaceItems,
+    type ControlSurface,
     type ControlSurfaceTab,
     type DockSurfaceItem,
-} from "@components/instrument/surfaceTabs";
+} from "@state/controlSurfaces";
 // m-3 / R3-6 — one import granularity: every glass-ui family here comes from
 // its own subpath (`./dock`, `./button`, `./select`), never the root barrel.
 import {
@@ -105,6 +103,7 @@ const TAB_ICONS: Record<string, Component> = {
     Clock,
     Grid3X3,
     Activity,
+    Atom,
 };
 
 const props = defineProps<{

@@ -12,10 +12,12 @@ import { TooltipProvider } from "@mkbabb/glass-ui/tooltip";
 import ChromeDock from "@app/dock/ChromeDock.vue";
 import {
     DOCK_ITEM_KINDS,
+    SURFACE_META,
     dockSurfaceItems,
     extraTabsFrom,
-} from "@components/instrument/surfaceTabs";
-import { surfacesFor, type ControlSurface } from "@state/controlSurfaces";
+    surfacesFor,
+    type ControlSurface,
+} from "@state/controlSurfaces";
 
 // The live scene facilities' shapes, read structurally (surfacesFor, T.B2).
 const paints = { name: "A", animation: {} };
@@ -147,5 +149,26 @@ describe("ChromeDock renders the items and each opens the shared pane", () => {
         const home = mountDock({ currentSceneId: "home", controlSurfaces: [] });
         expect(home.wrapper.findAll("[data-dock-surface-item]")).toHaveLength(0);
         home.wrapper.unmount();
+    });
+});
+
+// X.KF.W13X.esc1 (ESC-mobile-2 · A2-KE-L1-11 · UIA-KF-103/133/238) — ONE surface
+// module: the registry and the dock-item descriptor are read from
+// `@state/controlSurfaces` (the facility copy is deleted); one glyph per
+// surface; the cube facet is named "Matrix".
+describe("the one surface registry (X.KF.W13X.esc1)", () => {
+    it("gives every surface its own glyph (UIA-KF-238)", () => {
+        const icons = Object.values(SURFACE_META).map((m) => m.icon);
+        expect(new Set(icons).size).toBe(icons.length);
+        expect(SURFACE_META.spring.icon).not.toBe(SURFACE_META.easing.icon);
+    });
+    it("names the cube facet by the facet, not '… Controls' (UIA-KF-133)", () => {
+        expect(SURFACE_META["matrix-controls"].label).toBe("Matrix");
+        const labels = Object.values(SURFACE_META).map((m) => m.label);
+        expect(labels.filter((l) => /controls/i.test(l))).toEqual(["Controls"]);
+    });
+    it("the dock item for a facet carries the registry's own glyph", () => {
+        const spring = dockSurfaceItems(["controls", "keyframes", "timeline", "spring"]);
+        expect(spring[3]).toMatchObject({ kind: "facet", label: "Physics", icon: SURFACE_META.spring.icon });
     });
 });

@@ -8,7 +8,7 @@ import { STAGGER_MAX, useSequenceDemo } from "../../../demo/scenes/sequence/useS
 import { ROW_COUNT } from "../../../demo/scenes/sequence/sequenceMotion";
 import { warmKfEngine } from "../../../demo/kf-engine";
 import { surfacesFor } from "@state/controlSurfaces";
-import { dockSurfaceItems } from "../../../demo/components/instrument/surfaceTabs";
+import { dockSurfaceItems } from "../../../demo/state/controlSurfaces";
 
 /**
  * X.KF.W13V.s2 — ESC-s-1 ruled option (b) (KF-W13.md §0cw addendum; OA-46).

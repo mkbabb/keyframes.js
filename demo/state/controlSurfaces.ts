@@ -119,7 +119,9 @@ export function surfacesFor(
     return all.filter((s, i) => all.indexOf(s) === i);
 }
 
-// Presentation compatibility exports remain until all external imports migrate.
+// X.KF.W13X.esc1 (A2-KE-L1-11 · UIA-KF-103) — THE ONE surface module: the
+// registry, the dock cardinality and the dock-item descriptor live here only;
+// the former instrument-facility copy of the registry is deleted (no re-export).
 // The scene-specific surfaces' TAB METADATA (value + label + icon), single-
 // sourced HERE. Formerly the surface→{label,icon} map existed THREE times —
 // `SCENE_SURFACE_TABS` here, `BUILT_IN_TAB_META` in AnimationControls.vue,
@@ -150,11 +152,17 @@ export const SURFACE_META: Record<ControlSurface, ControlSurfaceTab> = {
     // (the #17 cross-axis redundancy class: the scene-select already says
     // Easing/Spring; the facet tab says what the surface IS — the Curve
     // editor, the Physics instrument).
+    //
+    // X.KF.W13X.esc1 (UIA-KF-238) — one glyph per surface: the Curve is the
+    // plotted line (`Activity`), the Physics instrument is `Atom`; the two facet
+    // tabs no longer share a glyph. (UIA-KF-133) — the cube facet is "Matrix":
+    // the facet's name, not "Matrix Controls" (two "…Controls" rows beside the
+    // built-in Controls, and the widest label in the dock's trigger).
     easing: { value: "easing", label: "Curve", icon: "Activity" },
-    spring: { value: "spring", label: "Physics", icon: "Activity" },
+    spring: { value: "spring", label: "Physics", icon: "Atom" },
     "matrix-controls": {
         value: "matrix-controls",
-        label: "Matrix Controls",
+        label: "Matrix",
         icon: "Grid3X3",
     },
 };
@@ -211,7 +219,6 @@ export function selectedSurfaceFrom(
     return surfaces[0];
 }
 
-// Dock presentation compatibility remains during consumer migration.
 // VERDICT #17 ("when we have a page with ONE option … elide that intelligently")
 // + #6 (the superfluous divider). Single-option elision was half-built, DUPLICATED
 // across three sites (ChromeDock `multipleControlTabs`, TransportDock
@@ -306,4 +313,62 @@ export function dockCardinality(input: {
             sceneLabel.trim().toLowerCase();
 
     return { controlZone, channelZone, controlLabelRedundant };
+}
+
+// ── THE ONE DOCK-ITEM DESCRIPTOR (X.KF.W13V.s · OA-37/46/51) ────────────────
+// The owner: "we should have dock items for keyframes, timeline, etc--NOT
+// inline keyframes". Every scene's dock carries the SAME four item kinds, in
+// the same order: Controls · Keyframes · Timeline · the scene facet. Each item
+// opens the ONE shared controls pane on its surface. A scene never invents an
+// item: what it has no data for is DISABLED (the item stays, so the set is
+// identical on every scene). Which items are live is read from the derived
+// surface set (`surfacesFor`, T.B2) — never a per-scene table. X.KF.W13X.esc1
+// (A2-KE-L1-11) moved it here from the deleted facility copy, beside the registry it
+// projects.
+
+/** The four dock item kinds, in dock order. `facet` resolves to the scene's
+ *  non-built-in surface(s) (Curve, Physics, Matrix). */
+export const DOCK_ITEM_KINDS = ["controls", "keyframes", "timeline", "facet"] as const;
+export type DockItemKind = (typeof DOCK_ITEM_KINDS)[number];
+
+/** One rendered dock item. `surface` is undefined only for a disabled facet
+ *  slot (the scene has no facet). */
+export interface DockSurfaceItem {
+    kind: DockItemKind;
+    surface?: ControlSurface;
+    label: string;
+    icon: string;
+    enabled: boolean;
+}
+
+/** The disabled facet slot's descriptor (a scene with no facet). */
+const FACET_PLACEHOLDER = { label: "Scene facet", icon: "Activity" } as const;
+
+/**
+ * Project a scene's derived surface set onto the ONE dock item set. Pure and
+ * total: the result always holds the three built-in kinds plus at least one
+ * facet item; a surface outside `surfaces` renders disabled.
+ */
+export function dockSurfaceItems(surfaces: readonly ControlSurface[]): DockSurfaceItem[] {
+    const builtIn: DockSurfaceItem[] = BUILT_IN_SURFACES.map((surface) => {
+        const meta = SURFACE_META[surface];
+        return {
+            kind: surface as DockItemKind,
+            surface,
+            label: meta.label,
+            icon: meta.icon ?? "SlidersHorizontal",
+            enabled: surfaces.includes(surface),
+        };
+    });
+    const facets = extraTabsFrom(surfaces);
+    const facetItems: DockSurfaceItem[] = facets.length
+        ? facets.map((tab) => ({
+              kind: "facet",
+              surface: tab.value,
+              label: tab.label,
+              icon: tab.icon ?? FACET_PLACEHOLDER.icon,
+              enabled: true,
+          }))
+        : [{ kind: "facet", ...FACET_PLACEHOLDER, enabled: false }];
+    return [...builtIn, ...facetItems];
 }
