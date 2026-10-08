@@ -81,14 +81,17 @@ describe("OA-61 · KF-P1-01 — one seated eye toggle for the ball preview", () 
         const template = ribbon.slice(0, ribbon.indexOf("<script"));
         // X-DS pass 5 (KF-C5-10): the two are PEERS at content width — a flex
         // row (no `1fr` track stretching Reverse), both glass `quiet`.
-        const row = template.match(/<div\s+class="flex flex-wrap items-center gap-2"[\s\S]*?<\/Tooltip>\s*<\/div>/)![0];
+        // X-DS pass 6 (KF-C6-01): the row hangs its Buttons' slim inline
+        // padding into the gutter so the first word sits on the label column.
+        const row = template.match(/<div\s+class="flex flex-wrap items-center gap-2 -ms-\[calc\(0\.5rem_\+_1px\)\]"[\s\S]*?<\/Tooltip>\s*<\/div>/)![0];
         expect(row).toMatch(/<span>Reverse<\/span>/);
         expect(row).toMatch(/aria-label="Ball preview"/);
         expect(row).toMatch(/:aria-pressed="preview !== 'hidden'"/);
         expect(row).toMatch(/<span>Preview<\/span>/);
         expect(row.match(/emphasis="quiet"/g)).toHaveLength(2);
         expect(row).not.toMatch(/1fr/);
-        expect(row.match(/class="btn-playback rounded-full gap-2"/g)).toHaveLength(1);
+        expect(row.match(/class="btn-playback rounded-full gap-2 px-2"/g)).toHaveLength(1);
+        expect(row).toMatch(/class="gap-2 px-2"\s+aria-label="Ball preview"/);
         expect(ribbon).not.toMatch(/position:\s*absolute/);
     });
 

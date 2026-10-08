@@ -182,6 +182,43 @@
     }
 }
 
+/* X-DS pass 6 (KF-C6-02) — THE LANES SPAN THE PLATE (KF-C2-10's unmet clause).
+   At lg the plate takes the stage cell (KF-C5-05), so a fixed 1rem pitch left
+   ~180 px of blank plate above the lanes and ~185 px below. The storyboard is
+   now a block-size container filling the plate under its header, and the pitch
+   is read from it: the free block (100cqb less the storyboard's 2rem and the
+   stage's 1rem of block padding) shared over n + 1 gaps around n lanes, floored
+   at the old 1rem and capped at 4.5rem. The travellers grow with the room
+   (1.6rem → at most 2.4rem) and the lane keeps 0.4rem of track around its
+   ball. The min block size is the content at the floor pitch, so a short cell
+   still scrolls the card (the overflow posture) rather than crushing a lane. */
+@media (min-width: 1024px) {
+    .seq-storyboard {
+        container-type: size;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        min-block-size: calc(3rem + var(--seq-n, 5) * 2rem + (var(--seq-n, 5) - 1) * 1rem);
+    }
+    .seq-stage {
+        --seq-ball: clamp(1.6rem, 6.5cqb, 2.4rem);
+        --seq-lane: calc(var(--seq-ball) + 0.4rem);
+    }
+    .seq-rows {
+        row-gap: clamp(
+            1rem,
+            (100cqb - 3rem - var(--seq-n, 5) * var(--seq-lane)) / (var(--seq-n, 5) + 1),
+            4.5rem
+        );
+    }
+    .seq-track {
+        height: var(--seq-lane);
+    }
+    .seq-ball {
+        --ball-size: var(--seq-ball);
+    }
+}
+
 /* MOBILE row-pitch compression (J.WZ a11y target-size): on 375×667 the 5 rows at
    desktop pitch overflowed under the sheet grab-handle, so the pitch compresses
    to fit all 5 rows above the peek band. The track keeps its 2rem height. Placed

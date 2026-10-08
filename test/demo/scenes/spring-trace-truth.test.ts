@@ -60,6 +60,7 @@ interface SpringTraceExports {
     PLOT: { width: number; height: number; yTarget: number; yZero: number };
     PLOT_CEILING: number;
     PLOT_DAMPING_FLOOR: number;
+    PLOT_HEADROOM_TICK: number;
 }
 
 const isStopPoints = (value: unknown): value is LinearStopPoint[] =>
@@ -131,6 +132,7 @@ function narrowSpringTraceModule(candidate: unknown): SpringTraceExports {
         },
         PLOT_CEILING: num(candidate, "PLOT_CEILING"),
         PLOT_DAMPING_FLOOR: num(candidate, "PLOT_DAMPING_FLOOR"),
+        PLOT_HEADROOM_TICK: num(candidate, "PLOT_HEADROOM_TICK"),
     };
 }
 
@@ -143,6 +145,7 @@ const {
     PLOT,
     PLOT_CEILING,
     PLOT_DAMPING_FLOOR,
+    PLOT_HEADROOM_TICK,
 } = narrowSpringTraceModule(sfcModule);
 
 // ─── The engine's own emission grid ───────────────────────────────────────────
@@ -339,10 +342,18 @@ describe("SpringTrace — the mount (N-1 · D-2/N-4 · L-5 · D-6)", () => {
             for (const svg of wrapper.findAll("svg")) {
                 expect(svg.attributes("viewBox")).toBe(`0 0 ${PLOT.width} ${PLOT.height}`);
             }
+            // X-DS pass 6 (KF-C6-07): the overshoot room is named by a
+            // headroom tick at 1.5, bound to the same mapping as 1 and 0.
+            const headroom = wrapper.find(".plot-headroom-line");
+            expect(Number(headroom.attributes("y1"))).toBe(plotY(PLOT_HEADROOM_TICK));
+            expect(Number(headroom.attributes("y2"))).toBe(plotY(PLOT_HEADROOM_TICK));
             const ticks = wrapper.findAll(".plot-tick--value");
-            expect(ticks.map((tick) => tick.text())).toEqual(["1", "0"]);
-            expect(ticks[0]!.attributes("style")).toContain(`top: ${(PLOT.yTarget / PLOT.height) * 100}%`);
-            expect(ticks[1]!.attributes("style")).toContain(`top: ${(PLOT.yZero / PLOT.height) * 100}%`);
+            expect(ticks.map((tick) => tick.text())).toEqual([String(PLOT_HEADROOM_TICK), "1", "0"]);
+            expect(ticks[0]!.attributes("style")).toContain(`top: ${(plotY(PLOT_HEADROOM_TICK) / PLOT.height) * 100}%`);
+            expect(ticks[1]!.attributes("style")).toContain(`top: ${(PLOT.yTarget / PLOT.height) * 100}%`);
+            expect(ticks[2]!.attributes("style")).toContain(`top: ${(PLOT.yZero / PLOT.height) * 100}%`);
+            // The tick stays inside the frame's ceiling.
+            expect(PLOT_HEADROOM_TICK).toBeLessThan(PLOT_CEILING);
         } finally {
             wrapper.unmount();
         }

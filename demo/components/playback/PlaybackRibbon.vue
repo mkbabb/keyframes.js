@@ -86,11 +86,20 @@
              it was bare text; ORIGIN set this row's verbs as equal quiet peers.
              Reverse now sits at its content width and one rung lower (glass's
              `quiet`, like Preview); its pressed state is still the skin's one
-             pressed authority. The dock's Play is the only loud verb. -->
-        <div class="flex flex-wrap items-center gap-2">
+             pressed authority. The dock's Play is the only loud verb.
+             X-DS pass 6 (KF-C6-01) — the row's first WORD sits on the pane's
+             label column (the layer row's KF-C1-15 fix, adapted). The ribbon
+             itself now starts on that column (RibbonBar.vue). The two quiet
+             Buttons keep a SLIM inline padding (`px-2`), since Reverse's
+             pressed plate and both hover washes need room around the word (a
+             px-0 plate would hug it), and the row hangs exactly that padding
+             plus the Button's 1px edge into the frame's gutter (`-ms`), so the
+             first word lands on the column and the plate still clears the
+             frame. Block size and hit height are glass's (min-block-size). -->
+        <div class="flex flex-wrap items-center gap-2 -ms-[calc(0.5rem_+_1px)]">
             <Button
                 emphasis="quiet"
-                class="btn-playback rounded-full gap-2"
+                class="btn-playback rounded-full gap-2 px-2"
                 :aria-pressed="userReversed"
                 @click="onReverse"
             >
@@ -117,7 +126,7 @@
                 <TooltipTrigger as-child>
                     <Button
                         emphasis="quiet"
-                        class="gap-2"
+                        class="gap-2 px-2"
                         aria-label="Ball preview"
                         :aria-pressed="preview !== 'hidden'"
                         :data-preview="preview"

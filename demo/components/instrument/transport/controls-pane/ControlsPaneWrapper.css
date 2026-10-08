@@ -140,13 +140,14 @@
            transport ribbon out from under the pointer. */
         display: flex;
         flex-direction: column;
-        max-block-size: min(
-            100%,
-            calc(
-                100dvh - var(--dock-menubar-reserve) -
-                    var(--work-area-vertical-slack) / 2
-            )
+        /* X-DS pass 6 (KF-C6-03) — the budget is named once, here, where its
+           tokens resolve, so the rail's content can size itself to it (the
+           easing sub-pane's plot, ChannelOptions.vue). */
+        --rail-block: calc(
+            100dvh - var(--dock-menubar-reserve) -
+                var(--work-area-vertical-slack) / 2
         );
+        max-block-size: min(100%, var(--rail-block));
     }
     .controls-pane,
     .controls-content {

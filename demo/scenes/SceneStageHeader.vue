@@ -10,22 +10,31 @@
          Each stage keeps its own placement: its classes land on the root
          (`class`), the identity column (`idClass`) and the aside (`asideClass`).
          The badge's skin is the demo's `.status-badge` idiom until glass Badge
-         ships a soft status tone (UIA-KF-201 → O-59, ADOPT-AT-LANDING). -->
+         ships a soft status tone (UIA-KF-201 → O-59, ADOPT-AT-LANDING).
+         X-DS pass 6 (KF-C6-05) — ONE PLACE FOR THE STATE. The badge rode each
+         scene's aside, so one markup stood in two places (under Square's x/y
+         readout, in Spring's top-right corner). It now has one fixed slot: the
+         title's row, trailing the title on its baseline, in every scene that
+         reports a state. The aside keeps the scene's own readouts only. -->
     <header data-scene-stage-header>
         <div :class="idClass">
-            <slot name="title">
+            <div v-if="status !== undefined" class="flex items-baseline gap-2">
+                <slot name="title">
+                    <CardTitle as="h2" :class="['text-display text-foreground', titleClass]">{{ title }}</CardTitle>
+                </slot>
+                <span
+                    class="status-badge text-mono-micro uppercase px-2 py-0.5 rounded-full"
+                    :class="status === 'settled' ? 'settled-badge' : 'tracking-badge'"
+                    role="status"
+                    >{{ status }}</span
+                >
+            </div>
+            <slot v-else name="title">
                 <CardTitle as="h2" :class="['text-display text-foreground', titleClass]">{{ title }}</CardTitle>
             </slot>
             <slot name="readouts" />
         </div>
-        <div v-if="status !== undefined || $slots.aside" :class="asideClass">
-            <span
-                v-if="status !== undefined"
-                class="status-badge text-mono-micro uppercase px-2 py-0.5 rounded-full"
-                :class="status === 'settled' ? 'settled-badge' : 'tracking-badge'"
-                role="status"
-                >{{ status }}</span
-            >
+        <div v-if="$slots.aside" :class="asideClass">
             <slot name="aside" />
         </div>
     </header>

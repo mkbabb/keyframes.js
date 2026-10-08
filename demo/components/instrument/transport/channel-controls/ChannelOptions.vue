@@ -406,6 +406,23 @@ const { userReversed, toggleAnimation, toggleReverse } = usePlaybackToggle(
     max-height: min(50dvh, 480px);
     overflow-y: auto;
 }
+/* X-DS pass 6 (KF-C6-03) — THE EDITOR FITS THE RAIL. The picker's plot is a
+   square as wide as its host, so at 1440×900 the 371 px plot plus its mode
+   rows overran the rail and the scroller's bottom fade sat on the live
+   Bezier/Steps toggle and the curve select at rest. The host's inline size (and
+   so the plot) is capped by the rail's own budget (`--rail-block`,
+   ControlsPaneWrapper.css) less the chrome under and around it: the transport
+   ribbon and frame insets (≈13.3rem), the sub-pane header (≈4.4rem) and the
+   picker's mode rows at their wrapped, three-line height (≈9.4rem), plus the
+   frame's bottom inset: 28rem in all, measured at 1440×900 (plot 256 px, the
+   surface's scroll range 0). The 16rem floor keeps a usable plot on a short
+   rail (below ~800 px of viewport the sub-pane still scrolls, as before).
+   Desktop only: on the phone sheet the rail budget does not apply. */
+@media (min-width: 1024px) {
+    .subpane-body {
+        --picker-cap: max(16rem, calc(var(--rail-block, 100dvh) - 28rem));
+    }
+}
 @media (prefers-reduced-motion: reduce) {
     .panel-row,
     .panel-row > .panel-content {

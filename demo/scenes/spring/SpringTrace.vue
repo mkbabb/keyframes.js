@@ -71,6 +71,17 @@
                         :y2="PLOT.yTarget"
                         class="plot-target-line"
                     />
+                    <!-- X-DS pass 6 (KF-C6-07) — the overshoot room is NAMED: a
+                         dotted hairline at value 1.5 (the heatmap's axis top),
+                         the room the ζ-floor crest needs, so the band above 1
+                         reads as headroom rather than as empty padding. -->
+                    <line
+                        x1="0"
+                        :y1="headroomY"
+                        :x2="PLOT.width"
+                        :y2="headroomY"
+                        class="plot-headroom-line"
+                    />
                     <line
                         x1="0"
                         :y1="PLOT.yZero"
@@ -101,6 +112,11 @@
                      centred on their line. `0` used to sit at the baseline's
                      far end, so two `0`s marked opposite corners for two axes;
                      the time axis below keeps its own `0` and `2000 ms`. -->
+                <span
+                    class="plot-tick plot-tick--value code-token tabular-nums text-muted-foreground"
+                    :style="{ top: headroomTop }"
+                    aria-hidden="true"
+                >{{ PLOT_HEADROOM_TICK }}</span>
                 <span
                     class="plot-tick plot-tick--value code-token tabular-nums text-muted-foreground"
                     :style="{ top: targetTop }"
@@ -248,6 +264,10 @@ export const PLOT = { width: 100, height: 60, yTarget: 20, yZero: 56 } as const;
 /** The value the frame's top edge represents. */
 export const PLOT_CEILING = PLOT.yZero / (PLOT.yZero - PLOT.yTarget);
 
+/** X-DS pass 6 (KF-C6-07) — the value the headroom tick names: the top of the
+ *  heatmap's value axis, the overshoot room the ζ-floor crest (1.517) reaches. */
+export const PLOT_HEADROOM_TICK = 1.5;
+
 /** The lowest ζ any slider in the scene can reach — see L-14 above. */
 export const PLOT_DAMPING_FLOOR = 0.2;
 
@@ -325,6 +345,8 @@ const horizonMs = computed(() => springHorizonMs(props.response));
 const viewBox = `0 0 ${PLOT.width} ${PLOT.height}`;
 const targetTop = `${(PLOT.yTarget / PLOT.height) * 100}%`;
 const zeroTop = `${(PLOT.yZero / PLOT.height) * 100}%`;
+const headroomY = plotY(PLOT_HEADROOM_TICK);
+const headroomTop = `${(headroomY / PLOT.height) * 100}%`;
 
 const figureLabel = computed(
     () =>
@@ -396,6 +418,14 @@ const figureLabel = computed(
    — near-continuous — and the only pattern channel the line had). */
 .plot-target-line {
     stroke-dasharray: 6 4;
+}
+/* KF-C6-07 — the headroom tick is the same neutral reference ink, one rung
+   quieter in pattern (a dotted hairline): it names a room, not a target. */
+.plot-headroom-line {
+    stroke: color-mix(in srgb, var(--foreground) 55%, transparent);
+    stroke-width: 1;
+    stroke-dasharray: 1 4;
+    vector-effect: non-scaling-stroke;
 }
 .plot-trace {
     fill: none;

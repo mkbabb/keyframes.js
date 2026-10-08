@@ -101,7 +101,15 @@
                  its own end time (`--row-span`, UIA-KF-214), so the stagger reads as
                  a diagonal cascade at every instant. The Card is the only frame
                  (UIA-KF-212 · UIA-KF-312): no second tinted, bordered plate. -->
-            <div class="seq-storyboard px-4 py-4 my-auto shrink-0">
+            <!-- X-DS pass 6 (KF-C6-02) — at lg the storyboard TAKES the plate's
+                 free height (`lg:flex-1`, a block-size container, SequenceTarget.css)
+                 and the lane pitch is derived from it, so the five lanes span the
+                 card instead of a fixed-pitch strip centred in ~360 px of margin.
+                 Below lg it still hugs its rows. -->
+            <div
+                class="seq-storyboard px-4 py-4 my-auto shrink-0 lg:my-0 lg:flex-1"
+                :style="{ '--seq-n': ROW_COUNT }"
+            >
                 <!-- L.W11 S7 — the IGNITION-CASCADE host (`.cascade-chase`): scrubbing
                      (the Timeline pane's master scrub, X.KF.W13V.s2) lifts the
                      lanes' glow (`--scrub-dir` flips on drag-back);

@@ -35,7 +35,6 @@
         aria-hidden="true"
         title-class="square-telemetry-title leading-none"
         id-class="flex flex-col gap-1"
-        aside-class="flex flex-col items-start"
     >
         <template #readouts>
             <div class="square-telemetry-axes">
@@ -338,13 +337,20 @@ const tetherPath = computed(() => {
     align-items: baseline;
 }
 
+/* X-DS pass 6 (KF-C6-06) — THE LEGEND IS THE FIELD'S CAPTION. It was
+   end-aligned to the plate's corner, ~75 px below and ~200 px right of the
+   field it describes, an unanchored line of text. It now stands directly under
+   the field (`.square-field`: the [-1,1]² envelope, 2 × --square-travel,
+   centred on home), spanning the field's inline edges and starting on its
+   left edge, the way a figure's caption sits under its figure. */
 .square-legend {
     position: absolute;
-    bottom: 1rem;
-    right: 1.25rem;
+    top: calc(50% + var(--square-travel, 110px) + 0.75rem);
+    left: calc(50% - var(--square-travel, 110px));
+    width: calc(2 * var(--square-travel, 110px));
     display: flex;
     flex-direction: column;
-    align-items: flex-end;
+    align-items: flex-start;
     /* D-15 — `0.15rem`/`0.45rem` are on NO published step, in a file consuming
        the Tailwind scale one line away. Both routed to the 0.25rem grid. (The
        row's other limb — a 1.67x "vertical rhythm" ratio — was killed at

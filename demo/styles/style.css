@@ -202,11 +202,20 @@
        band and read as olive and forest. Each is lifted to magenta's composited
        OKLab lightness (≈0.60 over the dark ground; red ≈0.54): green 33→38%,
        yellow 30→33%, cyan 33→36%. Hue and saturation are untouched (§0dm), and
-       the numerals are display-size, so the large-text floor still holds. */
+       the numerals are display-size, so the large-text floor still holds.
+       X-DS pass 6 (KF-C6-04) — YELLOW KEEPS ITS CATEGORY. Equal lightness is
+       not neutral for yellow: a dark yellow is olive (#7f7f00 served), so the
+       C1 lift took the face's identity (§0dm). Face 4 returns to ORIGIN's one
+       crayon in both themes (`1acf25c6`: rgba(255, 255, 0, .8)) and sits
+       brighter than magenta in dark, as a yellow must. The ink moves instead of
+       the crayon: face 4's numeral is the dark ink in both arms
+       (`--face-4-ink`: the light arm's --foreground, the dark arm's
+       --background), so it keeps its floor on the bright face. */
     --face-1: rgba(255, 0, 0, 0.8); /* front — '1' (red) */
     --face-2: light-dark(rgba(0, 255, 0, 0.8), hsl(120 100% 38% / 0.8)); /* right — '2' (green) */
     --face-3: light-dark(hsl(240 100% 60% / 0.8), rgba(0, 0, 255, 0.8)); /* back  — '3' (blue) */
-    --face-4: light-dark(rgba(255, 255, 0, 0.8), hsl(60 100% 33% / 0.8)); /* left  — '4' (yellow) */
+    --face-4: rgba(255, 255, 0, 0.8); /* left  — '4' (yellow) */
+    --face-4-ink: light-dark(var(--foreground), var(--background)); /* the dark ink on the light crayon */
     --face-5: rgba(255, 0, 255, 0.8); /* top   — '5' (magenta) */
     --face-6: light-dark(rgba(0, 255, 255, 0.8), hsl(180 100% 36% / 0.8)); /* bottom — '6' (cyan) */
 

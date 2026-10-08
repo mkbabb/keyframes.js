@@ -54,7 +54,9 @@ Color is named by role, never by a new call-site literal.
   hue-exact and ordered by face. The pin is the HUE: a crayon may carry a light
   and a dark arm (`light-dark()`, in `style.css`) whose lightness differs so the
   numeral ink each face hosts keeps its floor in both themes, and both arms
-  carry the corner hue exactly. The amiga red aliases the rainbow red. These
+  carry the corner hue exactly. Where lightness IS the hue's category (yellow:
+  a dark yellow reads olive), the crayon keeps its lightness in both themes and
+  the face takes its own ink instead (`--face-4-ink`, X-DS KF-C6-04). The amiga red aliases the rainbow red. These
   values are not theme signals to be casually retuned; an arm moves only for a
   measured ink failure, and the axis tokens (`--axis-x/y/z`) follow the same
   rule.

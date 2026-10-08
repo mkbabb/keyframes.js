@@ -306,7 +306,12 @@
    coarse `--ui-scale`) and wide enough for the pane's longest label
    ("iterations", 5.9-6.3 × the label size as served), so every pane resolves
    the same column; a longer label still grows its own grid (`auto`). */
+/* X-DS pass 6 (KF-C6-09) — the label register sets no common ligatures: at
+   --control-label size Plus Jakarta's "fi" joined "fill mode" into one word
+   ("fillmode"). Inherited by every label in the grid (and their fields, whose
+   text has no ligature to lose). */
 .labeled-field-grid {
+    font-variant-ligatures: no-common-ligatures;
     --pane-label-col: calc(var(--control-label) * 6.5);
     display: grid;
     grid-template-columns: [label] minmax(var(--pane-label-col), auto) [value] 1fr;

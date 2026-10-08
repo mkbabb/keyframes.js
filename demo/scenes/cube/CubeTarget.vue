@@ -66,7 +66,7 @@
                                                 'face-fill h-full w-full font-bold',
                                                 'flex items-center justify-center',
                                             ]"
-                                            :style="{ '--face-crayon': side.color }"
+                                            :style="{ '--face-crayon': side.color, color: side.ink }"
                                         >
                                             <span
                                                 :class="[
@@ -162,7 +162,9 @@ const cubeSides = [
     { class: "front", content: "1", color: "var(--face-1)" },
     { class: "right", content: "2", color: "var(--face-2)" },
     { class: "back", content: "3", color: "var(--face-3)" },
-    { class: "left", content: "4", color: "var(--face-4)" },
+    // X-DS pass 6 (KF-C6-04) — the one light crayon in both themes carries
+    // the dark ink (`--face-4-ink`, style.css); the others inherit --foreground.
+    { class: "left", content: "4", color: "var(--face-4)", ink: "var(--face-4-ink)" },
     { class: "top", content: "5", color: "var(--face-5)" },
     { class: "bottom", content: "6", color: "var(--face-6)" },
 ];

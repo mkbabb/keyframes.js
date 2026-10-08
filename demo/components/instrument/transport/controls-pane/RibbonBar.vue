@@ -15,7 +15,11 @@
              The end inset is the column's own: the surfaces' `px-4` plus the
              `.panel-content` focus gutter (2px a side, its start pulled back). -->
         <div class="ps-4 pe-5"><Separator /></div>
-        <div class="p-3">
+        <!-- X-DS pass 6 (KF-C6-01) — the ribbon's rows sit on the SAME content
+             column as its hairline and the fields above (`ps-4 pe-5`); a
+             `p-3` inset started every transport row 4 px left of the label
+             column. -->
+        <div class="ps-4 pe-5 py-3">
             <!-- Controls tab: filled via Teleport from ChannelOptions -->
             <div
                 id="controls-ribbon-target"

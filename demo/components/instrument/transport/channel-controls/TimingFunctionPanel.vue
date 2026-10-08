@@ -11,7 +11,10 @@
          declares no prop to hide it (`initial playback label surface class
          modelValue`), so that half is the producer's (O-59) and is adopted when
          it lands — never hidden here with a copied producer selector. -->
-    <div class="grid w-full gap-2" :style="seat.containerStyle">
+    <!-- X-DS pass 6 (KF-C6-03) — the host's inline size is capped by the
+         rail's free height (`--picker-cap`, ChannelOptions.vue), so the square
+         plot and its mode rows fit the rail and no edge fade sits on a control. -->
+    <div class="grid w-full max-w-(--picker-cap) gap-2" :style="seat.containerStyle">
         <!-- KF-TFP-1 ≡ KF-ES-12 — the picker sits in the shared
              `useEasingPickerSeat`. The `:key` bumps ONLY on an external NAMED
              re-seat; a custom quad, the step count and the term reach the
