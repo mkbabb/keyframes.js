@@ -141,9 +141,17 @@ const lanes = computed(() => props.source.lanes().map((lane) => ({ key: lane.ind
 /** The ruler: the clock's quarters on the drawn axis, in ms. The unit is said
  *  once, by the pane's caption above ("5 items · 1940 ms"); a unit on the end
  *  graduation ran its label into the three-quarter one on a rail-width column. */
+/*  X-DS pass 16 (KF-C16-05) — the quarters stay as graduations, but only the
+ *  halves are LABELLED: four-digit ms at every quarter left ~6 px between
+ *  '1455' and the end-anchored '1940' in the rail's ~270 px column, which read
+ *  as one figure. */
 const RULER_QUARTERS = [0, 0.25, 0.5, 0.75, 1];
 const ticks = computed<LaneTrackTick[]>(() =>
-    RULER_QUARTERS.map((q) => ({ key: q, at: q * 100, label: `${Math.round(q * axis.value)}` })),
+    RULER_QUARTERS.map((q) => ({
+        key: q,
+        at: q * 100,
+        label: q % 0.5 === 0 ? `${Math.round(q * axis.value)}` : null,
+    })),
 );
 
 // ── The lanes' re-time handles ───────────────────────────────────────────────

@@ -19,7 +19,10 @@
             <!-- X-DS pass 2 · KF-C2-08 — the pane is named for what it
                  controls (the items' stagger, the word its reset already uses);
                  the stage keeps the subject's name, so "Sequence" is said once. -->
-            <ConfiguratorLayer label="Stagger" default-open body-class="flex flex-col gap-3">
+            <!-- X-DS pass 16 (KF-C16-06) — the body's block end matches its inline
+                 inset (glass's body is px-5 · py-2), so the lanes and the playhead
+                 seat 20 px above the pane's edge instead of ~8 px. -->
+            <ConfiguratorLayer label="Stagger" default-open body-class="flex flex-col gap-3 pb-5">
                 <template #actions>
                     <!-- X.KF.W13X.dh2 (UIA-KF-098) — THE REEL, homed off the
                          stage: a verb on the items, so it sits with their other

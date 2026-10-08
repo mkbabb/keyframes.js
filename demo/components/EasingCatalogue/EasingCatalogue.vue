@@ -360,6 +360,15 @@ watch(
     color: var(--foreground);
     text-transform: none;
 }
+/* X-DS pass 16 (KF-C16-03) — below lg the display rung is fluid and shrinks
+   (~26 px at 390) while the subheading rung does not, so 'Standard' out-ranked
+   the specimen's name. The family names step down to the body rung (the
+   utility's semibold kept): section labels under the specimen. */
+@media (max-width: 1023px) {
+    .catalogue-family {
+        font-size: var(--type-body);
+    }
+}
 
 /* ── 4 · the tile idiom ── */
 /* X-DS pass 4 (KF-C4-06) — never fewer than two tiles a row: the track floor is

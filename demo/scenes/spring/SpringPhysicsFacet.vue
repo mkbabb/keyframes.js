@@ -48,6 +48,10 @@
                         </TooltipTrigger>
                         <TooltipContent>Write physics to keyframes: replace the Sweep keyframes with stops sampled from this spring</TooltipContent>
                     </Tooltip>
+                    <!-- X-DS pass 16 (KF-C16-07) — a hairline between the action and the
+                         layer's collapse chevron, so the pair no longer reads as one
+                         disclosure ('To keyframes ^'). -->
+                    <Separator orientation="vertical" class="h-4 self-center" />
                 </template>
                 <!-- X.KF.W13V.y (OA-51; DESIGN-NOTE N-2) — the PARAM ROW idiom: the
                      label and the live value share ONE line, the slider spans the

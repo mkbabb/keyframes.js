@@ -89,9 +89,11 @@
                  free height (`lg:flex-1`, a block-size container, SequenceTarget.css)
                  and the lane pitch is derived from it, so the five lanes span the
                  card instead of a fixed-pitch strip centred in ~360 px of margin.
-                 Below lg it still hugs its rows. -->
+                 X-DS pass 16 (KF-C16-01) — at every width: the plate fills the
+                 cell below lg too (KF-C15-02), so the storyboard takes it and the
+                 lanes spread rather than crush into a strip in the middle. -->
             <div
-                class="seq-storyboard px-4 py-4 my-auto shrink-0 lg:my-0 lg:flex-1"
+                class="seq-storyboard px-4 py-4 flex-1"
                 :style="{ '--seq-n': ROW_COUNT }"
             >
                 <!-- L.W11 S7 — the IGNITION-CASCADE host (`.cascade-chase`): scrubbing

@@ -17,9 +17,15 @@
          size (3:4, room for the header and the legend about the square field),
          capped by the cell, standing at the stage's top like its siblings;
          at lg it takes the stage cell as before. -->
+    <!-- X-DS pass 16 · KF-C16-02 — ONE plate rule at every width (KF-C15-02's):
+         KF-C5-04's premise ("as sequence already behaved below lg") was reversed
+         when Sequence's plate took the cell, so the square plate takes it too
+         (`h-full`, the 3:4 hug retired) and the field stays centred in it by
+         `place-items-center`. Size and travel still resolve from the plate's
+         cqmin, the inline size at 390, so the travel is unchanged. -->
     <Card
         :shadow="false"
-        class="square-stage grid aspect-[3/4] max-h-full w-full lg:aspect-auto lg:h-full lg:mx-8 lg:w-auto place-items-center"
+        class="square-stage grid h-full max-h-full w-full lg:mx-8 lg:w-auto place-items-center"
     >
         <!-- X.KF.W13X · UIA-KF-090 / UIA-KF-296 / KFA-4 — the ARENA: the plate is
              the size container, and this layer (its first descendant) is where

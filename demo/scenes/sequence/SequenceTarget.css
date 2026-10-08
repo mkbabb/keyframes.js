@@ -67,7 +67,7 @@
     /* X.KF.W13X.sq+dh (§0dz) — the lanes take the room the stage's subject
        needs to stay the view's dominant region beside the Timeline pane (a
        0.55rem pitch let the pane's section out-size the stage at 1024). The
-       phone compression below still wins under lg. */
+       container pitch below (KF-C6-02/KF-C16-01) reads it as the floor. */
     row-gap: 1rem;
 }
 .seq-row {
@@ -198,45 +198,33 @@
    at the old 1rem and capped at 4.5rem. The travellers grow with the room
    (1.6rem → at most 2.4rem) and the lane keeps 0.4rem of track around its
    ball. The min block size is the content at the floor pitch, so a short cell
-   still scrolls the card (the overflow posture) rather than crushing a lane. */
-@media (min-width: 1024px) {
-    .seq-storyboard {
-        container-type: size;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        min-block-size: calc(3rem + var(--seq-n, 5) * 2rem + (var(--seq-n, 5) - 1) * 1rem);
-    }
-    .seq-stage {
-        --seq-ball: clamp(1.6rem, 6.5cqb, 2.4rem);
-        --seq-lane: calc(var(--seq-ball) + 0.4rem);
-    }
-    .seq-rows {
-        row-gap: clamp(
-            1rem,
-            (100cqb - 3rem - var(--seq-n, 5) * var(--seq-lane)) / (var(--seq-n, 5) + 1),
-            4.5rem
-        );
-    }
-    .seq-track {
-        height: var(--seq-lane);
-    }
-    .seq-ball {
-        --ball-size: var(--seq-ball);
-    }
+   still scrolls the card (the overflow posture) rather than crushing a lane.
+   X-DS pass 16 (KF-C16-01) — ONE rule at every width. Since KF-C15-02 the plate
+   takes the stage cell below lg too, so the lg gate left the phone's lanes at
+   the J.WZ 0.15rem pitch in a 169 px strip of a 600 px plate. The gate and that
+   mobile override (written for the old hugging plate overflowing under the
+   sheet at 375x667) are retired; the floor above still scrolls a short cell. */
+.seq-storyboard {
+    container-type: size;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-block-size: calc(3rem + var(--seq-n, 5) * 2rem + (var(--seq-n, 5) - 1) * 1rem);
 }
-
-/* MOBILE row-pitch compression (J.WZ a11y target-size): on 375×667 the 5 rows at
-   desktop pitch overflowed under the sheet grab-handle, so the pitch compresses
-   to fit all 5 rows above the peek band. The track keeps its 2rem height. Placed
-   LAST to win the cascade; desktop unchanged. The raw viewport literal is the
-   breakpoint-token family's (kf-SequenceAxis D-9, T.F's gate) — no token exists
-   in the tree yet, so it is named, not invented. */
-@media (max-width: 1023px) {
-    .seq-storyboard {
-        padding-block: 0.5rem;
-    }
-    .seq-rows {
-        row-gap: 0.15rem;
-    }
+.seq-stage {
+    --seq-ball: clamp(1.6rem, 6.5cqb, 2.4rem);
+    --seq-lane: calc(var(--seq-ball) + 0.4rem);
+}
+.seq-rows {
+    row-gap: clamp(
+        1rem,
+        (100cqb - 3rem - var(--seq-n, 5) * var(--seq-lane)) / (var(--seq-n, 5) + 1),
+        4.5rem
+    );
+}
+.seq-track {
+    height: var(--seq-lane);
+}
+.seq-ball {
+    --ball-size: var(--seq-ball);
 }

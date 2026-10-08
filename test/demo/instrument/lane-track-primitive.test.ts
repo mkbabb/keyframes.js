@@ -127,7 +127,8 @@ describe("(1) both timeline stacks render the one LaneTrack", () => {
         expect(w.findAll(".lane-track")).toHaveLength(1);
         expect(scrub.findAll("[data-lane-track-playhead]")).toHaveLength(1);
         const ruler = scrub.findAll(".lane-track-tick-label").map((t) => t.text());
-        expect(ruler, "the sequence mode carries the one ruler, in ms").toEqual(["0", "355", "710", "1065", "1420"]);
+        // X-DS pass 16 (KF-C16-05): the quarters are graduated, the halves labelled.
+        expect(ruler, "the sequence mode carries the one ruler, in ms").toEqual(["0", "710", "1420"]);
         // every lane rides the one column
         expect(scrub.findAll(".lane-track-column .seq-lane-track")).toHaveLength(3);
     });

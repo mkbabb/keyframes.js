@@ -46,7 +46,10 @@
                  ate it to ~1.7:1); KF-C3-11 — the ζ axis title went to its
                  axis, so this slot was free. -->
             <span v-else class="flex items-center gap-1.5 min-w-0 text-caption text-muted-foreground" data-figure-legend>
-                <span class="spring-heatmap-swatch shrink-0" aria-hidden="true"></span>
+                <!-- X-DS pass 16 (KF-C16-04) — the swatch keys the field's ramp, so it
+                     shows only while the field does; closed, the sentence stays as
+                     plain caption text. -->
+                <span v-if="figureOpen" class="spring-heatmap-swatch shrink-0" aria-hidden="true"></span>
                 <span class="min-w-0 tabular-nums" title="Peak overshoot varies with damping ζ only; response sets the tempo, not the peak">0 → {{ OVERSHOOT_MAX_PERCENT }} % overshoot · set by damping alone</span>
             </span>
             <span :id="readoutId" class="sr-only">
