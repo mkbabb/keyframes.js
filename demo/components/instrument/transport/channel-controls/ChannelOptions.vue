@@ -55,16 +55,30 @@
                                  X-DS pass 2 (KF-C2-06) — and at the label's SIZE:
                                  the row's text is the `.label` register
                                  (`--control-label`, 500), not the Button's
-                                 `--control-text`, so the column has one size. -->
+                                 `--control-text`, so the column has one size.
+                                 X-DS pass 7 (KF-C7-06) — the row states what it
+                                 leads to, in its field column at the muted ink:
+                                 the current blend when compositing applies, or
+                                 "single-target only" (and the row quiet, at the
+                                 muted ink) when it does not, so the drill never
+                                 reads as live into a pane of disabled rows. -->
                             <Button
                                 ref="layerEntryEl"
                                 emphasis="quiet"
-                                class="w-full justify-between px-0 text-[length:var(--control-label)] [--button-quiet-ink:var(--foreground)]"
+                                :class="[
+                                    'w-full justify-between gap-2 px-0 text-[length:var(--control-label)]',
+                                    blendAvailable
+                                        ? '[--button-quiet-ink:var(--foreground)]'
+                                        : '[--button-quiet-ink:var(--muted-foreground)]',
+                                ]"
                                 :aria-expanded="stack.isOpen('layer')"
                                 :aria-controls="layerPaneId"
                                 @click="openLayer"
                             >
                                 <span>layer</span>
+                                <span class="ms-auto min-w-0 truncate font-normal text-muted-foreground">{{
+                                    blendAvailable ? (layerConfig?.op ?? "") : "single-target only"
+                                }}</span>
                                 <ChevronRight class="icon-sm" />
                             </Button>
                         </div>

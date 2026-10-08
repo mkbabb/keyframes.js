@@ -13,7 +13,7 @@
          kf-owned until glass-ui's named catalogue covers it). -->
     <!-- X-DS pass 1, C1 (KF-C1-07) — no card of its own: the pane host draws the one frame (ControlsPaneWrapper), so this surface is flat inside it. -->
     <div
-        class="w-full"
+        class="easing-sidebar w-full"
         :style="seat.containerStyle"
     >
         <div class="panel-content p-0">
@@ -23,7 +23,7 @@
                  its duration. The editor sits on the BARE surface: the pane's
                  Card is the one plate, so no second tinted card nests inside it
                  (the same one-frame rule as the Sequence stage, `.sq`). -->
-            <ConfiguratorLayer label="Easing" default-open body-class="flex flex-col gap-3">
+            <ConfiguratorLayer label="Easing" default-open body-class="flex flex-col">
                 <!-- KF-ES-12 ≡ KF-TFP-1 — the picker sits in the shared
                      `useEasingPickerSeat` (channel-controls/composables), the SAME
                      seat the transport's TimingFunctionPanel uses. A tile that
@@ -57,6 +57,7 @@
                 <EasingPicker
                     v-show="!showGapPlot"
                     :key="seat.key.value"
+                    class="max-w-(--picker-cap)"
                     v-bind="seat.seed.value"
                     :model-value="seat.model.value"
                     :playback="false"
@@ -250,3 +251,28 @@ watch(
     },
 );
 </script>
+
+<style scoped>
+/* X-DS pass 7 (KF-C7-02) — THE EDITOR FITS THE RAIL, on the Easing route too.
+   The cube's sub-pane took the rail's named budget (`--rail-block`,
+   ControlsPaneWrapper.css; KF-C6-03), but this route's picker stayed uncapped:
+   its square plot took the full column, so at 1440×900 the section's own
+   duration row sat below the surface, under the ribbon. The same budget, less
+   this route's measured chrome (31.5rem at 1440×900): the transport ribbon
+   and frame insets (≈13.3rem), the section header, the separator and the
+   duration param row, and the picker's mode rows. Those rows wrap to three
+   lines below ~20rem of width, and a plot wide enough to keep them on two
+   cannot fit this rail, so the budget counts the three-line wrap. The section
+   body also drops its doubled rhythm (`gap-3` on top of the layer's own
+   `space-y-2`): the separator keeps the 0.5rem either side the cube's pane
+   uses (KF-C4-18). Served: plot 200 px, the surface's scroll range 0. The
+   11rem floor keeps a usable plot on a short rail (below ~880 px of viewport
+   the surface still scrolls, the KF-C3-06 class). At 1080 tall the plot is
+   361 px, uncapped.
+   Desktop only: on the phone sheet the rail budget does not apply. */
+@media (min-width: 1024px) {
+    .easing-sidebar {
+        --picker-cap: max(11rem, calc(var(--rail-block, 100dvh) - 31.5rem));
+    }
+}
+</style>

@@ -68,9 +68,9 @@
                 <!-- X.KF.W13V.y (OA-51; DESIGN-NOTE N-3 · N-6) — the title is the
                      thing measured in plain words; the ball's position is the
                      stage's ONE primary readout, everything else is muted. -->
-                <div class="flex items-baseline gap-2">
-                    <span class="text-small text-muted-foreground">position</span>
-                    <span class="spring-readout-primary tabular-nums" data-readout="primary">{{ demo.liveValue.value.toFixed(3) }}</span>
+                <div class="stage-readout">
+                    <span>position</span>
+                    <span class="spring-readout-primary" data-readout="primary">{{ demo.liveValue.value.toFixed(3) }}</span>
                 </div>
             </template>
             <template #aside>
@@ -80,8 +80,8 @@
                      string, so the pair read as a headline and a footnote).
                      N-2 — the label is lowercase and transform-free, so it
                      never renders as "V". -->
-                <div class="flex items-baseline gap-2">
-                    <span class="text-small text-muted-foreground">velocity</span>
+                <div class="stage-readout">
+                    <span>velocity</span>
                     <span class="spring-readout-secondary">{{ demo.liveVelocity.value.toFixed(2) }}</span>
                 </div>
             </template>

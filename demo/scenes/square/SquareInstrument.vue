@@ -37,11 +37,12 @@
         id-class="flex flex-col gap-1"
     >
         <template #readouts>
+            <!-- X-DS pass 7 (KF-C7-07) — the one stage readout anatomy
+                 (`.stage-readout`, design-idioms.css): a sans muted label, then
+                 the violet tabular value. -->
             <div class="square-telemetry-axes">
-                <span class="text-mono-small text-muted-foreground tabular-nums">x</span>
-                <span class="readout-accent text-mono-small tabular-nums">{{ readoutX }}</span>
-                <span class="text-mono-small text-muted-foreground tabular-nums">y</span>
-                <span class="readout-accent text-mono-small tabular-nums">{{ readoutY }}</span>
+                <span class="stage-readout"><span>x</span><span class="readout-accent text-mono-small">{{ readoutX }}</span></span>
+                <span class="stage-readout"><span>y</span><span class="readout-accent text-mono-small">{{ readoutY }}</span></span>
             </div>
         </template>
     </SceneStageHeader>
@@ -331,9 +332,8 @@ const tetherPath = computed(() => {
     opacity: 0.92;
 }
 .square-telemetry-axes {
-    display: grid;
-    grid-template-columns: auto auto auto auto;
-    column-gap: 0.5rem;
+    display: flex;
+    column-gap: 0.75rem;
     align-items: baseline;
 }
 

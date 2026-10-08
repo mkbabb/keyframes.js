@@ -228,6 +228,12 @@
        rainbow play-CTA gradient is a SEPARATE palette (--rainbow-*), preserved
        verbatim. */
     --color-progress: var(--accent-kf);
+    /* X-DS pass 7 (KF-C7-01) — the fill glass's slider paints (`.slider-range`
+       reads `--slider-range-bg`, falling back to the warm capsule) is the
+       elapsed quantity, so it reads the one violet authority: the scrub, the
+       physics parameters and the duration fill share the ball's hue in both
+       themes. One binding at the root, flat; no per-instance override. */
+    --slider-range-bg: var(--color-progress);
     --color-slider-track: color-mix(
         in srgb,
         var(--foreground) 35%,

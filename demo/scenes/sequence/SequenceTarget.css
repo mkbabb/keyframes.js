@@ -45,7 +45,13 @@
        lanes are unlabelled on the stage, an index at most; the `@ms` offsets are
        the Timeline pane's). */
     --label-col: 1.25rem;
-    --col-gap: 0.75rem;
+    /* X-DS pass 7 (KF-C7-08) — the gap clears the traveller's RADIUS too. The
+       time column starts at the track's inline start and a ball at p = 0 is
+       centred on it, so half of it hung into the gap and lane 1's ball sat
+       ~2 px from its ordinal. The column now starts one radius further in
+       (`--seq-ball` at lg, the 1.6rem ball below it), so a ball at rest keeps
+       the row's 0.75rem gap from its ordinal. */
+    --col-gap: calc(0.75rem + var(--seq-ball, 1.6rem) / 2);
     position: relative;
     display: grid;
     grid-template-columns: var(--label-col) 1fr;

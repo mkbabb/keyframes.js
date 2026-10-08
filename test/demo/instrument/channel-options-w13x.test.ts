@@ -243,7 +243,12 @@ describe("X.KF.W13X.controls — one drill-in owner, one sub-pane header (A2-KE-
             // UIA-KF-269 — no Back or pencil shrinks the producer's Button.
             for (const b of wrapper.findAll("button")) expect(b.classes()).not.toContain("h-auto");
             // UIA-KF-273 / 269 — the entry names the content and is not a hand-rolled focus ring.
-            expect(layerEntry(wrapper).text()).toBe("layer");
+            // X-DS pass 7 (KF-C7-06) — its field column states what it leads
+            // to: the current blend (single-target), at the muted ink.
+            const entrySpans = layerEntry(wrapper).findAll("span");
+            expect(entrySpans[0]!.text()).toBe("layer");
+            expect(entrySpans[1]!.text()).toBe("replace");
+            expect(entrySpans[1]!.classes()).toContain("text-muted-foreground");
             expect(layerEntry(wrapper).classes()).not.toContain("kf-focus-ring");
         } finally {
             wrapper.unmount();

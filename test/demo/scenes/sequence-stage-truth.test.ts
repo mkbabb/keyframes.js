@@ -5,7 +5,7 @@
  *   A2-KE-L3-7 — one primary per region: the Timeline pane owns timing, so the
  *     stage carries no ruler, no playhead and no `@ms` label (an index at most).
  *   UIA-KF-210 — one readout per datum: the header is the title, ONE clock
- *     Metric and the reel; no `stagger × N` caption, no ready/playing badge.
+ *     readout and the reel; no `stagger × N` caption, no ready/playing badge.
  *   UIA-KF-212 · UIA-KF-312 — the Card is the only frame (no 0px-radius tinted
  *     plate) and the lane rail reads at a visible tint.
  *   UIA-KF-214 — a lane is time: `--ball-p` spans ROW_DURATION / duration.
@@ -48,7 +48,6 @@ const stub = vi.hoisted(() => ({
     },
 }));
 vi.mock("@mkbabb/glass-ui", () => stub.module({ Button: "button", Card: "div" }));
-vi.mock("@mkbabb/glass-ui/metric", () => stub.module({ Metric: "div" }));
 
 import { springTimingFunction } from "@mkbabb/keyframes.js";
 import { kfEngine, warmKfEngine } from "../../../demo/kf-engine";
@@ -129,7 +128,13 @@ describe("the stage is the subject — A2-KE-L3-7 · UIA-KF-210", () => {
         try {
             const header = m.host.querySelector(".seq-target")!.firstElementChild as HTMLElement;
             expect(header.querySelector("h2")?.textContent).toBe("Sequence");
-            expect(header.querySelectorAll('[data-stub="Metric"]').length).toBe(1);
+            // X-DS pass 7 (KF-C7-07) — the one stage readout anatomy: a
+            // lowercase label and the value with its unit adjacent.
+            expect(header.querySelectorAll('[data-readout="primary"]').length).toBe(1);
+            const clock = header.querySelector('[data-readout="primary"]')!;
+            expect(clock.classList.contains("stage-readout")).toBe(true);
+            expect(clock.children[0]!.textContent?.trim()).toBe("clock");
+            expect((clock.children[1]!.textContent ?? "").trim()).toMatch(/^-?\d+ ms$/);
             expect(header.querySelector('[role="status"]')).toBeNull();
             expect(header.textContent).not.toMatch(/stagger|ready|playing/i);
             // UIA-KF-211 — the row never wraps (the served probe reads the lines).

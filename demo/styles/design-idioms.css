@@ -232,6 +232,31 @@
     color: var(--ball-tone, var(--color-progress));
 }
 
+/* .stage-readout — X-DS pass 7 (KF-C7-07): THE ONE STAGE-HEADER READOUT
+   ANATOMY (the KF-C4-08 pair, Spring's): a lowercase sans label at the small
+   rung in the muted ink, then the value in the mono face, tabular, with its
+   unit adjacent in the same run ("0 ms", never a unit parked in a slot). The
+   value's ink and rung stay the scene's (`.readout-accent` for a live value).
+   Square, Spring and Sequence each hand-set a different anatomy (a mono label,
+   a sans label, glass Metric's uppercase label with a slotted unit); every
+   SceneStageHeader readout now reads this one. */
+.stage-readout {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+}
+.stage-readout > :first-child {
+    font-family: var(--font-sans);
+    font-size: var(--type-small);
+    color: var(--muted-foreground);
+    text-transform: none;
+}
+.stage-readout > :last-child {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
 /* .stage-field-{x,y} — the ghosted coordinate frame: quarter-mark gridlines in the var(--border)
    hairline. `-y` rules the VALUE axis (horizontal lines + baseline); `-x` a TIME/POSITION axis. */
 .stage-field-y {

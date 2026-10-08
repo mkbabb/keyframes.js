@@ -43,20 +43,24 @@
             <!-- X.KF.W13X.sections (A2-KE-L1-8) — the ONE SceneStageHeader. -->
             <SceneStageHeader
                 title="Sequence"
-                class="seq-header flex flex-nowrap items-center justify-between gap-3 px-4 py-2.5 border-b border-border/40 shrink-0"
+                class="seq-header flex flex-nowrap items-center justify-between gap-3 px-4 py-2.5 shrink-0"
                 title-class="whitespace-nowrap m-0"
                 id-class="flex flex-nowrap items-baseline gap-3 min-w-0"
                 aside-class="shrink-0"
             >
                 <template #readouts>
-                    <Metric
-                        size="md"
-                        label="clock"
-                        :value="Math.round(demo.progress.value * demo.duration.value)"
-                        unit="ms"
-                        class="readout-accent shrink-0"
-                        data-readout="primary"
-                    />
+                    <!-- X-DS pass 7 (KF-C7-07) — the one stage readout anatomy
+                         (`.stage-readout`, design-idioms.css), Spring's and
+                         Square's: a lowercase sans label and the violet tabular
+                         value with its unit adjacent. glass Metric set an
+                         uppercase label and parked the unit in a fixed slot ("0
+                         ms" read as broken at rest). The clock stays the one
+                         readout, and it trails the title, so a growing value
+                         moves nothing before it. -->
+                    <div class="stage-readout shrink-0" data-readout="primary">
+                        <span>clock</span>
+                        <span class="readout-accent text-mono-small">{{ clockMs }} ms</span>
+                    </div>
                 </template>
                 <template #aside>
                     <!-- EE-SEQ-1 "the reel" — the discoverable twin of the hidden
@@ -160,12 +164,11 @@
 </template>
 
 <script setup lang="ts">
-import { inject, onMounted } from "vue";
+import { computed, inject, onMounted } from "vue";
 import { clamp } from "@mkbabb/value.js/math";
 import { useTypedTrigger } from "./useTypedTrigger";
 import { Button, Card } from "@mkbabb/glass-ui";
 // Glass 7 canonical poster-metric primitive.
-import { Metric } from "@mkbabb/glass-ui/metric";
 import SceneStageHeader from "../SceneStageHeader.vue";
 import { Clapperboard } from "@lucide/vue";
 
@@ -184,6 +187,13 @@ if (!demo) {
         "SequenceTarget must be mounted inside the sequence scene: no SEQUENCE_DEMO_KEY was provided.",
     );
 }
+
+// The header clock in whole milliseconds on the master clock. A non-finite
+// product (no duration yet) reads 0, the coalescing glass Metric did (C-12).
+const clockMs = computed(() => {
+    const ms = Math.round(demo.progress.value * demo.duration.value);
+    return Number.isFinite(ms) ? ms : 0;
+});
 
 // Per-row TRAVELLER elements — each is its child animation's target (J.WZ): the
 // engine paints --ball-p + opacity + the scale-pop onto the BALL, not the track,

@@ -409,6 +409,18 @@ const initEditor = async () => {
         // editor's does, and the lines are short now that the buffer shows the
         // user's name instead of the internal style id.
         wordWrap: "off",
+        // X-DS pass 7 (KF-C7-12) — and the scroll SAYS so. Monaco's `auto`
+        // horizontal scrollbar is invisible at rest, so a line cut at the
+        // well's edge ("ease-in-ou") gave no cue that it continues. The slim
+        // horizontal slider stays visible whenever a line overflows (Monaco
+        // draws no slider when nothing does), and the scrollbar's edge shadows
+        // are off (flat, X-DS canon).
+        scrollbar: {
+            horizontal: "visible",
+            horizontalScrollbarSize: 6,
+            horizontalSliderSize: 6,
+            useShadows: false,
+        },
         scrollBeyondLastLine: false,
         automaticLayout: true,
         lineNumbers: props.lineNumbers ? "on" : "off",
