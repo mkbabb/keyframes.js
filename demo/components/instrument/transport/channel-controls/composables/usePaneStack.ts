@@ -1,4 +1,5 @@
-import { nextTick, reactive, ref } from "vue";
+import { nextTick, reactive, ref, type Ref } from "vue";
+import type { ChannelPane } from "@state";
 
 /**
  * X.KF.W13X.controls · A2-KE-L1-7 — the Controls card's ONE drill-in owner.
@@ -24,7 +25,6 @@ import { nextTick, reactive, ref } from "vue";
  *   caller (a click does not focus a button in every engine, so
  *   `document.activeElement` is not the opener).
  */
-export type ChannelPane = "main" | "detail" | "layer";
 
 type Focusable = { focus: (options?: FocusOptions) => void };
 
@@ -37,8 +37,12 @@ export function usePaneStack(
     rowOf: (p: ChannelPane) => HTMLElement | null | undefined = () => null,
     /** A pane finished arriving (its row is at full height). */
     onArrive: (p: ChannelPane) => void = () => {},
+    /** Which pane is open. X.KF.W13X.esc1 (ESC-mobile-1) — the channel's own
+     *  record in the store (`getChannelControlsState(animation).pane`), so the
+     *  drill-in a channel had open is the one its next mount shows; a caller
+     *  without a channel gets a local ref. */
+    pane: Ref<ChannelPane> = ref<ChannelPane>("main"),
 ) {
-    const pane = ref<ChannelPane>("main");
     /** Panes kept mounted while their row collapses (KFA-36). */
     const leaving = reactive(new Set<ChannelPane>());
     let opener: Focusable | null = null;

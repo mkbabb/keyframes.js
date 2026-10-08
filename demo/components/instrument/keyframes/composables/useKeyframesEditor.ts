@@ -43,6 +43,7 @@ export function useKeyframesEditor(
         keyframesStyleId: state.keyframesStyleId,
         animationName: state.animationName,
         sheetCSSString: state.sheetCSSString,
+        parseState: state.parseState,
         updateFromString: parsing.updateFromString,
         updateCSSAnimationKeyframesStringFromAnimation:
             parsing.updateCSSAnimationKeyframesStringFromAnimation,

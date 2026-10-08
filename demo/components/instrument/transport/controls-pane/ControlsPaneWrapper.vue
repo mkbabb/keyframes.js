@@ -83,7 +83,7 @@
                          dies with it). T.B1-β STAGE 1 — the hosts derive from the
                          CHANNEL axis when the scene exposes a facility. -->
                     <template
-                        v-for="host in controlHosts"
+                        v-for="host in selectedControlHosts"
                         :key="host.animation.id"
                     >
                         <!-- X.KF.W13V.c (C1-1) — `.controls-surface` is the
@@ -91,10 +91,7 @@
                              the menubar band (ControlsPaneWrapper.css), so a
                              surface taller than the rail scrolls HERE while the
                              persistent ribbon below stays in view. -->
-                        <div
-                            v-show="storedControls.selectedAnimation == host.name"
-                            class="controls-surface"
-                        >
+                        <div class="controls-surface">
                             <!-- LP-1 — THE WRITE→RENDER EDGE. `host.layer` and
                                  `host.blendAvailable` are re-read from the engine
                                  at this edge on every layer write (see
@@ -397,6 +394,14 @@ const controlHosts = computed<ControlHost[]>(() => {
 
 // X.KF.W13V.s2 — the master-clock channels (Sequence): the Timeline pane's
 // Sequence mode mounts on these instead of a ChannelControls host.
+// X.KF.W13X.esc1 (ESC-mobile-1 · A2-KE-L1-10 · KFA-156 · UIA-KF-104) — ONE
+// host, the selected channel's. The per-channel UI state the hidden copies kept
+// alive lives in the store (`getChannelControlsState`), so a channel swap
+// mounts the new channel's host and it reads its state back.
+const selectedControlHosts = computed(() =>
+    controlHosts.value.filter((h) => h.name === props.storedControls.selectedAnimation),
+);
+
 const sequenceHosts = computed(() =>
     (props.channels ?? []).flatMap((c) =>
         c.sequence ? [{ name: c.name, sequence: c.sequence }] : [],

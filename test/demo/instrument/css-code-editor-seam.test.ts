@@ -148,6 +148,9 @@ const updateFromString = vi.hoisted(() => vi.fn(async (_value: string) => {}));
 vi.mock("@components/instrument/keyframes/composables/useKeyframesEditor", () => ({
     useKeyframesEditor: () => ({
         cssKeyframesString: ref("a { color: red }"),
+        // X.KF.W13X.esc1 — the parse status is the channel's (store-held), so
+        // the editor composable hands it to the pane with the buffer.
+        parseState: ref<"parsed" | "error">("parsed"),
         keyframesStyleId: "keyframes-style-test",
         getTmpAnimationName: () => "test",
         updateFromString,

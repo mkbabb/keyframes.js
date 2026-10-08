@@ -1,8 +1,8 @@
 import { convertPixelsToCh } from "@utils/helpers";
 import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 import { kfEngine } from "@kf-engine";
-import { ref } from "vue";
-import { createAnimationUUId } from "@state";
+import { toRef } from "vue";
+import { createAnimationUUId, getChannelControlsState } from "@state";
 
 /**
  * The editor's UI-state half: the buffer ref, the stable identifier, and the
@@ -69,11 +69,19 @@ export function useKeyframesState(animation: KeyframesAnimation<any>) {
     // the add-dialog draft (`addKeyframesString`) and the stored card-control
     // scaffold they read (`keyframeControls`) served only the card editor and
     // its add dialog, which no product file mounted after `e69f7731`.
-    const cssKeyframesString = ref("");
+    //
+    // X.KF.W13X.esc1 (ESC-mobile-1 · A2-KE-L1-10) — both strings and the parse
+    // status are the CHANNEL's (the store's per-channel record), not this
+    // instance's: the pane mounts one host for the selected channel, and a swap
+    // back to a channel shows its buffer as the user left it, draft included.
+    const channel = getChannelControlsState(animation);
+    const cssKeyframesString = toRef(channel, "keyframesText");
     // The CSS Apply injects: the same animation emitted under the style id,
     // so the sheet's selector, `animation-name` and `@keyframes` stay the ONE
     // name the class carries (N-8), whatever the buffer shows.
-    const sheetCSSString = ref("");
+    const sheetCSSString = toRef(channel, "keyframesSheet");
+    /** Whether the buffer parsed; "error" marks a draft the engine does not hold. */
+    const parseState = toRef(channel, "parseState");
 
     // --- Pure helpers ---
 
@@ -99,6 +107,7 @@ export function useKeyframesState(animation: KeyframesAnimation<any>) {
         displayName,
         cssKeyframesString,
         sheetCSSString,
+        parseState,
         getFormatWidth,
     };
 }

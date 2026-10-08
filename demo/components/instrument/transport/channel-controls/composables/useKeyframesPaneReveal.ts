@@ -2,7 +2,6 @@ import {
     computed,
     nextTick,
     onScopeDispose,
-    ref,
     watch,
     type ComputedRef,
     type Ref,
@@ -15,6 +14,10 @@ interface UseKeyframesPaneRevealOptions {
     storedControls: StoredAnimationGroupControlOptions;
     /** The force-mounted keyframes `[role=tabpanel]` element ref. */
     keyframesPaneEl: Ref<any>;
+    /** X.KF.W13X.esc1 (ESC-mobile-1) — the CHANNEL's warm flag (the store's
+     *  `getChannelControlsState(animation).keyframesWarmed`): a channel whose
+     *  editor was warmed mounts warm again after a swap. */
+    keyframesWarmed: Ref<boolean>;
 }
 
 interface UseKeyframesPaneRevealReturn {
@@ -51,7 +54,7 @@ interface UseKeyframesPaneRevealReturn {
 export function useKeyframesPaneReveal(
     options: UseKeyframesPaneRevealOptions,
 ): UseKeyframesPaneRevealReturn {
-    const { storedControls, keyframesPaneEl } = options;
+    const { storedControls, keyframesPaneEl, keyframesWarmed } = options;
 
     const keyframesActive = computed(
         () => storedControls.selectedControl === "keyframes",
@@ -65,7 +68,6 @@ export function useKeyframesPaneReveal(
     // initial critical path of EVERY scene that surfaces a keyframes channel, the
     // post-T.B triad-derivation regression: mobile LCP 10–16 s), but after the LCP
     // window (a `requestIdleCallback` warm) or the instant the user reaches for it.
-    const keyframesWarmed = ref(false);
     let idleHandle: number | undefined;
     // The vueuse fallback timer (scope-disposed automatically — the decomposition
     // async-blob discipline; no raw setTimeout).
@@ -99,7 +101,7 @@ export function useKeyframesPaneReveal(
             idleFallback.start();
         }
     };
-    scheduleIdleWarm();
+    if (!keyframesWarmed.value) scheduleIdleWarm();
 
     // Reaching the keyframes surface (tab select, deep-link, restore) warms it
     // immediately — the editor is mounting the moment it is asked for, so it opens

@@ -213,6 +213,7 @@ import {
     markRaw,
     shallowRef,
     Teleport,
+    toRef,
     useTemplateRef,
     watch,
 } from "vue";
@@ -242,7 +243,7 @@ const loadKeyframeTimeline = (): void => {
     });
 };
 import ChannelOptions from "./ChannelOptions.vue";
-import { getStoredAnimationGroupControlOptions } from "@state";
+import { getChannelControlsState, getStoredAnimationGroupControlOptions } from "@state";
 
 const { animation, isPlaying: isPlayingProp, layerConfig, active } = defineProps<{
     animation: KeyframesAnimation<any>;
@@ -383,6 +384,8 @@ const keyframesPaneEl = useTemplateRef<any>("keyframesPaneEl");
 const { keyframesActive, keyframesWarmed } = useKeyframesPaneReveal({
     storedControls,
     keyframesPaneEl,
+    // X.KF.W13X.esc1 (ESC-mobile-1) — the channel's warm flag lives in the store.
+    keyframesWarmed: toRef(getChannelControlsState(animation), "keyframesWarmed"),
 });
 // KFA-119 — the idle warm, or the first ask, fetches the timeline module.
 watch(

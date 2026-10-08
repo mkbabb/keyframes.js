@@ -63,6 +63,14 @@ export {
     selectedSurfaceFrom,
 } from "./controlSurfaces";
 
+// X.KF.W13X.esc1 (ESC-mobile-1) — the per-channel control state the ONE pane
+// host reads back on every mount (drill-in pane, warm flag, editor buffer).
+export {
+    type ChannelPane,
+    type ChannelControlsState,
+    getChannelControlsState,
+} from "./channelControlsStore";
+
 export {
     type RafSceneHandle,
     createGroupAdapter,

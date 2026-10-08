@@ -48,7 +48,7 @@
             @layer-config-update="(name, v) => updateLayerConfig(name, v)"
             @scrub-start="onScrubStart"
             @scrub-end="onScrubEnd"
-            @channel-controls-ref="(name, el) => { animControlRefs[name] = el; }"
+            @channel-controls-ref="(name, el) => { activeHost = { name, controls: el }; }"
             @set-controls-panel-open="(open) => { storedControls.isControlsPanelOpen = open; }"
         >
             <template #tabs-content="slotProps">
@@ -142,7 +142,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, useTemplateRef, watchEffect } from "vue";
+import { computed, onMounted, shallowRef, useTemplateRef, watchEffect } from "vue";
 
 import { clamp } from "@mkbabb/value.js/math";
 
@@ -211,17 +211,21 @@ const selectedChannel = computed(() =>
 // group's stored options, so both writes the controls pane used to make into
 // its props (the registry entry, the panel-open fact) land here, from the
 // pane's `channelControlsRef` / `setControlsPanelOpen` emits.
-const animControlRefs = reactive<Record<string, any>>({});
-
-const activeKeyframesRef = computed(() => {
+//
+// X.KF.W13X.esc1 (ESC-mobile-1 · A2-KE-L1-10) — the pane mounts ONE host, the
+// selected channel's, so the registry is that one live host, not a per-name map
+// of every channel's instance (which kept the hidden copies reachable). A host
+// is read only while it is the selected channel's.
+const activeHost = shallowRef<{ name: string; controls: any } | null>(null);
+const selectedHostControls = computed(() => {
     const name = storedControls.selectedAnimation;
-    return name ? animControlRefs[name]?.keyframesControlsRef : null;
+    const host = activeHost.value;
+    return name && host?.name === name ? host.controls : null;
 });
 
-const activeTimelineRef = computed(() => {
-    const name = storedControls.selectedAnimation;
-    return name ? animControlRefs[name]?.timelineRef : null;
-});
+const activeKeyframesRef = computed(() => selectedHostControls.value?.keyframesControlsRef ?? null);
+
+const activeTimelineRef = computed(() => selectedHostControls.value?.timelineRef ?? null);
 
 // Validate stored selection — clear stale values via watchEffect (reacts to
 // group/channel changes). T.B1-β STAGE 1: the valid-name set is the CHANNEL
@@ -326,14 +330,11 @@ const { updateLayerConfig, keyframesUpdate, reset, clear } = useAnimationGroupAc
 // --- Keyboard shortcuts (colocated composable — the K.WZ proof:demo-no-oversize
 // seam; zero behavior change). The action closures pass IN; the component still
 // owns the playback/ref state they mutate. switchTab stays here: it drives the
-// component-owned animControlRefs registry. The scrub/cycle actions live with
+// component-owned registry (the one live host). The scrub/cycle actions live with
 // the playback state they mutate — useAnimationGroupPlayback (getActiveT /
 // scrubActive / cycleAnimation).
 function switchTab(tab: string) {
-    const name = storedControls.selectedAnimation;
-    if (!name) return;
-    const ctrl = animControlRefs[name];
-    ctrl?.selectControl?.(tab);
+    selectedHostControls.value?.selectControl?.(tab);
 }
 
 useControlsKeyboardShortcuts({

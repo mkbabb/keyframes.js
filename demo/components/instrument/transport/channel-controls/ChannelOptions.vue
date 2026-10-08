@@ -202,6 +202,7 @@ import PlaybackRibbon from "@components/playback/PlaybackRibbon.vue";
 import { EASING_GROUPS } from "@utils/reference-data/easingGroups";
 import { timingFunctionKind } from "@utils/reference-data/animationDescriptions";
 import {
+    getChannelControlsState,
     getStoredAnimationGroupControlOptions,
     getStoredAnimationOptions,
 } from "@state";
@@ -309,9 +310,13 @@ const layerRowEl = useTemplateRef<HTMLElement>("layerRowEl");
 // (its row at full height, so no collapsing box is scrolled) brings its header
 // into its scroller's view: at 390 the editor opened with its header scrolled
 // above the sheet's visible region and the plot below the fold.
+// X.KF.W13X.esc1 (ESC-mobile-1) — the open drill-in is the CHANNEL's (the
+// store), not this instance's: the pane mounts one host for the selected
+// channel, and a swap back shows the pane the channel had open.
 const stack = usePaneStack(
     (p) => (p === "detail" ? detailRowEl.value : p === "layer" ? layerRowEl.value : null),
     (p) => (p === "detail" ? detailHeaderEl.value : layerHeaderEl.value)?.reveal(),
+    toRef(getChannelControlsState(props.animation), "pane"),
 );
 const layerPaneId = useId();
 const detailHeaderEl =

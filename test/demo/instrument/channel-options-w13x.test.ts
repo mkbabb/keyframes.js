@@ -438,6 +438,8 @@ describe("X.KF.W13X.controls — the keyframes reveal (KFA-118)", () => {
             useKeyframesPaneReveal({
                 storedControls,
                 keyframesPaneEl: ref(el),
+                // X.KF.W13X.esc1 — the warm flag is the channel's (store-held).
+                keyframesWarmed: ref(false),
             }),
         );
         try {
@@ -447,6 +449,66 @@ describe("X.KF.W13X.controls — the keyframes reveal (KFA-118)", () => {
         } finally {
             scope.stop();
             el.remove();
+        }
+    });
+});
+
+// X.KF.W13X.esc1 (ESC-mobile-1 · A2-KE-L1-10 · KFA-156 · UIA-KF-104) — the pane
+// mounts ONE host, the selected channel's; the channel's UI state is the
+// store's, so a host that mounts again for a channel reads back what the channel
+// had (a surface/channel swap unmounts the old host and mounts the new one).
+describe("X.KF.W13X.esc1 — per-channel state survives a swap (store-held)", () => {
+    it("(13) the open drill-in pane survives an unmount and remount of the channel's host", async () => {
+        const { wrapper, a, group } = mountCard(1);
+        await layerEntry(wrapper).trigger("click");
+        await settle();
+        expect(layerEntry(wrapper).attributes("aria-expanded")).toBe("true");
+        wrapper.unmount();
+        const again = mount(ChannelOptions, {
+            props: { animation: a, isPlaying: false, layerConfig: group.getLayerConfig("rotate"), blendAvailable: true, active: false },
+            attachTo: document.body,
+        });
+        try {
+            await settle();
+            expect(layerEntry(again).attributes("aria-expanded")).toBe("true");
+            const other = mountCard(1);
+            try {
+                await settle();
+                expect(layerEntry(other.wrapper).attributes("aria-expanded")).toBe("false");
+            } finally {
+                other.wrapper.unmount();
+            }
+        } finally {
+            again.unmount();
+        }
+    });
+
+    it("(14) the keyframes buffer, its parse status and the warm flag are the channel's", async () => {
+        const { effectScope } = await import("vue");
+        const { useKeyframesState } = await import(
+            "../../../demo/components/instrument/keyframes/composables/useKeyframesState"
+        );
+        const { getChannelControlsState } = await import("@state");
+        const { a } = makeChannel();
+        const { a: b } = makeChannel();
+        const first = effectScope();
+        const s1 = first.run(() => useKeyframesState(a))!;
+        s1.cssKeyframesString.value = "@keyframes x { from { opacity: } }";
+        s1.parseState.value = "error";
+        getChannelControlsState(a).keyframesWarmed = true;
+        first.stop();
+        const second = effectScope();
+        const s2 = second.run(() => useKeyframesState(a))!;
+        const s3 = second.run(() => useKeyframesState(b))!;
+        try {
+            expect(s2.cssKeyframesString.value).toBe("@keyframes x { from { opacity: } }");
+            expect(s2.parseState.value).toBe("error");
+            expect(getChannelControlsState(a).keyframesWarmed).toBe(true);
+            expect(s3.cssKeyframesString.value).toBe("");
+            expect(s3.parseState.value).toBe("parsed");
+            expect(getChannelControlsState(b).keyframesWarmed).toBe(false);
+        } finally {
+            second.stop();
         }
     });
 });

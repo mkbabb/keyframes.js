@@ -105,6 +105,7 @@ const {
     sheetCSSString,
     keyframesStyleId,
     animationName,
+    parseState,
     updateFromString,
     updateCSSAnimationKeyframesStringFromAnimation,
 } = useKeyframesEditor(() => animation, emit);
@@ -177,12 +178,16 @@ function onKeyDown(e: KeyboardEvent) {
     }
 }
 
-// The buffer's parse state, for the header's status line (UIA-KF-275): the
-// last edit either adopted (`parsed`) or refused (`error`); the initial buffer
-// is the animation's own projection, so it starts parsed.
-const parseState = ref<"parsed" | "error">("parsed");
+// The buffer's parse state (`parseState`, above), for the header's status line
+// (UIA-KF-275): the last edit either adopted (`parsed`) or refused (`error`);
+// the initial buffer is the animation's own projection, so it starts parsed.
+// X.KF.W13X.esc1 — it is the channel's, held in the store with the buffer.
 
 const applyEditorChange = async (value: string) => {
+    // X.KF.W13X.esc1 — the channel's buffer records what the user wrote (the
+    // editor already shows it, so the model write is a no-op there); a refused
+    // edit stays in the store as the channel's draft.
+    cssKeyframesString.value = value;
     try {
         await updateFromString(value);
         parseState.value = "parsed";
@@ -289,7 +294,12 @@ const shakeEditorWell = () => {
     void parseErrorShake.play();
 };
 
+// X.KF.W13X.esc1 (ESC-mobile-1) — the buffer is the channel's (the store). A
+// mount re-projects it from the engine, except over an unparsed draft: that
+// text is the user's and the engine never held it, so the swap back to the
+// channel shows it as written, with its "Parse error" status.
 onMounted(async () => {
+    if (parseState.value === "error" && cssKeyframesString.value) return;
     await updateCSSAnimationKeyframesStringFromAnimation();
 });
 
