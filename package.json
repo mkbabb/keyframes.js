@@ -90,8 +90,6 @@
         "eslint-plugin-vue": "^10.11.0",
         "fast-check": "^4.8.0",
         "gl-matrix": "^3.4.4",
-        "highlight.js": "^11.11.1",
-        "html2canvas": "^1.4.1",
         "jsdom": "^29.1.1",
         "monaco-editor": "^0.55.1",
         "pixelmatch": "^7.2.0",
