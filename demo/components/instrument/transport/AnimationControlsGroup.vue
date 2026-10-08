@@ -22,7 +22,7 @@
         :class="[
             'controls-layout justify-items-stretch items-start relative',
             storedControls.isControlsPanelOpen ? 'controls-layout--open' : 'controls-layout--closed',
-            hasControlSurfaces ? '' : 'controls-layout--railless',
+            hasControlSurfaces || scenePending ? '' : 'controls-layout--railless',
         ]"
         v-bind="$attrs"
     >
@@ -107,9 +107,15 @@
              home transport cluster is deleted at the root; the start-screen CTA
              lives in the start screen). Coordinates with T.B2 (home → [] channels).
              (J.W2 S4 / CD-1: the menubar-era name is renamed to TransportDock.) -->
+        <!-- X.KF.W13X.esc1 (ESC-scene-1 · KFA-80 · UIA-KF-067) — while the scene
+             is pending (hard load: its channel axis has not bound) the transport
+             already holds its band, inert, so the stage cell's dock-safe inset
+             (`--dock-band-reserve` folds the measured pill) is the resolved one
+             and the fallback sits in the stage slot the scene will fill. -->
         <TransportDock
-            v-if="transportNames.length > 0"
+            v-if="transportNames.length > 0 || scenePending"
             ref="transportDockRef"
+            :inert="scenePending"
             :stored-controls="storedControls"
             :is-playing="isPlaying"
             :animation-names="transportNames"
@@ -193,6 +199,17 @@ const { superKey, animationGroup, channels, autoPlay, hideControls, stageMode, h
 }>();
 
 const storedControls = getStoredAnimationGroupControlOptions(superKey);
+
+// X.KF.W13X.esc1 (ESC-scene-1 · KFA-80 · UIA-KF-067 · UIA-KF-125 hard-load
+// limb) — THE SCENE IS PENDING: a scene route (not the home start screen) whose
+// channel axis has not bound yet, which is a hard load with the scene's chunk
+// in flight (a warm swap keeps the source scene bound until the destination
+// resolves, App.vue `resolvedScene`). Every scene exposes a facility with a
+// non-empty surface set, so the layout it will resolve to has the rail and the
+// transport: while pending, both are reserved (the rail track keeps its width,
+// the transport mounts inert), and the fallback fills exactly the stage slot
+// the scene then fills — no reflow, no panel appearing from nothing.
+const scenePending = computed(() => !hideControls && channels === undefined);
 
 // T.B1-β STAGE 1 — the transport axis: the facility's channels when the scene
 // exposes them (the honest set), else the group's animation keys (the legacy
