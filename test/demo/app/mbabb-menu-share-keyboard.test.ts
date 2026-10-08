@@ -1,6 +1,7 @@
 /**
  * X.KF.W13U.d4 · ESC-d-3 (COHESION §0br) — the @mbabb menu's Share row is
- * keyboard-actuatable.
+ * keyboard-actuatable. Re-cut at X.KF.W13X.esc2 (ESC-dock-1, the popover form):
+ * the row runs Share as a plain menuitem, so the nested trigger is gone.
  *
  * OA-33 folded Share into the @mbabb menu, where its only command was a button
  * NESTED in the row (`SharePopover`'s trigger) that the menu's roving focus
@@ -104,8 +105,28 @@ async function openMenu() {
     return wrapper;
 }
 
-describe("KF.W13U.d4 — Enter on the Share row opens Share", () => {
-    it("(1) keyboard: Enter on the focused row opens the popover and hands focus to its primary action; the menu stays open", async () => {
+const menuOpen = () => document.body.querySelector('[role="menu"]') !== null;
+const trigger = () => document.body.querySelector<HTMLElement>('[aria-label="@mbabb menu"]');
+
+// X.KF.W13X.esc2 · ESC-dock-1 (KF-W13.md addendum (g), COHESION §0er) — the
+// popover form RULED: Share is a plain menuitem; selecting it closes the menu
+// and opens the share surface as its own popover anchored to the @mbabb
+// trigger. Born RED at `0e1623ca`: the row nested SharePopover's trigger
+// button, and its select held the menu open (`.prevent`).
+describe("KF.W13X.esc2 — Share is a plain menuitem that opens its own popover", () => {
+    it("(1) the Share row holds no interactive content (no nested trigger)", async () => {
+        const wrapper = await openMenu();
+        const row = shareRow();
+        expect(row.getAttribute("role")).toBe("menuitem");
+        expect(
+            row.querySelectorAll('button, a[href], input, [role="button"], [aria-haspopup], [tabindex]:not([tabindex="-1"])')
+                .length,
+        ).toBe(0);
+        expect(document.body.querySelector('[aria-label="Share animation"]')).toBeNull();
+        wrapper.unmount();
+    });
+
+    it("(2) keyboard: Enter on the row closes the menu, opens the popover and hands focus to its primary action, which carries the copy glyph", async () => {
         const wrapper = await openMenu();
         expect(shareField()).toBeNull();
 
@@ -115,24 +136,24 @@ describe("KF.W13U.d4 — Enter on the Share row opens Share", () => {
             new window.KeyboardEvent("keydown", { key: "Enter", bubbles: true, cancelable: true }),
         );
         await vi.waitFor(() => expect(shareField()).not.toBeNull());
+        await vi.waitFor(() => expect(menuOpen()).toBe(false));
         await vi.waitFor(() => expect(document.activeElement).toBe(sharePrimary()));
-        // `.prevent` holds the menu — the popover anchors to its trigger in the row.
-        expect(document.body.textContent).toContain("Clear all");
+        expect(sharePrimary()!.querySelector("svg.lucide-copy")).not.toBeNull();
 
         wrapper.unmount();
     });
 
-    it("(2) pointer parity: the nested trigger opens Share, and a second press on it closes it (the row does not re-open it)", async () => {
+    it("(3) pointer: a press on the row does the same, and Escape returns focus to the @mbabb trigger", async () => {
         const wrapper = await openMenu();
-        const trigger = document.body.querySelector('[aria-label="Share animation"]');
-        expect(trigger).not.toBeNull();
-
-        await press(trigger!);
+        await press(shareRow());
         await vi.waitFor(() => expect(shareField()).not.toBeNull());
+        await vi.waitFor(() => expect(menuOpen()).toBe(false));
 
-        await press(trigger!);
+        document.activeElement!.dispatchEvent(
+            new window.KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true }),
+        );
         await vi.waitFor(() => expect(shareField()).toBeNull());
-        expect(document.body.textContent).toContain("Clear all");
+        await vi.waitFor(() => expect(document.activeElement).toBe(trigger()));
 
         wrapper.unmount();
     });

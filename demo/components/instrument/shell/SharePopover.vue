@@ -1,34 +1,27 @@
 <template>
-    <Popover v-model:open="sharePopoverOpen">
-        <!-- SP-11 — the trigger was a RAW 24x24 `<button>` with `p-0` zeroing any
-             rescue and an `icon-lg` sole child: reachable by none of the demo's
-             declared floors, and wearing a hand-rolled shell beside the very
-             primitive that ships one. The swap to glass `Button emphasis="quiet"
-             icon-only` collapses SP-11 with SP-26 and SP-27 in one edit — the
-             plate, the hover/press motion and the focus ring all come from the
-             producer, so `bg-transparent border-none p-0 scale-on-hover
-             transition-all duration-fast` are not re-authored here.
-             EH-9 ≡ SP-10 — THE MOTION BATCH, SPENT: the swap already retired
-             `transition-all duration-fast`.
-             X.KF.W13X.overlays · UIA-KF-140 — the recede-on-hover fade
-             (`hover:opacity-50` + its scoped `transition-opacity`) is gone: no
-             sibling menu glyph recedes on hover, and the hover affordance is the
-             glass Button's own quiet plate. The 28x36 egg is the host's 28px
-             glyph slot capping the Button (its own `max-width: 100%`); that
-             half goes with the Share row's restructure (ESC-dock-1). -->
-        <PopoverTrigger as-child>
-            <Button
-                size="sm"
-                emphasis="quiet"
-                icon-only
-                aria-label="Share animation"
-            >
-                <Share2 class="icon-lg" />
-            </Button>
-        </PopoverTrigger>
+    <!-- X.KF.W13X.esc2 · ESC-dock-1 (KFA-114 · UIA-KF-056 · 140 · A2-KE-L2-12;
+         KF-W13.md addendum (g), COHESION §0er) — the share surface is its OWN
+         popover with NO trigger of its own. It used to carry a Share button
+         (SP-11's glass `Button` swap) nested inside the @mbabb menu's Share row:
+         interactive content inside a menuitem, which the menu's roving focus
+         never reached, and a popover that opened beside the still-open menu and
+         occluded it. The host (MbabbMenu, the one owner) now runs Share as a
+         plain menuitem: the menu closes and this popover opens on `open`,
+         anchored to the element the host names (`anchor`, the @mbabb trigger).
+         The anchor is reka's `PopoverAnchor` with a `reference`: glass `Popover`
+         is reka's `PopoverRoot` on its click arm (its own typings say so) and
+         ships no anchor seam of its own, so the anchor is the primitive's
+         documented custom-anchor part, not a copied selector. With a custom
+         anchor mounted, reka places the content against it instead of a trigger.
+         UIA-KF-140 — the 28x36 egg and its hover fade were the trigger's; the
+         trigger is gone, so both limbs are gone with it. -->
+    <Popover v-model:open="open">
+        <PopoverAnchor v-if="anchor" :reference="anchor" as-child />
         <!-- SP-1 + SP-19 + SP-21 (W6-I): `p-2` was DEAD (the primitive's
              overlay padding longhands won) and is gone. `align="end"`: the
-             ribbon host is `placement="right"` with a row-reversed band.
+             surface ends on its anchor's end edge, as the @mbabb menu does on
+             the same trigger; `sideOffset` is the host's (the menu's own
+             dock-edge offset, so both surfaces open below the dock band).
              `@interact-outside` carries the demo's own toaster guard: both
              `loadFromInput` error paths toast AND leave this popover open, and a
              click on that toast must not dismiss it.
@@ -46,15 +39,11 @@
         <PopoverContent
             class="z-popover w-(--dock-panel-width)"
             align="end"
-            :side-offset="8"
+            :side-offset="sideOffset"
             :collision-padding="16"
             @open-auto-focus="focusPrimary"
-            @interact-outside="
-                (event) => {
-                    if (isInsideToaster(event.target))
-                        return event.preventDefault();
-                }
-            "
+            @close-auto-focus="returnFocus"
+            @interact-outside="onInteractOutside"
         >
             <!-- X.KF.W13X.overlays · UIA-KF-071 — the hierarchy the menu row
                  promises. The action the row names ("Share": copy the link) is
@@ -122,35 +111,36 @@
 <script setup lang="ts">
 import { ref, useTemplateRef } from "vue";
 import type { ComponentPublicInstance } from "vue";
-import { Share2, Copy, ArrowRight } from "@lucide/vue";
+import { PopoverAnchor } from "reka-ui";
+import { Copy, ArrowRight } from "@lucide/vue";
 // SP-18 (W6-I): every glass symbol on its own subpath beside `./forms`.
 import { Button } from "@mkbabb/glass-ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@mkbabb/glass-ui/popover";
+import { Popover, PopoverContent } from "@mkbabb/glass-ui/popover";
 import { Input } from "@mkbabb/glass-ui/input";
 import { LabeledField } from "@mkbabb/glass-ui/labeled-field";
 import { Separator } from "@mkbabb/glass-ui/separator";
 import { isInsideToaster } from "@components/instrument/utils/toastGuard";
 import { useShareState } from "./useShareState";
 
-const props = defineProps<{
+const { anchor, sideOffset = 8, onSceneRestore } = defineProps<{
+    /** The element the surface opens against (MbabbMenu: its @mbabb trigger). */
+    anchor?: HTMLElement | undefined;
+    /** The gap between the anchor and the surface, px. */
+    sideOffset?: number;
     onSceneRestore?: (sceneId: string) => void;
 }>();
 
-// X.KF.W13X.overlays · UIA-KF-070 — `done` fires when a share action COMPLETES
-// (the link is copied, or a pasted link loads). This popover closes only
-// itself; a host that renders it inside a menu (MbabbMenu) closes its menu on
-// `done`, so the whole stack dismisses and focus returns to the menu trigger.
-const emit = defineEmits<{ done: [] }>();
+// X.KF.W13X.esc2 · ESC-dock-1 — the open model is the HOST's (`v-model:open`):
+// the host's Share row opens it, and `useShareState` closes it after a copy or
+// a successful load (UIA-KF-070: a completed action dismisses the surface).
+// The former `defineExpose({ open })` + `done` pair existed so a host could
+// reach into a popover nested in its menu row; the row no longer nests it.
+const open = defineModel<boolean>("open", { default: false });
 
-const { sharePopoverOpen, loadHashInput, loadError, shareState, loadFromInput } =
-    useShareState(props.onSceneRestore);
-
-// X.KF.W13U.d4 · ESC-d-3 (COHESION §0br) — the open model, EXPOSED from its
-// owner. `useShareState` owns this ref (it closes the popover after a copy or a
-// successful load), so the popover's open state is exposed, not re-owned. A host
-// that renders this popover inside a menu row (MbabbMenu) sets `open` on the
-// row's select, so Enter opens Share exactly as a pointer press on the trigger does.
-defineExpose({ open: sharePopoverOpen });
+const { loadHashInput, loadError, shareState, loadFromInput } = useShareState(
+    onSceneRestore,
+    open,
+);
 
 // SP-6: the async copy's in-flight span, so the Share button carries `loading`
 // and a second click during the first is a no-op.
@@ -159,14 +149,14 @@ const onShare = async () => {
     if (sharing.value) return;
     sharing.value = true;
     try {
-        if (await shareState()) emit("done");
+        await shareState();
     } finally {
         sharing.value = false;
     }
 };
 
 const onLoad = () => {
-    if (loadFromInput()) emit("done");
+    loadFromInput();
 };
 
 // UIA-KF-248 — focus lands on the primary action. glass `Button` is a
@@ -177,6 +167,26 @@ const primaryEl = useTemplateRef<ComponentPublicInstance>("primaryEl");
 
 const focusPrimary = (event: Event) => {
     event.preventDefault();
+    interactedOutside = false;
     (primaryEl.value?.$el as HTMLElement | undefined)?.focus();
+};
+
+// The toaster guard: both `loadFromInput` error paths toast AND leave this
+// popover open, and a click on that toast must not dismiss it. Any other
+// outside interaction dismisses, and focus then stays where the user put it.
+let interactedOutside = false;
+const onInteractOutside = (event: Event) => {
+    if (isInsideToaster(event.target)) return event.preventDefault();
+    interactedOutside = true;
+};
+
+// With no trigger, reka has no element to hand focus back to on close, so it
+// would fall to <body>. A keyboard or completed-action close returns focus to
+// the anchor, the control the surface was opened from (the @mbabb trigger, the
+// menu's own return target); an outside interaction keeps it where it landed,
+// as reka does for a trigger.
+const returnFocus = (event: Event) => {
+    event.preventDefault();
+    if (!interactedOutside) anchor?.focus();
 };
 </script>

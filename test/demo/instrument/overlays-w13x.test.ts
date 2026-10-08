@@ -10,10 +10,11 @@
  *  (4) UIA-KF-224 · no native `title` tooltip inside the popover.
  *  (5) UIA-KF-248 · the popover opens with focus on the primary action, not on
  *      the paste field (whose focus ring was the heaviest stroke on the page).
- *  (6) UIA-KF-070 · a completed share action (copy, or a load) emits `done`,
- *      so the host can dismiss the whole menu stack.
- *  (7) UIA-KF-140 · the trigger wears no recede-on-hover opacity fade (the
- *      28x36 egg is the host slot's, carried with ESC-dock-1).
+ *  (6) UIA-KF-070 · a completed share action (copy, or a load) closes the
+ *      surface through its host's open model (X.KF.W13X.esc2: the host's menu
+ *      is already closed, so no `done` relay is left to emit).
+ *  (7) UIA-KF-140 · ESC-dock-1 (X.KF.W13X.esc2): the surface has no trigger of
+ *      its own, so neither the 28x36 egg nor its recede fade can render.
  *  (8) UIA-KF-016 · the scroll port is the sr-only spans' containing block (`relative`).
  *  (9) UIA-KF-072 · UIA-KF-139 · group headings are static, with no opaque plate.
  * (10) UIA-KF-251 · UIA-KF-139 · sentence-case title, a one-line description, no dead row radius.
@@ -70,8 +71,16 @@ const buttons = () => [...(pop()?.querySelectorAll<HTMLButtonElement>("button") 
 
 async function openShare() {
     const r = await router();
-    wrapper = mount(SharePopover, { attachTo: document.body, global: { plugins: [r] } });
-    (wrapper.vm as unknown as { open: boolean }).open = true;
+    const anchor = document.body.appendChild(document.createElement("button"));
+    wrapper = mount(SharePopover, {
+        attachTo: document.body,
+        global: { plugins: [r] },
+        props: {
+            anchor,
+            open: true,
+            "onUpdate:open": (open: boolean) => wrapper!.setProps({ open }),
+        },
+    });
     await vi.waitFor(() => expect(field()).not.toBeNull());
     await nextTick();
     return wrapper;
@@ -120,23 +129,24 @@ describe("X.KF.W13X.overlays — Share", () => {
         await vi.waitFor(() => expect(document.activeElement?.textContent?.trim()).toBe("Copy link"));
     });
 
-    it("(6) UIA-KF-070 — a copy and a successful load each emit done", async () => {
+    it("(6) UIA-KF-070 — a copy and a successful load each close the surface", async () => {
         const w = await openShare();
         buttons().find((b) => b.textContent?.trim() === "Copy link")!.click();
-        await vi.waitFor(() => expect(w.emitted("done")?.length).toBe(1));
-        (w.vm as unknown as { open: boolean }).open = true;
+        await vi.waitFor(() => expect(w.emitted("update:open")?.at(-1)).toEqual([false]));
+        await vi.waitFor(() => expect(field()).toBeNull());
+        await w.setProps({ open: true });
         await vi.waitFor(() => expect(field()).not.toBeNull());
         field()!.value = validHash();
         field()!.dispatchEvent(new Event("input", { bubbles: true }));
         field()!.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
-        await vi.waitFor(() => expect(w.emitted("done")?.length).toBe(2));
+        await vi.waitFor(() => expect(w.emitted("update:open")?.filter(([o]) => o === false).length).toBe(2));
     });
 
-    it("(7) UIA-KF-140 — the trigger has no recede fade", async () => {
+    it("(7) UIA-KF-140 · ESC-dock-1 — the surface renders no trigger of its own", async () => {
         const r = await router();
         wrapper = mount(SharePopover, { attachTo: document.body, global: { plugins: [r] } });
-        const t = wrapper.find('[aria-label="Share animation"]');
-        expect(t.classes().some((c) => /opacity/.test(c))).toBe(false);
+        expect(document.body.querySelector('[aria-label="Share animation"]')).toBeNull();
+        expect(document.body.querySelectorAll("button").length).toBe(0);
     });
 });
 

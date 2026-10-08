@@ -51,18 +51,21 @@
                  stops oscillating 24/20/28/20/28px across the rows.
                  MM-40 — each row names its typeahead key (`text-value`), so the
                  menu's type-to-select no longer keys on condensed slot text. -->
-            <!-- X.KF.W13U.d4 · ESC-d-3 (COHESION §0br) — the row's select OPENS
-                 Share. The popover's trigger is a button nested in the row, which
-                 the menu's roving focus never reaches, so Enter on the row did
-                 nothing. Now the select sets the popover's exposed open model:
-                 the menu stays open (`.prevent`) as it does under a pointer press,
-                 the popover anchors to its trigger in this row and focuses its
-                 field, and Escape unwinds popover → menu → the @mbabb trigger.
-                 The trigger's own click stays with the trigger (`@click.stop` on
-                 its slot): it already toggles the popover, and letting it bubble
-                 into the row's select would re-open what a second press closed. -->
-            <DropdownMenuItem @select.prevent="openShare" text-value="Share" class="gap-2.5 px-1.5 py-1">
-                <span class="w-7 shrink-0 flex justify-center" @click.stop><SharePopover ref="sharePopover" :on-scene-restore="onSceneRestore" @done="open = false" /></span>
+            <!-- X.KF.W13X.esc2 · ESC-dock-1 (KFA-114 · UIA-KF-056 · 140 ·
+                 A2-KE-L2-12; KF-W13.md addendum (g), COHESION §0er) — Share is a
+                 PLAIN menuitem: it runs one command and holds no interactive
+                 content (glass menu canon; WAI-ARIA menuitem). Selecting it
+                 closes the menu and opens the share surface as its own popover,
+                 anchored to the @mbabb trigger (below, under this file's one
+                 owner of both surfaces). The row used to nest SharePopover's own
+                 trigger button: the menu's roving focus never reached it, and
+                 the popover opened beside the still-open menu and occluded it
+                 (X.KF.W13U.d4's ESC-d-3 wired the row's select to that nested
+                 popover; both halves are retired here). The leading glyph is the
+                 command's own, at the menu's glyph rung; the copy glyph is the
+                 surface's primary action ("Copy link"). -->
+            <DropdownMenuItem text-value="Share" class="gap-2.5 px-1.5 py-1" @select="shareOpen = true">
+                <span class="w-7 shrink-0 flex justify-center"><Share2 class="w-5 h-5" aria-hidden="true" /></span>
                 <div class="flex-1 min-w-0">
                     <span class="text-small text-foreground">Share</span>
                 </div>
@@ -238,6 +241,9 @@
         </DropdownMenuContent>
     </DropdownMenu>
 
+    <!-- ESC-dock-1 — the share surface, a sibling of the menu it is opened from
+         (never nested in a row), anchored to the @mbabb trigger. -->
+    <SharePopover v-model:open="shareOpen" :anchor="mbabbTrigger?.$el" :side-offset="shareOffset" :on-scene-restore="onSceneRestore" />
     <!-- X.KF.W13U.d · OA-33 — the shortcuts dialog lives with the row that
          opens it and with its `?` shortcut (moved from ChromeDock). -->
     <KeyboardShortcutsModal v-model:open="shortcutsOpen" />
@@ -297,7 +303,7 @@ import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, Di
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuShortcut } from "@mkbabb/glass-ui/menu";
 import { useGlobalDark } from "@mkbabb/glass-ui/dark";
 import { DockTrigger, useOptionalDockContext } from "@mkbabb/glass-ui/dock";
-import { ExternalLink, Keyboard, Moon, Trash } from "@lucide/vue";
+import { ExternalLink, Keyboard, Moon, Share2, Trash } from "@lucide/vue";
 import { registerShortcut } from "@mkbabb/glass-ui/keyboard";
 import KeyboardShortcutsModal from "@components/instrument/shell/KeyboardShortcutsModal.vue";
 import { getStoredAnimationGroupControlOptions, resetAllStores } from "@state";
@@ -323,8 +329,9 @@ const open = defineModel<boolean>("open", { default: false });
 // mounted outside a dock, which is the "optional" in the producer's name.
 const dock = useOptionalDockContext();
 
-// The two dialogs this menu opens (declared here because the hold below reads them;
-// their commands are further down).
+// The surfaces this menu opens (declared here because the hold below reads them;
+// their commands are further down): the share popover (ESC-dock-1) and two dialogs.
+const shareOpen = ref(false);
 const confirmClearOpen = ref(false);
 const shortcutsOpen = ref(false);
 
@@ -337,9 +344,11 @@ const shortcutsOpen = ref(false);
 // not on the dropdown alone: selecting "Clear all" or "Keyboard shortcuts" closes
 // the dropdown as its dialog opens, and a hold keyed on `open` alone let the dock
 // collapse behind the open dialog and play its morph through the backdrop.
+// X.KF.W13X.esc2 · ESC-dock-1 — Share is the third such surface: its row closes
+// the menu as the share popover opens, so the hold reads `shareOpen` too.
 let held = false;
 watch(
-    () => open.value || confirmClearOpen.value || shortcutsOpen.value,
+    () => open.value || shareOpen.value || confirmClearOpen.value || shortcutsOpen.value,
     (holds) => {
         if (holds === held) return;
         held = holds;
@@ -383,15 +392,6 @@ function setDark(checked: boolean): void {
 // (no `window` ⇒ skip the confirm and run the destructive path) is gone because
 // there is no `window.confirm` left to guard.
 
-// X.KF.W13U.d4 · ESC-d-3 — the Share row's select opens the popover through
-// the model SharePopover exposes (its owner, `useShareState`, keeps closing it
-// after a copy or a load). A press on the nested trigger never reaches here —
-// the trigger toggles itself and its click does not bubble into the row.
-const sharePopover = useTemplateRef<InstanceType<typeof SharePopover>>("sharePopover");
-function openShare(): void {
-    if (sharePopover.value) sharePopover.value.open = true;
-}
-
 // X.KF.W13U.d · OA-33 — the shortcuts dialog's open state and its `?` shortcut,
 // with the one command that opens them (moved from ChromeDock's retired zone).
 registerShortcut("?", () => { shortcutsOpen.value = !shortcutsOpen.value; }, { label: "Show shortcuts", group: "General" });
@@ -399,8 +399,10 @@ registerShortcut("?", () => { shortcutsOpen.value = !shortcutsOpen.value; }, { l
 // The menu closes as the dialog opens. Its close would hand focus back to the
 // @mbabb trigger underneath the dialog's focus scope, so that one return is
 // declined while the dialog is taking over (reka's documented menu→dialog idiom).
+// ESC-dock-1 — the same hand-off for Share: the popover takes focus to its
+// primary action, and returns it to the trigger itself when it closes.
 function onMenuCloseAutoFocus(event: Event): void {
-    if (confirmClearOpen.value || shortcutsOpen.value) event.preventDefault();
+    if (shareOpen.value || confirmClearOpen.value || shortcutsOpen.value) event.preventDefault();
 }
 
 // UIA-KF-118 — the confirm's return target (see the template): the trigger that
@@ -410,6 +412,9 @@ const mbabbTrigger = useTemplateRef<{ $el: HTMLElement }>("mbabbTrigger");
 // trigger (ChromeDock provides the band), not 8 px past the trigger, inside the
 // dock's own padding.
 const menuOffset = useDockEdgeOffset(() => mbabbTrigger.value?.$el, open);
+// ESC-dock-1 — the share popover opens against the same trigger at the same
+// dock-edge offset, so it lands where the menu it came from stood.
+const shareOffset = useDockEdgeOffset(() => mbabbTrigger.value?.$el, shareOpen);
 function onConfirmCloseAutoFocus(event: Event): void {
     event.preventDefault();
     mbabbTrigger.value?.$el.focus();

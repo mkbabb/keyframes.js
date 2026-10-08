@@ -1,4 +1,4 @@
-import { ref, watch } from "vue";
+import { ref, watch, type Ref } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import {
     encodeStateToHash,
@@ -8,10 +8,21 @@ import {
 import { toast } from "@mkbabb/glass-ui/toast";
 import { writeClipboard } from "@mkbabb/glass-ui/dom";
 
-export function useShareState(onSceneRestore?: (sceneId: string) => void) {
+/**
+ * The share surface's state: the link it copies, the link it loads, and its
+ * open model, which a completed copy or load closes.
+ *
+ * @param open the surface's open model. X.KF.W13X.esc2 · ESC-dock-1: the share
+ *             popover's host owns it (`SharePopover`'s `v-model:open`, opened by
+ *             the @mbabb menu's Share row); a caller with no host gets its own.
+ */
+export function useShareState(
+    onSceneRestore?: (sceneId: string) => void,
+    open: Ref<boolean> = ref(false),
+) {
     const router = useRouter();
     const route = useRoute();
-    const sharePopoverOpen = ref(false);
+    const sharePopoverOpen = open;
     const loadHashInput = ref("");
     // X.KF.W13X.overlays · UIA-KF-142 — a refused load names its reason AT the
     // field (the Input's invalid skin + an inline message the field describes
