@@ -497,13 +497,16 @@ onMounted(() => {
         // OWN plot (the function that draws the stroke). The simulator's ball is
         // at its sim time over the trace's horizon (4 × response); settled, it
         // rests at the trace's end (PRM snaps and settles on the first frame,
-        // so a reduced-motion re-seat rests there at once). The sweep sampler is
+        // so a reduced-motion re-seat rests there at once) — but only after a
+        // real chase: with none since mount, or after a re-seat to the current
+        // value, it rests at the ORIGIN with the sampler (X-DS pass 13 ·
+        // KF-C17-01: one disc, matching 'position 0.000'). The sweep sampler is
         // at its leg's time on the SAME labelled axis (ESC-spring-1 · KFA-191):
         // each leg spans the horizon, and `direction: alternate` is folded, so
         // the sampler runs 0 → horizon along the trace, then back (`sweepU`).
         const plot = traceEl.value?.plot;
         if (plot && liveCarriageEl.value) {
-            const t = live.settled ? 1 : live.simMs / springHorizonMs(demo.response.value);
+            const t = live.settled ? (live.chased ? 1 : 0) : live.simMs / springHorizonMs(demo.response.value);
             liveCarriageEl.value.style.transform = plot.place(t);
         }
         if (plot && samplerCarriageEl.value) {

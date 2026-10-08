@@ -459,6 +459,7 @@ export function useSpringDemo() {
     const reseat = (value: number) => {
         if (derbyActive.value) return;
         const v = clamp(value, 0, 1);
+        springLive.chased = liveSpring.value !== v;
         target.value = v;
         liveSpring.target = v;
         springLive.simMs = 0;
@@ -492,6 +493,7 @@ export function useSpringDemo() {
     const { derby: launchDerby, derbyActive, lanes } = useSpringDerby(
         tracks,
         () => {
+            springLive.chased = liveSpring.value !== 1;
             liveSpring.target = 1;
             springLive.simMs = 0;
             target.value = 1;
@@ -499,6 +501,7 @@ export function useSpringDemo() {
         },
         () => {
             const v = preDerbyTarget;
+            springLive.chased = liveSpring.value !== v;
             target.value = v;
             liveSpring.target = v;
             springLive.simMs = 0;
@@ -553,6 +556,7 @@ export function useSpringDemo() {
         });
         target.value = snap.target;
         springLive.simMs = 0;
+        springLive.chased = snap.live[0] !== snap.target;
         seatReadoutsFromSolvers();
         flushReadouts();
         repaintSprings();

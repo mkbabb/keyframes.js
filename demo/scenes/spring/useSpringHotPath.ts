@@ -100,6 +100,11 @@ export function useSpringHotPath(tracks: SpringTrack[]) {
         /** X.KF.W13W.b — simulation time (ms) since the live target was last
          *  written: the live ball rides the plotted step response at this time. */
         simMs: 0,
+        /** X-DS pass 13 (KF-C17-01) — whether the last target write started a
+         *  real chase (the ball was elsewhere). False at mount and after a
+         *  re-seat to the current value: a settled ball with no chase rests at
+         *  the trace's ORIGIN (with the sampler), not at its end. */
+        chased: false,
     };
 
     const { registerPainter: registerSpringPainter, repaint: repaintSprings } =

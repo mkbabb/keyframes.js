@@ -206,6 +206,11 @@
              edge sat ≈49 px INSIDE the transport and the collapsed pill
              covered its last control row (the owner's "fill mode"). The
              sheet now rests on top of the transport, never under it. -->
+        <!-- X-DS pass 13 (KF-C17-02) — the peek is a
+             RESTING state, not a dialog the user opened: reka's open auto-focus
+             would move focus into the ✕ on page load (script focus matches
+             :focus-visible, so a lone ring on the ✕). Prevented, focus stays
+             on the page until the user tabs in. Glass rider on O-87/O-88. -->
         <SheetContent
             :side="sheetSide"
             :detents="snapPoints"
@@ -213,6 +218,7 @@
             scroll
             class="controls-drawer-content"
             :style="sheetStyle"
+            @open-auto-focus.prevent
         >
             <!-- reka DialogContent wants a labelling title; keep it off-screen
                  (the visible facet panels carry their own headings). -->

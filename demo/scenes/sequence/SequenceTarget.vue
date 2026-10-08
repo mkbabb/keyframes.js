@@ -7,8 +7,12 @@
          stage's top (the easing, spring and square plates' top) instead of
          floating at the column's centre; it still hugs its rows. The
          `lg:max-w-5xl` cap never bound beside the rail (the stage column is
-         narrower), so the inline box is already the siblings'. -->
-    <div class="flex flex-col items-center justify-start h-full w-full lg:px-8 lg:max-w-5xl mx-auto overflow-hidden">
+         narrower), so the inline box is already the siblings'.
+         X-DS pass 13 (KF-C17-03) — no `overflow-hidden` here: the plate clips
+         and scrolls its own lanes, and the column's clip cut the plate's
+         resting fall-off into square ears below lg (Square/Spring/Easing's
+         plates fall off around their radius). -->
+    <div class="flex flex-col items-center justify-start h-full w-full lg:px-8 lg:max-w-5xl mx-auto">
         <!-- I5 — the standard NON-cartoon glass <Card> protagonist plate (rounded
              by construction, shadow off). J.W7c C-SEQ-1 (U6): the card no longer
              STRETCHES the whole .stage-cell (the former flex-1 floated 5 rows on a

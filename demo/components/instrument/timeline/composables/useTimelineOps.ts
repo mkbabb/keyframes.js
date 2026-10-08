@@ -2,7 +2,7 @@ import type { Ref } from "vue";
 import { createKeyframeId } from "../timelineTypes";
 import type { TimelineKeyframe, TimelineState } from "../timelineTypes";
 import { captureSnapshot } from "../utils/snapshotCapture";
-import { toast } from "@mkbabb/glass-ui/toast";
+import { toast, type ToastHandle } from "@mkbabb/glass-ui/toast";
 import { clamp } from "@mkbabb/value.js/math";
 import { percentSelector } from "@utils/keyframeSelector";
 
@@ -69,6 +69,13 @@ export function useTimelineOps(
         return rebuildSettled;
     };
 
+    // X-DS pass 13 (KF-C17-04, consumer rider) — a repeat capture at the same
+    // percent REPLACES its acknowledgement instead of stacking an identical
+    // toast (glass's toast() takes no id, so the previous handle is dismissed).
+    // The toast's own chrome (corner close badge, per-toast drop) is glass's,
+    // cited on O-87 and never overridden here.
+    let captureToast: { percent: number; handle: ToastHandle } | null = null;
+
     const snapshot = async (percent?: number): Promise<void> => {
         const target = targets.value[0];
         if (!target) {
@@ -86,7 +93,12 @@ export function useTimelineOps(
         // own voice rather than through this line's silence.
         await scheduleRebuild();
 
-        toast({ title: `Keyframe captured at ${Math.round(p)}%`, tone: "success" });
+        const shown = Math.round(p);
+        if (captureToast?.percent === shown) captureToast.handle.dismiss();
+        captureToast = {
+            percent: shown,
+            handle: toast({ title: `Keyframe captured at ${shown}%`, tone: "success" }),
+        };
     };
 
     const addKeyframe = (percent: number, vars?: Record<string, string>) => {
