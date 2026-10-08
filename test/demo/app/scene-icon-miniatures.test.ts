@@ -10,6 +10,11 @@
  *
  * Born RED at the pre-cure bytes: the icons were static `?component` SVGs, so
  * (1) failed on identity and (2) saw no `live` prop.
+ *
+ * X.KF.W13X.esc2 · ESC-dock-3 (UIA-KF-132; KF-W13.md addendum (g)) — home
+ * joins the family: its descriptor binds `HomeMini.vue` (the hero's ellipsis),
+ * the dock reads it at all three former `<Home>` sites, and no lucide house
+ * glyph renders (4). Born RED at `0e1623ca`: home carried no icon.
  */
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { defineComponent, h, type Component } from "vue";
@@ -25,6 +30,7 @@ import SquareMini from "../../../demo/scenes/square/SquareMini.vue";
 import EasingMini from "../../../demo/scenes/easing/EasingMini.vue";
 import SpringMini from "../../../demo/scenes/spring/SpringMini.vue";
 import SequenceMini from "../../../demo/scenes/sequence/SequenceMini.vue";
+import HomeMini from "../../../demo/components/instrument/shell/HomeMini.vue";
 
 const MINIS: Record<string, Component> = {
     cube: CubeMini,
@@ -68,10 +74,10 @@ afterAll(() => {
 afterEach(() => vi.restoreAllMocks());
 
 describe("OA-32 — the descriptor's icon is the scene's own miniature (one binding)", () => {
-    it("(1) every routable scene binds the miniature its directory exports; home keeps none", () => {
+    it("(1) every routable scene binds the miniature its directory exports, and home binds HomeMini", () => {
         expect(scenes.map((s) => s.id)).toEqual(Object.keys(MINIS));
         for (const scene of scenes) expect(scene.icon).toBe(MINIS[scene.id]);
-        expect(homeScene.icon).toBeUndefined();
+        expect(homeScene.icon).toBe(HomeMini);
     });
 });
 
@@ -91,7 +97,7 @@ describe("OA-32 — the dock renders the chosen scene's icon live", () => {
                     h(ChromeDock, {
                         currentSceneId: "cube",
                         scenes: [{ id: "cube", label: "Cube", icon: Probe }],
-                        homeScene: { id: "home", label: "Home" },
+                        homeScene: { id: "home", label: "Home", icon: HomeMini },
                         isControlsPanelOpen: false,
                     }),
                 ),
@@ -133,9 +139,10 @@ describe("OA-32 — each miniature plays its scene's animation through the engin
         easing: { kind: "keyframes", count: 1 }, // the preview sweep
         spring: { kind: "keyframes", count: 4 }, // the four preset lanes
         sequence: { kind: "sequence", count: 1 }, // the staggered storyboard
+        home: { kind: "keyframes", count: 3 }, // the hero's three ellipsis dots
     };
 
-    for (const [id, Mini] of Object.entries(MINIS)) {
+    for (const [id, Mini] of Object.entries({ ...MINIS, home: HomeMini })) {
         it(`(3) ${id}: live plays ${ENGINE[id]!.count}× ${ENGINE[id]!.kind}, unmount stops; rest plays nothing`, () => {
             const rest = spyPlays();
             const idle = mount(Mini, { props: { live: false }, attachTo: document.body });
@@ -154,4 +161,34 @@ describe("OA-32 — each miniature plays its scene's animation through the engin
             );
         });
     }
+});
+
+describe("ESC-dock-3 — on home the dock reads the home descriptor's miniature", () => {
+    it("(4) the trigger and the collapsed face render HomeMini live; no lucide house glyph renders", () => {
+        const seen: (boolean | undefined)[] = [];
+        const Probe = defineComponent({
+            props: { live: { type: Boolean, default: undefined } },
+            setup(props) {
+                seen.push(props.live);
+                return () => h("span", { "data-home-probe": "" });
+            },
+        });
+        const wrapper = mount(
+            defineComponent(() => () =>
+                h(TooltipProvider, null, () =>
+                    h(ChromeDock, {
+                        currentSceneId: "home",
+                        scenes: [{ id: "cube", label: "Cube", icon: CubeMini }],
+                        homeScene: { id: "home", label: "Home", icon: Probe },
+                        isControlsPanelOpen: false,
+                    }),
+                ),
+            ),
+            { attachTo: document.body },
+        );
+        expect(seen.length).toBeGreaterThanOrEqual(1);
+        expect(seen.every((live) => live === true)).toBe(true);
+        expect(document.body.querySelectorAll("svg.lucide-house, svg.lucide-home").length).toBe(0);
+        wrapper.unmount();
+    });
 });

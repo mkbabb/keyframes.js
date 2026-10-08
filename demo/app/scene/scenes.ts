@@ -15,6 +15,7 @@ import SquareIcon from "../../scenes/square/SquareMini.vue";
 import EasingIcon from "../../scenes/easing/EasingMini.vue";
 import SpringIcon from "../../scenes/spring/SpringMini.vue";
 import SequenceIcon from "../../scenes/sequence/SequenceMini.vue";
+import HomeIcon from "../../components/instrument/shell/HomeMini.vue";
 
 // The per-scene registry-id single-source (R.W5 C.4 / T.B9 — the ONE keyspace):
 // each scene's keys module OWNS its `*_SCENE_ID` constant; the descriptor below
@@ -82,13 +83,14 @@ export interface SceneDescriptor {
      * iterates `scene.icon`, never a parallel string-keyed map that drifts on a
      * rename).
      *
-     * Populated per-survivor by each scene (its `*Mini.vue`);
-     * the home descriptor carries no `icon` and the dock falls back to `<Home>`
-     * for it alone. Every other (non-home) descriptor MUST define `icon`
-     * (proof:scene-icons coverage), so an icon-less scene is structurally
-     * unshippable — the permanent cure for the D8 regression class.
+     * Populated per-survivor by each scene (its `*Mini.vue`), and for home by
+     * `HomeMini.vue` (X.KF.W13X.esc2 · ESC-dock-3, UIA-KF-132: the hero's
+     * ellipsis, so Home is no longer the one lucide monochrome glyph among
+     * colour miniatures). REQUIRED on every descriptor, home included, so an
+     * icon-less descriptor does not typecheck and the dock needs no fallback
+     * glyph — the permanent cure for the D8 regression class.
      */
-    icon?: Component;
+    icon: Component;
 }
 
 // id → the raw dynamic-import thunk. Built from the SAME loader the scene's
@@ -153,6 +155,7 @@ export const homeScene: SceneDescriptor = {
     label: "Home",
     superKey: HOME_SCENE_ID,
     stageMode: "subject",
+    icon: HomeIcon,
     component: CubeScene,
 };
 

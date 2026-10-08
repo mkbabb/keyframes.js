@@ -19,6 +19,10 @@ import {
     type ControlSurface,
 } from "@state/controlSurfaces";
 
+// X.KF.W13X.esc2 · ESC-dock-3 — every scene descriptor carries its miniature
+// (`icon` is required, home included); a fixture glyph stands in for it here.
+const Glyph = defineComponent(() => () => h("span"));
+
 // The live scene facilities' shapes, read structurally (surfacesFor, T.B2).
 const paints = { name: "A", animation: {} };
 const SCENE_SURFACES: Record<string, ControlSurface[]> = {
@@ -69,8 +73,8 @@ function mountDock(props: Record<string, unknown>) {
             h(TooltipProvider, null, () =>
                 h(ChromeDock, {
                     currentSceneId: "spring",
-                    scenes: [{ id: "spring", label: "Spring" }],
-                    homeScene: { id: "home", label: "Home" },
+                    scenes: [{ id: "spring", label: "Spring", icon: Glyph }],
+                    homeScene: { id: "home", label: "Home", icon: Glyph },
                     isControlsPanelOpen: false,
                     onToggleControlsPanel: () => onToggle.push(1),
                     onUpdateSelectedControl: (v: unknown) => onSelect.push(v),
@@ -129,7 +133,7 @@ describe("ChromeDock renders the items and each opens the shared pane", () => {
     it("a disabled item does nothing; home shows no items", async () => {
         const seq = mountDock({
             currentSceneId: "sequence",
-            scenes: [{ id: "sequence", label: "Sequence" }],
+            scenes: [{ id: "sequence", label: "Sequence", icon: Glyph }],
             controlSurfaces: ["timeline"],
             extraControlTabs: [],
         });

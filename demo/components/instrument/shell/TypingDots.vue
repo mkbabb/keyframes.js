@@ -22,6 +22,20 @@
     </span>
 </template>
 
+<script lang="ts">
+// X.KF.W13X.esc2 · ESC-dock-3 — the ellipsis' motion, exported so the Home
+// miniature (`HomeMini.vue`, Home's dock glyph) plays this same cadence; the
+// setup below reads these, so there is one copy of each number.
+export const TYPING_DOTS_CYCLE_MS = 1200;
+const TYPING_DOTS_REST_OPACITY = 0.2;
+export const TYPING_DOTS_TIMING = "steps(4, jump-none)";
+export const typingDotKeyframes = () => ({
+    "0%": { opacity: TYPING_DOTS_REST_OPACITY },
+    "50%": { opacity: 1 },
+    "100%": { opacity: TYPING_DOTS_REST_OPACITY },
+});
+</script>
+
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, useTemplateRef } from "vue";
 // The inv-ζ dogfood seam: the dots loop on the kf ENGINE itself
@@ -95,7 +109,7 @@ const dotCount = ((n: number): number => {
 // wave. Nothing enforces it and nothing renders wrong if it breaks;
 // perceptibility is not claimed here. It is written down so an edit to either
 // clock is an edit made KNOWINGLY — change one and the beat is gone.
-const CYCLE_MS = 1200;
+const CYCLE_MS = TYPING_DOTS_CYCLE_MS;
 // The per-dot stagger increment — the left-to-right cadence step, a
 // `. → ·· → ···` march. KFA-200 — it is ONE step quantum of the dots' own
 // clock: `steps(4, jump-none)` on each half of the 0 % / 50 % / 100 % shape
@@ -116,7 +130,7 @@ const STEP_MS = CYCLE_MS / 8;
 // runs the only direction that keeps it: the constant is published onto the
 // container as `--typing-dot-rest` and the rule READS it. Deleting the rule
 // would delete the resting paint; there is now nothing to desync.
-const REST_OPACITY = 0.2;
+const REST_OPACITY = TYPING_DOTS_REST_OPACITY;
 
 const dotEls = useTemplateRef<HTMLElement[]>("dotEls");
 
@@ -153,13 +167,9 @@ onMounted(async () => {
             duration: CYCLE_MS,
             delay: delays[i] ?? 0,
             iterationCount: "infinite",
-            timingFunction: "steps(4, jump-none)",
+            timingFunction: TYPING_DOTS_TIMING,
             respectReducedMotion: true,
-        }).fromKeyframes({
-            "0%": { opacity: REST_OPACITY },
-            "50%": { opacity: 1 },
-            "100%": { opacity: REST_OPACITY },
-        });
+        }).fromKeyframes(typingDotKeyframes());
         anim.setTargets(el);
         anim.play();
         anims.push(anim);

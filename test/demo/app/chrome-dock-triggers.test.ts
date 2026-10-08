@@ -19,6 +19,10 @@ import { GlassDock } from "@mkbabb/glass-ui/dock";
 import ChromeDock from "@app/dock/ChromeDock.vue";
 import MbabbMenu from "@app/dock/MbabbMenu.vue";
 
+// X.KF.W13X.esc2 · ESC-dock-3 — every scene descriptor carries its miniature
+// (`icon` is required, home included); a fixture glyph stands in for it here.
+const Glyph = defineComponent(() => () => h("span"));
+
 const savedResizeObserver = (globalThis as { ResizeObserver?: unknown }).ResizeObserver;
 
 beforeAll(() => {
@@ -49,9 +53,9 @@ afterAll(() => {
 });
 
 const SCENES = [
-    { id: "cube", label: "Cube" },
-    { id: "easing", label: "Easing" },
-    { id: "spring", label: "Spring" },
+    { id: "cube", label: "Cube", icon: Glyph },
+    { id: "easing", label: "Easing", icon: Glyph },
+    { id: "spring", label: "Spring", icon: Glyph },
 ];
 
 function mountDock(onWarm: (id: string) => void = () => {}) {
@@ -63,7 +67,7 @@ function mountDock(onWarm: (id: string) => void = () => {}) {
                     {
                         currentSceneId: "cube",
                         scenes: SCENES,
-                        homeScene: { id: "home", label: "Home" },
+                        homeScene: { id: "home", label: "Home", icon: Glyph },
                         isControlsPanelOpen: false,
                         onWarmScene: onWarm,
                     },

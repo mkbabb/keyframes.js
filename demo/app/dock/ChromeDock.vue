@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, inject, nextTick, ref, watch, useTemplateRef, type Component } from "vue";
 import { CONTROLS_PANE_HOVER_KEY } from "@components/instrument/transport/injectionKeys";
-import { Activity, Atom, Home, SlidersHorizontal, Braces, Clock, Grid3X3 } from "@lucide/vue";
+import { Activity, Atom, SlidersHorizontal, Braces, Clock, Grid3X3 } from "@lucide/vue";
 import {
     GlassDock,
     DockControl,
@@ -72,8 +72,10 @@ import {
 // H.W5.S1/S2: the dock no longer holds a parallel string-keyed `sceneIcons`
 // Record of imported image URLs (the D8 drift root cause). Each scene carries
 // its own `icon` component on the descriptor (scenes.ts) and the dock renders
-// `<component :is="scene.icon">`, so the BINDING is single-sourced. <Home>
-// remains the icon for the explicit home descriptor ALONE (the single fallback).
+// `<component :is="scene.icon">`, so the BINDING is single-sourced.
+// X.KF.W13X.esc2 · ESC-dock-3 (UIA-KF-132) — home too: its descriptor carries
+// `HomeMini.vue`, so the three lucide `<Home>` fallbacks (the trigger, the
+// collapsed face and the Home row) are gone and every glyph is a descriptor's.
 //
 // KF.W13U.d2 (OA-32) — the scene icon is the scene's living miniature. The
 // CHOSEN scene's icon (the expanded trigger AND the collapsed face below) is
@@ -83,15 +85,16 @@ import {
 // D-3 — what that binding does NOT do is theme every glyph via currentColor
 // (the claim this block used to make). The miniatures paint in their scenes'
 // own colours (the crayon faces, the Boing ball, the tour and `--rainbow-*`
-// tokens, the easing violet); only the lucide glyphs (Home, the tab icons)
-// follow ink.
+// tokens, the easing violet, Home's rainbow ellipsis); only the lucide tab
+// icons follow ink.
 //
 // THE INK POLICY (D-2-RESCOPED + RR-1 MISSED #2): no glyph declares its own
 // ink. Every glyph inherits `currentColor` from the control or row it sits in,
 // so on the trigger it rides the rest→hover ladder and the `--dock-fg-on-aurora`
-// flip its label already follows, and in the portalled menu the Home glyph
+// flip its label already follows, and in the portalled menu a row's glyph
 // takes its row's ink instead of the root-scope muted grey that read as a
-// DISABLED affordance beside five saturated icons. Every glyph is decorative
+// DISABLED affordance (the lucide Home glyph's defect beside five saturated
+// icons, until ESC-dock-3 gave Home a miniature). Every glyph is decorative
 // beside a text or aria-label name, so each is `aria-hidden` (RR-1 MISSED #3 —
 // the producer's own convention). The raster format and its non-integer scale
 // (D-4) are the asset owner's, not this file's.
@@ -114,11 +117,11 @@ const props = defineProps<{
      *  label (`<SelectValue>` off the Select's model), its glyph and the
      *  menu's checked row all read it. */
     currentSceneId: string;
-    scenes: { id: string; label: string; icon?: Component }[];
+    scenes: { id: string; label: string; icon: Component }[];
     /** R3-4 — the home descriptor's id AND label, single-sourced from the scene
      *  registry like the six rows beside it (the menu used to hard-code "Home"
      *  while the App passed only the id, so a rename desynced trigger and row). */
-    homeScene: { id: string; label: string };
+    homeScene: { id: string; label: string; icon: Component };
     isControlsPanelOpen: boolean;
     selectedControl?: string;
     /** The active scene's valid BUILT-IN editor surfaces (the DFA projection,
@@ -129,10 +132,14 @@ const props = defineProps<{
     extraControlTabs?: readonly ControlSurfaceTab[];
 }>();
 
-// The active scene's inline-SVG glyph for the trigger + collapsed pill; the
-// home descriptor (and any not-yet-resolved id) has no icon → <Home> fallback.
-const currentIcon = computed<Component | undefined>(
-    () => props.scenes.find((s) => s.id === props.currentSceneId)?.icon,
+// The shown scene's miniature for the trigger + collapsed pill, read off its
+// descriptor (home's included). `currentSceneId` is the App's RESOLVED scene,
+// always a descriptor this dock was given; an id outside them resolves to the
+// home descriptor, the scene the App falls back to.
+const currentIcon = computed<Component>(
+    () =>
+        props.scenes.find((s) => s.id === props.currentSceneId)?.icon ??
+        props.homeScene.icon,
 );
 
 // X.KF.W13V.s (OA-37/46/51) — the dock's editor surfaces are ITEMS, one per
@@ -431,8 +438,7 @@ watch(isSelectOpen, (open) => {
                                  (1lh) inside the producer's own trigger padding, so the two
                                  dock triggers stand one height. -->
                             <DockTrigger ref="sceneTrigger" for="select" aria-label="Scene" class="dock-label max-[399px]:min-h-[calc(1lh_+_2_*_var(--dock-trigger-padding-block))]">
-                                <component v-if="currentIcon" :is="currentIcon" live class="dock-glyph" aria-hidden="true" />
-                                <Home v-else class="dock-glyph" aria-hidden="true" />
+                                <component :is="currentIcon" live class="dock-glyph" aria-hidden="true" />
                                 <!-- X.KF.W13V.s (OA-40): below 400 px the four
                                      surface items leave no room for the
                                      scene's word beside its glyph, so the word
@@ -450,7 +456,7 @@ watch(isSelectOpen, (open) => {
                                     <SelectLabel class="sr-only">Scenes</SelectLabel>
                                     <SelectItem :value="homeScene.id">
                                         <span class="flex items-center gap-2">
-                                            <Home class="dock-glyph" aria-hidden="true" />
+                                            <component :is="homeScene.icon" class="dock-glyph" aria-hidden="true" />
                                             <span>{{ homeScene.label }}</span>
                                         </span>
                                     </SelectItem>
@@ -460,7 +466,7 @@ watch(isSelectOpen, (open) => {
                                         :value="scene.id"
                                     >
                                         <span class="flex items-center gap-2">
-                                            <component v-if="scene.icon" :is="scene.icon" class="dock-glyph" aria-hidden="true" />
+                                            <component :is="scene.icon" class="dock-glyph" aria-hidden="true" />
                                             <span>{{ scene.label }}</span>
                                         </span>
                                     </SelectItem>
@@ -558,8 +564,7 @@ watch(isSelectOpen, (open) => {
                         aria-label="Scene"
                         @focus="onCollapsedFocus"
                     >
-                        <component v-if="currentIcon" :is="currentIcon" live class="dock-glyph" aria-hidden="true" />
-                        <Home v-else class="dock-glyph" aria-hidden="true" />
+                        <component :is="currentIcon" live class="dock-glyph" aria-hidden="true" />
                     </Button>
                 </template>
             </GlassDock>
