@@ -291,14 +291,19 @@ watch(
    against 406). The pane's own inline size (this sidebar is its inline-size
    container) now picks the budget: below 24rem it counts the wrapped rows
    (28.5rem). The floor drops to 9rem, so the cap, not the floor, binds at the
-   common laptop heights (1280x760: a ~163 px plot, no scroll). */
+   common laptop heights (1280x760: a ~163 px plot, no scroll).
+   X-DS pass 10 (KF-C10-02) — the transport's scrub gained its labelled time
+   line (label + readout over the rail, the param-row idiom), so the chrome
+   under the plot grows by that line: 25.5 → 27.5rem, 28.5 → 30.5rem, and
+   the floor drops 9 → 8rem, because at 1280x760 and 1280x800 the 9rem floor
+   bound and the surface scrolled by 5 and 10 px. */
 @media (min-width: 1024px) {
     .easing-sidebar {
-        --picker-cap: max(9rem, calc(var(--rail-block, 100dvh) - 25.5rem));
+        --picker-cap: max(8rem, calc(var(--rail-block, 100dvh) - 27.5rem));
     }
     @container (inline-size < 24rem) {
         .easing-sidebar > .panel-content {
-            --picker-cap: max(9rem, calc(var(--rail-block, 100dvh) - 28.5rem));
+            --picker-cap: max(8rem, calc(var(--rail-block, 100dvh) - 30.5rem));
         }
     }
     .easing-sidebar :deep([data-slot="easing-picker"] > :has(> [data-slot="easing-curve"])) {

@@ -153,6 +153,16 @@
     }
 }
 
+/* button-text-flush — X-DS pass 10 (KF-C10-03): a quiet Button that continues
+   a TEXT column hangs its own inline padding and its 1px edge into the gutter,
+   so its glyph lands on the column's text edge (the ribbon row's KF-C6-01 rule,
+   stated once). The expression is glass's own `.button` padding-inline,
+   resolved on the button from its `--button-size`; glass's Button is placed,
+   never restyled. A utility, so a call site can scope it (`lg:`). */
+@utility button-text-flush {
+    margin-inline-start: calc(-1 * (var(--button-size) / 2 - var(--space-residue)) - 1px);
+}
+
 /* ppmycota-stroke — the easing-glyph stroke: host-page --ppmycota-primary when embedded, else --foreground. */
 @utility ppmycota-stroke {
     stroke: var(--ppmycota-primary, var(--foreground));

@@ -149,11 +149,14 @@
                  glyph rides inside it, and pressed = paused. It takes pointer
                  input: the band is ink (`pointer-events: none`, inherited from
                  the shell's start-screen wrapper), so the one control in it
-                 re-enables its own hit-testing (the TD-36 dock idiom). -->
+                 re-enables its own hit-testing (the TD-36 dock idiom).
+                 X-DS pass 10 (KF-C10-03) — on the desktop's left-aligned column
+                 the glyph lands on the deck's text edge (`button-text-flush`);
+                 below lg the column is centred, so it stays centred. -->
             <Button
                 size="sm"
                 emphasis="quiet"
-                class="hero-motion-toggle pointer-events-auto"
+                class="hero-motion-toggle pointer-events-auto lg:button-text-flush"
                 aria-label="Pause the title animation"
                 :aria-pressed="wavePaused"
                 @click="wavePaused = !wavePaused"

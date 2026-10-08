@@ -73,6 +73,13 @@
     overflow-wrap: break-word;
     text-wrap: balance;
 }
+/* X-DS pass 10 (KF-C10-06) — the argument list is ONE atomic inline: it drops
+   whole under `fn(` when the line cannot hold the call, and breaks inside
+   itself (at its comma-spaces, balanced) only when it cannot fit a line alone. */
+.literal-args {
+    display: inline-block;
+    max-inline-size: 100%;
+}
 /* The two-rule pair that stood here (the easing literal's own copy-control
    class and its hover) is DELETED — routed to this unit by the S-7 reshell that
    orphaned it, W6-I §4.1. It sized and inked a copy

@@ -1,6 +1,10 @@
 <template>
     <!-- The STAGE-CARD register: a standard glass `<Card>` plate, shadow forked
-         off, `max-w-3xl` as the reading measure.
+         off. X-DS pass 10 (KF-C10-01) — the title and the artifact row span the
+         plate from its ONE inset, as the other four stages' do: their
+         `max-w-3xl` cap, centred, set them 2 px in from the inset on a 814 px
+         plate (and further on a wider one). The stage and the caption are
+         centred, so their cap draws nothing and stays.
          KF-SST-25 — `tier="resting"` is reached through Card's `material`
          default and Surface's private material→tier map, which is what stamps
          `data-tier="resting"`; it is NOT a prop this element passes. -->
@@ -12,7 +16,7 @@
              the header and DOWN under the toggle, and the artifact and caption
              were clipped under the sheet's peek. `safe center` keeps a column
              taller than the plate from being centred off its top edge. -->
-        <div class="entry-body flex h-full w-full flex-col items-center gap-5 overflow-y-auto px-6 py-5 lg:px-8">
+        <div class="entry-body flex h-full w-full flex-col items-center gap-5 overflow-y-auto">
             <!-- KF-SST-28/-16 — the Card header family; `CardTitle`'s
                  `overflow-wrap: anywhere` is why the title needs no `truncate`.
                  UIA-KF-097 — the header carries the title alone: the emitter is
@@ -22,7 +26,7 @@
                  header's one-column grid). -->
             <SceneStageHeader
                 title="@starting-style"
-                class="grid w-full max-w-3xl shrink-0 items-center"
+                class="grid w-full shrink-0 items-center"
                 id-class="min-w-0"
             />
 
@@ -78,11 +82,16 @@
                  UIA-KF-097 — secondary: folded behind a disclosure (it was an
                  always-open 256 px block of numeric stops), with Copy beside the
                  trigger so the artifact is copyable folded or open. -->
-            <div class="w-full max-w-3xl shrink-0">
+            <div class="w-full shrink-0">
                 <Collapsible v-if="artifact.kind === 'ready'" v-model:open="artifactOpen">
-                    <div class="flex items-center justify-between gap-2">
+                    <!-- X-DS pass 10 (KF-C10-04) — the copy control TRAILS the
+                         trigger it copies (EasingTarget's literal + CopyButton
+                         pair); `justify-between` threw it ~530 px to the plate's
+                         far edge. KF-C10-03 — the trigger's chevron lands on the
+                         stage column's text edge (`button-text-flush`). -->
+                    <div class="flex items-center justify-start gap-2">
                         <CollapsibleTrigger as-child>
-                            <Button emphasis="quiet" size="sm" class="artifact-trigger">
+                            <Button emphasis="quiet" size="sm" class="artifact-trigger button-text-flush">
                                 <ChevronRight class="artifact-chevron size-4" aria-hidden="true" />
                                 <span :id="labelId" class="whitespace-nowrap">compileToEntry() CSS</span>
                             </Button>
@@ -285,6 +294,11 @@ const artifact = computed<ArtifactState>(() => {
    top edge instead of being centred off it (UIA-KF-037). */
 .entry-body {
     justify-content: safe center;
+    /* X-DS pass 10 (KF-C10-01) — the fifth stage reads the ONE stage-plate
+       inset (layout.css, KF-C9-04); its own px-6 py-5 lg:px-8 set the title
+       one gutter further in than Easing, Spring, Sequence and Square. */
+    padding-inline: var(--stage-plate-pad-inline);
+    padding-block: var(--stage-plate-pad-block);
 }
 
 /* The stage: the card and its slot share ONE grid cell (KFA-158 · UIA-KF-208).

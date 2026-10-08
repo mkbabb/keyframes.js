@@ -252,7 +252,10 @@
                  X-DS pass 9 (KF-C9-09) — the row WRAPS: the caption claims a
                  20 rem basis, so on a narrow plate (390) Re-seat drops under it,
                  start-aligned, and the caption keeps the full measure (it was
-                 squeezed to ~180 px and five lines beside the verb's column). -->
+                 squeezed to ~180 px and five lines beside the verb's column).
+                 X-DS pass 10 (KF-C10-03) — wrapped under the caption at 390,
+                 Re-seat's glyph lands on the caption's text edge
+                 (`button-text-flush`). -->
             <div
                 class="spring-rail-verbs flex flex-wrap items-baseline gap-x-3 gap-y-1"
                 :class="{ 'spring-rail-verbs--veiled': demo.derbyActive.value }"
@@ -268,7 +271,7 @@
                     ball on the curve below springs to it. Tune response and damping in
                     the Physics pane.
                 </p>
-                <Button emphasis="quiet" size="sm" class="spring-reseat shrink-0" @click="demo.toggleTarget()">
+                <Button emphasis="quiet" size="sm" @click="demo.toggleTarget()" class="spring-reseat button-text-flush shrink-0">
                     <Shuffle aria-hidden="true" />
                     <span>Re-seat</span>
                 </Button>

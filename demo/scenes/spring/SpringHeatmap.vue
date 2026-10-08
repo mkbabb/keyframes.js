@@ -91,9 +91,13 @@
                 <span class="spring-heatmap-regime spring-heatmap-regime--over text-caption text-muted-foreground" aria-hidden="true">
                     overdamped · no overshoot
                 </span>
+                <!-- X-DS pass 10 (KF-C10-05b) — the ringing regime is named IN
+                     its field (right, at the underdamped band's middle), not
+                     under the rule, where it sat beside gentle's pip on ζ = 1
+                     and read as a second name for that dot. -->
                 <span
                     class="spring-heatmap-regime spring-heatmap-regime--under text-caption text-muted-foreground"
-                    :style="{ top: CRITICAL_TOP }"
+                    :style="{ top: UNDER_TAG_TOP }"
                     aria-hidden="true"
                 >
                     underdamped · rings
@@ -289,6 +293,11 @@ export const PRESET_PIPS = SPRING_PRESETS.map((preset) => ({
 
 /** ζ = 1 — the critical line's y, from the top. */
 export const CRITICAL_TOP = `${((1 - axisFraction(1, DAMPING_AXIS)) * 100).toFixed(3)}%`;
+
+/** X-DS pass 10 (KF-C10-05b) — the ringing regime's tag: the middle of the
+ *  underdamped band (between ζ = 1 and the axis floor), a region's centre,
+ *  clear of the rule and of gentle's pip on it. */
+export const UNDER_TAG_TOP = `${((1 - axisFraction(1, DAMPING_AXIS) / 2) * 100).toFixed(3)}%`;
 
 const ZETA_TICKS = [
     { label: DAMPING_AXIS.max.toFixed(1), top: "0%" },
@@ -586,8 +595,10 @@ function onKeydown(e: KeyboardEvent): void {
     line-height: 1;
     white-space: nowrap;
 }
-/* Top-left names the calm end; the ringing end is named right under the line,
-   right-aligned — the pips' names sit ABOVE their dots, so the two never meet. */
+/* Top-left names the calm end; the ringing end is named right-aligned at the
+   middle of its band (X-DS pass 10, KF-C10-05b: it was anchored right under
+   the critical line, beside gentle's pip). Each tag labels a REGION, on the
+   side no underdamped preset occupies (their responses sit left of 0.6 s). */
 .spring-heatmap-regime {
     position: absolute;
     white-space: nowrap;
@@ -600,7 +611,7 @@ function onKeydown(e: KeyboardEvent): void {
 }
 .spring-heatmap-regime--under {
     right: 0.5rem;
-    margin-top: 0.3125rem;
+    transform: translateY(-50%);
 }
 
 /* ── The preset pips — a hollow dot on the point, the name above it. ── */
@@ -613,10 +624,6 @@ function onKeydown(e: KeyboardEvent): void {
     border: 1.5px solid var(--foreground);
     background: var(--background);
     pointer-events: none;
-}
-/* UIA-KF-308 — the current preset's name steps aside: the marker sits on its pip. */
-.spring-heatmap-pip.is-current > span {
-    visibility: hidden;
 }
 .spring-heatmap-pip > span {
     position: absolute;
@@ -633,6 +640,17 @@ function onKeydown(e: KeyboardEvent): void {
     top: 100%;
     margin-bottom: 0;
     margin-top: 0.25rem;
+}
+/* X-DS pass 10 (KF-C10-05a) — the current preset KEEPS its name, in the
+   foreground ink every pip name wears (UIA-KF-308 hid it, so the selected
+   point was the one unnamed preset). The violet marker (0.9rem) sits on the
+   pip, so the name clears the marker's radius instead of the pip's. */
+.spring-heatmap-pip.is-current > span {
+    margin-bottom: 0.5rem;
+}
+.spring-heatmap-pip.is-current.is-under > span {
+    margin-bottom: 0;
+    margin-top: 0.5rem;
 }
 
 /* ── The hover cell — the lattice, surfaced. ── */

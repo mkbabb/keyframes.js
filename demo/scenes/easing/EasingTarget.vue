@@ -45,7 +45,7 @@
                         v-if="literal !== demo.currentEasingName.value"
                         class="literal-text text-mono-small"
                         data-readout="primary"
-                        >{{ literal }}</code
+                        >{{ literalCall.head }}<span class="literal-args">{{ literalCall.args }}</span></code
                     >
                     <!-- S-7 (W6-I): the copy control is a glass Button that
                          owns its box and its ink. The bespoke copy-control
@@ -140,6 +140,16 @@ const literal = computed<string>(() => {
     // An engine-named curve (ease-in-out-sine, ease-in-bounce, step-start …):
     // the name IS the literal — value.js round-trips it by registry lookup.
     return name;
+});
+
+/** X-DS pass 10 (KF-C10-06) — the literal as `fn(` + its argument list, so the
+ *  list wraps as ONE unit (an atomic inline, EasingTarget.css): at 390 the
+ *  break falls after `cubic-bezier(`, never at an arbitrary comma inside it. */
+const literalCall = computed(() => {
+    const open = literal.value.indexOf("(");
+    return open < 0
+        ? { head: literal.value, args: "" }
+        : { head: literal.value.slice(0, open + 1), args: literal.value.slice(open + 1) };
 });
 </script>
 

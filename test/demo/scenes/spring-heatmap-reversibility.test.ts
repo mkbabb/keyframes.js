@@ -312,7 +312,11 @@ describe("X.KF.W11.f (5a) — the heatmap mounts on two models and labels its ow
             expect(wrapper.get(".spring-heatmap-regime--over").text()).toContain("overdamped");
             const under = wrapper.get(".spring-heatmap-regime--under");
             expect(under.text()).toContain("underdamped");
-            expect(under.attributes("style")).toContain(`top: ${y.toFixed(3)}%`);
+            // X-DS pass 10 (KF-C10-05b) — the ringing tag sits IN its field, at
+            // the underdamped band's middle, no longer pinned under the rule
+            // beside gentle's pip on ζ = 1.
+            const mid = (1 - (1 - y / 100) / 2) * 100;
+            expect(under.attributes("style")).toContain(`top: ${mid.toFixed(3)}%`);
             // the horizontal legend row that mis-labelled the axes is gone
             expect(wrapper.text()).not.toContain("← underdamped");
             expect(wrapper.text()).not.toContain("overdamped →");

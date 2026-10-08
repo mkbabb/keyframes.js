@@ -19,49 +19,61 @@
              capture — a mouse/pen has no page-scroll ambiguity, and a touch's
              first press is the PRODUCER's gate to accept or reject on its own
              element; the seam never second-guesses it. -->
-        <Tooltip>
-            <TooltipTrigger as-child>
-                <div class="scrub-rail" @pointerdown.capture="onScrubPointerDown">
-                    <!-- D-1 / C-3 / C-4 — cured ON the Slider (PR-CAUTION): the
-                         accessible name rides the producer's aria-label forward
-                         to the thumb; the arrow step is duration-relative (1 %
-                         per press, ×10 on Page/Shift via reka), never reka's
-                         1 ms default over a millisecond rail; and the producer's
-                         keyboard-inclusive `valueCommit` pairs a keyboard scrub
-                         with the pause/resume lifecycle the pointer seam already
-                         owns. -->
-                    <!-- D-2 / KFA-61 — a VISIBLE playhead, on the primitive's
-                         own timeline recipe: `scrubber` (glass's continuous-
-                         cylinder slider — the elapsed range IS the fill, its
-                         leading edge IS the handle). `spectrum` is the colour-
-                         picker recipe: a transparent range over a `--secondary`
-                         groove and a hollow thumb, which read as a DISABLED rail
-                         at rest, playing and scrubbing (the owner's "timeline is
-                         always greyed out"). The paint stays the PRODUCER's (OA-8):
-                         no local thumb/track/range overrides. -->
-                    <!-- X-DS pass 8 (KF-C8-02) — the hit area grows on the BLOCK
-                         axis only. All-round p-2 also padded the inline axis, so
-                         the rail ran 8 px inside the label/field column KF-C6-01
-                         aligned; it now spans the column edge to edge. -->
-                    <Slider
-                        class="py-2"
-                        variant="scrubber"
-                        aria-label="Scrub animation timeline"
-                        :min="0"
-                        :max="effectiveDuration"
-                        :step="scrubStep"
-                        :aria-describedby="scrubHintId"
-                        :model-value="[railT]"
-                        @update:model-value="onSliderInput"
-                        @value-commit="onSliderCommit"
-                    />
-                    <span :id="scrubHintId" class="sr-only">
-                        Drag, or use the arrow keys, to scrub the animation timeline.
-                    </span>
-                </div>
-            </TooltipTrigger>
-            <TooltipContent>Scrub animation timeline</TooltipContent>
-        </Tooltip>
+        <!-- X-DS pass 10 (KF-C10-02) — TIME is a labelled row, in the same
+             PARAM-ROW idiom the parameters above it wear (design-idioms.css):
+             the label "time" and its live readout on one mono line, the rail
+             beneath. It drew in the parameters' exact register with neither,
+             so at 0 it read as a second, empty, unlabelled slider rather than
+             the animation's playhead. The rail keeps its own specific name
+             (aria-label); the readout is the sighted twin of the value text. -->
+        <div class="param-row">
+            <LabeledField label="time" :control-labelable="false">
+                <Tooltip>
+                    <TooltipTrigger as-child>
+                        <div class="scrub-rail" @pointerdown.capture="onScrubPointerDown">
+                            <!-- D-1 / C-3 / C-4 — cured ON the Slider (PR-CAUTION): the
+                                 accessible name rides the producer's aria-label forward
+                                 to the thumb; the arrow step is duration-relative (1 %
+                                 per press, ×10 on Page/Shift via reka), never reka's
+                                 1 ms default over a millisecond rail; and the producer's
+                                 keyboard-inclusive `valueCommit` pairs a keyboard scrub
+                                 with the pause/resume lifecycle the pointer seam already
+                                 owns. -->
+                            <!-- D-2 / KFA-61 — a VISIBLE playhead, on the primitive's
+                                 own timeline recipe: `scrubber` (glass's continuous-
+                                 cylinder slider — the elapsed range IS the fill, its
+                                 leading edge IS the handle). `spectrum` is the colour-
+                                 picker recipe: a transparent range over a `--secondary`
+                                 groove and a hollow thumb, which read as a DISABLED rail
+                                 at rest, playing and scrubbing (the owner's "timeline is
+                                 always greyed out"). The paint stays the PRODUCER's (OA-8):
+                                 no local thumb/track/range overrides. -->
+                            <!-- X-DS pass 8 (KF-C8-02) — the hit area grows on the BLOCK
+                                 axis only. All-round p-2 also padded the inline axis, so
+                                 the rail ran 8 px inside the label/field column KF-C6-01
+                                 aligned; it now spans the column edge to edge. -->
+                            <Slider
+                                class="py-2"
+                                variant="scrubber"
+                                aria-label="Scrub animation timeline"
+                                :min="0"
+                                :max="effectiveDuration"
+                                :step="scrubStep"
+                                :aria-describedby="scrubHintId"
+                                :model-value="[railT]"
+                                @update:model-value="onSliderInput"
+                                @value-commit="onSliderCommit"
+                            />
+                            <span :id="scrubHintId" class="sr-only">
+                                Drag, or use the arrow keys, to scrub the animation timeline.
+                            </span>
+                        </div>
+                    </TooltipTrigger>
+                    <TooltipContent>Scrub animation timeline</TooltipContent>
+                </Tooltip>
+            </LabeledField>
+            <output class="param-value" aria-hidden="true">{{ timeReadout }}</output>
+        </div>
 
         <!-- UIA-KF-051 · UIA-KF-155 (X.KF.W13X.transport) — ONE TRANSPORT. The
              ribbon's own Play/Pause cell is DELETED: it drove the very state
@@ -183,6 +195,7 @@ import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 import { Button, Slider } from "@mkbabb/glass-ui";
 import { useDragScrub } from "@composables/useDragScrub";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@mkbabb/glass-ui/tooltip";
+import { LabeledField } from "@mkbabb/glass-ui/labeled-field";
 import { ArrowLeftRight, Eye, EyeOff } from "@lucide/vue";
 import AnimationVisualizer from "./AnimationVisualizer.vue";
 import PreviewToggle, { PREVIEW_EASE } from "./PreviewToggle.vue";
@@ -299,6 +312,16 @@ const { dragging: isDragging, onPointerDown: onScrubPointerDown } = useDragScrub
  *  release the rail returns to the read-back, which by then holds the seat. */
 const gestureT = ref<EffectiveMs | null>(null);
 const railT = computed<EffectiveMs>(() => gestureT.value ?? currentT);
+
+/** X-DS pass 10 (KF-C10-02) — the time row's readout: elapsed over the rail's
+ *  ONE duration read, in ms; a normalized source (no declared scale) reads as
+ *  a percentage, since its rail is [0, 1] and not milliseconds. */
+const timeReadout = computed(() => {
+    const scaled = duration ?? animation?.options.duration ?? source?.duration;
+    return scaled != null && scaled > 0
+        ? `${Math.round(railT.value)} / ${Math.round(effectiveDuration.value)} ms`
+        : `${Math.round(railT.value * 100)} %`;
+});
 
 /** KF-P1-01 — the eye is offered where there is a preview to hide AND a mount
  *  that owns its state (an unbound harness mount offers none). */
