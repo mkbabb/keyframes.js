@@ -56,7 +56,10 @@
         <span class="text-caption text-muted-foreground"
             >spring-chased &middot; drag the box, or press Play to tour it</span
         >
-        <span class="text-mono-caption text-muted-foreground tabular-nums">x &middot; y &isin; [-1, 1]</span>
+        <!-- X-DS pass 9 (KF-C9-01) — the case-preserving mono rung, so the
+             legend's x · y match the header readout's (an eyebrow rung printed
+             'X · Y'). -->
+        <span class="text-mono-small text-muted-foreground tabular-nums">x &middot; y &isin; [-1, 1]</span>
         <!-- D-12/D-17 — "double-CLICK" named a mouse-only verb for a recogniser
              (`useDoubleTap`) that exists BECAUSE dblclick was touch-unreachable.
              C-6 — and each hint now has its own flag: one `tumbleHintShown`
@@ -310,8 +313,9 @@ const tetherPath = computed(() => {
    chrome around the centred subject — the instrument-plate composition. */
 .square-telemetry {
     position: absolute;
-    top: 1rem;
-    left: 1.25rem;
+    /* X-DS pass 9 (KF-C9-04) — the one stage plate inset (layout.css). */
+    top: var(--stage-plate-pad-block);
+    left: var(--stage-plate-pad-inline);
     display: flex;
     flex-direction: column;
     gap: 0.25rem;

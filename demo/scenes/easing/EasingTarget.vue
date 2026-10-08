@@ -12,7 +12,7 @@
     <Card
         :shadow="false"
         class="easing-target easing-gallery flex h-full w-full flex-col gap-4
-            overflow-hidden px-4 py-4 lg:px-6"
+            overflow-hidden px-(--stage-plate-pad-inline) py-(--stage-plate-pad-block)"
     >
         <!-- Header: the selected specimen PROMOTED. Left — the curve name at
              the Instrument-Serif display rung + its COMPLETE re-parseable

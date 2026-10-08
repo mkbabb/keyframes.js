@@ -43,58 +43,20 @@
        this one) died at `.b`; both heights are now the producer's one. */
     font-weight: 500;
 }
-/* D-10 (X.KF.W13.e) — the accent CTA is a SOLID plate, not a 20% wash. Accent
-   ink on its own accent wash measured 3.58 / 3.70 / 4.02:1 against the 4.5:1
-   floor (the large-text exemption is inapplicable at this rung) and got WORSE
-   on hover — 32% wash under the same ink. The cure pair is the demo's own,
-   declared at `style.css` (`--accent-kf` … `--accent-kf-foreground`, the latter
-   documented there as "text/glyph ON the accent") and already consumed by this
-   component's own ball 64px below the failing CTA (`bg-accent-kf
-   text-accent-kf-foreground`, AnimationVisualizer). `--color-progress` IS
-   `--accent-kf` (style.css `:215`), so the ONE motion-color identity T.D7
-   re-voiced is unchanged — what dies is the composite, not the hue.
-   N-1 (X.KF.W13.e) — the `border-color` declaration and its transition entry
-   are DELETED as dead ink: `.button { border: 0 }` (glass-ui `@layer
-   components`, styles import #24) beats `.glass-wash { border: 1px solid … }`
-   (import #4) on source order within the one layer, and `tone` defaults to
-   "neutral" so the tone-gated border never engages. These buttons paint no
-   border box in any mode; a border, if ever wanted, is authored on
-   `.btn-playback` directly, never assumed from `.glass-wash`. */
-.btn-playback-accent {
-    background: var(--accent-kf);
-    color: var(--accent-kf-foreground);
-    transition: background var(--duration-fast, 150ms) var(--ease-standard);
-}
-/* ── K.W4 F3 → T.D7 — the accent hover keeps its LIFT shape, re-voiced onto the
-   ONE motion-color authority (--color-progress → the OD-6 violet). The K-era
-   comment bound this hover to the red-dashed family; VERDICT #16 killed the
-   latent-red theme, so the hover now agrees with the same violet the
-   AnimationVisualizer ball/dashed-twin draws. X-DS pass 1 (KF-P1-10): the
-   tinted glow ring and the 1px rise are DELETED — the fill step is the hover.
-   D-10 + N-1 (X.KF.W13.e) — the deeper fill is now the `--accent-kf-strong`
-   rung (declared "hover/active deepen (light) / lift (dark)") under the SAME
-   `--accent-kf-foreground` ink, so hover RAISES the label's contrast instead of
-   lowering it, which was D-10's sharpest limb. The "stronger border" this
-   comment used to promise never painted: it is deleted with the rest of N-1's
-   dead ink, narration and declaration together. */
-.btn-playback-accent:hover {
-    background: var(--accent-kf-strong);
-}
-
-/* ── K.W4 F3 — the SHARED transport hover (Reverse + any non-accent playback
-   button) lifts toward the accent family too, so no transport button hovers to
-   the dull default. A subtle accent-tinted plate, the calmer sibling of the
-   accent CTA's hover (the CTA is louder; the secondary buttons get a quieter
-   accent wash). `:not(.btn-playback-accent)` keeps the louder accent hover
-   above winning for the Play CTA. N-1 (X.KF.W13.e) — the "accent border" this
-   comment promised, its hover declaration and its transition entry are all
-   DELETED: there is no border box on a `.button` to paint (see the accent
-   rule's N-1 block above). X-DS pass 1 (KF-P1-10): the tinted glow and the
+/* X-DS pass 9 (KF-C9-03) — `.btn-playback-accent` is DELETED. Its last
+   consumer was the Spring Entry view's full-width solid-violet "Dismiss" bar,
+   which repeated the verb the stage already anchors under its card; that bar
+   is gone, so the solid accent CTA skin had no subject left. */
+/* ── K.W4 F3 — the SHARED transport hover lifts toward the accent family, so
+   no transport button hovers to the dull default: a subtle accent-tinted
+   wash. N-1 (X.KF.W13.e) — the "accent border" this comment promised, its
+   hover declaration and its transition entry are all DELETED: there is no
+   border box on a glass `.button` to paint (`.button { border: 0 }`). X-DS pass 1 (KF-P1-10): the tinted glow and the
    1px rise are DELETED, so the 12% wash is the whole hover. */
-.btn-playback:not(.btn-playback-accent) {
+.btn-playback {
     transition: background var(--duration-fast, 150ms) var(--ease-standard);
 }
-.btn-playback:not(.btn-playback-accent):hover {
+.btn-playback:hover {
     background: color-mix(in srgb, var(--color-progress) 12%, transparent);
 }
 

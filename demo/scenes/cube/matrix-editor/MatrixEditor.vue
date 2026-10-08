@@ -1,7 +1,8 @@
 <template>
     <!-- X-DS pass 1, C1 (KF-C1-07) — no card of its own: the pane host draws the one frame (ControlsPaneWrapper), so this surface is flat inside it. -->
     <div class="w-full">
-        <div class="panel-content px-4 py-3">
+        <!-- X-DS pass 9 (KF-C9-07) — the pane's one inset (`--configurator-pad-inline`). -->
+        <div class="panel-content px-(--configurator-pad-inline) py-3">
             <!-- X.KF.W13X.matrix (UIA-KF-161 · UIA-KF-267) — the surface is ONE
                  titled glass section, the Spring facet's anatomy: the title names
                  what the panel edits (the facet had no heading and an unnamed

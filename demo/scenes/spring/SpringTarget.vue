@@ -23,7 +23,7 @@
          height the title sat flush against the card's top border. -->
     <Card
         :shadow="false"
-        class="spring-target relative flex flex-col items-center gap-8 h-full w-full px-6 lg:px-8 py-4 overflow-x-hidden overflow-y-auto"
+        class="spring-target relative flex flex-col items-center gap-8 h-full w-full px-(--stage-plate-pad-inline) py-(--stage-plate-pad-block) overflow-x-hidden overflow-y-auto"
         :class="{ 'spring-target--live': isLive, 'spring-target--sweeping': demo.isPlaying.value }"
     >
         <!-- Header readout.
@@ -59,7 +59,7 @@
         <SceneStageHeader
             title="Spring"
             :status="stateLabel"
-            class="spring-header flex w-full max-w-3xl flex-wrap items-end justify-between gap-3 gap-y-2 shrink-0"
+            class="spring-header flex w-full flex-wrap items-end justify-between gap-3 gap-y-2 shrink-0"
             title-class="whitespace-nowrap leading-none"
             id-class="flex flex-col gap-1 min-w-0"
             aside-class="flex flex-col items-end gap-1 shrink-0"
@@ -248,9 +248,13 @@
                  is the rail's sibling, so its width IS the rail's). It was a
                  centred two-line paragraph at the small rung, near the weight
                  of the "Sampled curve" heading, with Re-seat floating centred
-                 below; the verb now trails on the caption's row. -->
+                 below; the verb now trails on the caption's row.
+                 X-DS pass 9 (KF-C9-09) — the row WRAPS: the caption claims a
+                 20 rem basis, so on a narrow plate (390) Re-seat drops under it,
+                 start-aligned, and the caption keeps the full measure (it was
+                 squeezed to ~180 px and five lines beside the verb's column). -->
             <div
-                class="spring-rail-verbs flex items-baseline gap-x-3"
+                class="spring-rail-verbs flex flex-wrap items-baseline gap-x-3 gap-y-1"
                 :class="{ 'spring-rail-verbs--veiled': demo.derbyActive.value }"
             >
                 <!-- X-DS pass 5 (KF-C5-11) — the copy names what is WHERE.
@@ -994,6 +998,11 @@ const onKeydown = (e: KeyboardEvent) => {
 /* KFA-40 — the hint + Re-seat row steps back under the derby's legend. */
 .spring-rail-verbs {
     transition: opacity var(--duration-fast) ease;
+}
+/* X-DS pass 9 (KF-C9-09) — the caption claims a 20 rem basis, so the wrapping
+   row drops Re-seat under it on a narrow plate. */
+.spring-rail-verbs > p {
+    flex-basis: 20rem;
 }
 .spring-rail-verbs--veiled {
     opacity: 0;

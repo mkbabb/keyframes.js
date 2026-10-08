@@ -129,8 +129,7 @@ generated `text-gold`; the demo's copies, its dead 44px touch-floor class and
 its rule-less button utility are retired — the KF.W6 disposition table records
 each by name.) The tab
 sheet `tab-idiom.css` is retired (its one panel-enter rule moved into
-design-idioms.css on `data-surface-panel`); `btn-playback` and
-`btn-playback-accent` are the transport grammar. These are cross-component
+design-idioms.css on `data-surface-panel`); `btn-playback` is the transport grammar. These are cross-component
 recipes, so they remain central rather than being copied into SFCs.
 
 The migration rows are intentionally honest: upstreaming the tab variants and

@@ -9,7 +9,10 @@
     <div>
         <!-- X-DS pass 1, C1 (KF-C1-07) — no card of its own: the pane host draws the one frame (ControlsPaneWrapper). -->
         <div class="w-full">
-            <div class="flex flex-col px-4 py-3">
+            <!-- X-DS pass 9 (KF-C9-07) — ONE pane inset: the column reads glass's
+                 `--configurator-pad-inline`, the inset the scene facets'
+                 ConfiguratorLayers set (it was `px-4`, a 4 px seam beside them). -->
+            <div class="flex flex-col px-(--configurator-pad-inline) py-3">
                 <!-- Each pane in its own collapsible row. KF-CO-5 ≡ KF-TFP-7 +
                      KF-CO-46 — a COLLAPSED row is `inert` (out of the Tab order,
                      the pointer and the accessibility tree in one stroke). -->
@@ -76,8 +79,12 @@
                                 @click="openLayer"
                             >
                                 <span>layer</span>
+                                <!-- X-DS pass 9 (KF-C9-08) — the row always states
+                                     where it leads: an unset op is the default
+                                     composite, "replace" (it fell to "", a bare
+                                     chevron over an empty value column). -->
                                 <span class="ms-auto min-w-0 truncate font-normal text-muted-foreground">{{
-                                    blendAvailable ? (layerConfig?.op ?? "") : "single-target only"
+                                    blendAvailable ? (layerConfig?.op ?? "replace") : "single-target only"
                                 }}</span>
                                 <ChevronRight class="icon-sm" />
                             </Button>

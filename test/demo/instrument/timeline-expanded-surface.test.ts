@@ -37,7 +37,8 @@ describe("UIA-KF-085 — the expanded timeline keeps its Card's material", () =>
             expect(card.classes()).not.toContain(stripped);
         }
         const content = card.get(".relative.flex.flex-col");
-        expect(content.classes()).toContain("p-4");
+        // X-DS pass 9 (KF-C9-07): the inline inset is the pane's one token.
+        expect(content.classes()).toEqual(expect.arrayContaining(["px-(--configurator-pad-inline)", "py-4"]));
         expect(content.classes()).not.toContain("px-0");
         w.unmount();
     });
@@ -49,7 +50,8 @@ describe("UIA-KF-085 — the expanded timeline keeps its Card's material", () =>
         const w = mountTimeline(false);
         expect(w.find(".cartoon-surface").exists()).toBe(false);
         const content = w.get(".relative.flex.flex-col");
-        expect(content.classes()).toContain("p-4");
+        // X-DS pass 9 (KF-C9-07): the inline inset is the pane's one token.
+        expect(content.classes()).toEqual(expect.arrayContaining(["px-(--configurator-pad-inline)", "py-4"]));
         w.unmount();
     });
 

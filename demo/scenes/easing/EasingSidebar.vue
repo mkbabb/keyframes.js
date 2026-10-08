@@ -283,9 +283,23 @@ watch(
    both reach the picker through its data-slot contract — layout only, no paint.
    With the strip on one line and no chip row, the measured chrome under the
    budget is 25.5rem (was 31.5rem with the three-line wrap). */
+/* X-DS pass 9 (KF-C9-10) — THE BUDGET FOLLOWS THE SURFACE, AT EVERY LAPTOP
+   HEIGHT. The 25.5rem chrome was measured at 1440x900, where the pane is
+   403 px wide and the control row holds one line. On a narrower pane (350 px
+   at 1280, 328 px at 1024) that row and the duration row wrap, and the chrome
+   under the plot grows by ~46 px, so the surface scrolled at 1280x760 (451
+   against 406). The pane's own inline size (this sidebar is its inline-size
+   container) now picks the budget: below 24rem it counts the wrapped rows
+   (28.5rem). The floor drops to 9rem, so the cap, not the floor, binds at the
+   common laptop heights (1280x760: a ~163 px plot, no scroll). */
 @media (min-width: 1024px) {
     .easing-sidebar {
-        --picker-cap: max(11rem, calc(var(--rail-block, 100dvh) - 25.5rem));
+        --picker-cap: max(9rem, calc(var(--rail-block, 100dvh) - 25.5rem));
+    }
+    @container (inline-size < 24rem) {
+        .easing-sidebar > .panel-content {
+            --picker-cap: max(9rem, calc(var(--rail-block, 100dvh) - 28.5rem));
+        }
     }
     .easing-sidebar :deep([data-slot="easing-picker"] > :has(> [data-slot="easing-curve"])) {
         inline-size: min(100%, var(--picker-cap));

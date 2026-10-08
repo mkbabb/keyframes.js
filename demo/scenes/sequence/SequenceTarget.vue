@@ -46,7 +46,7 @@
             <!-- X.KF.W13X.sections (A2-KE-L1-8) — the ONE SceneStageHeader. -->
             <SceneStageHeader
                 title="Sequence"
-                class="seq-header flex flex-nowrap items-center justify-between gap-3 px-4 py-2.5 shrink-0"
+                class="seq-header flex flex-nowrap items-center justify-between gap-3 px-(--stage-plate-pad-inline) py-(--stage-plate-pad-block) shrink-0"
                 title-class="whitespace-nowrap m-0"
                 id-class="flex flex-nowrap items-baseline gap-3 min-w-0"
             >

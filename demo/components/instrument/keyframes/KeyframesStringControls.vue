@@ -28,8 +28,11 @@
                 @update:model-value="onEditorChange"
             >
                 <template #header>
-                    <header class="flex items-center justify-between gap-2 border-b border-border px-4 py-2">
-                        <h3 :id="headingId" class="text-subheading min-w-0 truncate">
+                    <!-- X-DS pass 9 (KF-C9-07) — the pane's one inset
+                         (`--configurator-pad-inline`) and one title rung (glass's
+                         configurator section label), as the scene facets. -->
+                    <header class="flex items-center justify-between gap-2 border-b border-border px-(--configurator-pad-inline) py-2">
+                        <h3 :id="headingId" class="configurator-section-label min-w-0 truncate">
                             {{ animationName }}
                         </h3>
                         <span

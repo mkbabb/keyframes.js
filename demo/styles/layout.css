@@ -73,6 +73,14 @@
        reserved the band DEPTH only and every full-height plate ran ~9px under
        the transport at 1440x900 and ~20px under the sheet lip at 390. */
     --transport-band: calc(var(--stage-bottom-inset) + var(--dock-margin));
+    /* X-DS pass 9 (KF-C9-04) — THE STAGE PLATE INSET: the one distance from a
+       stage plate's edge to its SceneStageHeader title. Each scene passed its
+       own (Easing 24, Spring 32, Sequence 16 x 10, Square 20 x 16), so the
+       display title jumped sideways and down between scenes. Every plate (or,
+       where the plate is full-bleed, its header) reads these two. The values
+       are Square's, the inset its absolutely-seated telemetry always had. */
+    --stage-plate-pad-inline: 1.25rem;
+    --stage-plate-pad-block: 1rem;
 
     /* The graph / stage-field substrate PITCHES: two-tier engineering-graph-paper
        (fine 1rem lines + 5rem majors). The line strengths (--graph-opacity /

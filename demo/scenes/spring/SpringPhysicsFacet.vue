@@ -116,13 +116,19 @@
                         :key="t.preset.name"
                         :value="t.preset.name"
                         :title="t.preset.blurb"
-                        class="preset-cell w-full min-w-0 flex-col items-start gap-0.5 px-3 py-2 font-medium leading-normal"
+                        class="preset-cell w-full min-w-0 flex-col items-start gap-0.5 px-3 py-2 text-start font-medium leading-normal"
                     >
                         <span class="text-small text-foreground capitalize">{{ t.preset.name }}</span>
                         <!-- X.KF.W13X.spring (A2-KE-L3-12) — the line breaks BETWEEN
                              its two quantities, never inside one: at a coarse phone the
-                             unbreakable 'r s · ζ z' ran into the tile's right edge. -->
-                        <span class="text-mono-caption text-muted-foreground tabular-nums"><span class="whitespace-nowrap">{{ t.preset.response }} s</span> · <span class="whitespace-nowrap">ζ {{ t.preset.dampingFraction }}</span></span>
+                             unbreakable 'r s · ζ z' ran into the tile's right edge.
+                             X-DS pass 9 (KF-C9-01) — `text-mono-small` is the
+                             case-preserving rung (StartingStyleTarget, KF-SST-5):
+                             `text-mono-caption` is an eyebrow (uppercase, caps
+                             tracking), which printed 's' as 'S' and ζ as Ζ and widened
+                             Snappy's line onto two. The tile is start-aligned (the
+                             producer item centres its text). -->
+                        <span class="text-mono-small text-muted-foreground tabular-nums"><span class="whitespace-nowrap">{{ t.preset.response }} s</span> · <span class="whitespace-nowrap">ζ {{ t.preset.dampingFraction }}</span></span>
                     </ToggleGroupItem>
                 </ToggleGroup>
             </ConfiguratorLayer>
@@ -227,12 +233,21 @@ const onPresetSelect = (
    rules out for a tile).
    X.KF.W13V.y (DESIGN-NOTE N-4; glass DESIGN.md:385-391) — a tile holds two
    lines, so it sits on the multi-line field rung, never the producer item's
-   stadium. */
+   stadium.
+   X-DS pass 9 (KF-C9-02) — the reset covered only the on and hover states, so
+   an OFF tile kept the producer item's plate (its control-surface fill and
+   edge insets) and out-weighed the selected one. Every tile now carries no
+   plate of its own: transparent on the card, a hairline `--border`. The
+   selected tile's weight is the violet authority (wash plus dashed outline,
+   U-K17). This resets the item's paint on this element; it touches no glass
+   lighting token (the tile axis is O-59, the plate's lighting O-87). */
 .preset-cell {
     border-radius: var(--radius-field);
     outline: 1px dashed transparent;
     outline-offset: -1px;
-    border-color: transparent;
+    border: 1px solid var(--border);
+    background: transparent;
+    box-shadow: none;
     transition:
         outline-color var(--duration-fast) ease,
         background-color var(--duration-fast) ease;

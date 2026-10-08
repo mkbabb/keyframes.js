@@ -13,7 +13,12 @@
         v-bind="props.expanded ? { tier: 'floating' } : {}"
         :class="['w-full overflow-visible', props.expanded ? 'cartoon-surface' : '']"
     >
-        <CardContent class="relative flex flex-col gap-3 p-4">
+        <!-- X-DS pass 9 (KF-C9-07) — the pane's ONE inset and ONE title rung:
+             the inline inset is glass's `--configurator-pad-inline` and the
+             title wears glass's configurator section label, as every scene
+             facet's ConfiguratorLayer does (16 px and `text-subheading` made a
+             second anatomy in the same pane slot). -->
+        <CardContent class="relative flex flex-col gap-3 px-(--configurator-pad-inline) py-4">
         <!-- Pane action buttons.
              D-6 + the wave's ONE min-block-size policy (D-8), both spent by
              deleting the same class attribute rather than by writing a second
@@ -100,7 +105,7 @@
              over an empty left half, so the cluster floated and the pane never
              named itself. -->
         <div class="flex items-center gap-1">
-            <h3 class="text-subheading mr-auto min-w-0 truncate">Timeline</h3>
+            <h3 class="configurator-section-label mr-auto min-w-0 truncate">Timeline</h3>
             <!-- Undo / redo (F.W14.S2) — the discoverable affordance for the
                  Mod+Z / Mod+Shift+Z bindings; bounded by the same canUndo/canRedo
                  history state. Sits in the timeline card (not over the dock band),

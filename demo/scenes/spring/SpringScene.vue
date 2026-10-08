@@ -58,13 +58,6 @@
 
 <script setup lang="ts">
 import { h, provide, ref } from "vue";
-// KF-SS-29 — the SUBPATH, not the root barrel. `./button` is published (a 71-byte
-// re-export) and the sibling file in this very directory already imports that
-// way, so the root-barrel import here was a per-file divergence rather than a
-// house choice. (The weight argument is dead — the barrel is side-effect-free
-// except for CSS and tree-shakes to parity — which is exactly why the row is
-// about idiom consistency and nothing else.)
-import { Button } from "@mkbabb/glass-ui/button";
 
 import PlaybackRibbon from "@components/playback/PlaybackRibbon.vue";
 
@@ -133,12 +126,9 @@ const tabsContent = () => h(SpringPhysicsFacet, { demo });
 // ball, bound to the demo's contract animation (the sweep time-twin). The former
 // hand-rolled Play/Pause + Reset fork is DELETED; the dock owns Reset.
 //
-// SPRING'S LEGITIMATE DOMAIN VERBS REMAIN as ribbonContent extras (the cube
-// model — domain controls beside the standard transport; the harden caveat): the
-// solver view keeps Re-seat (flip the spring target), the discrete view keeps
-// Reveal/Dismiss (toggle the @starting-style card). The discrete view is a CSS
-// transition toggle, NOT a sweep, so the standard sweep transport doesn't apply
-// there — its domain verb is the primary control for that face.
+// SPRING'S DOMAIN VERBS live on the stage beside what they act on: the solver
+// view's Re-seat beside its rail (SpringTarget, A2-KE-L3-8), the discrete
+// view's Reveal/Dismiss under its card (StartingStyleTarget, KF-C9-03).
 const userReversed = ref(false);
 
 const onScrubUpdate = (v: { t: number }) => {
@@ -207,47 +197,18 @@ const standardRibbon = () =>
         onScrubEnd,
     });
 
-// The ribbon is view-aware (H.W5.S3): the live-solver view shows the STANDARD
-// transport (its Re-seat verb lives on the stage, A2-KE-L3-8); the discrete view shows the Reveal/
-// Dismiss domain verb — the bottom bar stays meaningful for whichever face of the
-// one spring is on stage.
-// KF-SS-23 — THE DEAD GUARD IS GONE. This opened with
-// `if (slotProps.selectedControl !== "spring") return null;`, which can never be
-// true: `SPRING_SCENE_ID` is the scene's one control surface (the derivation
-// reads the single painting channel — see the note above), so the parameter is
-// the constant "spring" at every call. It was not merely dead, it was MISLEADING:
-// it read as the live gate that decides whether this ribbon renders, which is why
-// the genuinely missing gate one level up went unnoticed for as long as it did. A
-// guard that cannot fire is a claim that something is being checked.
-const ribbonContent = () => {
-    if (demo.view.value === "discrete") {
-        // KF-SS-27 — `grid-cols-1` deleted: `grid` already lays one column, and
-        // the SAME construct 20 lines below was written without it. One shape.
-        return h("div", { class: "grid gap-2 w-full" }, [
-            h(
-                Button,
-                {
-                    class: "btn-playback btn-playback-accent",
-                    onClick: () => demo.toggleDiscrete(),
-                },
-                {
-                    // OA-61 — a disclosure verb on the scene's subject, named by
-                    // its word alone: the eye / eye-off pair is the ball
-                    // preview's one toggle (PreviewToggle), never a second meaning.
-                    default: () => [
-                        h("span", null, demo.visible.value ? "Dismiss" : "Reveal"),
-                    ],
-                },
-            ),
-        ]);
-    }
-
-    // X.KF.W13X.spring (A2-KE-L3-8) — the solver view's ribbon is the STANDARD
-    // transport alone. Re-seat (the spring's domain verb: flip the chase target)
-    // took a full-width third ribbon row of its own; it now sits on the stage
-    // beside the rail it acts on (SpringTarget), a compact control.
-    return standardRibbon();
-};
+// X-DS pass 9 (KF-C9-03) — ONE Reveal/Dismiss. The ribbon was view-aware
+// (H.W5.S3): the discrete view swapped the transport for a full-width accent
+// "Reveal/Dismiss" bar, the loudest element on the page, while the stage
+// already carries the same verb on a capsule under the card it toggles
+// (StartingStyleTarget). The anchored one stays; both views now show the
+// STANDARD transport, which drives the selected channel (the Entry clock in the
+// discrete view, KF-SS-8).
+// KF-SS-23 — no dead guard: `SPRING_SCENE_ID` is the scene's one control
+// surface, so the ribbon renders for it unconditionally.
+// X.KF.W13X.spring (A2-KE-L3-8) — the solver view's Re-seat sits on the stage
+// beside the rail it acts on (SpringTarget), never on a ribbon row.
+const ribbonContent = () => standardRibbon();
 
 defineExpose({
     // T.B1-β/T.B7 — the SceneFacility descriptor (Sweep + Entry channels, the
