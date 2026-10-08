@@ -548,13 +548,29 @@ function onKeydown(e: KeyboardEvent): void {
    field grows by the preset grid, its separator and their gaps (181 px served
    at 1440x900 and 1440x1080): 18.5rem + 11.5rem = 30rem, plus the 15rem frame.
    Where the rail cannot hold the figure whole the fold now cuts the figure,
-   never the controls. */
+   never the controls.
+   X-DS pass 14 (KF-C14-01) — THE FIGURE IS WHOLE AT THE FOLD OR STARTS BELOW
+   IT. The C13 order left the fold inside the figure's first 20 px at 1440x900
+   (a 15 px strip of field under its heading, the region label cut through its
+   x-height), a named section with a sliced body. Where the facet with the field
+   at its 8rem floor overflows the rail's scroll body (the facet measures
+   37.75rem with the floor field, the transport and frame 15rem: rail < 52.75rem),
+   the section's block start moves to the fold (the scroll body, rail − 15rem,
+   less the chrome above the section, 24.625rem served at 1440). The pane then
+   ends on the presets and their divider, and the heading, legend and field
+   scroll in together. Where the facet fits, the step is 0 (the ×1000 term is a
+   hard switch, not a ramp). No mask, and the field is not raised. */
 @media (min-width: 1024px) {
     .spring-heatmap-section {
         --spring-field-block: clamp(
             8rem,
             calc(var(--rail-block, 100dvh) - (45rem + var(--mask-fade, 2.5rem))),
             12rem
+        );
+        margin-block-start: clamp(
+            0px,
+            calc((52.75rem - var(--rail-block, 100dvh)) * 1000),
+            max(0px, calc(var(--rail-block, 100dvh) - 39.625rem))
         );
     }
 }

@@ -103,11 +103,12 @@
    read off the two curves and the live offsets by the composable). The rail
    draws the time column only; the crest lands in the room after it, inside the
    stage, never in the card's clip. UIA-KF-312: the rail reads at the tint the
-   Spring rail established for a visible lane (`SpringTarget.vue` `--rail-tint:
-   18%`), not the idiom's near-invisible 8%. */
+   Spring rail established for a visible lane, not the idiom's near-invisible
+   8%. X-DS pass 14 (KF-C14-02): that tint is the root `--rail-tint-lane`
+   (design-idioms.css), theme-aware; the dashed tail below reads it too. */
 .seq-track .progress-rail {
     width: calc(100cqw / (1 + var(--seq-room, 0)));
-    --rail-tint: 18%;
+    --rail-tint: var(--rail-tint-lane);
 }
 /* X-DS pass 5 (KF-C5-05) — THE OVERSHOOT ROOM IS DRAWN, quietly. The lane
    reserves `--seq-room` past its time column for the springs' crest, and that
@@ -122,7 +123,7 @@
     top: 50%;
     left: calc(100% / (1 + var(--seq-room, 0)));
     right: 0;
-    border-top: 2px dashed color-mix(in srgb, var(--ball-tone, var(--color-progress)) 18%, transparent);
+    border-top: 2px dashed color-mix(in srgb, var(--ball-tone, var(--color-progress)) var(--rail-tint-lane), transparent);
     transform: translateY(-50%);
     pointer-events: none;
 }

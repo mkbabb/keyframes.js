@@ -155,7 +155,17 @@ describe("the lanes — UIA-KF-212 · UIA-KF-312 · UIA-KF-214 · KFA-48", () =>
         for (const prop of ["border-radius", "border", "background"]) {
             expect(decl(css, ".seq-stage", prop)).toBeNull();
         }
-        expect(decl(css, ".seq-track .progress-rail", "--rail-tint")).toBe("18%");
+        // X-DS pass 14 (KF-C14-02) — the lane reads the ROOT lane tint, which is
+        // theme-aware: at least the visible 18% in light, and a higher dark arm
+        // (one fixed 18% fell to ~1.2:1 over the near-black card). The dashed
+        // overshoot tail reads the same token.
+        expect(decl(css, ".seq-track .progress-rail", "--rail-tint")).toBe("var(--rail-tint-lane)");
+        expect(decl(css, ".seq-track::after", "border-top")).toContain("var(--rail-tint-lane)");
+        const idioms = readFileSync(path.join(SEQ, "../../styles/design-idioms.css"), "utf8");
+        const light = parseFloat(decl(idioms, ":root", "--rail-tint-lane") ?? "NaN");
+        const dark = parseFloat(decl(idioms, ".dark", "--rail-tint-lane") ?? "NaN");
+        expect(light).toBeGreaterThanOrEqual(18);
+        expect(dark).toBeGreaterThan(light);
     });
 
     it("UIA-KF-214 — a ball spans ROW_DURATION / duration of the time column, not the rest of the rail", { timeout: 30_000 }, async () => {

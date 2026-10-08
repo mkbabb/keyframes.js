@@ -53,6 +53,22 @@
        EGG_HUES terminal stop, so the box's rest colour == the tumble egg's landing
        colour by construction. */
     --subject-teal: #52e898;
+
+    /* X-DS pass 14 (KF-C14-02) — THE VISIBLE LANE'S RAIL TINT, one token with a
+       light and a dark arm (a percentage, so `light-dark()` cannot carry it).
+       A rail that IS a lane (Sequence's five tracks and their dashed overshoot
+       tails, the Spring rail while it is dragged) reads at this tint; the
+       idiom's own 8% default stays for the quiet scrub rails. One fixed 18%
+       mixed toward transparent over the near-black card fell to ~1.2:1 in
+       dark, so the travellers floated off their tracks; the dark arm lifts the
+       lane to a quiet but legible hairline. No glow, no extra stroke. The
+       light arm reads by hue: the cyan and green lane hues sit near the light
+       card's own luminance (full-strength cyan reaches only ~1.25:1), so no
+       percentage buys them a luminance step there. */
+    --rail-tint-lane: 22%;
+}
+.dark {
+    --rail-tint-lane: 34%;
 }
 
 /* The demo-owned :focus-visible contract — the SINGLE keyboard-focus affordance

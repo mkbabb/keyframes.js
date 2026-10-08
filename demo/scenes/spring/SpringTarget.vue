@@ -831,7 +831,7 @@ const onKeydown = (e: KeyboardEvent) => {
     cursor: grabbing;
 }
 .spring-rail--dragging .progress-rail {
-    --rail-tint: 18%;
+    --rail-tint: var(--rail-tint-lane);
 }
 
 /* ── D-2 — THE VALUE=1 REFERENCE, AND WHAT IT IS NOT ──
