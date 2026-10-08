@@ -392,8 +392,6 @@ const controlHosts = computed<ControlHost[]>(() => {
     );
 });
 
-// X.KF.W13V.s2 — the master-clock channels (Sequence): the Timeline pane's
-// Sequence mode mounts on these instead of a ChannelControls host.
 // X.KF.W13X.esc1 (ESC-mobile-1 · A2-KE-L1-10 · KFA-156 · UIA-KF-104) — ONE
 // host, the selected channel's. The per-channel UI state the hidden copies kept
 // alive lives in the store (`getChannelControlsState`), so a channel swap
@@ -402,6 +400,8 @@ const selectedControlHosts = computed(() =>
     controlHosts.value.filter((h) => h.name === props.storedControls.selectedAnimation),
 );
 
+// X.KF.W13V.s2 — the master-clock channels (Sequence): the Timeline pane's
+// Sequence mode mounts on these instead of a ChannelControls host.
 const sequenceHosts = computed(() =>
     (props.channels ?? []).flatMap((c) =>
         c.sequence ? [{ name: c.name, sequence: c.sequence }] : [],
