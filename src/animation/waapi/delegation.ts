@@ -62,13 +62,24 @@ export async function playWAAPI<V extends Vars>(
     // Keep the steady WAAPI shadow tick on RAFPlayback's synchronous fast path.
     // `advanceTo` is thenable only for a genuinely asynchronous first tick; the
     // old `async` callback forced every frame through a Promise/microtask hop.
+    // KFA-135 (X.KF.W13X.r4lib): the handles are public — DevTools, or
+    // `el.getAnimations().forEach(a => a.pause())`, can pause one. That is a
+    // pause of THIS animation, so the engine adopts it (its clock holds, and
+    // its `resume()` plays the handles again). Resuming any paused handle
+    // here, as this loop used to, undid the pause two frames later. The
+    // engine's own resume never needed this loop: `resume()` plays the
+    // handles directly.
     const reconcile = (): boolean => {
+        if (!animation.paused) {
+            for (const wa of waAnimations) {
+                if (wa.playState === "paused") {
+                    animation.pause();
+                    break;
+                }
+            }
+        }
         if (animation.paused) {
             for (const wa of waAnimations) wa.pause();
-        } else {
-            for (const wa of waAnimations) {
-                if (wa.playState === "paused") wa.play();
-            }
         }
         return !animation.done;
     };
