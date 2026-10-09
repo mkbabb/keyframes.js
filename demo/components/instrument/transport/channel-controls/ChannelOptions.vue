@@ -21,7 +21,7 @@
                         :class="['panel-row', stack.isOpen('main') ? 'panel-row--active' : 'panel-row--inactive']"
                         :inert="!stack.isOpen('main')"
                     >
-                        <div class="panel-content flex w-full flex-col gap-2">
+                        <div class="panel-content flex flex-col gap-2">
                             <ChannelOptionsForm
                                 v-model:open-select="openSelect"
                                 :animation="animation"
@@ -69,11 +69,18 @@
                                  the resting ink of every live quiet verb below
                                  (Reverse, Preview), so it carried no signal. The
                                  label keeps the label ink like every other row;
-                                 the value column says "single-target only". -->
+                                 the value column says "single-target only".
+                                 X-DS r3 pass 3 (KF-C22-05) — the trailing
+                                 chevron sits on the field triggers' glyph
+                                 column: glass's SelectTrigger insets its
+                                 chevron by its own `px-3`, and the easing
+                                 field's pencil sits there too, so the row ends
+                                 `pe-3` and every trailing glyph shares one
+                                 column inside the pane's one edge. -->
                             <Button
                                 ref="layerEntryEl"
                                 emphasis="quiet"
-                                class="w-full justify-between gap-2 px-0 text-[length:var(--control-label)] [--button-quiet-ink:var(--foreground)]"
+                                class="w-full justify-between gap-2 ps-0 pe-3 text-[length:var(--control-label)] [--button-quiet-ink:var(--foreground)]"
                                 :aria-expanded="stack.isOpen('layer')"
                                 :aria-controls="layerPaneId"
                                 @click="openLayer"
@@ -129,7 +136,7 @@
                         :class="['panel-row', stack.isOpen('layer') ? 'panel-row--active' : 'panel-row--inactive']"
                         :inert="!stack.isOpen('layer')"
                     >
-                        <div class="panel-content flex w-full flex-col gap-2">
+                        <div class="panel-content flex flex-col gap-2">
                             <!-- UIA-KF-082 · 270 — the reason is stated ONCE, as
                                  the pane's caption: on a multi-target group the
                                  engine never composites layers
@@ -405,7 +412,13 @@ const { userReversed, toggleReverse } = usePlaybackToggle(() => props.animation)
        an offset of `--focus-ring-width`, so it reaches twice the width past the
        control. The old literal 2px was half of that, and the overflow:hidden the
        row collapse needs cut the ring flat on its inline-end (and on the first
-       field's block-start). One token, so the inset and the ring cannot drift. */
+       field's block-start). One token, so the inset and the ring cannot drift.
+       X-DS r3 pass 3 (KF-C22-05) — and the column width is unchanged by it:
+       the element is NOT `w-full` (a 100% width pinned the box, so the
+       negative end margin never widened it and the fields ended one reach
+       short of the ribbon). Stretched by its grid row, padding and margin
+       cancel and the field column ends on the pane's one inline-end edge,
+       the edge the ribbon below reads. */
     --panel-ring-reach: calc(2 * var(--focus-ring-width, 2px));
     padding: var(--panel-ring-reach);
     margin: calc(-1 * var(--panel-ring-reach));

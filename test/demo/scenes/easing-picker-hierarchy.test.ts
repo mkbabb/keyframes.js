@@ -10,7 +10,12 @@
  *       dropdown both render `EasingCatalogue` (`[data-easing-catalogue]`; the
  *       dropdown half is channel-options-render-edge (5)/(6), re-seated);
  *   (2) the family filter is ONE glass segmented control (`SegmentedTabs`),
- *       not a row of loose pills; a divider sits between it and the grid;
+ *       not a row of loose pills; a divider sits between it and the grid.
+ *       X-DS r3 pass 3 (KF-C22-01): on a desktop viewport the filter is glass's
+ *       `underline` strip (content-sized options, wrapping), whose own paper
+ *       hairline IS the divider, so no second rule is drawn under it; on a
+ *       narrow viewport it collapses to glass's Select and the catalogue's
+ *       Separator is the divider;
  *   (3) on "All", one type-scale header per family; a single family shows no
  *       header and only its tiles;
  *   (4) one tile idiom: the curve with its ball carriage on the `.b` plot, the
@@ -50,6 +55,7 @@ const settle = async () => {
 
 describe("X.KF.W13W.p · OA-58 — the easing picker's one hierarchy", () => {
     let host: HTMLElement;
+    let wide = true;
     beforeAll(async () => {
         // jsdom implements no Web Animations; the segmented control's indicator
         // reads its element's running animations on a selection change.
@@ -80,8 +86,10 @@ describe("X.KF.W13W.p · OA-58 — the easing picker's one hierarchy", () => {
     beforeEach(() => {
         vi.stubGlobal("ResizeObserver", InertResizeObserver);
         vi.stubGlobal("IntersectionObserver", OnScreenIntersectionObserver);
+        // A desktop viewport by default (every `min-width` query matches,
+        // nothing else does); `wide = false` is the phone.
         vi.stubGlobal("matchMedia", (query: string) => ({
-            matches: false,
+            matches: wide && /min-width/.test(query),
             media: query,
             onchange: null,
             addEventListener() {},
@@ -94,6 +102,7 @@ describe("X.KF.W13W.p · OA-58 — the easing picker's one hierarchy", () => {
         document.body.appendChild(host);
     });
     afterEach(() => {
+        wide = true;
         vi.unstubAllGlobals();
         host.remove();
     });
@@ -130,11 +139,30 @@ describe("X.KF.W13W.p · OA-58 — the easing picker's one hierarchy", () => {
             expect(filter.querySelectorAll(".toggle-group__item")).toHaveLength(0);
             const labels = [...filter.querySelectorAll("button")].map((b) => b.textContent?.trim());
             expect(labels).toEqual(["All", ...SPECIMEN_GROUPS.map((g) => g.family)]);
-            // The divider sits between the filter and the grid, in DOM order.
+            // KF-C22-01 — the strip is glass's ruled underline: its own hairline
+            // is the divider, and the catalogue draws no second rule under it.
+            expect(filter.classList.contains("segmented-tabs--underline")).toBe(true);
+            expect(picker.querySelectorAll('[data-slot="separator"]')).toHaveLength(0);
+            const grid = picker.querySelector(".specimen-grid")!;
+            expect(filter.compareDocumentPosition(grid) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+        } finally {
+            app.unmount();
+        }
+    });
+
+    it("(2) KF-C22-01 — a narrow viewport collapses the filter to glass's Select, the Separator dividing it from the grid", async () => {
+        wide = false;
+        const { app } = await mountGallery();
+        try {
+            const picker = host.querySelector("[data-easing-catalogue]")!;
+            expect(picker.querySelector(".segmented-tabs")).toBeNull();
+            const trigger = picker.querySelector('[aria-label="Filter curves by family"]')!;
+            expect(trigger).not.toBeNull();
+            expect(trigger.closest(".segmented-tabs__mobile")).not.toBeNull();
             const divider = picker.querySelector('[data-slot="separator"]')!;
             expect(divider).not.toBeNull();
             const grid = picker.querySelector(".specimen-grid")!;
-            expect(filter.compareDocumentPosition(divider) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+            expect(trigger.compareDocumentPosition(divider) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
             expect(divider.compareDocumentPosition(grid) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
         } finally {
             app.unmount();

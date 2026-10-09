@@ -363,10 +363,14 @@ const isLive = computed(() => !demo.liveSettled.value || demo.derbyActive.value)
 /** The instrument's one discrete, high-salience state (D-14), and the derby's
  *  only announcement channel (gesture spec 6 — the lane overlay is aria-hidden
  *  decoration by design). */
+/** X-DS r3 pass 3 (KF-C22-02) — and the transport's Sweep is motion too: the
+ *  badge read "settled" while the sampler ran the curve, the one moving thing
+ *  on the stage. The Square scene's rule (UIA-KF-026: a paint while the tour
+ *  runs is the tour's, and reads "tracking") is the sibling this follows. */
 const stateLabel = computed(() =>
     demo.derbyActive.value
         ? "derby"
-        : demo.liveSettled.value
+        : demo.liveSettled.value && !demo.isPlaying.value
           ? "settled"
           : "tracking",
 );
@@ -774,11 +778,12 @@ const onKeydown = (e: KeyboardEvent) => {
 }
 
 /* J.W7a S1 (D4 / SP-1) — the live ball IS the scene's protagonist and takes
-   the idiom-default --ball-size (36px) + full canonical glow: at the former
-   1.75rem it "read as a footnote" against the vast glass plate. The h-12 rail
-   row seats the 36px ball with breathing room; the quiet sampler below keeps
-   its small translucent rung so the hierarchy (protagonist > sampler) is
-   legible at a glance. */
+   the idiom-default --ball-size (36px), a solid disc in the scene accent: at
+   the former 1.75rem it "read as a footnote" against the vast glass plate. The
+   h-12 rail row seats the 36px ball with breathing room; the quiet sampler
+   below keeps its small translucent rung so the hierarchy (protagonist >
+   sampler) is legible at a glance, and the two trade rungs while the
+   transport's Sweep runs (KF-C22-02, below). */
 /* THE T.G4 ANCHOR, written ONCE for this scene's balls (m-8, riding KF-AV-10).
    The same three declarations were re-authored at every ball in this file: the
    ball is anchored at the rail's LEFT EDGE and its own painter carries the
@@ -809,18 +814,29 @@ const onKeydown = (e: KeyboardEvent) => {
 }
 
 /* X.KF.W13W.b (OA-56) — the two balls that ride the trace (`.curve-ball`, the
-   shared placement idiom): the live simulator ball is the protagonist (the
-   scene accent + full glow), the sweep sampler the quiet translucent sibling.
-   Sized for the trace's plot box rather than the 3rem rail they used to ride. */
+   shared placement idiom): the live simulator ball is the protagonist (a
+   solid disc in the scene accent, no glow), the sweep sampler the quiet
+   translucent sibling. Sized for the trace's plot box rather than the 3rem
+   rail they used to ride.
+   X-DS KF-C22-02 — the rungs follow the motion. While the transport's Sweep
+   runs and the solver rests (not `--live`), the sampler is the only thing that
+   moves, so it takes the protagonist's rung (solid, --plot-ball-size) and the
+   resting live ball steps back to the quiet translucent rung. No glow and no
+   scale-pop mark the active ball: size and fill alone. */
 .spring-ball {
     /* the plot's own token (SpringTrace `.plot-frame`), which the value ticks'
        gutter also derives from (KF-C18-02) */
     --ball-size: var(--plot-ball-size, 1.5rem);
 }
-.sampler-ball {
+.sampler-ball,
+.spring-target--sweeping:not(.spring-target--live) .spring-ball {
     --ball-size: 1rem;
-    /* the sweep sampler is a quiet translucent marker */
+    /* the quiet translucent rung */
     background: color-mix(in srgb, var(--ball-tone, var(--color-progress)) 65%, transparent);
+}
+.spring-target--sweeping:not(.spring-target--live) .sampler-ball {
+    --ball-size: var(--plot-ball-size, 1.5rem);
+    background: var(--ball-tone, var(--color-progress));
 }
 
 /* ── N-3 (gesture spec 1) — THE SURFACE ANSWERS THE POINTER ──

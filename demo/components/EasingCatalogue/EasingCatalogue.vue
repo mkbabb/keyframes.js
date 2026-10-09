@@ -16,22 +16,34 @@
          roving across every section) — the grid's selection model, not its
          paint. -->
     <div class="easing-catalogue" data-easing-catalogue :data-density="density">
-        <FadingScroll axis="x" class="catalogue-filter">
-            <!-- The owned max-content row: a centred overflow would strand the
-                 strip's left edge past the scroll origin ("All" unreachable on
-                 phones); sizing the row to its content removes the overflow
-                 condition instead of reaching into the producer root. -->
-            <div class="catalogue-filter-row">
-                <SegmentedTabs
-                    :options="familyOptions"
-                    :model-value="family"
-                    aria-label="Filter curves by family"
-                    @update:model-value="onFamilyChange"
-                />
-            </div>
-        </FadingScroll>
+        <!-- X-DS r3 pass 3 (KF-C22-01) — a TEN-way categorical filter takes
+             glass's own axes, not the equal-width eyeglass: the pill strip
+             forced every option to the widest label's width (960 px of strip in
+             a 772 px stage at 1440, Bounce and Steps behind an edge a mouse
+             could not reach), so overflow was the designed state at every
+             width. `variant="underline"` is the paper ink hairline (no capsule
+             track), its options sized to their labels and the row wrapping in
+             the stage; `:responsive` collapses it to glass's Select wherever
+             the host is narrow: below lg for the stage, and always in the
+             Controls pane's popover (`density="menu"`, a narrow host at every
+             viewport). The FadingScroll and the max-content row are deleted
+             with the overflow they existed to scroll. -->
+        <SegmentedTabs
+            variant="underline"
+            semantics="toggle"
+            class="catalogue-filter"
+            :options="familyOptions"
+            :model-value="family"
+            :responsive="filterResponsive"
+            aria-label="Filter curves by family"
+            @update:model-value="onFamilyChange"
+        />
 
-        <Separator class="catalogue-divider" />
+        <!-- The divider between the filter and the grid: the underline
+             strip's own paper hairline when the strip shows (a second rule
+             under it read as a double line), this Separator when the filter
+             is glass's collapsed Select. -->
+        <Separator v-if="!filterIsStrip" class="catalogue-divider" />
 
         <FadingScroll axis="y" class="specimen-drawer min-h-0 w-full flex-1">
             <ToggleGroup
@@ -177,6 +189,17 @@ const familyOptions = computed<SegmentedTabOption[]>(() =>
     })),
 );
 const family = ref(ALL);
+/** KF-C22-01 — where the strip is a strip. The stage keeps it from lg up (the
+ *  stage header's own breakpoint); the popover never does: glass's collapse
+ *  reads the viewport, and the menu is narrow at every viewport, so its
+ *  breakpoint is one no viewport reaches. */
+const STRIP_MIN_WIDTH = "1024px";
+const filterResponsive = computed(() => ({
+    breakpoint: props.density === "menu" ? "100000px" : STRIP_MIN_WIDTH,
+    ariaLabel: "Filter curves by family",
+}));
+const wideViewport = useMediaQuery(`(min-width: ${STRIP_MIN_WIDTH})`);
+const filterIsStrip = computed(() => props.density === "stage" && wideViewport.value);
 const onFamilyChange = (v: string) => {
     family.value = v;
 };
@@ -313,17 +336,14 @@ watch(
     min-width: 0;
 }
 
-/* ── 1 · the family filter: one segmented control, fade-scrolled when narrow ── */
+/* ── 1 · the family filter: glass's underline strip, wrapping in the stage ── */
+/* The options keep their own widths (glass's underline is a flex row); the row
+   wraps rather than overflowing, so every family is on the page. The ink
+   indicator rides the active option on whichever line it sits. */
 .catalogue-filter {
-    max-width: 100%;
     flex: none;
-}
-.catalogue-filter-row {
-    display: inline-flex;
-    width: max-content;
-    white-space: nowrap;
-    /* Breathing room so the strip's rim never clips against the fade mask. */
-    padding: 2px;
+    flex-wrap: wrap;
+    max-width: 100%;
 }
 
 /* ── 2 · the divider (glass Separator owns its hairline) ── */

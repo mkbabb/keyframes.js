@@ -278,7 +278,12 @@ const tetherPath = computed(() => {
     position: absolute;
     top: calc(50% + var(--square-travel, 110px) + 0.75rem);
     left: calc(50% - var(--square-travel, 110px));
-    width: calc(2 * var(--square-travel, 110px));
+    /* X-DS KF-C22-03 — the measure is the field the reader sees: the centre's
+       2 × travel plus the box's own size (the box at x = ±1 overhangs the
+       envelope by half its size each side). Sized to the travel alone, the
+       caption broke onto two balanced lines under a 312 px field at 1440;
+       it now sets on one line there, starting on the field's left edge. */
+    width: calc(2 * var(--square-travel, 110px) + var(--square-size, 0px));
     display: flex;
     flex-direction: column;
     align-items: flex-start;

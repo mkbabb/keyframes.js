@@ -17,13 +17,18 @@
         <!-- X-DS pass 9 (KF-C9-07) — the column is the pane's ONE inset,
              glass's `--configurator-pad-inline` (the configurator facets'), so
              the transport no longer starts 4 px left of an Easing or Physics
-             editor body; the end keeps the focus gutter's extra 0.25rem. -->
-        <div class="ps-(--configurator-pad-inline) pe-[calc(var(--configurator-pad-inline)+0.25rem)]"><Separator /></div>
+             editor body.
+             X-DS r3 pass 3 (KF-C22-05) — and it ENDS on that one inset too: the
+             end's extra 0.25rem matched a field column that the focus gutter
+             used to shorten; `.panel-content` now keeps the column whole, so
+             the fields, their separators, this hairline, the time readout and
+             the track all end on one inline-end edge. -->
+        <div class="px-(--configurator-pad-inline)"><Separator /></div>
         <!-- X-DS pass 6 (KF-C6-01) — the ribbon's rows sit on the SAME content
              column as its hairline and the fields above (`ps-4 pe-5`); a
              `p-3` inset started every transport row 4 px left of the label
              column. -->
-        <div class="ps-(--configurator-pad-inline) pe-[calc(var(--configurator-pad-inline)+0.25rem)] py-3">
+        <div class="px-(--configurator-pad-inline) py-3">
             <!-- Controls tab: filled via Teleport from ChannelOptions -->
             <div
                 id="controls-ribbon-target"
