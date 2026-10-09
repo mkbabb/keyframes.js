@@ -2,65 +2,9 @@
     <div
         class="flex flex-col h-full w-full overflow-hidden z-content relative isolate"
     >
-        <!-- J.W2 S2 (S4-stretch) — the FLAT mount for a facility whose derived
-             surface set is exactly ONE surface: no `<Tabs>`/`TabsContent`
-             machinery, no reka model-value latch (the structural source of the
-             `selectedControl` double role, `audit/wave-I.W2.md §6`), the sole
-             panel renders directly. CC-D-7/L-4 (KF.W6): under the live T.B2
-             derivation (`surfacesFor`, `state/controlSurfaces.ts`) NO shipped
-             facility produces a one-member set — easing and spring, the two the
-             earlier note named as its examples, each derive the built-in triad
-             plus their signature facet — so this branch is currently
-             UNREACHABLE. It is kept, not deleted: the delete is a NO-WAVE-OWNER
-             decision the bank holds, and this note claims only what the
-             derivation can be read to prove. `selectedControl` keeps ONLY its
-             preference role (read by ribbon/dock); the derivation-sync in
-             `useSelectedControlSurface` writes it back per host. -->
         <div
-            v-if="isSingleSurfaceScene"
             class="w-full flex-1 min-h-0 flex flex-col justify-start"
         >
-            <!-- OA-34 (§0bj) — the pane's inset lives INSIDE the scroller. An
-                 `overflow-y: auto` box clips on both axes at its padding box, and
-                 the inset used to sit on this wrapper OUTSIDE it (the scroller had
-                 only `pb-1`), so every card's cartoon shadow — which falls past
-                 the card's left and bottom edges — was cut flush by the
-                 scroller: a hard left edge and a squared bottom-left corner.
-                 The same `pl-4 pr-7 pt-2` (and `pb-2` + the former `pb-1` =
-                 `pb-3`) now pads the scroller itself, so the content box is
-                 where it was and the shadow paints in the scroller's padding;
-                 the clip stays where scrolling needs it.
-                 X.KF.W13V.s (OA-40) — below lg (the mobile sheet) the inline
-                 inset is SYMMETRIC (`pr-4`): the wider `pr-7` is the desktop
-                 rail's, and on a phone it set the card off-centre in the
-                 sheet (left ≠ right). `lg:pr-7` keeps the rail byte-identical.
-                 X-DS pass 1, C1 (KF-C1-07) — the inset is GONE: no surface
-                 draws its own card any more (the one frame is the pane host's,
-                 ControlsPaneWrapper), so there is no stamp for the scroller to
-                 clip and the surface's own padding is the content's inset. -->
-            <div class="flex-1 min-h-0 overflow-y-auto flex flex-col">
-                <!-- The flat-mount PANEL HOST — the exact analogue of the
-                     deleted `<TabsContent>` wrapper, on BOTH its axes:
-                     · PIXEL PARITY: TabsContent carried a default `mt-2` (8px)
-                       and the scenes passed `h-full`; the flat mount renders
-                       the SAME box the Tabs mount did (the visual-lock
-                       baseline) — a source swap, not an appearance delta.
-                     · NAMED SEAM: `single-surface-panel` (style-free) replaces
-                       the `[role="tabpanel"][data-state="active"]` anchor the
-                       pane probes key on (proof:easing-sidebar-{normalized,
-                       minimal}); a bare tabpanel role without a tablist would
-                       be an ARIA defect, so the seam is a class, not a role. -->
-                <div class="single-surface-panel mt-2 h-full">
-                    <slot name="tabs-content"></slot>
-                </div>
-            </div>
-        </div>
-
-        <div
-            v-else
-            class="w-full flex-1 min-h-0 flex flex-col justify-start"
-        >
-            <!-- OA-34 — the inset inside the scroller (see the flat mount). -->
             <div class="flex-1 min-h-0 overflow-y-auto flex flex-col">
                 <!-- THE CONTROL SURFACES. Each is a plain div gated on the active
                      surface (`selectedControlSurface`) under the SAME DFA gate (a
@@ -69,8 +13,8 @@
 
                      THE PANELS' NAMING, DECIDED WITH THE STRIP'S FATE (CC-D-2/C-3
                      + N-4). There is no in-panel strip any more: the header that
-                     rendered one sat behind `v-if="!tabsExternallyManaged"`, which
-                     the App holds permanently false, and it is deleted. The dock's
+                     rendered one sat behind a constant-false gate, and it is deleted
+                     (the gate itself folded at X.KF.W13X.r4pane, A2-KE-L1-12). The dock's
                      controls `<Select>` is the sole surface switcher, so these are
                      NOT a tablist's panels and no `role="tab"` owns them. `role`
                      and `data-state` are RETAINED DELIBERATELY, not by inertia:
@@ -209,7 +153,6 @@ import type { AnimationLayerConfig } from "@mkbabb/keyframes.js";
 import {
     computed,
     defineAsyncComponent,
-    inject,
     markRaw,
     shallowRef,
     Teleport,
@@ -218,12 +161,10 @@ import {
     watch,
 } from "vue";
 import type KeyframeTimelineComponent from "../../timeline/KeyframeTimeline.vue";
-import { TABS_EXTERNALLY_MANAGED_KEY } from "../injectionKeys";
 import { useKeyframesPaneReveal } from "./composables/useKeyframesPaneReveal";
 import { useSelectedControlSurface } from "./composables/useSelectedControlSurface";
 import {
     useSceneMachine,
-    BUILT_IN_SURFACES,
     SURFACE_META,
     type ControlSurface,
 } from "@state";
@@ -258,37 +199,18 @@ const { animation, isPlaying: isPlayingProp, layerConfig, active } = defineProps
 
 const storedControls = getStoredAnimationGroupControlOptions(animation);
 
-// True when the surfaces are switched externally (the dock's controls
-// `<Select>`), which at the frontier is ALWAYS: `App.vue` provides it `true`
-// unconditionally and is the only mount path to this component. That is exactly
-// why the in-panel header this file used to render behind `!tabsExternallyManaged`
-// was dead code and is deleted.
-//
-// THE FLAG ITSELF SURVIVES THAT DELETE, deliberately and not by oversight. It is
-// no longer only the strip's gate: it also gates `hasSurface`'s DFA filter,
-// `builtInTabs`, `isSingleSurfaceScene`'s flat mount, and the machine projection
-// + the derivation-sync writer inside `useSelectedControlSurface`. Dropping the provide while
-// the `inject` default stays `false` would silently flip all four; folding the
-// axis away honestly means editing `useSelectedControlSurface`, which is outside
-// what this change may touch. So the dead BRANCH goes and the live axis stays,
-// and the residual — a fork whose only provider is a constant — is recorded here
-// rather than half-cured.
-const tabsExternallyManaged = inject(TABS_EXTERNALLY_MANAGED_KEY, false);
-
 // ── THE CONTROL-SURFACE DFA (H.W11.S4 / I2) ─────────────────────────────────
 // The active scene's valid control-surface set, projected from the W1 machine
-// (the third orthogonal axis). The built-in {controls,keyframes,timeline} triad
-// is rendered FROM `builtInTabs` (the DFA-valid subset) + each pane is gated by
-// `hasSurface`, so an INVALID surface CANNOT render per scene (the easing scene
+// (the third orthogonal axis). Each built-in {controls,keyframes,timeline} pane
+// is gated by `hasSurface` (the DFA-valid subset), so an INVALID surface CANNOT render per scene (the easing scene
 // shows ONLY its slotted easing tab — no keyframes/timeline node). Reading the
 // SAME projection the dock reads keeps the two tab hosts in lockstep — one
 // authority, no drift.
 //
-// The DFA gates ONLY when the host is the scene-machine-driven shell
-// (`tabsExternallyManaged`). A STANDALONE host (the playground EditorShell, which
-// does NOT route through the scene machine — its activeScene stays the `home`
-// default) shows the FULL built-in triad: it is the standalone editor, not a
-// per-scene DFA-gated surface.
+// X.KF.W13X.r4pane (A2-KE-L1-12) — the host is ALWAYS the scene-machine-driven
+// shell: the former `tabsExternallyManaged` axis had one provider (`App.vue`)
+// passing the constant `true`, the App is the only mount path to this host, so
+// its "standalone" arms were dead and are folded away with the key.
 const machine = useSceneMachine();
 // T.B2 — the tab {label,icon} metadata resolves from the ONE `SURFACE_META`
 // registry (controlSurfaces.ts); the former local `BUILT_IN_TAB_META` copy
@@ -299,29 +221,9 @@ const machine = useSceneMachine();
 // tooltip) was silently dropped on the way in. Nothing is retired by the
 // delete — the surviving switcher, the dock's controls `<Select>`, renders the
 // registry icon at both its trigger and every item, so the capability moves
-// from dropped-in-one-host to carried-in-the-only-host. `builtInTabs` stays for
-// the DFA arithmetic below, not for a strip.
+// from dropped-in-one-host to carried-in-the-only-host.
 const hasSurface = (surface: ControlSurface): boolean =>
-    !tabsExternallyManaged || machine.controlSurfaces.value.includes(surface);
-const builtInTabs = computed(() =>
-    BUILT_IN_SURFACES.filter(
-        (s) => !tabsExternallyManaged || machine.controlSurfaces.value.includes(s),
-    ).map((s) => SURFACE_META[s]),
-);
-
-// J.W2 S2 (S4-stretch) — a facility whose derived surface set is exactly ONE
-// surface mounts its panel FLAT: no `<Tabs>` machinery, no model-value latch,
-// no double role for `selectedControl`. Machine-driven hosts only (the
-// standalone playground shell keeps the full triad Tabs). CC-D-7/L-4: no
-// shipped facility derives such a set today (easing and spring derive four
-// surfaces each — see the template note), so this computed is currently always
-// `false`; the branch survives pending the bank's NO-WAVE-OWNER delete.
-const isSingleSurfaceScene = computed(
-    () =>
-        tabsExternallyManaged &&
-        machine.controlSurfaces.value.length === 1 &&
-        builtInTabs.value.length === 0,
-);
+    machine.controlSurfaces.value.includes(surface);
 
 // ── THE SELECTED-SURFACE SINGLE AUTHORITY (colocated composable) ────────────
 // The machine-projected, synchronously-correct active surface + the
@@ -331,14 +233,12 @@ const isSingleSurfaceScene = computed(
 // docblock still carries the old name and is outside this unit's set)
 // + the suspend-on-leave gate + the user-pick DFA
 // projection all live in useSelectedControlSurface (the K.WZ proof:demo-no-
-// oversize seam; zero behavior change). `builtInTabs` deliberately stays HERE
-// (the scene-control-DFA source anchor greps the host). The
+// oversize seam; zero behavior change). The
 // cube matrix-controls conditional is now folded into the derived surface set
 // (T.B2 — the Matrix channel's facet), so no `activeConditionals` inject remains.
 const { selectedControlSurface, projectPick } = useSelectedControlSurface({
     animation,
     storedControls,
-    tabsExternallyManaged,
 });
 
 const emit = defineEmits<{

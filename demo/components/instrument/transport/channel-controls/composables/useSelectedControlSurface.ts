@@ -9,8 +9,6 @@ interface UseSelectedControlSurfaceOptions {
     animation: KeyframesAnimation<any>;
     /** The shared per-group control store (read+written as the single authority). */
     storedControls: StoredAnimationGroupControlOptions;
-    /** True when the host routes through the scene machine (DFA-gated). */
-    tabsExternallyManaged: boolean;
 }
 
 interface UseSelectedControlSurfaceReturn {
@@ -18,8 +16,7 @@ interface UseSelectedControlSurfaceReturn {
     selectedControlSurface: ComputedRef<string>;
     /**
      * Project a raw user pick through the DFA to its valid surface (the
-     * write the `selectControl` user-pick path stores). On a standalone host
-     * the pick passes through unprojected.
+     * write the `selectControl` user-pick path stores).
      */
     projectPick: (pick: string) => string;
 }
@@ -34,10 +31,10 @@ interface UseSelectedControlSurfaceReturn {
  * value: the active scene's selected surface resolved as a PURE FUNCTION of (the
  * DFA set × the group's stored pick) via `selectedControlSurfaceFor`. On a scene
  * SWITCH this is born correct on the very tick the strip mounts (no stale latch,
- * no nextTick re-assert — the B4 desync is fixed at its source). The STANDALONE
- * host (playground EditorShell, not scene-machine-routed) keeps the raw stored
- * pick (its activeScene stays the `home` default), mirroring `hasSurface`/
- * `builtInTabs` — the DFA projection gates ONLY when `tabsExternallyManaged`.
+ * no nextTick re-assert — the B4 desync is fixed at its source). The host is
+ * ALWAYS machine-driven: X.KF.W13X.r4pane (A2-KE-L1-12) folded the former
+ * `tabsExternallyManaged` axis, whose one provider passed the constant `true`
+ * (the "standalone" arm it gated was unreachable).
  *
  * THE ONE WRITER (J.W2 S2): the derivation-sync watch reconciles the store to the
  * single authority. When the machine projection corrects a stale pick (a single-
@@ -55,7 +52,7 @@ interface UseSelectedControlSurfaceReturn {
 export function useSelectedControlSurface(
     options: UseSelectedControlSurfaceOptions,
 ): UseSelectedControlSurfaceReturn {
-    const { animation, storedControls, tabsExternallyManaged } = options;
+    const { animation, storedControls } = options;
 
     const machine = useSceneMachine();
 
@@ -78,11 +75,10 @@ export function useSelectedControlSurface(
             activeSuperKey.value === (animation.superKey ?? "default"),
     );
 
-    const selectedControlSurface = computed<string>(() =>
-        tabsExternallyManaged
-            ? machine.selectedControlSurface(storedControls.selectedControl) ??
-              storedControls.selectedControl
-            : storedControls.selectedControl,
+    const selectedControlSurface = computed<string>(
+        () =>
+            machine.selectedControlSurface(storedControls.selectedControl) ??
+            storedControls.selectedControl,
     );
 
     // Reconcile the store to the single authority — THE ONE WRITER (J.W2 S2).
@@ -90,7 +86,6 @@ export function useSelectedControlSurface(
         selectedControlSurface,
         (surface) => {
             if (
-                tabsExternallyManaged &&
                 surface &&
                 isActiveSceneHost.value &&
                 storedControls.selectedControl !== surface
@@ -107,9 +102,7 @@ export function useSelectedControlSurface(
     // scene doesn't have) resolves to the scene's valid surface instead of
     // transiting through the store.
     const projectPick = (pick: string): string =>
-        tabsExternallyManaged
-            ? machine.selectedControlSurface(pick) ?? pick
-            : pick;
+        machine.selectedControlSurface(pick) ?? pick;
 
     return { selectedControlSurface, projectPick };
 }

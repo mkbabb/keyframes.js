@@ -41,7 +41,6 @@ import type { AnimationLayerConfig } from "../../../src/animation/constants/type
 import { warmKfEngine } from "../../../demo/kf-engine";
 import {
     ACTIVE_SCENE_KEY,
-    TABS_EXTERNALLY_MANAGED_KEY,
 } from "../../../demo/components/instrument/transport/injectionKeys";
 import {
     getStoredAnimationGroupControlOptions,
@@ -352,7 +351,6 @@ function mountPane() {
     const wrapper = mount(Host, {
         global: {
             provide: {
-                [TABS_EXTERNALLY_MANAGED_KEY as symbol]: true,
                 [ACTIVE_SCENE_KEY as symbol]: computed(() => SCENE),
             },
         },

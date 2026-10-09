@@ -138,7 +138,6 @@ import {
 import {
     ACTIVE_SCENE_KEY,
     CONTROLS_PANE_HOVER_KEY,
-    TABS_EXTERNALLY_MANAGED_KEY,
 } from "@components/instrument/transport/injectionKeys";
 
 import { EditorShell, EditorStartScreen } from "@components/instrument/shell";
@@ -191,9 +190,6 @@ import { useMonacoCancellationGuard } from "./lifecycle/useMonacoCancellationGua
 // Swallow Monaco's benign "Canceled" CancellationError (keyframes-pane editor
 // disposed mid-async on a fast scene switch) — app-lifetime, scope-managed.
 useMonacoCancellationGuard();
-
-// Tabs in the controls pane are managed via the ChromeDock controls tab dropdown
-provide(TABS_EXTERNALLY_MANAGED_KEY, true);
 
 // Dock hover → controls pane opacity. Provided here because the writer and the
 // reader are cousins: ChromeDock (a sibling of EditorShell) is the SOLE writer —

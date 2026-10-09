@@ -1,7 +1,6 @@
 import type { ComputedRef, InjectionKey, Ref } from "vue";
 
 export const CONTROLS_PANE_HOVER_KEY: InjectionKey<Ref<boolean>> = Symbol("controlsPaneHover");
-export const TABS_EXTERNALLY_MANAGED_KEY: InjectionKey<boolean> = Symbol("tabsExternallyManaged");
 
 /** J.W2 S2 / T.B9 — the ACTIVE scene's registry id (the App's `currentSuperKey`,
  *  atomic with `machine.activeScene`; the ONE keyspace — the `animation.superKey`
