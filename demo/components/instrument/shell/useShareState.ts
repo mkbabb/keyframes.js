@@ -38,6 +38,14 @@ export function useShareState(
         { flush: "sync" },
     );
 
+    // X.KF.W13X.r4dock · UIA-KF-321 — the link a refused clipboard write could
+    // not copy. The surface shows it in a read-only field, selected, so the user
+    // copies it from the surface itself; it is spent when the surface closes.
+    const copyFallbackUrl = ref<string | null>(null);
+    watch(sharePopoverOpen, (isOpen) => {
+        if (!isOpen) copyFallbackUrl.value = null;
+    });
+
     // X.KF.W13X.overlays · UIA-KF-070 — each action reports whether it
     // COMPLETED, so the host can dismiss the whole menu stack on completion
     // instead of leaving a modal menu open over the scene.
@@ -56,18 +64,17 @@ export function useShareState(
         // A2-KE-L1-19 — glass's writeClipboard names a refused write instead of
         // throwing; the refusal branch is this flow's own fallback.
         const { ok } = await writeClipboard(url);
-        sharePopoverOpen.value = false;
-        if (ok) {
-            toast({ title: "Link copied to clipboard!", tone: "success" });
-        } else {
-            // Fallback: set the state param in the URL directly
-            router.replace({ query: { ...route.query, state: encoded } });
-            toast({
-                title: "URL updated — copy from address bar",
-                tone: "info",
-                duration: 5000,
-            });
+        if (!ok) {
+            // X.KF.W13X.r4dock · UIA-KF-321 — a refused write leaves the action
+            // undone, so the surface stays open and offers the link itself,
+            // pre-filled and selected. The former fallback rewrote the address
+            // and pointed at the address bar, which an installed PWA or a
+            // collapsed mobile URL bar does not show.
+            copyFallbackUrl.value = url;
+            return false;
         }
+        sharePopoverOpen.value = false;
+        toast({ title: "Link copied to clipboard!", tone: "success" });
         return true;
     };
 
@@ -131,6 +138,7 @@ export function useShareState(
         sharePopoverOpen,
         loadHashInput,
         loadError,
+        copyFallbackUrl,
         shareState,
         loadFromInput,
     };

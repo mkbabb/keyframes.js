@@ -21,7 +21,7 @@
  * (11) UIA-KF-250 · the port hides the platform scrollbar (the fade masks signal overflow).
  * (12) UIA-KF-147 · at >= md the groups lay out in two columns.
  */
-import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeAll, describe, expect, it, onTestFinished, vi } from "vitest";
 import { defineComponent, h, nextTick } from "vue";
 import { mount, type VueWrapper } from "@vue/test-utils";
 import { createMemoryHistory, createRouter } from "vue-router";
@@ -130,9 +130,18 @@ describe("X.KF.W13X.overlays — Share", () => {
     });
 
     it("(6) UIA-KF-070 — a copy and a successful load each close the surface", async () => {
+        // X.KF.W13X.r4dock · UIA-KF-321 — a COMPLETED copy: the platform takes the
+        // write (jsdom has no async clipboard, and a refused write now keeps the
+        // surface open on the link, r4dock.test.ts (2)).
+        const writeText = vi.fn(async () => {});
+        Object.defineProperty(navigator, "clipboard", { value: { writeText }, configurable: true });
+        onTestFinished(() => {
+            delete (navigator as { clipboard?: unknown }).clipboard;
+        });
         const w = await openShare();
         buttons().find((b) => b.textContent?.trim() === "Copy link")!.click();
         await vi.waitFor(() => expect(w.emitted("update:open")?.at(-1)).toEqual([false]));
+        expect(writeText).toHaveBeenCalledTimes(1);
         await vi.waitFor(() => expect(field()).toBeNull());
         await w.setProps({ open: true });
         await vi.waitFor(() => expect(field()).not.toBeNull());

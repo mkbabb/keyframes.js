@@ -64,6 +64,25 @@
                     <Copy class="icon-md" />
                     Copy link
                 </Button>
+                <!-- X.KF.W13X.r4dock · UIA-KF-321 — a refused copy offers the
+                     link here, read-only and selected (useShareState.ts). -->
+                <LabeledField
+                    v-if="copyFallbackUrl !== null"
+                    label="Share link"
+                    description="Copying was blocked. The link is selected: copy it from here."
+                >
+                    <template #default="{ controlId, describedBy }">
+                        <Input
+                            :id="controlId"
+                            ref="fallbackEl"
+                            :model-value="copyFallbackUrl"
+                            :aria-describedby="describedBy"
+                            readonly
+                            class="font-mono"
+                            @focus="selectAll"
+                        />
+                    </template>
+                </LabeledField>
                 <Separator />
                 <!-- SP-4/SP-7/SP-9: the Input is size-driven (`font-mono` alone;
                      the producer's `--control-text` keeps it >= 16px where iOS
@@ -109,7 +128,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, useTemplateRef } from "vue";
+import { nextTick, ref, useTemplateRef, watch } from "vue";
 import type { ComponentPublicInstance } from "vue";
 import { PopoverAnchor } from "reka-ui";
 import { Copy, ArrowRight } from "@lucide/vue";
@@ -137,10 +156,18 @@ const { anchor, sideOffset = 8, onSceneRestore } = defineProps<{
 // reach into a popover nested in its menu row; the row no longer nests it.
 const open = defineModel<boolean>("open", { default: false });
 
-const { loadHashInput, loadError, shareState, loadFromInput } = useShareState(
+const { loadHashInput, loadError, copyFallbackUrl, shareState, loadFromInput } = useShareState(
     onSceneRestore,
     open,
 );
+// UIA-KF-321 — the fallback field takes focus with its whole link selected.
+const fallbackEl = useTemplateRef<ComponentPublicInstance>("fallbackEl");
+const selectAll = (event: FocusEvent) => (event.target as HTMLInputElement).select();
+watch(copyFallbackUrl, async (url) => {
+    if (url === null) return;
+    await nextTick();
+    (fallbackEl.value?.$el as HTMLInputElement | undefined)?.focus();
+});
 
 // SP-6: the async copy's in-flight span, so the Share button carries `loading`
 // and a second click during the first is a no-op.
