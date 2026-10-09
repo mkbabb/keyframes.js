@@ -46,7 +46,7 @@ import { EasingPicker, type EasingPickerValue } from "@mkbabb/glass-ui/easing";
 
 import { watch } from "vue";
 import {
-    nameForQuad,
+    seatTruthFor,
     useEasingPickerSeat,
     type Quad,
     type SeatTruth,
@@ -72,27 +72,15 @@ const emit = defineEmits<{
 // engine-native name) is a bezier seat on the stored quad.
 const truth = (): SeatTruth => {
     const stored = props.storedAnimationOptions.animationOptions.timingFunction;
-    const { controlPoints } = props.storedAnimationOptions.cubicBezierOptions;
     const { steps, jumpTerm } = props.storedAnimationOptions.stepOptions;
-    if (stored === "step-start" || stored === "step-end") {
-        return {
-            mode: "steps",
-            points: controlPoints,
-            steps: 1,
-            term: stored === "step-start" ? "jump-start" : "jump-end",
-        };
-    }
-    if (timingFunctionKind(stored) === "steps") {
-        return { mode: "steps", points: controlPoints, steps, term: jumpTerm };
-    }
-    const points = props.peekQuad ?? controlPoints;
-    return {
-        mode: "bezier",
-        points,
+    return seatTruthFor({
+        name: stored,
+        isSteps: timingFunctionKind(stored) === "steps",
+        points: props.storedAnimationOptions.cubicBezierOptions.controlPoints,
+        peek: props.peekQuad,
         steps,
         term: jumpTerm,
-        presetName: nameForQuad(points),
-    };
+    });
 };
 
 // ── The authored edit → the store's owner (the card) ────────────────────────

@@ -126,16 +126,12 @@ import { curvePlot, unitEasingFrame } from "@utils/curvePlot";
 import { namedEasing } from "@utils/reference-data/timingCurveUtils";
 
 import {
-    NAMED_EASING_BEZIER,
-    NAMED_EASING_BEZIER_ENTRIES,
-} from "@utils/reference-data/animationDescriptions";
-import {
-    quadEq,
+    nameForQuad,
+    seatTruthFor,
     useEasingPickerSeat,
     type SeatTruth,
 } from "@components/instrument/transport/channel-controls/composables/useEasingPickerSeat";
 import type { EasingDemoContext } from "./easingKeys";
-import type { EasingName } from "./useEasingDemo";
 
 const props = defineProps<{ demo: EasingDemoContext }>();
 const demo = props.demo;
@@ -150,36 +146,20 @@ const demo = props.demo;
 // smoothstep polynomial is not a cubic bezier). The two catalogues are NEVER
 // merged. An engine-native name (bounce/elastic) keeps the mounted picker on
 // the live quad — nothing to seat, and a departure edits from there (BG-8).
+// X.KF.W13X.r4pane · A2-KE-L1-5 — the truth mapping and the quad → named-curve
+// lookup are the seat's ONE copy (`seatTruthFor` / `nameForQuad`), shared with
+// the controls card's detail editor; a preset pick lands as the NAME when the
+// quads agree (selection stays named).
 const truth = (): SeatTruth => {
-    const name = demo.currentEasingName.value;
-    const points = demo.bezierControlPoints.value;
     const { steps, jumpTerm } = demo.stepOptions.value;
-    if (name === "step-start" || name === "step-end") {
-        return {
-            mode: "steps",
-            points,
-            steps: 1,
-            term: name === "step-start" ? "jump-start" : "jump-end",
-        };
-    }
-    if (name === "steps") {
-        return { mode: "steps", points, steps, term: jumpTerm };
-    }
-    return {
-        mode: "bezier",
-        points,
+    return seatTruthFor({
+        name: demo.currentEasingName.value,
+        isSteps: demo.currentEasingName.value === "steps",
+        points: demo.bezierControlPoints.value,
         steps,
         term: jumpTerm,
-        presetName: name in NAMED_EASING_BEZIER ? name : undefined,
-    };
+    });
 };
-
-/** Match an authored quad back to a demo-named curve (a picker preset pick
- *  lands as the NAME when the quads agree — selection stays named). */
-const nameForQuad = (
-    q: readonly [number, number, number, number],
-): EasingName | undefined =>
-    NAMED_EASING_BEZIER_ENTRIES.find(([, quad]) => quadEq(quad, q))?.[0];
 
 // ── Picker emissions → the demo's ONE authoring seam ───────────────────────
 const onAuthored = (v: EasingPickerValue) => {

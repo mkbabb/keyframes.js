@@ -32,7 +32,7 @@ import type { ComputedRef, ShallowRef, StyleValue } from "vue";
 import { computed, shallowRef } from "vue";
 import type { EasingPickerValue, JumpTerm } from "@mkbabb/glass-ui/easing";
 import { cubicBezierToString } from "@mkbabb/value.js/math";
-import { NAMED_EASING_BEZIER } from "@utils/reference-data/animationDescriptions";
+import { NAMED_EASING_BEZIER_ENTRIES } from "@utils/reference-data/animationDescriptions";
 
 import {
     cubicBezierEasing,
@@ -89,10 +89,48 @@ export const quadEq = (a: Quad, b: Quad): boolean =>
  * never value.js `bezierPresets` (KF-ES-3's cure-lock: the catalogues are not
  * merged).
  */
-export const nameForQuad = (q: Quad): string | undefined =>
-    Object.keys(NAMED_EASING_BEZIER).find((n) =>
-        quadEq(NAMED_EASING_BEZIER[n]!, q),
-    );
+export const nameForQuad = (
+    q: Quad,
+): (typeof NAMED_EASING_BEZIER_ENTRIES)[number][0] | undefined =>
+    NAMED_EASING_BEZIER_ENTRIES.find(([, quad]) => quadEq(quad, q))?.[0];
+
+/** The live curve a seat reads its truth from (`seatTruthFor`). */
+export interface SeatCurve {
+    /** The curve's stored name or literal (`step-start`, `steps`, `ease-in`, …;
+     *  a stored timing FUNCTION is neither step keyword). */
+    name: unknown;
+    /** Whether the curve is a `steps()` staircase (each seat classifies its own). */
+    isSteps: boolean;
+    /** The seat's stored control points. */
+    points: Quad;
+    /** A peeked named curve's quad, seated in place of `points` (bezier only). */
+    peek?: Quad | undefined;
+    steps: number;
+    term: JumpTerm;
+}
+
+/**
+ * X.KF.W13X.r4pane · A2-KE-L1-5 — the ONE truth-from-{name, points, steps}
+ * mapping both picker seats read (the card's detail editor and the Easing
+ * scene's Curve facet each carried a copy, the step-start/step-end branch word
+ * for word). The two singular step keywords are their own one-step curves
+ * (`steps(1, jump-*)`, KF-CO-10), never the authored step options; a bezier
+ * names its preset by the quad it seats.
+ */
+export function seatTruthFor(curve: SeatCurve): SeatTruth {
+    const { name, isSteps, points, steps, term } = curve;
+    if (name === "step-start" || name === "step-end") {
+        return {
+            mode: "steps",
+            points,
+            steps: 1,
+            term: name === "step-start" ? "jump-start" : "jump-end",
+        };
+    }
+    if (isSteps) return { mode: "steps", points, steps, term };
+    const seated = curve.peek ?? points;
+    return { mode: "bezier", points: seated, steps, term, presetName: nameForQuad(seated) };
+}
 
 export interface EasingPickerSeat {
     /** Bumps ONLY on an external named re-seat — bind `:key`. */
