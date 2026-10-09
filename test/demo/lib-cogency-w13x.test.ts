@@ -109,9 +109,10 @@ describe("A2-KE-L1-21 — dead CSS and the tab-role idiom", () => {
         const panels = controls.match(/role="tabpanel"\n\s*data-surface-panel\n/g) ?? [];
         expect(panels).toHaveLength((controls.match(/^\s*role="tabpanel"$/gm) ?? []).length);
         expect(panels.length).toBeGreaterThan(0);
-        expect(source("demo/scenes/cube/CubeScene.vue")).toMatch(
-            /role: "tabpanel", "data-surface-panel": ""/,
-        );
+        // X.KF.W13X.r4pane · UIA-KF-161 — the host renders every surface's
+        // panel, scene facets included; a scene hands only the body, so no
+        // scene-side tabpanel exists to carry (or miss) the attribute.
+        expect(source("demo/scenes/cube/CubeScene.vue")).not.toMatch(/role: "tabpanel"/);
     });
 
     it("the idiom recipes with no consumer are deleted (.reverse-badge, .progress-bar, .progress-dot)", () => {
