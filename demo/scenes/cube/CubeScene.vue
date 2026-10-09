@@ -113,36 +113,21 @@ const { animationGroup, setTargets } = useCubeDemo(
 // while the Matrix animation is selected. The former `tabsTrigger` function (and
 // its `defineExpose` entry) are DELETED.
 
-// The matrix-controls BODY is a PLAIN gated panel, rendered ONLY while the
-// active surface is "matrix-controls" (gated on `storedControls.selectedControl`
-// — the single-authority value the RibbonBar keys on, written back by the
-// ChannelControls derivation-sync and falling back to "controls" when the Matrix
-// condition lapses), else nothing (null) — matching the parent's
-// `selectedControlSurface === 'x'` gating. The active surface is read from the
-// store CubeScene already holds (the `tabs-content` slot chain does not forward
-// it — ControlsPaneWrapper/App re-expose only selectedAnimation; the store read
-// is the in-scope mirror of the pane's own gate, both reading the same
-// authority).
-//
-// This is the FOURTH orphan `[role=tabpanel]` site (CC-D-2/C-3 + N-4), and the
-// only one a template grep cannot see. Its `role`/`data-state` pair is retained
-// for the same stated reason as its three siblings in `ChannelControls.vue`: it
-// is the seam the pane probes key on; the panel-enter rule keys on
-// `data-surface-panel` (design-idioms.css §surface-panel). Its
-// accessible NAME is the editor section's own title (X.KF.W13X.matrix,
-// UIA-KF-161: "Transform matrix").
+// The matrix-controls BODY. X.KF.W13X.r4pane (UIA-KF-161, hosting) — the scene
+// hands the editor alone: the named, gated surface panel around it is the
+// controls host's (ChannelControls renders every facet surface's panel, named
+// by its `SURFACE_META` label, beside the built-in three), and the pane gates
+// the slot to the facet surface (ControlsPaneWrapper). The former scene-side
+// `role=tabpanel` wrapper and its own store gate (the FOURTH orphan panel site)
+// are gone.
 const tabsContent = () =>
-    storedControls.selectedControl === "matrix-controls"
-        ? h("div", { role: "tabpanel", "data-surface-panel": "", "data-state": "active", "aria-label": "Transform matrix" }, [
-            h(MatrixEditor, {
-                matrix3dEnd: matrix3dEnd.value,
-                matrixCellMeta: matrixCellMeta.value,
-                superKey,
-                onUpdateMatrixCell: updateMatrixCell,
-                onResetMatrix: resetMatrix,
-            }),
-        ])
-        : null;
+    h(MatrixEditor, {
+        matrix3dEnd: matrix3dEnd.value,
+        matrixCellMeta: matrixCellMeta.value,
+        superKey,
+        onUpdateMatrixCell: updateMatrixCell,
+        onResetMatrix: resetMatrix,
+    });
 
 // X.KF.W13X.sections (KF-W13 addendum (c)) — the cube hands the ribbon NOTHING:
 // its one ribbon verb was the matrix Reset, alone on a second card under the

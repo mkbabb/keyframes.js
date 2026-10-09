@@ -99,13 +99,25 @@
                          per verb). -->
                 </div>
 
-                <!-- Scene-specific panels (cube's matrix-controls body, the
-                     easing/spring sidebars). These flow through the `tabs-content`
-                     slot AS BEFORE; the scene gates its own body on the active
-                     surface. NOTE: the scene-supplied bodies that wrapped content
-                     in a reka `<TabsContent>` must re-home onto a plain gated div
-                     (a cross-cluster follow-on — reported, not edited here). -->
-                <slot name="tabs-content"></slot>
+                <!-- X.KF.W13X.r4pane · UIA-KF-161 (hosting) — a scene FACET
+                     (cube's Matrix, easing's Curve, spring's Physics) is a surface
+                     THIS host hosts, exactly as it hosts the built-in three: one
+                     plain gated panel, named by the surface's registry label
+                     (`SURFACE_META`, the dock's own words). The scene hands only
+                     its BODY through the `tabs-content` slot (the pane gates the
+                     slot to the facet surface, ControlsPaneWrapper); the matrix
+                     body no longer renders its own `role=tabpanel` from a
+                     scene-side `h()`. -->
+                <div
+                    v-if="$slots['tabs-content'] && facetSurfaceLabel"
+                    role="tabpanel"
+                    data-surface-panel
+                    :aria-label="facetSurfaceLabel"
+                    data-state="active"
+                    tabindex="0"
+                >
+                    <slot name="tabs-content"></slot>
+                </div>
 
                 <!-- Timeline: outside the gated panels but inside the scrollable
                      area so Teleport lifecycle isn't tied to a panel mount/unmount
@@ -165,6 +177,7 @@ import { useKeyframesPaneReveal } from "./composables/useKeyframesPaneReveal";
 import { useSelectedControlSurface } from "./composables/useSelectedControlSurface";
 import {
     useSceneMachine,
+    BUILT_IN_SURFACES,
     SURFACE_META,
     type ControlSurface,
 } from "@state";
@@ -239,6 +252,13 @@ const hasSurface = (surface: ControlSurface): boolean =>
 const { selectedControlSurface, projectPick } = useSelectedControlSurface({
     animation,
     storedControls,
+});
+
+// UIA-KF-161 — the facet panel's name: the active surface's registry label,
+// when the active surface is a scene facet (not one of the built-in three).
+const facetSurfaceLabel = computed(() => {
+    const surface = selectedControlSurface.value as ControlSurface;
+    return BUILT_IN_SURFACES.includes(surface) ? null : SURFACE_META[surface]?.label ?? null;
 });
 
 const emit = defineEmits<{
