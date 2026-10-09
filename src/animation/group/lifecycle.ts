@@ -15,7 +15,8 @@
  * edge runs one way (group → lifecycle), the type edge is erased.
  *
  * The seam (what STAYS on `group.ts`): the per-frame COMPOSITE/draw half
- * (`advanceTo` / `_frame` / `_renderFrame` / `render` / `transformFramesGrouped`)
+ * (`advanceTo` / `render` / `transformFramesGrouped`; the draw loop's frame leg
+ * is `./frame`)
  * is the group's blend engine, and the layer-spring API delegates cohere with the
  * compositor — those are not transport. The free functions reach the group's
  * run-state through plain field access (`group.playback`, `group._boundFrame`,

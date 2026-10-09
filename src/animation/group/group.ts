@@ -6,6 +6,8 @@ import { RAFPlayback } from "../physics/playback";
 import { KeyframesAnimation } from "../engine";
 import { getAnimationId } from "../internal/animation-id";
 import { renderMultiTarget, requireEntry } from "./entries";
+import { drawFrame } from "./frame";
+import { RenderObservers } from "./render-observers";
 import { advanceBatched, advanceSlice } from "./yield-batch";
 import { advanceLayerSprings } from "./springs";
 import type { LayerTransitionSpring } from "./springs";
@@ -160,6 +162,9 @@ export class AnimationGroup<V extends Vars> {
      * INTERNAL (S.B5) — read by `./lifecycle`'s `play`/`resume` loop start. */
     _boundFrame: (t: number) => boolean | Promise<boolean>;
 
+    /** The `onRender` observers (KFA-31). */
+    private readonly _renders = new RenderObservers();
+
     /** Cached entries sorted by layer zIndex (see `getEntries`). */
     private _entries: AnimationGroupEntry<V>[] = [];
     private _entriesDirty = true;
@@ -173,7 +178,7 @@ export class AnimationGroup<V extends Vars> {
     _hasLayerSprings = false;
 
     constructor(...inputs: (KeyframesAnimation<V> | AnimationGroupInput<V>)[]) {
-        this._boundFrame = this._frame.bind(this);
+        this._boundFrame = (t: number) => drawFrame(this, t);
 
         const animations: KeyframesAnimation<V>[] = [];
 
@@ -294,6 +299,14 @@ export class AnimationGroup<V extends Vars> {
         } else {
             renderMultiTarget(this.getEntries());
         }
+        this._renders.notify(t);
+    }
+
+    /** Observe every frame the group paints (each draw-loop tick, `render()`,
+     *  `reset()`) with its clock; returns the unsubscribe. A paused group
+     *  notifies nothing. See `./render-observers` (KFA-31 · KFA-85). */
+    onRender(listener: (t: number) => void): () => void {
+        return this._renders.subscribe(listener);
     }
 
     /** Set a child's current time without touching its siblings (updates
@@ -331,47 +344,6 @@ export class AnimationGroup<V extends Vars> {
                 ? advanceSlice(entries, t)
                 : advanceBatched(entries, t, BATCH);
         return pending ? pending.then(() => this) : this;
-    }
-
-    /** One frame of the group's draw loop: tick all children, then render. */
-    private _frame(t: number): boolean | Promise<boolean> {
-        const advanced = this.advanceTo(t);
-        return typeof (advanced as Promise<this>).then === "function"
-            ? (advanced as Promise<this>).then(() => this._renderFrame(t))
-            : this._renderFrame(t);
-    }
-
-    /** The post-advance render half of `_frame` — composite, or settle on done. */
-    private _renderFrame(t: number): boolean {
-        if (this.paused) {
-            return false;
-        }
-
-        if (this.singleTarget) {
-            // The shadow transport still advances every child, but delegated
-            // native effects own visual output until the terminal tick. Keep
-            // the group completion calculation here because `compositeFrame`
-            // is intentionally skipped on the delegated steady path.
-            this.done = this.getEntries().every(
-                (entry) => entry.animation.done,
-            );
-            if (!this._waapiDelegated || this.done) {
-                this.transformFramesGrouped(t);
-            }
-        } else {
-            this.done = renderMultiTarget(this.getEntries());
-        }
-
-        if (!this.done) {
-            return true;
-        }
-
-        // Completion: every child already painted its rest frame + the composite
-        // rendered the blend, so settle is pure teardown, never a repaint (a
-        // completion `reset()` would end a fadeIn group invisible at frame 0).
-        this.settle();
-        lifecycle.resolvePlay(this);
-        return false;
     }
 
     /** The completion front-door (G.W13) — `await group.finished` resolves once
@@ -425,6 +397,7 @@ export class AnimationGroup<V extends Vars> {
      * settle — the user-facing "return to start". Body in `./lifecycle` (S.B5). */
     reset() {
         lifecycle.reset(this);
+        this._renders.notify(this.lastTickTime);
         return this;
     }
 
