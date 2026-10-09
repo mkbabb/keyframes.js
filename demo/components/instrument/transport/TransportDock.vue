@@ -65,16 +65,19 @@
                      the same element, and TD-39's one stable name is one control. -->
                 <template #persistent>
                 <!-- rail-core: PLAY, FIRST (actions.primary) -->
+                <!-- X.KF.W13X.r4transport · UIA-KF-052 (consumer half) — Play is a
+                     DockControl like its Reset sibling: the producer's icon cell
+                     owns the size, the radius role and the press, so the
+                     literal radius, the fixed 40 px box and the bespoke hover
+                     scale are gone. The rainbow fill is the scene's identity
+                     colour (kept, §0dm); a DockControl accent tone is the glass
+                     half (O-59). -->
                 <Tooltip>
                     <TooltipTrigger as-child>
-                        <Button
-                            emphasis="quiet"
+                        <DockControl
+                            shape="icon"
                             :aria-label="isPlaying ? 'Pause animation' : 'Play animation'"
-                            :class="[
-                                'scale-on-hover icon-lg text-white rounded-full p-0',
-                                'w-10 h-10 shrink-0',
-                                isPlaying ? 'rainbow-vivid' : 'rainbow-pastel',
-                            ]"
+                            :class="['text-white', isPlaying ? 'rainbow-vivid' : 'rainbow-pastel']"
                             @pointerdown="onPlayPointerDown($event)"
                             @pointerup="onPlayPointerUp($event)"
                             @pointercancel="onPlayPointerCancel($event)"
@@ -84,7 +87,7 @@
                         >
                             <Pause v-if="isPlaying" class="icon-lg" />
                             <Play v-else class="icon-lg translate-x-px" />
-                        </Button>
+                        </DockControl>
                     </TooltipTrigger>
                     <TooltipContent>{{ isPlaying ? "Pause" : "Play" }}</TooltipContent>
                 </Tooltip>
@@ -204,7 +207,6 @@ import {
     SelectGroup,
     SelectItem,
     SelectValue,
-    Button,
 } from "@mkbabb/glass-ui";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@mkbabb/glass-ui/tooltip";
 
