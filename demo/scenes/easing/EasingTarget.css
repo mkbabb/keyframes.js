@@ -85,6 +85,42 @@
     margin-block: -1rem;
     vertical-align: middle;
 }
+/* X-DS r4 pass 4 (KF-C23-03) — the gallery's scroll port ends above the
+   plate's rim: one --space-body of block-end inset on top of the plate's own
+   padding, so the clip line (where the producer's edge fade runs) sits inside
+   the plate and reads as a scroll edge, not as tiles sliced by the card's
+   rounded rim. No mask is added (pass 3 deleted the extra FadingScroll). */
+.easing-target :deep(.specimen-drawer) {
+    margin-block-end: var(--space-body);
+}
+
+/* X-DS r4 pass 4 (KF-C23-04) — below lg the header is two rows, no hanging
+   indent: the name with Copy seated at the row's end, then the literal on its
+   own line under the name, at full measure. The id column is a two-track grid
+   (EasingTarget.vue `idClass`); the literal's wrapper dissolves so the call and
+   its Copy are the grid's items. The call's size fits the plate's measure (a
+   Fira Code advance is 0.6em, so 22em holds the 36-character cubic-bezier on
+   one line); a longer call still breaks at its comma-spaces. */
+@media (max-width: 1023px) {
+    .easing-target {
+        container-type: inline-size;
+    }
+    .specimen-literal {
+        display: contents;
+    }
+    .literal-text {
+        grid-column: 1 / -1;
+        grid-row: 2;
+        font-size: min(var(--type-small), 100cqi / 22);
+        text-indent: 0;
+    }
+    .specimen-literal > :last-child {
+        grid-column: 2;
+        grid-row: 1;
+        justify-self: end;
+        margin: 0;
+    }
+}
 /* X-DS pass 3 · KF-C3-16 — the literal breaks at its comma-spaces, balanced
    (it orphaned "1.00)" on its own line at 390 under `anywhere`); a token
    breaks inside itself only when it cannot fit a line at all. */

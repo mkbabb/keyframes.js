@@ -120,12 +120,19 @@
         flex-direction: column;
         /* X-DS pass 6 (KF-C6-03) — the budget is named once, here, where its
            tokens resolve, so the rail's content can size itself to it (the
-           easing sub-pane's plot, ChannelOptions.vue). */
+           easing sub-pane's plot, ChannelOptions.vue).
+           X-DS r4 pass 4 (KF-C23-02) — the rail stands in the stage's WORK BAND
+           (AnimationControlsGroup.css `--work-band-*`): the same block insets
+           as the stage cell, so the pane's top is the stage plate's top line
+           and its height caps at the stage plate's foot. The budget is the
+           work area less those two insets. */
+        box-sizing: border-box;
+        padding-block: var(--work-band-start) var(--work-band-end);
         --rail-block: calc(
-            100dvh - var(--dock-menubar-reserve) -
-                var(--work-area-vertical-slack) / 2
+            min(100dvh, var(--work-area-max-height, 100dvh)) -
+                var(--work-band-start) - var(--work-band-end)
         );
-        max-block-size: min(100%, var(--rail-block));
+        max-block-size: 100%;
     }
     .controls-pane,
     .controls-content {
@@ -134,10 +141,11 @@
         min-block-size: 0;
     }
     /* The frame sits where the two cards sat (the former scroller and ribbon
-       insets: 0.5rem above and below, 1rem start, 1.75rem end), so the rail's
-       composition against the stage is unchanged. */
+       insets: 1rem start, 1.75rem end), so the rail's composition against the
+       stage is unchanged. X-DS r4 pass 4 (KF-C23-02) — no block margin: the
+       work band's padding is the frame's room (the clip is the padding box). */
     .pane-frame {
-        margin: 0.5rem 1.75rem 0.5rem 1rem;
+        margin: 0 1.75rem 0 1rem;
     }
     /* The surface scroller is glass `FadingScroll` (its `overflow-y` and its
        edge fade are the producer's; X.KF.W13X.r4pane, A2-KE-L1-4). */

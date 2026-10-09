@@ -114,22 +114,30 @@
    so the top clipped) is DELETED with this — no legacy beside the replacement.
    This sits on .stage-cell (not the [top]/[bottom] grid rows) so the expanded
    timeline in the [bottom] row keeps its own `auto`-sized growth track. */
-.stage-cell {
-    box-sizing: border-box;
-    padding-block: var(--dock-band-reserve);
+/* X-DS r4 pass 4 (KF-C23-02) — THE WORK BAND: the two block insets are named
+   once, on the layout, so the stage cell and the desktop rail
+   (ControlsPaneWrapper.css) read the same top line and the same foot. The pane
+   rode the layout's top edge (54) while the stage plate cleared the dock (127),
+   so the two plates shared no edge. */
+.controls-layout {
+    --work-band-start: var(--dock-band-reserve);
     /* X-DS pass 3 · KF-C3-02 — the block-end clears the TRANSPORT BAND
        (layout.css `--transport-band`), not the band depth alone: the pill
        floats at its anchor above the band, so a full-height plate (square,
        easing, spring) ran under it. The cell is the centred work area, whose
        bottom sits half the vertical slack above the viewport's, so that half
-       is credited back. One rule on the cell, never per scene. */
-    padding-block-end: max(
+       is credited back. */
+    --work-band-end: max(
         var(--dock-band-reserve),
         calc(
             var(--transport-band) -
                 (100dvh - min(100dvh, var(--work-area-max-height, 100dvh))) / 2
         )
     );
+}
+.stage-cell {
+    box-sizing: border-box;
+    padding-block: var(--work-band-start) var(--work-band-end);
 }
 
 /* ── MOBILE — the stack→overlay transposition (H.W7.S1) ──
@@ -269,9 +277,10 @@
        top, so the unfolded card keeps the docked pane's top edge and grows
        downward. In the [bottom] row alone it dropped to the rail's foot
        (y 63 → 413 at 1440×900) and left ~350px of empty rail above it, and
-       its auto row starved the stage beside it. The expanded state's `lg:pt-2`
-       (AnimationControlsGroup.vue) is the pane frame's own 0.5rem top margin
-       (ControlsPaneWrapper.css), so the two tops coincide. */
+       its auto row starved the stage beside it. The expanded state's top inset
+       (`lg:pt-(--work-band-start)`, AnimationControlsGroup.vue) is the rail's
+       own work-band inset (ControlsPaneWrapper.css; X-DS r4 pass 4), so the
+       two tops coincide, on the stage plate's top line. */
     .timeline-expanded-cell {
         grid-column: rail;
         grid-row: stage / -1;

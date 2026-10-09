@@ -68,9 +68,16 @@
                 <!-- X.KF.W13V.y (OA-51; DESIGN-NOTE N-3 · N-6) — the title is the
                      thing measured in plain words; the ball's position is the
                      stage's ONE primary readout, everything else is muted. -->
+                <!-- X-DS r4 pass 4 (KF-C23-01) — one subject, one readout (the
+                     badge's rule): while the Sweep runs and the solver rests,
+                     the sampler is the thing moving, so the primary readout is
+                     its value, labelled "sweep"; the resting solver's position
+                     steps down to the quiet rung beside it. -->
                 <div class="stage-readout">
-                    <span>position</span>
-                    <span class="spring-readout-primary" data-readout="primary">{{ demo.liveValue.value.toFixed(3) }}</span>
+                    <span>{{ sweepLeads ? "sweep" : "position" }}</span>
+                    <span class="spring-readout-primary" data-readout="primary">{{
+                        (sweepLeads ? demo.sampled.value : demo.liveValue.value).toFixed(3)
+                    }}</span>
                 </div>
             </template>
             <template #aside>
@@ -80,7 +87,11 @@
                      string, so the pair read as a headline and a footnote).
                      N-2 — the label is lowercase and transform-free, so it
                      never renders as "V". -->
-                <div class="stage-readout">
+                <div v-if="sweepLeads" class="stage-readout">
+                    <span>position</span>
+                    <span class="spring-readout-secondary">{{ demo.liveValue.value.toFixed(3) }}</span>
+                </div>
+                <div v-else class="stage-readout">
                     <span>velocity</span>
                     <span class="spring-readout-secondary">{{ demo.liveVelocity.value.toFixed(2) }}</span>
                 </div>
@@ -354,6 +365,11 @@ const targetValueText = computed(() => `target ${demo.target.value.toFixed(2)} o
  *  playback while the badge read "settled" and nothing on the rail moved; the
  *  sweep's own moving mark (the sampler) is gated by `--sweeping` instead. */
 const isLive = computed(() => !demo.liveSettled.value || demo.derbyActive.value);
+
+/** X-DS r4 pass 4 (KF-C23-01) — the Sweep leads the stage: the transport runs
+ *  and the solver rests (the same condition as the `--sweeping:not(--live)`
+ *  rung swap below), so the sampler owns the primary readout. */
+const sweepLeads = computed(() => demo.isPlaying.value && !isLive.value);
 
 /** X.KF.W13X.spring (KFA-213) — the badge's SKIN reads the same state its
  *  words do. It read `liveSettled` while the words read `stateLabel`, so across

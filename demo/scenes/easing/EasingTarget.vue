@@ -22,7 +22,7 @@
              title slot keeps the specimen-name swap (a keyed Transition). -->
         <SceneStageHeader
             class="gallery-header shrink-0"
-            id-class="flex flex-wrap items-baseline gap-x-3.5 gap-y-1 min-w-0"
+            id-class="flex flex-wrap items-baseline gap-x-3.5 gap-y-1 min-w-0 max-lg:grid max-lg:w-full max-lg:grid-cols-[minmax(0,1fr)_auto] max-lg:items-center"
         >
             <template #title>
                 <Transition name="specimen-name" mode="out-in">
