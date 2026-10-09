@@ -10,7 +10,7 @@
 <script setup lang="ts">
 import { h, provide, ref } from "vue";
 import { clamp } from "@mkbabb/value.js/math";
-import { getStoredAnimationGroupControlOptions } from "@state";
+import { getStoredAnimationGroupControlOptions, useSceneMachine } from "@state";
 
 import PlaybackRibbon from "@components/playback/PlaybackRibbon.vue";
 
@@ -99,15 +99,11 @@ const onToggleReverse = () => {
     demo.setReversed(userReversed.value);
 };
 
-let wasPlayingBeforeScrub = false;
-const onScrubStart = () => {
-    wasPlayingBeforeScrub = demo.isPlaying.value;
-    if (wasPlayingBeforeScrub) demo.pause();
-};
-const onScrubEnd = () => {
-    if (wasPlayingBeforeScrub) demo.play();
-    wasPlayingBeforeScrub = false;
-};
+// KFA-226 — a scrub is the machine's SCRUB_START/SCRUB_END, never a pause/play
+// pair: the loop is held for the drag, the play intent is untouched.
+const machine = useSceneMachine();
+const onScrubStart = () => machine.dispatch({ type: "SCRUB_START" });
+const onScrubEnd = () => machine.dispatch({ type: "SCRUB_END" });
 
 const ribbonContent = (slotProps: { selectedControl: string }) =>
     slotProps.selectedControl === "easing"

@@ -76,6 +76,8 @@ export type SceneEvent =
     | { type: "PLAY" }
     | { type: "PAUSE" }
     | { type: "SCRUB"; t: number }
+    | { type: "SCRUB_START" }
+    | { type: "SCRUB_END" }
     | { type: "SUSPEND" }
     | { type: "RESUME" }
     | { type: "RESET" }
@@ -86,6 +88,14 @@ export type SceneEvent =
 export interface MachineState {
     status: PlaybackStatus;
     context: SceneContext;
+    /**
+     * KFA-226 — the SCRUB axis, orthogonal to the play intent. True between a
+     * SCRUB_START and its SCRUB_END: the scrub holds the loop, but `status` and
+     * the snapshot's `playing` keep the user's intent, so a scrub is never a
+     * PAUSE and a PAUSE pressed mid-drag is the user's. Ephemeral (never
+     * persisted); absent reads as not scrubbing.
+     */
+    scrubbing?: boolean;
 }
 
 // ── THE PURE REDUCER ─────────────────────────────────────────────────────────
@@ -100,6 +110,23 @@ const freshSnapshot = (): PlaybackSnapshot => ({
 });
 
 export function transition(state: MachineState, event: SceneEvent): MachineState {
+    const next = playbackTransition(state, event);
+    // KFA-226 — the scrub axis rides every playback transition unchanged: a
+    // PLAY/PAUSE/RESET/tab event during a drag moves the intent, never the hold.
+    // Only SCRUB_END releases it, and a scene switch drops it (a drag does not
+    // outlive the scene it was on).
+    if (
+        next === state ||
+        !state.scrubbing ||
+        event.type === "SCRUB_END" ||
+        event.type === "NAVIGATE"
+    ) {
+        return next;
+    }
+    return { ...next, scrubbing: true };
+}
+
+function playbackTransition(state: MachineState, event: SceneEvent): MachineState {
     const { status, context } = state;
 
     switch (event.type) {
@@ -172,6 +199,22 @@ export function transition(state: MachineState, event: SceneEvent): MachineState
             // onto every animation snapshot the scene owns (the group scenes)
             // and the raw `progress` (the raw-rAF scenes).
             return { status, context: scrub(context, event.t) };
+        }
+
+        case "SCRUB_START": {
+            // KFA-226 — a scrub is its OWN fact, not a PAUSE: the effect layer
+            // holds the loop, the play intent is untouched.
+            if (status === "idle" || status === "loading" || state.scrubbing) {
+                return state;
+            }
+            return { status, context, scrubbing: true };
+        }
+
+        case "SCRUB_END": {
+            // The release returns to whatever intent stands now (the user may
+            // have paused or played during the drag).
+            if (!state.scrubbing) return state;
+            return { status, context };
         }
 
         case "SUSPEND": {

@@ -230,12 +230,26 @@ export const useSceneMachine = createGlobalState(() => {
                 break;
             }
             case "PLAY":
-                if (changed) adapter?.resume();
+                // KFA-226 — a PLAY during a scrub records the intent; the
+                // scrub's release (SCRUB_END) is what re-arms the loop.
+                if (changed && !state.scrubbing) adapter?.resume();
                 break;
             case "PAUSE":
                 if (changed) adapter?.suspend();
                 break;
             case "RESUME":
+                if (changed && state.status === "playing" && !state.scrubbing) {
+                    adapter?.resume();
+                }
+                break;
+            case "SCRUB_START":
+                // KFA-226 — the scrub HOLDS the loop (the drag owns the clock);
+                // the play intent stays as it was.
+                if (changed && state.status === "playing") adapter?.suspend();
+                break;
+            case "SCRUB_END":
+                // The release resumes from the released position iff the
+                // intent standing NOW is to play.
                 if (changed && state.status === "playing") adapter?.resume();
                 break;
             case "RESET":

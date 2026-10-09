@@ -66,7 +66,7 @@ import StartingStyleTarget from "./StartingStyleTarget.vue";
 import SpringPhysicsFacet from "./SpringPhysicsFacet.vue";
 import { useSpringDemo } from "./useSpringDemo";
 import { SPRING_DEMO_KEY, SPRING_SCENE_ID } from "./springKeys";
-import { getStoredAnimationGroupControlOptions } from "@state";
+import { getStoredAnimationGroupControlOptions, useSceneMachine } from "@state";
 
 // KF-SS-34 — the one-use `SCENE_ID` alias is deleted; `SPRING_SCENE_ID` is
 // already the name, already imported, and already what the rest of the file says.
@@ -150,15 +150,11 @@ const onToggleReverse = () => {
     demo.setReversed(userReversed.value);
 };
 
-let wasPlayingBeforeScrub = false;
-const onScrubStart = () => {
-    wasPlayingBeforeScrub = demo.isPlaying.value;
-    if (wasPlayingBeforeScrub) demo.pause();
-};
-const onScrubEnd = () => {
-    if (wasPlayingBeforeScrub) demo.play();
-    wasPlayingBeforeScrub = false;
-};
+// KFA-226 — a scrub is the machine's SCRUB_START/SCRUB_END, never a pause/play
+// pair: the loop is held for the drag, the play intent is untouched.
+const machine = useSceneMachine();
+const onScrubStart = () => machine.dispatch({ type: "SCRUB_START" });
+const onScrubEnd = () => machine.dispatch({ type: "SCRUB_END" });
 
 const storedControls = getStoredAnimationGroupControlOptions(SPRING_SCENE_ID);
 

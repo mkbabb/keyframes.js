@@ -46,8 +46,6 @@ export function useAnimationGroupPlayback(
     const machine = useSceneMachine();
     const { isPlaying } = useSceneTransport(machine);
 
-    let wasPlayingBeforeScrub = false;
-
     /**
      * Emit the play/start INTENT to the host (App.onPlayStateChange → the machine
      * dispatch → the adapter drives the group). It writes NO ref: `isPlaying` is a
@@ -101,23 +99,12 @@ export function useAnimationGroupPlayback(
         syncPlayState(!isPlaying.value);
     };
 
-    const onScrubStart = () => {
-        // Pause via the machine for the duration of the scrub (emit false → PAUSE
-        // → adapter.suspend() stops the loop without rewinding). Remember the
-        // pre-scrub intent from the SINGLE authority, not a group read.
-        wasPlayingBeforeScrub = isPlaying.value;
-        if (wasPlayingBeforeScrub) {
-            syncPlayState(false);
-        }
-    };
-
-    const onScrubEnd = () => {
-        // Resume iff we paused for the scrub (emit true → PLAY → adapter.resume()).
-        if (wasPlayingBeforeScrub) {
-            syncPlayState(true);
-            wasPlayingBeforeScrub = false;
-        }
-    };
+    // KFA-226 — a scrub is the machine's SCRUB_START/SCRUB_END, never a
+    // PAUSE/PLAY pair: the machine holds the loop for the drag and keeps the
+    // play intent, so a pause pressed mid-drag is the user's and survives the
+    // release, and the release resumes from the released position.
+    const onScrubStart = () => machine.dispatch({ type: "SCRUB_START" });
+    const onScrubEnd = () => machine.dispatch({ type: "SCRUB_END" });
 
     const sliderUpdate = ({ t, animation }: { t: number; animation: KeyframesAnimation<any> }) => {
         // Scrubbing a single animation in a group must NOT drag its
