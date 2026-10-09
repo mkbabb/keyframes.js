@@ -165,6 +165,7 @@ import type { AnimationLayerConfig } from "@mkbabb/keyframes.js";
 import {
     computed,
     defineAsyncComponent,
+    inject,
     markRaw,
     shallowRef,
     Teleport,
@@ -173,6 +174,7 @@ import {
     watch,
 } from "vue";
 import type KeyframeTimelineComponent from "../../timeline/KeyframeTimeline.vue";
+import { CHANNEL_COMMANDS_KEY, type ChannelCommands } from "../injectionKeys";
 import { useKeyframesPaneReveal } from "./composables/useKeyframesPaneReveal";
 import { useSelectedControlSurface } from "./composables/useSelectedControlSurface";
 import {
@@ -316,19 +318,45 @@ watch(
     { immediate: true },
 );
 
-const selectControl = (key: string | number) => {
-    // The user-pick path writes the DFA projection of the pick (not the raw key)
-    // — see useSelectedControlSurface.projectPick (the single-authority owner).
-    // Still reached: the keyboard shortcuts route here through
-    // `AnimationControlsGroup`'s `switchTab` over the exposed handle.
-    storedControls.selectedControl = projectPick(key.toString());
+// ── X.KF.W13X.r4pane · A2-KE-L1-23 — THE CHANNEL'S COMMANDS, TYPED, ONE SEAT ──
+// The ribbon's Keyframes verbs and the keyboard shortcuts used to reach this
+// host's panes through `any` component refs it exposed, which the pane emitted
+// up to AnimationControlsGroup's registry and which came back down as a prop.
+// The host now publishes ONE typed command object into the seat its owner
+// provides (`CHANNEL_COMMANDS_KEY`, AnimationControlsGroup) while it is the
+// selected channel's; RibbonBar injects the seat, the shortcuts read it.
+const commands: ChannelCommands = {
+    // The user-pick path writes the DFA projection of the pick (not the raw
+    // key) — see useSelectedControlSurface.projectPick (the single authority).
+    selectSurface: (surface) => {
+        storedControls.selectedControl = projectPick(surface);
+    },
+    keyframes: {
+        get cssApplied() {
+            return Boolean(keyframesControlsRef.value?.cssApplied);
+        },
+        applyCSS: () => keyframesControlsRef.value?.applyCSSStyles(),
+        clearAppliedCSS: () => keyframesControlsRef.value?.clearAppliedCSS(),
+        // `formatCSS` is the pane's one format boundary: it catches and toasts
+        // its own rejection (M-3/C-8), so the promise is left un-awaited.
+        format: () => void keyframesControlsRef.value?.formatCSS(),
+        copyKeyframes: () => void keyframesControlsRef.value?.copyCSS(),
+        copyCompiledCSS: () => void keyframesControlsRef.value?.exportCompiledCSS(),
+    },
+    timeline: {
+        removeSelectedKeyframe: () => timelineRef.value?.removeSelectedKeyframe(),
+        undo: () => timelineRef.value?.undo(),
+        redo: () => timelineRef.value?.redo(),
+    },
 };
-
-defineExpose({
-    keyframesControlsRef,
-    timelineRef,
-    selectControl,
-});
+const commandSeat = inject(CHANNEL_COMMANDS_KEY, null);
+watch(
+    () => active,
+    (isActive, _was, onCleanup) => {
+        if (isActive && commandSeat) onCleanup(commandSeat.publish(commands));
+    },
+    { immediate: true },
+);
 </script>
 
 <style scoped>

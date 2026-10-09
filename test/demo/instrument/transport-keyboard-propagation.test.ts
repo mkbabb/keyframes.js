@@ -23,7 +23,7 @@
  *       prevents the scroll default, and swallows OS auto-repeat.
  */
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
-import { defineComponent, h, ref } from "vue";
+import { defineComponent, h, shallowRef } from "vue";
 import { mount, type VueWrapper } from "@vue/test-utils";
 import { TooltipProvider } from "@mkbabb/glass-ui/tooltip";
 import { warmKfEngine } from "../../../demo/kf-engine";
@@ -154,8 +154,7 @@ function mountTransport(over: Partial<StoredAnimationGroupControlOptions> = {}):
                 scrubActive: () => {},
                 cycleAnimation: () => {},
                 switchTab: () => {},
-                activeKeyframesRef: ref(null),
-                activeTimelineRef: ref(null),
+                commands: shallowRef(null),
             });
             return () =>
                 h(TooltipProvider, null, {

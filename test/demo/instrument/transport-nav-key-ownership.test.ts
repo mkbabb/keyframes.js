@@ -21,7 +21,7 @@
  * press no widget claimed.
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { defineComponent, h, ref } from "vue";
+import { defineComponent, h, shallowRef } from "vue";
 import { mount, type VueWrapper } from "@vue/test-utils";
 import { useControlsKeyboardShortcuts } from "@components/instrument/transport/AnimationControlsGroup/useControlsKeyboardShortcuts";
 
@@ -43,8 +43,7 @@ function seat() {
                 scrubActive,
                 cycleAnimation: () => {},
                 switchTab: () => {},
-                activeKeyframesRef: ref(null),
-                activeTimelineRef: ref(null),
+                commands: shallowRef(null),
             });
             return () =>
                 h("div", [

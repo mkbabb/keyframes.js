@@ -1,5 +1,6 @@
 import { registerShortcut } from "@mkbabb/glass-ui/keyboard";
-import type { Ref } from "vue";
+import type { ShallowRef } from "vue";
+import type { ChannelCommands } from "../injectionKeys";
 
 interface UseControlsKeyboardShortcutsDeps {
     /** Toggle play/pause on the active animation group. */
@@ -16,10 +17,9 @@ interface UseControlsKeyboardShortcutsDeps {
     cycleAnimation: (dir: number) => void;
     /** Switch the active animation's control tab (controls/keyframes/timeline). */
     switchTab: (tab: string) => void;
-    /** The active animation's keyframes-controls ref (Copy CSS). */
-    activeKeyframesRef: Ref<any>;
-    /** The active animation's timeline ref (delete / undo / redo). */
-    activeTimelineRef: Ref<any>;
+    /** The selected channel's typed commands (Copy CSS · delete / undo / redo) —
+     *  the seat `AnimationControlsGroup` owns (X.KF.W13X.r4pane, A2-KE-L1-23). */
+    commands: Readonly<ShallowRef<ChannelCommands | null>>;
 }
 
 /**
@@ -65,8 +65,7 @@ export function useControlsKeyboardShortcuts(
         scrubActive,
         cycleAnimation,
         switchTab,
-        activeKeyframesRef,
-        activeTimelineRef,
+        commands,
     } = deps;
 
     // X.KF.W13.b · TD-40 (+ TD-2) — Space is scoped AWAY from activation targets.
@@ -105,12 +104,12 @@ export function useControlsKeyboardShortcuts(
     registerShortcut("1", () => switchTab("controls"), { label: "Controls tab", group: "Navigation" });
     registerShortcut("2", () => switchTab("keyframes"), { label: "Keyframes tab", group: "Navigation" });
     registerShortcut("3", () => switchTab("timeline"), { label: "Timeline tab", group: "Navigation" });
-    registerShortcut("Mod+S", () => activeKeyframesRef.value?.copyCSS?.(), { preventDefault: true, label: "Copy CSS", group: "Actions" });
-    registerShortcut("Delete", () => activeTimelineRef.value?.removeSelectedKeyframe?.(), { label: "Delete keyframe", group: "Actions" });
+    registerShortcut("Mod+S", () => commands.value?.keyframes.copyKeyframes(), { preventDefault: true, label: "Copy CSS", group: "Actions" });
+    registerShortcut("Delete", () => commands.value?.timeline.removeSelectedKeyframe(), { label: "Delete keyframe", group: "Actions" });
     // Undo / redo over the timeline keyframe state (F.W14.S1) — bound through the
     // ONE existing registry (not a second window listener), so they inherit the
     // editable-target skip + surface in the KeyboardShortcutsModal. The destructive
     // timeline ops (clear / removeKeyframe / inline CSS edits) become reversible.
-    registerShortcut("Mod+Z", () => activeTimelineRef.value?.undo?.(), { preventDefault: true, label: "Undo", group: "Actions" });
-    registerShortcut("Mod+Shift+Z", () => activeTimelineRef.value?.redo?.(), { preventDefault: true, label: "Redo", group: "Actions" });
+    registerShortcut("Mod+Z", () => commands.value?.timeline.undo(), { preventDefault: true, label: "Undo", group: "Actions" });
+    registerShortcut("Mod+Shift+Z", () => commands.value?.timeline.redo(), { preventDefault: true, label: "Redo", group: "Actions" });
 }

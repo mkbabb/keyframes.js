@@ -83,18 +83,18 @@
                     size="sm"
                     emphasis="secondary"
                     class="shrink-0 whitespace-nowrap"
-                    :aria-pressed="Boolean(activeKeyframesRef?.cssApplied)"
+                    :aria-pressed="Boolean(keyframes?.cssApplied)"
                     :class="
-                        activeKeyframesRef?.cssApplied
+                        keyframes?.cssApplied
                             ? 'rainbow-vivid text-white ribbon-apply--active'
                             : ''
                     "
-                    @click="activeKeyframesRef?.applyCSSStyles?.()"
+                    @click="keyframes?.applyCSS()"
                 >
                     <Paintbrush
                         class="icon-sm"
                         :style="
-                            !activeKeyframesRef?.cssApplied
+                            !keyframes?.cssApplied
                                 ? { stroke: 'url(#rainbow-gradient)' }
                                 : {}
                         "
@@ -110,7 +110,7 @@
                     class="whitespace-nowrap"
                     aria-label="Copy keyframes"
                     title="Copy keyframes"
-                    @click="activeKeyframesRef?.copyCSS?.()"
+                    @click="keyframes?.copyKeyframes()"
                 >
                     <!-- X-DS pass 1, C1 (KF-C1-14) — the three icon
                          commands share one neutral ink (currentColor): the
@@ -132,7 +132,7 @@
                     class="whitespace-nowrap"
                     aria-label="Format"
                     title="Format"
-                    @click="activeKeyframesRef?.formatCSS?.()"
+                    @click="keyframes?.format()"
                 >
                     <Sparkles class="icon-sm" />
                     <span class="@max-[25rem]:sr-only">Format</span>
@@ -147,7 +147,7 @@
                     class="whitespace-nowrap"
                     aria-label="Copy compiled CSS"
                     title="Copy compiled CSS"
-                    @click="activeKeyframesRef?.exportCompiledCSS?.()"
+                    @click="keyframes?.copyCompiledCSS()"
                 >
                     <FileCode class="icon-sm" />
                     <span class="@max-[22rem]:sr-only">Compiled</span>
@@ -173,9 +173,10 @@
 
 <script setup lang="ts">
 import { Copy, FileCode, Paintbrush, Sparkles } from "@lucide/vue";
-import { watch } from "vue";
+import { computed, inject, watch } from "vue";
 import { Button, Separator } from "@mkbabb/glass-ui";
 import type { StoredAnimationGroupControlOptions } from "@state";
+import { CHANNEL_COMMANDS_KEY } from "../injectionKeys";
 
 // The ribbon's Buttons carry NO class string of their own: `size="sm"` +
 // `emphasis="secondary"` is the whole request, and the producer answers it
@@ -189,8 +190,13 @@ import type { StoredAnimationGroupControlOptions } from "@state";
 
 const props = defineProps<{
     storedControls: StoredAnimationGroupControlOptions;
-    activeKeyframesRef: any;
 }>();
+
+// X.KF.W13X.r4pane · A2-KE-L1-23 — the verbs act on the SELECTED channel's
+// typed commands, read from the one seat AnimationControlsGroup provides and
+// the channel host publishes into (no `any` component ref handed down).
+const commandSeat = inject(CHANNEL_COMMANDS_KEY, null);
+const keyframes = computed(() => commandSeat?.current.value?.keyframes ?? null);
 
 // RB-6 (X.KF.W12.e) — THE APPLY STATE AND ITS AFFORDANCE GET ONE LIFETIME.
 //
@@ -207,12 +213,12 @@ const props = defineProps<{
 // rather than approximated anywhere else: when the affordance leaves, the
 // identity comes down with it, through the seat's idempotent `clearApplied`
 // (which restores the PRIOR pause state and no-ops when nothing is applied).
-// The handle is optional-chained like every other call on this ref — the
-// keyframes pane may not be mounted at all on a scene without one.
+// The command no-ops when the channel's keyframes pane is not mounted (a scene
+// without one), and the seat reads empty when no channel is selected.
 watch(
     () => props.storedControls.selectedControl === "keyframes",
     (affordanceRendered) => {
-        if (!affordanceRendered) props.activeKeyframesRef?.clearAppliedCSS?.();
+        if (!affordanceRendered) keyframes.value?.clearAppliedCSS();
     },
 );
 </script>

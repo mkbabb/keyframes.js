@@ -52,6 +52,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { defineComponent, h, markRaw, nextTick, reactive } from "vue";
 import { mount } from "@vue/test-utils";
 import type { StoredAnimationGroupControlOptions } from "@state";
+import {
+    CHANNEL_COMMANDS_KEY,
+    createChannelCommandSeat,
+} from "../../../demo/components/instrument/transport/injectionKeys";
 
 const slotStub = (tag: string, name: string) =>
     defineComponent({
@@ -150,8 +154,9 @@ const identityOf = (
  * `@vue/test-utils` types a mounted SFC's exposed members as possibly-absent on
  * `wrapper.vm` (they exist only once setup has run), so reading them at seven
  * call sites would otherwise mean seven non-null assertions. One named contract
- * is the honest shape — and it is the SAME contract the ribbon consumes at
- * runtime through `activeKeyframesRef?.clearAppliedCSS?.()`.
+ * is the honest shape — and it is the SAME contract the channel host maps into
+ * the ribbon's typed `KeyframesPaneCommands` at runtime (X.KF.W13X.r4pane,
+ * A2-KE-L1-23: `ChannelControls` publishes them into the owner's seat).
  */
 interface ApplySeat {
     getCSSString: () => string;
@@ -300,11 +305,27 @@ describe("G-KFW12-5 — APPLY: one name, one lifetime", () => {
             isTimelineExpanded: false,
             isControlsPanelOpen: true,
         });
-        const ribbon = mount(RibbonBar, {
-            props: {
-                storedControls,
-                activeKeyframesRef: seat.vm,
+        // The selected channel's commands over this seat, as ChannelControls
+        // publishes them, in the one seat the ribbon injects.
+        const commandSeat = createChannelCommandSeat();
+        const vm = seatOf(seat);
+        commandSeat.publish({
+            selectSurface: () => {},
+            keyframes: {
+                get cssApplied() {
+                    return vm.cssApplied;
+                },
+                applyCSS: () => vm.applyCSSStyles(),
+                clearAppliedCSS: () => vm.clearAppliedCSS(),
+                copyKeyframes: () => {},
+                format: () => {},
+                copyCompiledCSS: () => {},
             },
+            timeline: { removeSelectedKeyframe: () => {}, undo: () => {}, redo: () => {} },
+        });
+        const ribbon = mount(RibbonBar, {
+            props: { storedControls },
+            global: { provide: { [CHANNEL_COMMANDS_KEY as symbol]: commandSeat } },
             attachTo: document.body,
         });
         await nextTick();

@@ -104,7 +104,6 @@ async function mountAt(w: number, ht: number, stageMode: "subject" | "editor") {
                         storedControls,
                         stageMode,
                         isPlaying: false,
-                        activeKeyframesRef: null,
                         onSetControlsPanelOpen: (v: boolean) => {
                             storedControls.isControlsPanelOpen = v;
                         },

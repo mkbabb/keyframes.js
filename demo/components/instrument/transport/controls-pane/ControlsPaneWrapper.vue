@@ -109,7 +109,6 @@
                                  panel below renders the engine's post-write truth
                                  rather than a snapshot taken at mount. -->
                             <ChannelControls
-                                :ref="(el) => { if (el) emit('channelControlsRef', host.name, el) }"
                                 @slider-update="(v) => emit('sliderUpdate', v)"
                                 @keyframes-update="(v) => emit('keyframesUpdate', v)"
                                 @toggle-play="emit('togglePlay')"
@@ -164,7 +163,6 @@
                     <RibbonBar
                         v-if="storedControls.selectedAnimation && !selectedIsSequence"
                         :stored-controls="storedControls"
-                        :active-keyframes-ref="activeKeyframesRef"
                     >
                         <template #ribbon-content="{ selectedControl }">
                             <slot
@@ -273,7 +271,7 @@ import { Dialog, DialogTitle } from "@mkbabb/glass-ui/dialog";
 import { FadingScroll } from "@mkbabb/glass-ui/fading-scroll";
 import { SheetContent } from "@mkbabb/glass-ui/sheet";
 import { createReusableTemplate, useMediaQuery } from "@vueuse/core";
-import { computed, shallowRef, watch, type ComponentPublicInstance } from "vue";
+import { computed, shallowRef, watch } from "vue";
 import type { TransportChannel } from "../transportSource";
 import ChannelControls from "../channel-controls/ChannelControls.vue";
 import RibbonBar from "./RibbonBar.vue";
@@ -303,7 +301,6 @@ const props = defineProps<{
     // declaration; until then it is declared so it does not fall through.
     stageMode?: "subject" | "editor" | "storyboard" | undefined;
     isPlaying: boolean;
-    activeKeyframesRef: any;
 }>();
 
 const emit = defineEmits<{
@@ -317,13 +314,13 @@ const emit = defineEmits<{
     ): void;
     (e: "scrubStart"): void;
     (e: "scrubEnd"): void;
-    // X.KF.W13T.k3 · ESC-k2-1 (§0ar) — the two writes this pane used to make
-    // into its PROPS now go to their owner, `AnimationControlsGroup`, which
-    // resolves the group's stored options (`getStoredAnimationGroupControlOptions`)
-    // and holds the channel-controls registry. The pane still READS
+    // X.KF.W13T.k3 · ESC-k2-1 (§0ar) — the panel-open write goes to its owner,
+    // `AnimationControlsGroup`, which resolves the group's stored options
+    // (`getStoredAnimationGroupControlOptions`). The pane still READS
     // `storedControls` — the same reactive store object — so a read right after
-    // the owner's synchronous write is already current.
-    (e: "channelControlsRef", name: string, el: Element | ComponentPublicInstance): void;
+    // the owner's synchronous write is already current. (X.KF.W13X.r4pane ·
+    // A2-KE-L1-23: the channel-controls registry emit is gone; the selected
+    // host publishes its typed commands into the owner's seat itself.)
     (e: "setControlsPanelOpen", open: boolean): void;
 }>();
 

@@ -23,6 +23,10 @@ import { afterEach, describe, expect, it } from "vitest";
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { createApp, h, reactive } from "vue";
+import {
+    CHANNEL_COMMANDS_KEY,
+    createChannelCommandSeat,
+} from "../../../demo/components/instrument/transport/injectionKeys";
 import RibbonBar from "../../../demo/components/instrument/transport/controls-pane/RibbonBar.vue";
 import KeyframeTimeline from "../../../demo/components/instrument/timeline/KeyframeTimeline.vue";
 import { TooltipProvider } from "@mkbabb/glass-ui/tooltip";
@@ -106,13 +110,19 @@ function mountRibbon(selectedControl: string, cssApplied = false) {
     const el = document.createElement("div");
     document.body.appendChild(el);
     const storedControls = reactive({ selectedControl, selectedAnimation: "a" });
-    const app = createApp({
-        render: () =>
-            h(RibbonBar, {
-                storedControls: storedControls as never,
-                activeKeyframesRef: { cssApplied },
-            }),
+    // X.KF.W13X.r4pane (A2-KE-L1-23) — the ribbon reads the selected channel's
+    // typed commands from the seat its owner provides.
+    const seat = createChannelCommandSeat();
+    const noop = () => {};
+    seat.publish({
+        selectSurface: noop,
+        keyframes: { cssApplied, applyCSS: noop, clearAppliedCSS: noop, copyKeyframes: noop, format: noop, copyCompiledCSS: noop },
+        timeline: { removeSelectedKeyframe: noop, undo: noop, redo: noop },
     });
+    const app = createApp({
+        render: () => h(RibbonBar, { storedControls: storedControls as never }),
+    });
+    app.provide(CHANNEL_COMMANDS_KEY, seat);
     app.mount(el);
     mounted.push({ unmount: () => app.unmount(), el });
     return el;

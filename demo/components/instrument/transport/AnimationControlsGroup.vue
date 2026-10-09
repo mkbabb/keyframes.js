@@ -41,14 +41,12 @@
             :hide-controls="hideControls"
             :stage-mode="stageMode"
             :is-playing="isPlaying"
-            :active-keyframes-ref="activeKeyframesRef"
             @slider-update="sliderUpdate"
             @keyframes-update="keyframesUpdate"
             @toggle-play="toggleAnimationGroup"
             @layer-config-update="(name, v) => updateLayerConfig(name, v)"
             @scrub-start="onScrubStart"
             @scrub-end="onScrubEnd"
-            @channel-controls-ref="(name, el) => { activeHost = { name, controls: el }; }"
             @set-controls-panel-open="(open) => { storedControls.isControlsPanelOpen = open; }"
         >
             <template #tabs-content="slotProps">
@@ -148,7 +146,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, shallowRef, useTemplateRef, watchEffect } from "vue";
+import { computed, onMounted, provide, useTemplateRef, watchEffect } from "vue";
+import { CHANNEL_COMMANDS_KEY, createChannelCommandSeat } from "./injectionKeys";
 
 import { clamp } from "@mkbabb/value.js/math";
 
@@ -223,26 +222,15 @@ const selectedChannel = computed(() =>
     channels?.find((c) => c.name === storedControls.selectedAnimation),
 );
 
-// Collect refs to each AnimationControls for ribbon actions.
-// X.KF.W13T.k3 · ESC-k2-1 (§0ar) — this component OWNS the registry and the
-// group's stored options, so both writes the controls pane used to make into
-// its props (the registry entry, the panel-open fact) land here, from the
-// pane's `channelControlsRef` / `setControlsPanelOpen` emits.
-//
-// X.KF.W13X.esc1 (ESC-mobile-1 · A2-KE-L1-10) — the pane mounts ONE host, the
-// selected channel's, so the registry is that one live host, not a per-name map
-// of every channel's instance (which kept the hidden copies reachable). A host
-// is read only while it is the selected channel's.
-const activeHost = shallowRef<{ name: string; controls: any } | null>(null);
-const selectedHostControls = computed(() => {
-    const name = storedControls.selectedAnimation;
-    const host = activeHost.value;
-    return name && host?.name === name ? host.controls : null;
-});
-
-const activeKeyframesRef = computed(() => selectedHostControls.value?.keyframesControlsRef ?? null);
-
-const activeTimelineRef = computed(() => selectedHostControls.value?.timelineRef ?? null);
+// X.KF.W13X.r4pane · A2-KE-L1-23 — THE SELECTED CHANNEL'S COMMANDS, ONE SEAT.
+// This component owns the seat: the selected channel's host (ChannelControls)
+// publishes its typed commands into it, RibbonBar injects it, and the keyboard
+// shortcuts below read it. It replaces the registry of `any` component refs
+// the pane emitted up here (`channelControlsRef`) and this component handed back
+// down as `activeKeyframesRef` (ESC-k2-1 / ESC-mobile-1 history: the one live
+// host's handle).
+const commandSeat = createChannelCommandSeat();
+provide(CHANNEL_COMMANDS_KEY, commandSeat);
 
 // Validate stored selection — clear stale values via watchEffect (reacts to
 // group/channel changes). T.B1-β STAGE 1: the valid-name set is the CHANNEL
@@ -346,12 +334,12 @@ const { updateLayerConfig, keyframesUpdate, reset, clear } = useAnimationGroupAc
 
 // --- Keyboard shortcuts (colocated composable — the K.WZ proof:demo-no-oversize
 // seam; zero behavior change). The action closures pass IN; the component still
-// owns the playback/ref state they mutate. switchTab stays here: it drives the
-// component-owned registry (the one live host). The scrub/cycle actions live with
+// owns the playback state they mutate. switchTab stays here: it drives the
+// selected channel's commands (the seat this component owns). The scrub/cycle actions live with
 // the playback state they mutate — useAnimationGroupPlayback (getActiveT /
 // scrubActive / cycleAnimation).
 function switchTab(tab: string) {
-    selectedHostControls.value?.selectControl?.(tab);
+    commandSeat.current.value?.selectSurface(tab);
 }
 
 useControlsKeyboardShortcuts({
@@ -362,8 +350,7 @@ useControlsKeyboardShortcuts({
     scrubActive,
     cycleAnimation,
     switchTab,
-    activeKeyframesRef,
-    activeTimelineRef,
+    commands: commandSeat.current,
 });
 
 </script>
