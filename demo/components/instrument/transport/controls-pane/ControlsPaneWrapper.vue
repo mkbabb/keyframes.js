@@ -66,7 +66,12 @@
                      between them (two frames, two shadow stacks); ORIGIN had
                      ONE card with the transport rows inside it. The frame is
                      now the host's: on the desktop rail it is the one glass
-                     Card (cartoon stamp, glass-owned under O-87), the surface
+                     Card at rest (X.KF.W13X.r4pane · UIA-KF-105 — no
+                     `cartoon-surface` stamp: the 2px rim and hard 0-blur
+                     offset cast read as a second slab under the card, and
+                     the owner's O-87 ruling puts stacked chrome shadows out;
+                     the resting Card's own single edge and cast are the
+                     frame), the surface
                      scroller sits INSIDE it (so a surface taller than the rail
                      scrolls and fades within a closed card, never cut at the
                      card's own edge), and the ribbon is its last section under
@@ -82,7 +87,7 @@
                     :is="isMobileLayout ? 'div' : Card"
                     v-show="!timelineFloated"
                     v-bind="isMobileLayout ? {} : { tier: 'quiet' }"
-                    :class="['pane-frame', isMobileLayout ? '' : 'cartoon-surface']"
+                    class="pane-frame"
                 >
                     <!-- J.W2 S2 — the v-for is KEYED by the animation name so an
                          ChannelControls instance is BORN with its animation (and

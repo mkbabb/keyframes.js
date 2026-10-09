@@ -186,10 +186,10 @@
            budget. */
         width: var(--rail-width);
         box-sizing: border-box;
-        /* ── F7 (H.W9.S2) — symmetric shadow-clearance so the cartoon stamp
-           clears the wrapper's load-bearing overflow:hidden. The cartoon offset
-           shadow casts bottom-LEFT; padding renders the shadow INSIDE the padded
-           box so the clip never reaches it. */
+        /* ── F7 (H.W9.S2) — symmetric clearance so the frame's edge and the
+           glass material's rim clear the wrapper's load-bearing
+           overflow:hidden. X.KF.W13X.r4pane (UIA-KF-105): the cartoon stamp
+           this once made room for is gone; the inset stays the rail's gutter. */
         padding-left: 12px;
         padding-right: 12px;
         padding-bottom: 12px;
