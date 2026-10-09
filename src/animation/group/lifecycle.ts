@@ -191,12 +191,15 @@ export function settle<V extends Vars>(group: AnimationGroup<V>): void {
     group.lastTickTime = 0;
 }
 
-/** Explicit rewind: paint every started child back to its INITIAL frame, then
- * settle — the user-facing "return to start" (completion does NOT come here). */
+/** Explicit rewind: paint every child whose playhead moved — started, or only
+ * scrubbed through `setChildTime` — back to its INITIAL frame, then settle: the
+ * user-facing "return to start" (completion does NOT come here). KFA-68
+ * (X.KF.W13X.r4lib): a stage scrubbed before any Play has no started child, and
+ * the started-only rewind left the scrub's pose standing. */
 export function reset<V extends Vars>(group: AnimationGroup<V>): void {
     for (const entry of group.getEntries()) {
         const anim = entry.animation;
-        if (anim.started && anim.frames.length > 0) {
+        if ((anim.started || anim.t !== 0) && anim.frames.length > 0) {
             anim.interpFrames(0, true);
         }
     }
