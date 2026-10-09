@@ -45,7 +45,7 @@ describe("characterization: stable package surfaces", () => {
           }
 
           .characterization-fade-slide {
-            animation: 750ms linear 1 normal both characterization-fade-slide;
+            animation: 0.75s linear 1 normal both characterization-fade-slide;
           }
           "
         `);

@@ -151,8 +151,8 @@ describe("K.W10 clause (a) — CC-1 clean compile replays numerically-equal", ()
         // The artifact carries one @keyframes + one animation rule per child.
         expect(out.css).toContain("@keyframes move");
         expect(out.css).toContain("@keyframes fade");
-        expect(out.css).toMatch(/\.move\s*\{[\s\S]*animation:\s*600ms[\s\S]*move/);
-        expect(out.css).toMatch(/\.fade\s*\{[\s\S]*animation:\s*800ms[\s\S]*fade/);
+        expect(out.css).toMatch(/\.move\s*\{[\s\S]*animation:\s*0\.6s[\s\S]*move/);
+        expect(out.css).toMatch(/\.fade\s*\{[\s\S]*animation:\s*0\.8s[\s\S]*fade/);
     });
 
     it("REPLAY-EQUALITY — re-parse the compiled @keyframes, sample byte-equal at every t", async () => {
@@ -195,7 +195,7 @@ describe("K.W10 clause (a) — CC-1 clean compile replays numerically-equal", ()
 
         expect(out.eligible).toBe(true);
         // The second segment's 500ms master-clock offset materializes as a delay.
-        expect(out.css).toMatch(/\.seq-b\s*\{[\s\S]*animation-delay:\s*500ms/);
+        expect(out.css).toMatch(/\.seq-b\s*\{[\s\S]*animation-delay:\s*0\.5s/);
     });
 
     it("a stagger cohort materializes per-child literal animation-delay", async () => {
@@ -215,8 +215,8 @@ describe("K.W10 clause (a) — CC-1 clean compile replays numerically-equal", ()
         // (0, 50ms, 100ms, 150ms) — the universal default sibling-index() cannot
         // express. Child 0 (delay 0) emits no delay; the rest do.
         expect(out.css).toMatch(/\.s1\s*\{[\s\S]*animation-delay:\s*50ms/);
-        expect(out.css).toMatch(/\.s2\s*\{[\s\S]*animation-delay:\s*100ms/);
-        expect(out.css).toMatch(/\.s3\s*\{[\s\S]*animation-delay:\s*150ms/);
+        expect(out.css).toMatch(/\.s2\s*\{[\s\S]*animation-delay:\s*0\.1s/);
+        expect(out.css).toMatch(/\.s3\s*\{[\s\S]*animation-delay:\s*0\.15s/);
     });
 });
 

@@ -21,7 +21,7 @@ describe("animationOptionsToString", () => {
 
     it("uses correct duration format", () => {
         const css = animationOptionsToString({ ...defaultOptions, duration: 1000 });
-        expect(css).toContain("1000ms");
+        expect(css).toContain("animation-duration: 1s;");
     });
 
     it("shows infinite for Infinity iteration count", () => {
@@ -37,7 +37,7 @@ describe("animationOptionsToString", () => {
             ...defaultOptions,
             delay: 500,
         });
-        expect(css).toContain("animation-delay: 500ms");
+        expect(css).toContain("animation-delay: 0.5s");
     });
 });
 

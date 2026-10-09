@@ -56,14 +56,16 @@ function transitionOf(css: string, selector: string): string {
 
 /** The opacity leg's duration (ms) and its `linear()` stops as `[value, pct]`. */
 function opacityLeg(transition: string): { ms: number; stops: [number, number][] } {
-    const leg = /opacity\s+(\d+)ms\s+linear\(([^)]*)\)/.exec(transition);
+    // The time is the library's shortest exact CSS time (`0.5s` or `16.7ms`,
+    // UIA-KF-177), so both units are read.
+    const leg = /opacity\s+([\d.]+)(ms|s)\s+linear\(([^)]*)\)/.exec(transition);
     if (leg === null) throw new Error(`no opacity linear() leg in: ${transition.slice(0, 80)}`);
-    const parts = leg[2]!.split(",").map((p) => p.trim().split(/\s+/));
+    const parts = leg[3]!.split(",").map((p) => p.trim().split(/\s+/));
     const stops = parts.map(([v, pct], i): [number, number] => [
         Number(v),
         pct === undefined ? (i === 0 ? 0 : 100) : Number.parseFloat(pct),
     ]);
-    return { ms: Number(leg[1]), stops };
+    return { ms: Number(leg[1]) * (leg[2] === "s" ? 1000 : 1), stops };
 }
 
 /**

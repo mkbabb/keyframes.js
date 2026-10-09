@@ -9,8 +9,19 @@ import { serializeCssColor } from "@mkbabb/value.js/css";
 import type { CssValue } from "@mkbabb/value.js/value";
 import type { CssEasingLiteral } from "../../constants";
 
-export const reverseCSSTime = (milliseconds: number): string =>
-    milliseconds >= 5000 ? `${milliseconds / 1000}s` : `${milliseconds}ms`;
+/**
+ * ms → the shortest exact CSS time literal, seconds on a tie (the CSSOM's
+ * canonical unit). UIA-KF-177 (X.KF.W13X.r4lib): the old 5000 ms unit switch
+ * re-wrote an authored `0.25s` as `250ms` and `4.5s` as `4500ms` on every
+ * Format. The parse keeps only milliseconds (value.js's `CSSAnimationOptions`
+ * carries no unit), and both spellings parse back to the same milliseconds, so
+ * the shorter one is exact and one Format is a fixed point.
+ */
+export const reverseCSSTime = (milliseconds: number): string => {
+    const seconds = `${milliseconds / 1000}s`;
+    const ms = `${milliseconds}ms`;
+    return seconds.length <= ms.length ? seconds : ms;
+};
 
 const reverseIterationCount = (count: number): string =>
     count === Infinity ? "infinite" : String(count);

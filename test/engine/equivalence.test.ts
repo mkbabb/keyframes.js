@@ -332,7 +332,7 @@ describe("animation interpolation equivalence", () => {
 
             const cssOutput = await CSSKeyframesToString(anim, name);
 
-            expect(cssOutput).toContain("animation-duration: 2000ms");
+            expect(cssOutput).toContain("animation-duration: 2s");
             expect(cssOutput).toContain("animation-iteration-count: 3");
             expect(cssOutput).toContain("animation-direction: alternate");
             expect(cssOutput).toContain("animation-fill-mode: forwards");

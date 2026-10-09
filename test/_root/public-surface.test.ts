@@ -71,7 +71,7 @@ describe("the publication decision (G-CSSIDENT)", () => {
     it("the two CSS-text serializers behave as published", async () => {
         const { reverseCSSTime, serializeTimingFunction } =
             await loadAnimationEngine();
-        expect(reverseCSSTime(250)).toBe("250ms");
+        expect(reverseCSSTime(250)).toBe("0.25s"); // UIA-KF-177: the shortest exact form
         expect(reverseCSSTime(5000)).toBe("5s");
         expect(serializeTimingFunction({ kind: "keyword", name: "ease-in" })).toBe(
             "ease-in",

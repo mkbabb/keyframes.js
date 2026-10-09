@@ -37,7 +37,7 @@ describe("S.F1 VT-c — the three emission surfaces", () => {
         expect(out.css).toMatch(/::view-transition-new\(scene\)\s*\{[^}]*animation:/);
         // group: TIMING-ONLY — duration + timing-function, NEVER animation-name.
         const groupBlock = out.css.match(/::view-transition-group\(scene\)\s*\{([^}]*)\}/s)?.[1] ?? "";
-        expect(groupBlock).toMatch(/animation-duration:\s*350ms/);
+        expect(groupBlock).toMatch(/animation-duration:\s*0\.35s/);
         expect(groupBlock).toMatch(/animation-timing-function:\s*linear\(/);
         expect(groupBlock).not.toMatch(/animation-name/);
     });
@@ -56,7 +56,7 @@ describe("S.F1 VT-c — the three emission surfaces", () => {
         const out = await compileToViewTransition({
             scene: { old: fade("out"), new: fade("in"), group: { duration: 500, timingFunction: spring } },
         });
-        expect(out.css).toMatch(/::view-transition-group\(scene\)\s*\{[^}]*animation-duration:\s*500ms/s);
+        expect(out.css).toMatch(/::view-transition-group\(scene\)\s*\{[^}]*animation-duration:\s*0\.5s/s);
     });
 
     it("types wrap every rule in :active-view-transition-type(); crossDocument prepends the preamble; PRM appends by default", async () => {

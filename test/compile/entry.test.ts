@@ -31,10 +31,10 @@ describe("S.F3 EN-c — the three-rule grammar", () => {
         // 3. @starting-style — enter's FIRST frame on the open selector.
         expect(out.css).toMatch(/@starting-style\s*\{\s*\.toast\.open/s);
         // display + overlay allow-discrete ride BOTH lists.
-        expect((out.css.match(/display 350ms allow-discrete/g) ?? []).length).toBe(2);
-        expect((out.css.match(/overlay 350ms allow-discrete/g) ?? []).length).toBe(2);
+        expect((out.css.match(/display 0\.35s allow-discrete/g) ?? []).length).toBe(2);
+        expect((out.css.match(/overlay 0\.35s allow-discrete/g) ?? []).length).toBe(2);
         // the spring linear() rides the transition verbatim.
-        expect(out.css).toMatch(/opacity 350ms\s*linear\(/s);
+        expect(out.css).toMatch(/opacity 0\.35s\s*linear\(/s);
     });
 
     it("the default exit is enter-REVERSED (the base rule's hidden state == @starting-style)", async () => {
@@ -52,8 +52,8 @@ describe("S.F3 EN-c — the three-rule grammar", () => {
         );
         const out = await compileToEntry({ ".toast": { enter, exit } });
         // ENTRY list (open rule) = 350ms; EXIT list (base rule) = 250ms.
-        expect(out.css).toMatch(/\.toast\.open\s*\{[^}]*opacity 350ms/s);
-        expect(out.css).toMatch(/\.toast\s*\{[^}]*opacity 250ms/s);
+        expect(out.css).toMatch(/\.toast\.open\s*\{[^}]*opacity 0\.35s/s);
+        expect(out.css).toMatch(/\.toast\s*\{[^}]*opacity 0\.25s/s);
     });
 
     it("openSelector variants concatenate onto the base selector; overlay:false suppresses overlay", async () => {
@@ -64,7 +64,7 @@ describe("S.F3 EN-c — the three-rule grammar", () => {
         expect(pop.css).toMatch(/\.menu:popover-open/);
         expect(pop.css).not.toMatch(/overlay .*allow-discrete/);
         // display still rides (it is the entry/exit load-bearing property).
-        expect(pop.css).toMatch(/display 350ms allow-discrete/);
+        expect(pop.css).toMatch(/display 0\.35s allow-discrete/);
     });
 
     it("color endpoints canonicalize to oklab() (the perceptual-oklab INVERSION — no densify, zero stops)", async () => {
