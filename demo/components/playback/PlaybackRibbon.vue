@@ -183,7 +183,7 @@
 // no styles: the scrub rail is the producer Slider's own paint (OA-8), and the
 // preview eye's glyph cross-fade (`.preview-eye__*`) rides the same partial.
 
-import { computed, ref, useId } from "vue";
+import { computed, onBeforeUnmount, ref, useId } from "vue";
 import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 
 // C-11 (NOT landed — recorded): `Button`/`Slider` stay on the root barrel beside
@@ -213,7 +213,7 @@ import PreviewToggle, { PREVIEW_EASE } from "./PreviewToggle.vue";
  */
 type EffectiveMs = number;
 
-const { animation, source, duration, currentT, preview } = defineProps<{
+const { animation, source, duration, currentT, isAnimPlaying, preview } = defineProps<{
     // T.B1-β STAGE 1 — the ribbon is CHANNEL-capable: its time source is EITHER
     // the selected channel's painting `animation` (the engine-clocked path —
     // scrubs emit `sliderUpdate`, the visualizer twin mounts) OR a progress-
@@ -259,6 +259,13 @@ const { animation, source, duration, currentT, preview } = defineProps<{
  *  scale when the writer supplies it, else the animation clock, else the
  *  source's declared duration (1 ⇒ a normalized [0,1] rail). One read, one
  *  guard: a non-positive scale is a rail of length 1. */
+/** The rail is in milliseconds when a scale is declared (else a normalized
+ *  [0, 1] source rail) — read by the time readout and the release hold. */
+const railInMs = computed(() => {
+    const scaled = duration ?? animation?.options.duration ?? source?.duration;
+    return scaled != null && scaled > 0;
+});
+
 const effectiveDuration = computed(() => {
     const dur = duration ?? animation?.options.duration ?? source?.duration ?? 1;
     return dur > 0 ? dur : 1;
@@ -290,12 +297,45 @@ const emit = defineEmits<{
 // `scrubTo` (re-authoring its pointer→value geometry in an `onMove` body would
 // duplicate the component's own math); the seam owns the GESTURE, the component
 // owns the VALUE.
+/** KFA-226 (the release limb, X.KF.W13X.r4transport) — a playing loop
+ *  released within this beat of its end wrapped to 0 before the eye read the
+ *  release (the audit measured the wrap inside ~400 ms). The release is held
+ *  for the beat: the scrub (the machine's SCRUB_START…SCRUB_END hold) ends
+ *  after it, so the rail shows where the user let go and the loop then resumes
+ *  from there. A press during the hold continues the same scrub. */
+const RELEASE_HOLD_MS = 400;
+let releaseHold: ReturnType<typeof setTimeout> | undefined;
+
+const endScrub = () => {
+    releaseHold = undefined;
+    gestureT.value = null;
+    emit("scrubEnd");
+};
+
 const { dragging: isDragging, onPointerDown: onScrubPointerDown } = useDragScrub({
-    onStart: () => emit("scrubStart"),
-    onEnd: () => {
-        gestureT.value = null;
-        emit("scrubEnd");
+    onStart: () => {
+        if (releaseHold !== undefined) {
+            clearTimeout(releaseHold);
+            releaseHold = undefined;
+            return;
+        }
+        emit("scrubStart");
     },
+    onEnd: () => {
+        const released = gestureT.value ?? currentT;
+        if (isAnimPlaying && railInMs.value && effectiveDuration.value - released < RELEASE_HOLD_MS) {
+            releaseHold = setTimeout(endScrub, RELEASE_HOLD_MS);
+            return;
+        }
+        endScrub();
+    },
+});
+
+// An unmount inside the hold still ends the scrub (the machine never stays held).
+onBeforeUnmount(() => {
+    if (releaseHold === undefined) return;
+    clearTimeout(releaseHold);
+    endScrub();
 });
 
 /** R-close-1 — THE RAIL'S VALUE DURING A POINTER GESTURE is the value the
@@ -317,8 +357,7 @@ const railT = computed<EffectiveMs>(() => gestureT.value ?? currentT);
  *  ONE duration read, in ms; a normalized source (no declared scale) reads as
  *  a percentage, since its rail is [0, 1] and not milliseconds. */
 const timeReadout = computed(() => {
-    const scaled = duration ?? animation?.options.duration ?? source?.duration;
-    return scaled != null && scaled > 0
+    return railInMs.value
         ? `${Math.round(railT.value)} / ${Math.round(effectiveDuration.value)} ms`
         : `${Math.round(railT.value * 100)} %`;
 });

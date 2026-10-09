@@ -698,3 +698,34 @@ describe("R-close-1 (KF.W13U repair) — the rail follows the pointer gesture in
         expect(thumb.getAttribute("aria-valuenow")).toBe("2300");
     });
 });
+
+describe("KFA-226 (the release limb, X.KF.W13X.r4transport) — a release near a playing loop's end is held one beat", () => {
+    const press = (root: HTMLElement) => {
+        root.querySelector<HTMLElement>(".timeline-green, .scrub-rail")!.dispatchEvent(
+            new PointerEvent("pointerdown", { pointerId: 1, pointerType: "mouse", isPrimary: true, button: 0, bubbles: true }),
+        );
+        window.dispatchEvent(new PointerEvent("pointerup", { pointerId: 1, pointerType: "mouse", isPrimary: true, bubbles: true }));
+    };
+    const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+    it("released within the beat of a playing loop's end, the scrub ends after the beat (the loop resumes from the release, seen)", async () => {
+        const seat = mountRibbon({ currentT: DURATION - 50, isAnimPlaying: true });
+        await settle();
+        press(seat.root);
+        expect(seat.emitted("scrubStart")).toHaveLength(1);
+        expect(seat.emitted("scrubEnd")).toHaveLength(0);
+        await wait(500);
+        expect(seat.emitted("scrubEnd")).toHaveLength(1);
+    });
+
+    it("released away from the end, or while paused, the scrub ends at once", async () => {
+        const mid = mountRibbon({ currentT: DURATION / 2, isAnimPlaying: true });
+        await settle();
+        press(mid.root);
+        expect(mid.emitted("scrubEnd")).toHaveLength(1);
+        const paused = mountRibbon({ currentT: DURATION - 50, isAnimPlaying: false });
+        await settle();
+        press(paused.root);
+        expect(paused.emitted("scrubEnd")).toHaveLength(1);
+    });
+});
