@@ -140,6 +140,7 @@
                             :targets="animation.targets"
                             :animation-options="animation.options"
                             :clock="animation"
+                            :scene="sceneKeyframes"
                             :expanded="storedControls.isTimelineExpanded"
                             @toggle-expand="storedControls.isTimelineExpanded = !storedControls.isTimelineExpanded"
                         />
@@ -285,6 +286,18 @@ const keyframesControlsRef = useTemplateRef<InstanceType<typeof KeyframesStringC
 const timelineRef =
     useTemplateRef<InstanceType<typeof KeyframeTimelineComponent>>("timelineRef");
 
+// X-DS r4 pass 5 (KF-C24-05) — the channel's own parsed @keyframes (the
+// Keyframes surface's buffer, the store's per-channel record) and its stop
+// count, handed to the Timeline so its empty state can name what the scene
+// already runs instead of claiming there are no keyframes. Null on a draft
+// the engine does not hold.
+const channelState = getChannelControlsState(animation);
+const sceneKeyframes = computed(() =>
+    channelState.parseState === "parsed" && channelState.keyframesText
+        ? { css: channelState.keyframesText, count: animation.templateFrames.length }
+        : null,
+);
+
 const isTimelineVisible = computed(() =>
     storedControls.selectedControl === "timeline" || storedControls.isTimelineExpanded,
 );
@@ -305,7 +318,7 @@ const { keyframesActive, keyframesWarmed } = useKeyframesPaneReveal({
     storedControls,
     keyframesPaneEl,
     // X.KF.W13X.esc1 (ESC-mobile-1) — the channel's warm flag lives in the store.
-    keyframesWarmed: toRef(getChannelControlsState(animation), "keyframesWarmed"),
+    keyframesWarmed: toRef(channelState, "keyframesWarmed"),
 });
 // KFA-119 — the idle warm, or the first ask, fetches the timeline module.
 watch(

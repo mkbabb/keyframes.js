@@ -120,15 +120,30 @@ describe("(4) UIA-KF-307 — the heatmap well is a surface tint, not the page gr
     });
 });
 
-describe("(5) A2-KE-L3-12 — the preset readout wraps between its two quantities", () => {
-    it("the params line is not one unbreakable run; each value keeps its unit", () => {
+describe("(5) A2-KE-L3-12 + KF-C24-03 — the preset readout never overflows its tile and never breaks at its join", () => {
+    // Re-stated (X-DS r4 pass 5, KF-C24-03; no assertion weakened): A2-KE-L3-12
+    // let the line wrap at its ' · ' join so a coarse phone's unbreakable run no
+    // longer ran into the tile's edge, but the join wrapped in every narrow rail
+    // too (a dangling middot, a three-line tile). The line is now ONE nowrap
+    // run sized to the tile (`min(--type-small, 100cqi / 9.5)`), and below the
+    // fit floor the two values stack on purpose with the middot gone, so it
+    // still never overflows and never breaks inside a quantity.
+    it("the params line is one fitted run; each value keeps its unit; below the floor the values stack without the separator", () => {
         const src = sfc("SpringPhysicsFacet.vue");
         const item = src.slice(src.indexOf("<ToggleGroupItem"), src.indexOf("</ToggleGroupItem>"));
-        const lineOpen = item.match(/<span class="([^"]*tabular-nums[^"]*)"/)?.[1] ?? "";
-        expect(lineOpen, "the params line").not.toBe("");
-        expect(lineOpen.split(/\s+/), "the whole line is never nowrap").not.toContain("whitespace-nowrap");
-        expect(item).toMatch(/whitespace-nowrap[^>]*>\s*\{\{\s*t\.preset\.response\s*\}\}\s*s/);
-        expect(item).toMatch(/whitespace-nowrap[^>]*>\s*ζ\s*\{\{\s*t\.preset\.dampingFraction\s*\}\}/);
+        const line = item.match(/<span class="(preset-values[^"]*tabular-nums[^"]*)">([\s\S]*?)<\/span><\/span>/);
+        expect(line?.[1], "the params line").toBeTruthy();
+        expect(item).toMatch(/<span>\{\{\s*t\.preset\.response\s*\}\}\s*s<\/span>/);
+        expect(item).toMatch(/<span>ζ\s*\{\{\s*t\.preset\.dampingFraction\s*\}\}<\/span>/);
+        expect(item).toMatch(/<span class="preset-sep" aria-hidden="true"> · <\/span>/);
+        const style = src.slice(src.indexOf("<style"));
+        const values = style.match(/\.preset-values\s*\{([^}]*)\}/)?.[1] ?? "";
+        expect(values).toMatch(/white-space:\s*nowrap/);
+        expect(values).toMatch(/font-size:\s*min\(var\(--type-small\),\s*100cqi\s*\/\s*[\d.]+\)/);
+        expect(style).toMatch(/\.preset-cell\s*\{[^}]*container-type:\s*inline-size/);
+        const narrow = style.match(/@container \(inline-size < [\d.]+rem\)\s*\{([\s\S]*?)\n\}/)?.[1] ?? "";
+        expect(narrow).toMatch(/\.preset-values\s*\{[^}]*flex-direction:\s*column/);
+        expect(narrow).toMatch(/\.preset-sep\s*\{[^}]*display:\s*none/);
         // A wrapped tile and an unwrapped one share a row height (the track's
         // own align-items would otherwise centre the shorter tile).
         const grid = src.match(/class="(preset-grid[^"]*)"/)?.[1] ?? "";

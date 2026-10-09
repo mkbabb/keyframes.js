@@ -27,7 +27,16 @@
              show it; it stays the field's accessible description (sr-only). -->
         <div class="flex flex-wrap items-baseline justify-between gap-x-2 gap-y-0.5 whitespace-nowrap">
             <CollapsibleTrigger as-child>
-                <Button emphasis="quiet" size="sm" class="button-text-flush" data-figure-title>
+                <!-- X-DS r4 pass 5 (KF-C24-01) — closed, the row is ONE line: the
+                     legend sentence rides the trigger's title and returns with
+                     the figure it keys. -->
+                <Button
+                    emphasis="quiet"
+                    size="sm"
+                    class="button-text-flush"
+                    data-figure-title
+                    :title="figureOpen ? undefined : LEGEND"
+                >
                     <ChevronRight class="disclosure-chevron size-4" aria-hidden="true" />
                     <span class="text-small font-medium text-foreground">Peak overshoot</span>
                 </Button>
@@ -45,12 +54,12 @@
                  was the scroller's last row at rest, so the rail's end fade
                  ate it to ~1.7:1); KF-C3-11 — the ζ axis title went to its
                  axis, so this slot was free. -->
-            <span v-else class="flex items-center gap-1.5 min-w-0 text-caption text-muted-foreground" data-figure-legend>
-                <!-- X-DS pass 16 (KF-C16-04) — the swatch keys the field's ramp, so it
-                     shows only while the field does; closed, the sentence stays as
-                     plain caption text. -->
-                <span v-if="figureOpen" class="spring-heatmap-swatch shrink-0" aria-hidden="true"></span>
-                <span class="min-w-0 tabular-nums" title="Peak overshoot varies with damping ζ only; response sets the tempo, not the peak">0 → {{ OVERSHOOT_MAX_PERCENT }} % overshoot · set by damping alone</span>
+            <span v-else-if="figureOpen" class="flex items-center gap-1.5 min-w-0 text-caption text-muted-foreground" data-figure-legend>
+                <!-- X-DS pass 16 (KF-C16-04) — the swatch keys the field's ramp.
+                     r4 pass 5 (KF-C24-01) — so does the sentence: both show only
+                     while the field does. -->
+                <span class="spring-heatmap-swatch shrink-0" aria-hidden="true"></span>
+                <span class="min-w-0 tabular-nums" title="Peak overshoot varies with damping ζ only; response sets the tempo, not the peak">{{ LEGEND }}</span>
             </span>
             <span :id="readoutId" class="sr-only">
                 {{ response.toFixed(2) }} s / ζ {{ dampingFraction.toFixed(2) }}
@@ -319,6 +328,9 @@ const ZETA_TICKS = [
     { label: "1.0", top: CRITICAL_TOP },
     { label: DAMPING_AXIS.min.toFixed(1), top: "100%" },
 ];
+
+/** The field's legend: the ramp's range and what alone sets it. */
+const LEGEND = `0 → ${OVERSHOOT_MAX_PERCENT} % overshoot · set by damping alone`;
 
 const FIELD_LABEL =
     `Spring parameter field — response ${RESPONSE_AXIS.min} to ${RESPONSE_AXIS.max} s across, ` +

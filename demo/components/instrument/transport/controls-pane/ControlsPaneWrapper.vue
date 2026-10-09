@@ -244,8 +244,11 @@
     <!-- ── DESKTOP (≥ 1024px): the naked rail column ──────────────────────────
          T.B4 (OD-5, VERDICT #7): the surrounding pane is GONE — the rail is a
          NAKED grid column; the [rail] track collapse IS the open/close axis. -->
+    <!-- X-DS r4 pass 5 (KF-C24-01) — the rail's surface scrollers land their
+         fold on content (useFoldLanding): never in a gap between rows. -->
     <div
         v-else-if="!isMobileLayout"
+        ref="railEl"
         v-show="showSheet"
         @transitionend="onPanelTransitionEnd"
         :class="[
@@ -275,12 +278,13 @@ import { Dialog, DialogTitle } from "@mkbabb/glass-ui/dialog";
 import { FadingScroll } from "@mkbabb/glass-ui/fading-scroll";
 import { SheetContent } from "@mkbabb/glass-ui/sheet";
 import { createReusableTemplate, useMediaQuery } from "@vueuse/core";
-import { computed, shallowRef, watch } from "vue";
+import { computed, shallowRef, useTemplateRef, watch } from "vue";
 import type { TransportChannel } from "../transportSource";
 import ChannelControls from "../channel-controls/ChannelControls.vue";
 import RibbonBar from "./RibbonBar.vue";
 import SequenceTimeline from "../../timeline/SequenceTimeline.vue";
 import { useControlsLayout } from "../ControlsPaneWrapper/useControlsLayout";
+import { useFoldLanding } from "../ControlsPaneWrapper/useFoldLanding";
 // The sheet's bottom lift above the menubar is the `bottom` style set on
 // `<SheetContent>` in the template (D-B1; glass 10's sheet pins `bottom: 0` at
 // zero specificity, and its 7.0.0 `--drawer-inset-block-end` lever is gone).
@@ -288,6 +292,9 @@ import { useControlsLayout } from "../ControlsPaneWrapper/useControlsLayout";
 // The shared control-pane body: defined once (DefinePaneBody), reused in the
 // mobile Sheet AND the desktop rail (ReusePaneBody) — the ONE body, two homes.
 const [DefinePaneBody, ReusePaneBody] = createReusableTemplate();
+
+// X-DS r4 pass 5 (KF-C24-01) — the desktop rail (null on the phone sheet).
+useFoldLanding(useTemplateRef<HTMLElement>("railEl"));
 
 const props = defineProps<{
     animationGroup: AnimationGroup<any>;

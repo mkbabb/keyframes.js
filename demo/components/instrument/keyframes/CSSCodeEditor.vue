@@ -182,10 +182,47 @@ function defineGroundedTheme(m: typeof Monaco, dark: boolean): void {
     const highlight = resolveTokenHex(
         "color-mix(in srgb, var(--foreground) 6%, var(--muted))",
     );
+    // X-DS r4 pass 5 (KF-C24-02) — THE INK IS THE APP'S TOO. The vendored
+    // themes' rules are TextMate scopes (`entity.other.attribute-name`,
+    // `keyword.other…`), and the Monarch css tokenizer emits none of them
+    // (`attribute.name.css`, `attribute.value.number.css`, `keyword.css`,
+    // `delimiter.bracket.css`…), so stock vs/vs-dark showed through: pure-red
+    // property names, bold-blue `@keyframes`, a five-hue spread. The rules are
+    // written here against the Monarch names, from the app's tokens, resolved
+    // as the ground is: ONE hue carries meaning (the numbers and units, the
+    // identity violet), the structure is the foreground, the values and the
+    // punctuation step down to the muted ink. Monaco takes rule colours as
+    // six-digit hex without the `#`.
+    const ink = (css: string) => resolveTokenHex(css).slice(1, 7);
+    const fg = ink("var(--foreground)");
+    const muted = ink("var(--muted-foreground)");
+    const accent = ink("var(--color-progress)");
     m.editor.defineTheme(dark ? "dark-theme" : "light-theme", {
-        ...base,
+        base: base.base,
+        // The base's rules stay underneath (its default ground and ink keep
+        // the colour map whole); every token the css tokenizer emits is
+        // re-inked here, including the three vs-dark qualifies with `.css`
+        // (a more specific rule outranks a shorter one).
+        inherit: true,
+        rules: [
+            { token: "", foreground: fg },
+            { token: "tag", foreground: fg },
+            { token: "keyword", foreground: fg },
+            { token: "attribute.name", foreground: fg },
+            { token: "attribute.value", foreground: muted },
+            { token: "attribute.value.number", foreground: accent },
+            { token: "attribute.value.unit", foreground: accent },
+            { token: "attribute.value.number.css", foreground: accent },
+            { token: "attribute.value.unit.css", foreground: accent },
+            { token: "attribute.value.hex.css", foreground: muted },
+            { token: "number", foreground: accent },
+            { token: "string", foreground: muted },
+            { token: "comment", foreground: muted, fontStyle: "italic" },
+            { token: "delimiter", foreground: muted },
+        ],
         colors: {
             ...base.colors,
+            "editor.foreground": `#${fg}`,
             "editor.background": ground,
             "editorGutter.background": ground,
             "editor.lineHighlightBackground": highlight,
@@ -396,6 +433,13 @@ const initEditor = async () => {
                 .getPropertyValue("--font-mono")
                 .trim() || "monospace",
         minimap: { enabled: false },
+        // X-DS r4 pass 5 (KF-C24-02) — matching the bracket under the cursor
+        // stays; the bracket-pair rainbow goes (below, on the model).
+        matchBrackets: "always",
+        // X-DS r4 pass 5 (KF-C24-04) — the current-line band shows only while
+        // someone is editing; at rest it read as a selected or erroring line.
+        renderLineHighlight: "line",
+        renderLineHighlightOnlyWhenFocus: true,
         // X-DS pass 1, C1 (KF-C1-19) — no overview ruler: its lanes drew a
         // stray tick at the well's top-right with nothing to say in a short
         // snippet editor.
@@ -450,6 +494,13 @@ const initEditor = async () => {
             top: props.padding,
             bottom: props.padding,
         },
+    });
+    // X-DS r4 pass 5 (KF-C24-02) — no bracket-pair rainbow: three hues on the
+    // braces of an 18-line snippet carry no meaning. The colouriser is the
+    // MODEL's (the standalone editor's `bracketPairColorization` option does
+    // not reach the model it creates), so it is switched off there.
+    editor.getModel()?.updateOptions({
+        bracketColorizationOptions: { enabled: false, independentColorPoolPerBracketType: false },
     });
     phase.value = "ready";
 

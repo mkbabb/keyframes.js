@@ -255,8 +255,21 @@
         <!-- X-DS pass 3 · KF-C3-12 — both captions take ONE alignment,
              centred and balanced: at 0 keyframes the long line filled the
              card and read start-aligned, at 1 it read centred. -->
+        <!-- X-DS r4 pass 5 (KF-C24-05) — the timeline's buffer is its own,
+             but it never denies the scene's: while the channel runs a parsed
+             @keyframes, the empty state names it, and the toolbar's Import
+             opens already holding that CSS, so the two surfaces of one pane
+             agree. -->
         <p
-            v-if="state.keyframes.length === 0"
+            v-if="state.keyframes.length === 0 && sceneSummary"
+            class="text-body text-muted-foreground text-center text-balance py-2"
+        >
+            <code>{{ sceneSummary.name }}</code>
+            has {{ sceneSummary.count }} {{ sceneSummary.count === 1 ? "keyframe" : "keyframes" }} in CSS —
+            <strong>Import</strong> {{ sceneSummary.count === 1 ? "it" : "them" }} to edit here.
+        </p>
+        <p
+            v-else-if="state.keyframes.length === 0"
             class="text-body text-muted-foreground text-center text-balance py-2"
         >
             No keyframes yet — <strong>Snapshot</strong> the target's current
@@ -445,6 +458,8 @@ const props = defineProps<{
     animationOptions?: InputAnimationOptions;
     /** The channel's playing animation — the transport's clock (KFA-55). */
     clock?: TransportClock;
+    /** The channel's parsed @keyframes and its stop count (KF-C24-05), or null. */
+    scene?: { css: string; count: number } | null;
     expanded?: boolean;
 }>();
 
@@ -607,8 +622,22 @@ const pasteDialogs = [
 ];
 
 const openImportDialog = () => {
+    // KF-C24-05 — an empty timeline's Import starts from the scene's own
+    // @keyframes (a draft the user already typed is kept).
+    if (state.value.keyframes.length === 0 && props.scene && importText.value === "") {
+        importText.value = props.scene.css;
+    }
     importDialogOpen.value = true;
 };
+
+/** KF-C24-05 — the scene's own animation, named as its CSS names it. */
+const sceneSummary = computed(() => {
+    const scene = props.scene;
+    if (!scene || scene.count === 0) return null;
+    const name = /@keyframes\s+([^\s{]+)/.exec(scene.css)?.[1] ?? "This animation";
+    return { name, count: scene.count };
+});
+
 
 const openAddCSSDialog = () => {
     addCSSDialogOpen.value = true;

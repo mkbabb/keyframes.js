@@ -131,7 +131,12 @@
                              tracking), which printed 's' as 'S' and ζ as Ζ and widened
                              Snappy's line onto two. The tile is start-aligned (the
                              producer item centres its text). -->
-                        <span class="text-mono-small text-muted-foreground tabular-nums"><span class="whitespace-nowrap">{{ t.preset.response }} s</span> · <span class="whitespace-nowrap">ζ {{ t.preset.dampingFraction }}</span></span>
+                        <!-- X-DS r4 pass 5 (KF-C24-03) — ONE nowrap run fitted to
+                             the tile (`.preset-values`, below): it broke at its
+                             ' · ' join in a narrow rail, a dangling middot ending
+                             line one and the tile three lines tall. Below the fit
+                             floor the two values stack, the middot gone. -->
+                        <span class="preset-values text-mono-small text-muted-foreground tabular-nums"><span>{{ t.preset.response }} s</span><span class="preset-sep" aria-hidden="true"> · </span><span>ζ {{ t.preset.dampingFraction }}</span></span>
                     </ToggleGroupItem>
                 </ToggleGroup>
                 <Separator />
@@ -264,6 +269,29 @@ const onPresetSelect = (
     transition:
         outline-color var(--duration-fast) ease,
         background-color var(--duration-fast) ease;
+}
+/* X-DS r4 pass 5 (KF-C24-03) — the value line is one run sized to the tile:
+   `min(--type-small, 100cqi / 9.5)` holds the longest line ('0.35 s · ζ 0.65',
+   fifteen mono advances) on one line, the fit KF-C23-04 gave the easing
+   literal. Below the caption floor (a 7.25rem cell) it stacks the two values
+   on purpose, at full size, and the separator leaves; it never breaks at the
+   join. */
+.preset-cell {
+    container-type: inline-size;
+}
+.preset-values {
+    white-space: nowrap;
+    font-size: min(var(--type-small), 100cqi / 9.5);
+}
+@container (inline-size < 7.25rem) {
+    .preset-values {
+        display: flex;
+        flex-direction: column;
+        font-size: var(--type-small);
+    }
+    .preset-sep {
+        display: none;
+    }
 }
 .preset-cell:hover {
     background: color-mix(in srgb, var(--color-progress) 6%, transparent);
