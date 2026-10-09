@@ -32,9 +32,10 @@
  *       debounced emit, so a stale buffer never lands on the parent after a
  *       selection change.
  *   (4) KF-CE-9 + KF-CE-37 — a rejected `formatCSSContent` surfaces an error
- *       toast and RELEASES `isFormatting` (the next parse's success toast is
- *       not suppressed for the session); and (KF-CE-7) a successful format's
- *       text reaches the model.
+ *       toast and the next edit still parses (nothing is latched for the
+ *       session); UIA-KF-219 — that ACCEPTED edit raises no success toast (the
+ *       editor shows it; the per-parse toast was chatter); and (KF-CE-7) a
+ *       successful format's text reaches the model.
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { defineComponent, h, nextTick, ref } from "vue";
@@ -248,7 +249,7 @@ describe("G-KFW12-4 — the Monaco seam", () => {
         expect(model.getValue()).toBe("b { opacity: 0 }");
     });
 
-    it("(4) KF-CE-9 + KF-CE-37 + KF-CE-7: a rejected format is surfaced, the latch releases, a good format reaches the model", async () => {
+    it("(4) KF-CE-9 + KF-CE-37 + KF-CE-7 + UIA-KF-219: a rejected format is surfaced, the next edit parses without a success toast, a good format reaches the model", async () => {
         mounted = mount(KeyframesStringControls, {
             props: { animation: {} as never },
             attachTo: document.body,
@@ -263,8 +264,8 @@ describe("G-KFW12-4 — the Monaco seam", () => {
             "Unexpected }",
         );
 
-        // the latch is released: the next parse's success feedback is not
-        // suppressed for the session
+        // nothing is latched: the next edit parses. UIA-KF-219 — and an
+        // accepted edit raises no success toast (the editor already shows it)
         await sleep(350);
         const model = monaco.editor
             .getModels()
@@ -274,7 +275,7 @@ describe("G-KFW12-4 — the Monaco seam", () => {
         ]);
         await sleep(350);
         expect(updateFromString).toHaveBeenCalledWith("a { color: blue }");
-        expect(toastsOf("success").length).toBeGreaterThan(0);
+        expect(toastsOf("success")).toHaveLength(0);
 
         // KF-CE-7 — a successful format's text reaches the model (the parent
         // receives it), not only the buffer

@@ -63,8 +63,7 @@
 import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 import { kfEngine } from "@kf-engine";
 
-import { computed, h, onMounted, ref, useId, useTemplateRef } from "vue";
-import { useTimeoutFn } from "@vueuse/core";
+import { computed, h, onMounted, useId, useTemplateRef } from "vue";
 import { useKeyframeBrushApply } from "./composables/useKeyframeBrushApply";
 import { useKeyframesEditor } from "./composables/useKeyframesEditor";
 
@@ -120,39 +119,30 @@ const editorRef = useTemplateRef<InstanceType<typeof CSSCodeEditor>>("editorRef"
 // (`RibbonBar.vue`, through this component's exposed `formatCSS`) — reach
 // `formatEditor`, and it is the only place a format's rejection is caught:
 // prettier refuses the ordinary mid-edit buffer (an unclosed block, a stray
-// `}`), and before this boundary that rejection floated unhandled while
-// `isFormatting` stayed true for the session, silencing every later
-// "Keyframes parsed" toast. The house idiom (`withErrorToastAsync`, one file
-// over) is written here in its own form: toast + description + Retry. The
-// latch releases in `finally` — on success AND on rejection.
+// `}`), and before this boundary that rejection floated unhandled. The house
+// idiom (`withErrorToastAsync`, one file over) is written here in its own
+// form: toast + description + Retry.
 //
-// `isFormatting` exists to keep the format-induced parse from ALSO toasting
-// "Keyframes parsed" over "CSS formatted": the formatted text reaches the
-// model synchronously inside `formatCSS` (KF-CE-7), so `onEditorChange` runs
-// while the latch is up; the 300 ms grace after release covers the parse's
-// own awaits. The parse toast additionally holds ONE live handle, so a stray
-// one REPLACES rather than stacks (KF-CE-36): the previous parse toast is
-// dismissed before the next is raised.
-const isFormatting = ref(false);
+// UIA-KF-219 (X.KF.W13X.r4panes) — an ACCEPTED edit raises no toast: the
+// editor and the stage already show it, and a success toast on every parse was
+// the chatter the row names. So the `isFormatting` latch (and its 300 ms grace)
+// that kept a format-induced parse from toasting "Keyframes parsed" over "CSS
+// formatted" has no toast left to guard and is gone with it. A REFUSED edit
+// still toasts, once: the parse toast holds ONE live handle, so a repeat
+// refusal REPLACES rather than stacks (KF-CE-36), and the next accepted edit
+// dismisses it, because the refusal it reported is over.
 let parseToast: ToastHandle | undefined;
 const raiseParseToast = (options: Parameters<typeof toast>[0]) => {
     parseToast?.dismiss();
     parseToast = toast(options);
 };
-
-// Reset the formatting flag 300ms after a format completes. useTimeoutFn
-// owns the handle + auto-cleans on unmount; re-calling start() restarts it.
-const { start: startFormattingReset } = useTimeoutFn(
-    () => {
-        isFormatting.value = false;
-    },
-    300,
-    { immediate: false },
-);
+const clearParseToast = () => {
+    parseToast?.dismiss();
+    parseToast = undefined;
+};
 
 const formatEditor = async () => {
     if (!editorRef.value) return;
-    isFormatting.value = true;
     try {
         await editorRef.value.formatCSS();
     } catch (e: unknown) {
@@ -164,8 +154,6 @@ const formatEditor = async () => {
             action: h(ToastAction, { altText: "Retry", onClick: () => void formatEditor() }, () => "Retry"),
         });
         console.error(e);
-    } finally {
-        startFormattingReset();
     }
 };
 
@@ -194,15 +182,13 @@ const applyEditorChange = async (value: string) => {
     try {
         await updateFromString(value);
         parseState.value = "parsed";
-        if (!isFormatting.value) {
-            raiseParseToast({ title: "Keyframes parsed 🎉", tone: "success" });
-        }
+        clearParseToast();
     } catch (e: unknown) {
         parseState.value = "error";
         shakeEditorWell();
 
         raiseParseToast({
-            title: "Failed to parse keyframes 🔧",
+            title: "Could not parse keyframes",
             tone: "destructive",
             description: (e as Error).message,
             duration: 10000,
@@ -316,10 +302,7 @@ const exportCompiledCSS = async () => {
     try {
         const compiled = await compileToCSS([animation]);
         if (compiled.eligible && compiled.css) {
-            await copyWithToast(
-                compiled.css,
-                "Compiled CSS copied — zero-runtime, paste & ship 🎉",
-            );
+            await copyWithToast(compiled.css, "Compiled CSS copied");
         } else if (compiled.css) {
             // Partial: some children compiled, some refused — copy what shipped,
             // name what did not (the honest-refusal clause).
@@ -346,7 +329,7 @@ const exportCompiledCSS = async () => {
         }
     } catch (e: unknown) {
         toast({
-            title: "Export CSS failed 🔧",
+            title: "Could not compile CSS",
             tone: "destructive",
             description: (e as Error).message,
             duration: 10000,

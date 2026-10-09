@@ -74,7 +74,7 @@ export function useShareState(
             return false;
         }
         sharePopoverOpen.value = false;
-        toast({ title: "Link copied to clipboard!", tone: "success" });
+        toast({ title: "Link copied", tone: "success" });
         return true;
     };
 
@@ -126,7 +126,7 @@ export function useShareState(
         }
 
         toast({
-            title: "State restored!",
+            title: "State restored",
             tone: "success",
             duration: 3000,
             description: "Animation state loaded from shared URL.",
