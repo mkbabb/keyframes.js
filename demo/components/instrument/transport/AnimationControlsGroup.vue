@@ -117,6 +117,7 @@
             :stored-controls="storedControls"
             :is-playing="isPlaying"
             :animation-names="transportNames"
+            :start-screen="hideControls"
             @toggle-play="toggleAnimationGroup"
             @reset="(all: boolean) => all ? clear() : reset()"
             @select-animation="onSelectAnimation"

@@ -148,4 +148,15 @@ describe("X.KF.W13X.r4transport — the transport dock", () => {
         expect(template).not.toMatch(/<SelectItem[^>]*\bpy-2\b/);
         expect(template).not.toMatch(/<SelectItem[^>]*\bpx-3\b/);
     });
+
+    it("(3) UIA-KF-229 — on the start screen the transport is Play alone", () => {
+        const w = mountTransport({ startScreen: true });
+        const el = w.element as HTMLElement;
+        expect(el.querySelector('[aria-label="Play animation"]')).not.toBeNull();
+        expect(el.querySelector('[aria-label="Reset animation"]')).toBeNull();
+        expect(el.querySelector('[aria-label="Select animation"]')).toBeNull();
+        // a scene's transport keeps its row
+        const scene = mountTransport().element as HTMLElement;
+        expect(scene.querySelector('[aria-label="Reset animation"]')).not.toBeNull();
+    });
 });

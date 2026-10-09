@@ -93,7 +93,11 @@
                 </Tooltip>
                 </template>
 
-                <div class="transport-row flex items-center">
+                <!-- X.KF.W13X.r4transport · UIA-KF-229 — on the start screen the
+                     transport is its one CTA, Play (which opens the scene): the
+                     channel list and Reset act on nothing there, so the row is
+                     not rendered (CLUTTER lens). -->
+                <div v-if="!startScreen" class="transport-row flex items-center">
                     <!-- section (contextual): the animation select. Rendered ONLY when
                          channelZone is INHABITED (≥2 channels — kind "select"). One or
                          zero channels ⇒ zone ABSENT: NO node and NO flanking separator
@@ -253,10 +257,12 @@ const {
     onPlayBlur,
 } = usePlayActuation(actuatePlay);
 
-const { storedControls, isPlaying, animationNames } = defineProps<{
+const { storedControls, isPlaying, animationNames, startScreen = false } = defineProps<{
     storedControls: StoredAnimationGroupControlOptions;
     isPlaying: boolean;
     animationNames: string[];
+    /** The home start screen: the transport shows Play alone (UIA-KF-229). */
+    startScreen?: boolean;
 }>();
 
 const emit = defineEmits<{
