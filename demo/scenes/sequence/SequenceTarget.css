@@ -158,11 +158,10 @@
        deleted: the staggered travel itself is the cascade. */
 }
 
-/* L.W11 S7 — the cascade host marker (the travel is engine-driven via
-   --ball-p, no rAF — inv ζ). */
-.cascade-chase {
-    will-change: transform;
-}
+/* L.W11 S7 — `.cascade-chase` is a marker class only (the travel is
+   engine-driven via --ball-p on each traveller's translate, no rAF — inv ζ).
+   X-DS r3 pass 2 (KF-C21-05) — its `will-change: transform` is dropped: the
+   stage never transforms. */
 
 /* POWER-ON BOOT (~780ms): the staggered lane drop, demonstrating `stagger` on
    load. The ruler wipe and the playhead fade-up left with the ruler and the

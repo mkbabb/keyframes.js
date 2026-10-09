@@ -62,18 +62,18 @@
                                  X-DS pass 7 (KF-C7-06) — the row states what it
                                  leads to, in its field column at the muted ink:
                                  the current blend when compositing applies, or
-                                 "single-target only" (and the row quiet, at the
-                                 muted ink) when it does not, so the drill never
-                                 reads as live into a pane of disabled rows. -->
+                                 "single-target only" when it does not, so the drill never
+                                 reads as live into a pane of disabled rows.
+                                 X-DS r3 pass 2 (KF-C21-04) — the state lives in
+                                 the value column ALONE: the muted label ink was
+                                 the resting ink of every live quiet verb below
+                                 (Reverse, Preview), so it carried no signal. The
+                                 label keeps the label ink like every other row;
+                                 the value column says "single-target only". -->
                             <Button
                                 ref="layerEntryEl"
                                 emphasis="quiet"
-                                :class="[
-                                    'w-full justify-between gap-2 px-0 text-[length:var(--control-label)]',
-                                    blendAvailable
-                                        ? '[--button-quiet-ink:var(--foreground)]'
-                                        : '[--button-quiet-ink:var(--muted-foreground)]',
-                                ]"
+                                class="w-full justify-between gap-2 px-0 text-[length:var(--control-label)] [--button-quiet-ink:var(--foreground)]"
                                 :aria-expanded="stack.isOpen('layer')"
                                 :aria-controls="layerPaneId"
                                 @click="openLayer"

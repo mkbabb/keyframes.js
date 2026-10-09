@@ -15,7 +15,15 @@
          scene's aside, so one markup stood in two places (under Square's x/y
          readout, in Spring's top-right corner). It now has one fixed slot: the
          title's row, trailing the title on its baseline, in every scene that
-         reports a state. The aside keeps the scene's own readouts only. -->
+         reports a state. The aside keeps the scene's own readouts only.
+         X-DS r3 pass 2 (KF-C21-02) — the title keeps its step over the
+         controls' chrome at every width: below lg, glass's display-1 rung
+         floors at 1.618rem, the size of the Configurator's section label
+         ('Physics', 'Stagger', 'Easing'), so the chrome read as loud as the
+         subject. ONE rule here (the style block below) puts every stage title,
+         the slotted Easing name included, on display-2 below lg. The glass
+         half (display-1 collapsing onto the section label at phone width) is
+         cited under O-87 proportion, not overridden. -->
     <header data-scene-stage-header>
         <div :class="idClass">
             <div v-if="status !== undefined" class="flex items-baseline gap-2">
@@ -53,3 +61,13 @@ defineProps<{
     asideClass?: string;
 }>();
 </script>
+
+<style>
+/* X-DS r3 pass 2 (KF-C21-02) — the stage title's rung below lg (unscoped so the
+   slotted Easing name, a `text-display` h2 of its own, takes it too). */
+@media (max-width: 1023px) {
+    [data-scene-stage-header] .text-display {
+        font-size: var(--type-display-2);
+    }
+}
+</style>

@@ -30,20 +30,28 @@
                          Button, quiet, icon-only). Its running state is the
                          Button's shipped `loading` contract (KFA-220: aria-busy,
                          the busy glyph, activation suppressed while it runs).
-                         The stage card keeps the subject and its one readout. -->
+                         The stage card keeps the subject and its one readout.
+                         X-DS r3 pass 2 (KF-C21-03) — ONE header-verb grammar with
+                         the Physics pane: the Reel is a LABELLED quiet verb (the
+                         word, as 'To keyframes' is; the clapperboard read as
+                         ornament), and the visible word is inside the accessible
+                         name (label-in-name). -->
                     <Button
                         size="sm"
                         emphasis="quiet"
-                        icon-only
                         :loading="source.isReeling()"
                         aria-label="Reel — play a cascading wave replay"
                         title="Play the reel"
                         @click="source.playReel()"
                     >
-                        <Clapperboard class="icon-sm" aria-hidden="true" />
+                        Reel
                     </Button>
-                    <!-- The re-time's undo (SC-2): the one path back to the default
-                         placement, in the header of the section it undoes. -->
+                    <!-- The same vertical hairline the Physics header carries
+                         (KF-C16-07) closes the labelled verb. -->
+                    <Separator orientation="vertical" class="h-4 self-center" />
+                    <!-- The re-time's undo (SC-2): the one glyph-only verb, the path
+                         back to the default placement, in the header of the
+                         section it undoes. -->
                     <Button
                         size="sm"
                         emphasis="quiet"
@@ -65,9 +73,9 @@
 </template>
 
 <script setup lang="ts">
-import { Button } from "@mkbabb/glass-ui";
+import { Button, Separator } from "@mkbabb/glass-ui";
 import { ConfiguratorLayer } from "@mkbabb/glass-ui/configurator";
-import { Clapperboard, RotateCcw } from "@lucide/vue";
+import { RotateCcw } from "@lucide/vue";
 import SequenceLanes from "./components/SequenceLanes.vue";
 import type { SequenceTimelineSource } from "./timelineTypes";
 

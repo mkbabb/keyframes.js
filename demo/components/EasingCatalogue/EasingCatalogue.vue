@@ -388,9 +388,19 @@ watch(
     --tile-min: 6.75rem;
 }
 /* A tile holds two lines (the curve + the name): the multi-line field rung,
-   never the producer item's stadium. content-visibility gates off-screen work. */
+   never the producer item's stadium. content-visibility gates off-screen work.
+   X-DS r3 pass 2 (KF-C21-01) — KF-C9-02's tile reset, at the root of every
+   specimen tile (the Spring preset cells' idiom): the producer item paints its
+   plate as a background-IMAGE (the control-surface gradient) and an inset edge
+   stack, so a background-colour reset left the lit plate on every tile, the
+   selected one included. The shorthand clears the image; the tile is a hairline
+   at the field radius. The consumer choosing its own tile paint (O-59 tile
+   axis); no glass lighting token is touched (O-87). */
 .specimen-tile {
     border-radius: var(--radius-field);
+    border: 1px solid var(--border);
+    background: transparent;
+    box-shadow: none;
     content-visibility: auto;
     contain-intrinsic-size: auto 132px;
     align-items: stretch;
@@ -458,7 +468,6 @@ watch(
 /* ── 5 · selection: ink + ring, never a grey plate ── */
 .specimen-tile[data-state="on"],
 .specimen-tile[data-state="on"]:hover:not(:disabled) {
-    background-color: transparent;
     outline: 1.5px solid var(--foreground);
     outline-offset: -1.5px;
 }

@@ -100,11 +100,12 @@
                 class="seq-storyboard px-4 py-4 flex-1"
                 :style="{ '--seq-n': ROW_COUNT }"
             >
-                <!-- L.W11 S7 — the IGNITION-CASCADE host (`.cascade-chase`): scrubbing
-                     (the Timeline pane's master scrub, X.KF.W13V.s2) lifts the
-                     lanes' glow (`--scrub-dir` flips on drag-back);
+                <!-- L.W11 S7 — the cascade host (`.cascade-chase`, a marker
+                     class). `.is-scrubbing` and `--scrub-dir` mark a master scrub
+                     (the Timeline pane's, X.KF.W13V.s2) and its direction; no
+                     style reads them since the lane glow left (X-DS pass 1).
                      `.is-powering-on` runs the ~700ms boot once. The motion is
-                     the engine's --ball-p fan-out. `--seq-room` is the overshoot
+                     the engine's --ball-p fan-out on each traveller's translate. `--seq-room` is the overshoot
                      room the springs' crest needs past the last end time (KFA-48). -->
                 <div
                     class="seq-stage cascade-chase"
