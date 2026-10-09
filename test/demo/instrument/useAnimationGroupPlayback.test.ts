@@ -54,8 +54,15 @@ function createPositionAnimation(
     return animation;
 }
 
+// KFA-69 (X.KF.W13X.r4transport) — the scrub law re-read. These cases pinned
+// the former per-child law ("scrubbing one animation must NOT drag its
+// siblings"), which is KFA-69's measured cause: phase-locked children (the
+// Amiga X/Y/Spin, the cube's spin and bob) fell out of phase under a scrub.
+// The scrub is now a SEEK of the group (`AnimationGroup.seek`): the scrubbed
+// child lands at `t` and every sibling at the same master time, each modulo
+// its own duration. The render-path and pausedTime clauses are unchanged.
 describe("useAnimationGroupPlayback.sliderUpdate", () => {
-    it("scrubs only the targeted animation in a single-target group", () => {
+    it("seeks every child to the scrubbed master time in a single-target group", () => {
         const renderState = { x: 0, y: 0 };
         const xAnim = createPositionAnimation("X", "x", renderState);
         const yAnim = createPositionAnimation("Y", "y", renderState);
@@ -84,14 +91,14 @@ describe("useAnimationGroupPlayback.sliderUpdate", () => {
 
         expect(xAnim.t).toBe(300);
         expect(xAnim.pausedTime).toBe(1300);
-        // Sibling's t and pausedTime are untouched
-        expect(yAnim.t).toBe(250);
-        expect(yAnim.pausedTime).toBe(0);
+        // The sibling is seated at the same master time (jump-free resume from it)
+        expect(yAnim.t).toBe(300);
+        expect(yAnim.pausedTime).toBe(1800);
         // Single-target groups go through the composed transform
         expect(transformFramesGrouped).toHaveBeenCalledOnce();
     });
 
-    it("scrubs only the targeted animation in a multi-target group", () => {
+    it("seeks every child to the scrubbed master time in a multi-target group", () => {
         const renderState = { x: 0, y: 0 };
         const xAnim = createPositionAnimation("X", "x", renderState);
         const yAnim = createPositionAnimation("Y", "y", renderState);
@@ -119,14 +126,14 @@ describe("useAnimationGroupPlayback.sliderUpdate", () => {
         expect(transformFramesGrouped).not.toHaveBeenCalled();
         expect(xAnim.t).toBe(500);
         expect(xAnim.pausedTime).toBe(1000);
-        // Sibling's t is untouched
-        expect(yAnim.t).toBe(250);
-        // Both children render at their own current t
+        // The sibling is seated at the same master time
+        expect(yAnim.t).toBe(500);
+        // Both children render at their seated t
         expect(renderState.x).toBeCloseTo(50, 4);
-        expect(renderState.y).toBeCloseTo(25, 4);
+        expect(renderState.y).toBeCloseTo(50, 4);
     });
 
-    it("leaves untouched siblings' durations alone when a longer animation is scrubbed", () => {
+    it("seats a shorter sibling at its own phase of the master time when a longer animation is scrubbed", () => {
         const renderState = { x: 0, y: 0 };
         const xAnim = createPositionAnimation("X", "x", renderState);
         const yAnim = createPositionAnimation("Y", "y", renderState);
@@ -146,11 +153,14 @@ describe("useAnimationGroupPlayback.sliderUpdate", () => {
 
         sliderUpdate({ t: 1000, animation: yAnim });
 
-        // Only yAnim's t moves; xAnim remains at its starting t
+        // yAnim lands at 1000 of its 2000; xAnim (one 1000 ms iteration) has
+        // run its course at master time 1000 and holds its end — its duration
+        // is untouched
         expect(yAnim.t).toBe(1000);
-        expect(xAnim.t).toBe(0);
-        // Render reflects each child's own t (yAnim halfway, xAnim at start)
+        expect(xAnim.t).toBe(1000);
+        expect(xAnim.options.duration).toBe(1000);
+        // Render reflects each child's seated t (yAnim halfway, xAnim at its end)
         expect(renderState.y).toBeCloseTo(50, 4);
-        expect(renderState.x).toBeCloseTo(0, 4);
+        expect(renderState.x).toBeCloseTo(100, 4);
     });
 });

@@ -112,7 +112,13 @@ export function facilityFromGroup(
                 setProgress: (t: number) => {
                     const dur = anim.options.duration ?? 1000;
                     const clamped = clamp(t, 0, 1);
-                    getGroup().setChildTime(anim, clamped * dur).render();
+                    // KFA-69 — a scrub of one channel is a SEEK of the group:
+                    // the channel lands at `t` in its current iteration and every
+                    // sibling moves to the same master time, so phase-locked
+                    // children (the Amiga X/Y/Spin, the cube's spin and bob)
+                    // stay locked.
+                    const group = getGroup();
+                    group.seek(group.elapsedOf(anim) - anim.t + clamped * dur).render();
                 },
             };
         },

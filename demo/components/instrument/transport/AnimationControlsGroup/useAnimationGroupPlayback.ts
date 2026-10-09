@@ -32,7 +32,7 @@ interface AnimationGroupPlaybackEmit {
  * stops the loop). This composable NEVER calls an `AnimationGroup` playback method
  * — `createGroupAdapter` is the ONLY code path that touches them
  * (proof:no-shadow-playback-authority). Kept: the childless-HOME navigate-intercept
- * emit (the rainbow-play → cube gesture) and the per-child `setChildTime` scrub.
+ * emit (the rainbow-play → cube gesture) and the group-seek scrub (KFA-69).
  */
 export function useAnimationGroupPlayback(
     getAnimationGroup: () => AnimationGroup<any>,
@@ -107,11 +107,13 @@ export function useAnimationGroupPlayback(
     const onScrubEnd = () => machine.dispatch({ type: "SCRUB_END" });
 
     const sliderUpdate = ({ t, animation }: { t: number; animation: KeyframesAnimation<any> }) => {
-        // Scrubbing a single animation in a group must NOT drag its
-        // siblings along. The library's setChildTime mutates just
-        // this animation; render() re-composes the frame using every
-        // child's current t (siblings unchanged).
-        getAnimationGroup().setChildTime(animation, t).render();
+        // KFA-69 — the group scenes' children are phase-locked (one master
+        // clock), so a scrub of the selected child is a SEEK of the group: the
+        // child lands at `t` in its current iteration and every sibling moves
+        // to the same master time (the former per-child `setChildTime` left
+        // the siblings behind, out of phase for the rest of the session).
+        const group = getAnimationGroup();
+        group.seek(group.elapsedOf(animation) - animation.t + t).render();
         // T.B8 — record the scrub onto the machine snapshot so the scrubbed
         // playhead persists WITHOUT waiting for a NAVIGATE/SUSPEND capture (closes
         // the group-scene scrub-persistence gap: cube/amiga/square previously only
