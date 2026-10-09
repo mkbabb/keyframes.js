@@ -107,14 +107,24 @@
                         <CopyButton :text="artifact.css" label="Copy the @starting-style artifact" />
                     </div>
                     <CollapsibleContent>
-                        <!-- KF-SST-9 — a named, focusable, readable region. -->
+                        <!-- KF-SST-9 — a named, focusable, readable region.
+                             UIA-KF-097 (X.KF.W13X.r4panes) — inked with the
+                             editor's code tokens (`CODE_INK`: structure,
+                             values, numbers), not one flat muted mono; the
+                             spans concatenate to `artifact.css` exactly, so
+                             what is rendered is still what is copied. -->
                         <code
-                            class="artifact text-mono-small tabular-nums text-muted-foreground mt-2 block w-full"
+                            class="artifact text-mono-small tabular-nums mt-2 block w-full"
                             data-register="code"
                             tabindex="0"
                             role="region"
                             :aria-labelledby="labelId"
-                            >{{ artifact.css }}</code
+                            ><span
+                                v-for="(token, i) in artifactTokens"
+                                :key="i"
+                                :style="token.ink ? { color: CODE_INK[token.ink] } : undefined"
+                                >{{ token.text }}</span
+                            ></code
                         >
                     </CollapsibleContent>
                 </Collapsible>
@@ -224,6 +234,7 @@ import type { EntryRefusal } from "@mkbabb/keyframes.js";
 import { kfEngine } from "@kf-engine";
 
 import CopyButton from "@components/CopyButton/CopyButton.vue";
+import { CODE_INK, tokenizeCSS } from "@components/instrument/keyframes/utils/codeTokens";
 
 import { SPRING_DEMO_KEY } from "./springKeys";
 import { SPRING_PRESETS } from "./springPresets";
@@ -313,6 +324,11 @@ const artifact = computed<ArtifactState>(() => {
         ? { kind: "ready", css: result.css }
         : { kind: "mismatched", css: result.css };
 });
+
+/** UIA-KF-097 — the artifact in the editor's code ink (`CODE_INK`). */
+const artifactTokens = computed(() =>
+    artifact.value.kind === "ready" ? tokenizeCSS(artifact.value.css) : [],
+);
 </script>
 
 <style scoped>

@@ -92,6 +92,7 @@ import type * as Monaco from "monaco-editor/esm/vs/editor/editor.api.js";
 // (KF-CE-29 — with the specifier resolving, the cast is load-bearing).
 import DarkTheme from "./monaco-themes/Dracula.json";
 import LightTheme from "./monaco-themes/GitHub.json";
+import { CODE_INK } from "./utils/codeTokens";
 import { Card } from "@mkbabb/glass-ui/card";
 import { useGlobalDark } from "@mkbabb/glass-ui/dark";
 import { clampIOSNoZoomFontSize } from "@components/instrument/utils/iosTextEntry";
@@ -192,11 +193,13 @@ function defineGroundedTheme(m: typeof Monaco, dark: boolean): void {
     // as the ground is: ONE hue carries meaning (the numbers and units, the
     // identity violet), the structure is the foreground, the values and the
     // punctuation step down to the muted ink. Monaco takes rule colours as
-    // six-digit hex without the `#`.
+    // six-digit hex without the `#`. UIA-KF-097 (X.KF.W13X.r4panes) — the
+    // three rungs are `CODE_INK`'s, the one table the app's printed code
+    // (the spring scene's artifact) is inked from too.
     const ink = (css: string) => resolveTokenHex(css).slice(1, 7);
-    const fg = ink("var(--foreground)");
-    const muted = ink("var(--muted-foreground)");
-    const accent = ink("var(--color-progress)");
+    const fg = ink(CODE_INK.structure);
+    const muted = ink(CODE_INK.value);
+    const accent = ink(CODE_INK.number);
     m.editor.defineTheme(dark ? "dark-theme" : "light-theme", {
         base: base.base,
         // The base's rules stay underneath (its default ground and ink keep
