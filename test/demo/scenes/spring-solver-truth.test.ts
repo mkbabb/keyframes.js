@@ -55,8 +55,11 @@ describe("(1) KFA-38 + UIA-KF-204 — born at an honest rest", () => {
     });
 
     it("reset() returns the field to that same born rest", () => {
-        parkPausedOnSpring();
+        const machine = parkPausedOnSpring();
         const [demo, app] = withSetup(() => useSpringDemo());
+        // KFA-39 — reset() is the machine's RESET; its effect reaches the field
+        // through the registered adapter, as the App registers it on mount.
+        const release = machine.register("spring", demo.facility.playback);
         try {
             const born = demo.target.value;
             demo.reseat(1 - born);
@@ -67,6 +70,7 @@ describe("(1) KFA-38 + UIA-KF-204 — born at an honest rest", () => {
             expect(demo.springLive.value).toBe(born);
             for (const t of demo.tracks) expect(t.spring.settled).toBe(true);
         } finally {
+            release();
             app.unmount();
         }
     });
