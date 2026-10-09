@@ -18,8 +18,19 @@ export const CUBE_ANIMATION_NAMES = {
     Hover: "Hover",
 } as const;
 
+/** The custom property the Rotations channel's `100%` frame reads through
+ *  `var(--rotationX)` — the cube's authored demonstration of `var()` in
+ *  keyframes. Every spin element (the scene's `.cube`, the dock miniature's
+ *  die) binds this object as its INLINE style, so the declaration exists from
+ *  the element's creation, before any group frame can run. A scoped
+ *  stylesheet rule raced the autoplay's first frame: when the sheet had not
+ *  reached the element, the engine (loud by design) raised
+ *  `BrowserScalarResolutionError` and the loop wound down (R-r-2,
+ *  X.KF.W13X.cube2). */
+export const CUBE_SPIN_VARS = Object.freeze({ "--rotationX": "360deg" });
+
 /** The Rotations channel: one full turn about Y, one about Z, and X to the
- *  element's `--rotationX` (declared on `.cube`). */
+ *  element's `--rotationX` (`CUBE_SPIN_VARS`, inline on the spin element). */
 export const cubeSpinKeyframes = () => ({
     from: {
         transform: transformList(

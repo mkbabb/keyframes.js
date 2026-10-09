@@ -37,6 +37,7 @@
                                 ref="cubeEl"
                                 class="cube preserve-3d animation relative flex items-center justify-center justify-items-center"
                                 :class="{ 'cube--rolling': rolling }"
+                                :style="CUBE_SPIN_VARS"
                             >
                                 <div
                                     v-for="(side, index) in cubeSides"
@@ -114,6 +115,7 @@ import OrbitalDrag from "./orbital-drag/OrbitalDrag.vue";
 import type { TransformState } from "./orbital-drag/transform";
 import type { PressedKeys } from "./orbital-drag/types";
 import CubeAxisLines from "./CubeAxisLines.vue";
+import { CUBE_SPIN_VARS } from "./cubeMotion";
 import {
     numberValue,
     transformCall,

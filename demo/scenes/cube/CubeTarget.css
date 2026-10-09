@@ -75,7 +75,6 @@
 .cube {
     --side-size: min(30vh, 25vw, 18rem);
     --side-offset: calc(var(--side-size) / 2);
-    --rotationX: 360deg;
 
     width: var(--side-size);
     height: var(--side-size);

@@ -24,7 +24,7 @@ import { useLiveMini } from "@composables/useLiveMini";
 import { kfEngine } from "@kf-engine";
 import { getStoredAnimationOptions } from "@state";
 import { CUBE_SCENE_ID } from "./cubeKeys";
-import { CUBE_ANIMATION_NAMES, cubeSpinKeyframes } from "./cubeMotion";
+import { CUBE_ANIMATION_NAMES, CUBE_SPIN_VARS, cubeSpinKeyframes } from "./cubeMotion";
 
 const { live = false } = defineProps<{ live?: boolean }>();
 
@@ -67,7 +67,7 @@ useLiveMini(group, () => live, () => {
         <span class="stage" :style="{ width: `${SIDE}px`, height: `${SIDE}px`, transform: `translate(-50%, -50%) scale(${SCALE})` }">
             <span ref="bobEl" class="layer" data-layer="bob">
                 <span class="layer" data-layer="pose" :style="{ transform: VIEW_TILT }">
-                    <span ref="cubeEl" class="layer die" data-layer="cube">
+                    <span ref="cubeEl" class="layer" data-layer="cube" :style="CUBE_SPIN_VARS">
                         <span
                             v-for="(face, i) in FACES"
                             :key="i"
@@ -99,9 +99,6 @@ useLiveMini(group, () => live, () => {
     position: absolute;
     inset: 0;
     transform-style: preserve-3d;
-}
-.die {
-    --rotationX: 360deg;
 }
 .face {
     position: absolute;
