@@ -81,7 +81,7 @@
             :channels="channels"
             :super-key="superKey"
             :auto-play="autoPlay"
-            :hide-controls="showStartScreen"
+            :hide-controls="hideControls"
             :stage-mode="stageMode"
             :has-control-surfaces="hasControlSurfaces"
             @play-state-change="onPlayStateChange"
@@ -147,6 +147,12 @@ const props = withDefaults(
         // `superKey: undefined` as this prop's own default.
         superKey?: string | undefined;
         showStartScreen?: boolean;
+        // UIA-KF-066 (X.KF.W13X.r4shell) — the transport's controls are
+        // withheld on their OWN flag. They rode `showStartScreen`, so the
+        // start screen could not be dismissed (a drag of the subject) without
+        // unhiding controls the landing has nothing for; the App now passes
+        // "home is open" here and "home, not yet engaged" above.
+        hideControls?: boolean;
         gridBackground?: boolean;
         autoPlay?: boolean;
         // T.B8 — the `machinePlaying` prop is RETIRED. It existed only to sync
@@ -168,6 +174,7 @@ const props = withDefaults(
     {
         superKey: undefined,
         showStartScreen: true,
+        hideControls: false,
         gridBackground: true,
         autoPlay: false,
         stageMode: "subject",

@@ -39,7 +39,8 @@
         :animation-group="currentAnimationGroup"
         :channels="currentChannels"
         :super-key="resolvedScene.superKey"
-        :show-start-screen="isHome"
+        :show-start-screen="showStartScreen"
+        :hide-controls="isHome"
         :auto-play="autoPlayNext"
         :stage-mode="stageMode"
         :grid-background="resolvedScene.id !== AMIGA_SCENE_ID"
@@ -84,11 +85,15 @@
                  `sceneSwapStyle` on this SIBLING <div> (SpringProgress +
                  rationale in `useSceneSwap`), never a wrapper <Transition>, so
                  the re-break can't recur. -->
+            <!-- UIA-KF-066 — the first press on the stage engages the subject
+                 and dismisses the start screen (`useStartScreen`); off home it
+                 is inert. -->
             <div
                 ref="sceneHostEl"
                 class="scene-host h-full w-full"
                 tabindex="-1"
                 :style="sceneSwapStyle"
+                @pointerdown="engageStartScreen"
             >
                 <Suspense :key="activeSceneKey" @resolve="onSceneResolved">
                     <component
@@ -177,6 +182,7 @@ import {
 
 import { useSceneMachineRouterBinding } from "./scene/useSceneMachineRouterBinding";
 import { useSceneMachineShellBinding } from "./scene/useSceneMachineShellBinding";
+import { useStartScreen } from "./scene/useStartScreen";
 import { useSceneSwap } from "./transition/useSceneSwap";
 import { useSceneTransition } from "./transition/useSceneTransition";
 import { scenes, sceneMap, warmScene, homeScene } from "./scene/scenes";
@@ -209,6 +215,7 @@ useSceneMachineRouterBinding({ getRunSceneSwitch: () => runSceneSwitch });
 
 const currentSceneId = computed(() => machine.activeScene.value);
 const isHome = computed(() => currentSceneId.value === HOME_SCENE_ID);
+const { showStartScreen, engage: engageStartScreen } = useStartScreen(isHome);
 // T.B8 — the `machinePlaying` computed (the machine → transport intent edge) is
 // RETIRED: `useAnimationGroupPlayback` derives `isPlaying` directly from
 // `machine.status` now, so the transport can never read a stale `false` — the
