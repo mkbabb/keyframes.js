@@ -6,10 +6,12 @@
  * and the KFA-31 render observers).
  *
  * The group keeps the composite itself (`advanceTo` / `render` /
- * `transformFramesGrouped`); this leg sequences a rAF tick over it: advance
- * every child, read completion, paint (which notifies the `onRender`
- * observers), and settle on done. The back-edge to the class is TYPE-only, as in `./lifecycle`.
+ * `transformFramesGrouped`); this leg sequences a rAF tick over it: re-anchor
+ * fresh child plays to their first presented frame, advance every child, read
+ * completion, paint (which notifies the `onRender` observers), and settle on
+ * done. The back-edge to the class is TYPE-only, as in `./lifecycle`.
  */
+import { presentAnchor } from "../engine/play-lifecycle";
 import { resolvePlay } from "./lifecycle";
 import type { Vars } from "../constants";
 import type { AnimationGroup } from "./group";
@@ -20,6 +22,7 @@ export function drawFrame<V extends Vars>(
     group: AnimationGroup<V>,
     t: number,
 ): boolean | Promise<boolean> {
+    presentChildAnchors(group.getEntries(), t);
     const advanced = group.advanceTo(t);
     return typeof (advanced as Promise<unknown>).then === "function"
         ? (advanced as Promise<unknown>).then(() => renderDrawFrame(group, t))
@@ -51,6 +54,18 @@ function renderDrawFrame<V extends Vars>(
     group.settle();
     resolvePlay(group);
     return false;
+}
+
+/** KFA-70 (X.KF.W13X.r4lib): re-anchor each child's fresh play to its first
+ *  presented frame before the tick's advance (the engine's `presentAnchor`).
+ *  The rAF lane only — a caller driving `group.advanceTo` owns its clock. */
+function presentChildAnchors<V extends Vars>(
+    entries: AnimationGroupEntry<V>[],
+    t: number,
+): void {
+    for (let i = 0; i < entries.length; i++) {
+        presentAnchor(entries[i]!.animation, t);
+    }
 }
 
 /** True when every child is done — an indexed fold, so the steady draw loop

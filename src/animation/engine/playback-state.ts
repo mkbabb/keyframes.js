@@ -46,6 +46,10 @@ export class PlaybackState {
      *  past the boundary is kept, never re-based at the next frame's clock.
      *  Any external `startTime` write (the class setter) clears it. */
     carriedStartTime: number | undefined = undefined;
+    /** KFA-70 — the rAF clock of the tick that took a FRESH anchor, until the
+     *  next rAF tick re-anchors the play to the first presented frame
+     *  (`presentAnchor`). Any external `startTime` write clears it. */
+    anchorTick: number | undefined = undefined;
     pausedTime: number = 0;
     t: number = 0;
     iteration: number = 0;

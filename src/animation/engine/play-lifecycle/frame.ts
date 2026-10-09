@@ -14,6 +14,7 @@ import { reverse, shouldReverse } from "./events";
 import { snapToReducedMotion } from "./strategies";
 import { resolvePlay, settle } from "./transport";
 import { sleep } from "../../internal/helpers";
+import { FRAME_RATE } from "../../internal/leaves";
 import { withReducedMotion } from "../../internal/reduced-motion";
 import type { FlatAuthoredValues } from "../../compile/value";
 import type { Vars } from "../../constants";
@@ -129,8 +130,40 @@ function beginIteration<V extends Vars>(
     // run the playhead negative by exactly that span. A carried anchor
     // predates the pause, so it keeps the pause offset.
     if (carried === undefined) anim._playback.pausedTime = 0;
+    // KFA-70: a fresh, undelayed anchor waits for its first presented frame
+    // (`presentAnchor`, rAF lanes only).
+    anim._playback.anchorTick =
+        carried === undefined && phase === 0 ? t : undefined;
     anim.dispatchAnimationEvent("animationstart");
     return advanceBody(anim, t, wrapped);
+}
+
+/**
+ * KFA-70 engine limb (X.KF.W13X.r4lib) — re-anchor a fresh play to its first
+ * PRESENTED frame. The anchor tick paints the rest pose; that frame is only
+ * presented when the next rAF tick arrives. When the anchor frame ran long (a
+ * play started during a heavy mount: ~110 ms of style/layout before the rest
+ * pose reached the screen), the next tick read the whole stall as elapsed time
+ * and the first moving frame jumped 63–70 % of the landing cube's settle. No
+ * motion has been presented before this tick, so the play may advance at most
+ * one frame here; the clock moves forward by the rest. A prompt anchor frame
+ * (≤ one frame) is untouched.
+ *
+ * Called by the rAF lanes only (`playFrame`, the group's draw loop), before
+ * the tick's advance: `advanceTo` itself stays the pure absolute-clock driver
+ * for callers that own their clock.
+ */
+export function presentAnchor<V extends Vars>(
+    anim: KeyframesAnimation<V>,
+    t: number,
+): void {
+    const anchor = anim._playback.anchorTick;
+    if (anchor === undefined || t <= anchor) return;
+    anim._playback.anchorTick = undefined;
+    const stall = t - anchor - FRAME_RATE;
+    if (stall > 0 && !anim._playback.paused) {
+        anim._playback.startTime! += stall;
+    }
 }
 
 /** The post-start advance body — pause clock, local time, iteration end. */
@@ -203,6 +236,7 @@ export function playFrame<V extends Vars>(
         return false;
     }
 
+    presentAnchor(anim, t);
     // Sync steady path (J.W6 S1) — the loop-core reschedules inline.
     const stepped = anim.advanceTo(t);
     return typeof stepped === "number"

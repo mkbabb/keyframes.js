@@ -27,7 +27,7 @@
  * settled tree.
  */
 export { dispatchAnimationEvent, shouldReverse, reverse } from "./events";
-export { onStart, onEnd, advanceTo, playFrame } from "./frame";
+export { onStart, onEnd, advanceTo, playFrame, presentAnchor } from "./frame";
 export { play } from "./strategies";
 export {
     pause,

@@ -31,8 +31,10 @@
 // grammar-free `@mkbabb/value.js/math` subpath (no kf byte-duplicate).
 export { clamp, scale, lerp, lerpArray } from "@mkbabb/value.js/math";
 
-/** 60 fps frame budget in milliseconds — the non-DOM rAF fallback delay. */
-const FRAME_RATE = 1000 / 60;
+/** 60 fps frame budget in milliseconds — the non-DOM rAF fallback delay, and
+ *  the one frame a play may advance before its first frame is presented
+ *  (KFA-70, `presentAnchor`). */
+export const FRAME_RATE = 1000 / 60;
 
 /**
  * rAF shim with a `setTimeout` fallback for non-DOM environments
