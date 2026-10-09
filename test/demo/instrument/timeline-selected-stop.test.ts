@@ -109,7 +109,16 @@ describe("UIA-KF-054 — a failed build", () => {
 describe("UIA-KF-182 — Clear all", () => {
     it("says what it cleared and its Undo restores exactly those stops", async () => {
         const { w, session } = await setup();
-        await w.get('[aria-label="Clear all keyframes"]').trigger("click");
+        // X.KF.W13X.r4panes (UIA-KF-179) — Clear all rides the one toolbar's
+        // overflow menu: open it from the keyboard, then select the item.
+        await w.get('[aria-label="More timeline actions"]').trigger("keydown", { key: "Enter" });
+        await nextTick();
+        await nextTick();
+        const clear = [...document.querySelectorAll<HTMLElement>('[role="menuitem"]')].find(
+            (e) => e.textContent?.trim() === "Clear all keyframes",
+        );
+        expect(clear, "the overflow menu offers Clear all keyframes").toBeDefined();
+        clear!.click();
         await nextTick();
         expect(session.state.value.keyframes).toHaveLength(0);
         expect(toasts).toHaveLength(1);

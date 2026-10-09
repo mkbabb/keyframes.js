@@ -114,102 +114,17 @@
              Keyframes pane's own title rung): it was four right-aligned glyphs
              over an empty left half, so the cluster floated and the pane never
              named itself. -->
-        <div class="flex items-center gap-1">
-            <h3 class="configurator-section-label mr-auto min-w-0 truncate">Timeline</h3>
-            <!-- Undo / redo (F.W14.S2) — the discoverable affordance for the
-                 Mod+Z / Mod+Shift+Z bindings; bounded by the same canUndo/canRedo
-                 history state. Sits in the timeline card (not over the dock band),
-                 so it does not occlude the dock (inv δ). -->
-            <Tooltip>
-                <TooltipTrigger as-child>
-                    <Button
-                        size="sm"
-                        emphasis="quiet"
-                        icon-only
-                        aria-label="Undo"
-                        :disabled="!canUndo"
-                        @click="undo()"
-                    >
-                        <Undo2 class="icon-sm" />
-                    </Button>
-                </TooltipTrigger>
-                <TooltipContent>Undo (Mod+Z)</TooltipContent>
-            </Tooltip>
-            <Tooltip>
-                <TooltipTrigger as-child>
-                    <Button
-                        size="sm"
-                        emphasis="quiet"
-                        icon-only
-                        aria-label="Redo"
-                        :disabled="!canRedo"
-                        @click="redo()"
-                    >
-                        <Redo2 class="icon-sm" />
-                    </Button>
-                </TooltipTrigger>
-                <TooltipContent>Redo (Mod+Shift+Z)</TooltipContent>
-            </Tooltip>
-            <!-- D-14 — THE DESTRUCTIVE PAIR STOPS SHIPPING UNDIFFERENTIATED.
-                 Clear-all (here) and Remove-keyframe (below) carried the same
-                 `size` / `emphasis` / geometry / ink as Undo, Redo and Expand:
-                 one of these five empties the whole array and nulls the engine,
-                 and nothing on screen said so. `tone` is PUBLISHED on the
-                 primitive and was unused, and it is not decorative at this
-                 emphasis — measured in the installed sheet, `.button
-                 [data-emphasis="quiet"]:not([data-tone="neutral"])` paints
-                 `color: var(--button-tone)` AT REST, so the destructive rung
-                 reads as destructive before the pointer arrives rather than
-                 only on hover. Undo is the standing mitigation that holds the
-                 row at MAJOR instead of promoting it; it is not a substitute
-                 for the control saying what it does.
-                 X-DS pass 3 · KF-C3-08 — with nothing to clear it is disabled,
-                 so glass's quiet disabled ink mutes the red at rest; the tone
-                 returns with the first keyframe.
-                 X-DS pass 4 (KF-C4-13) — and at REST it wears its siblings'
-                 neutral ink: an alarm hue on an idle control was the loudest
-                 mark in the pane. The tone stays bound, so the red arrives
-                 where it means something: on hover (glass's quiet hover inks
-                 `--button-tone`) and in the press. -->
-            <Tooltip>
-                <TooltipTrigger as-child>
-                    <Button
-                        size="sm"
-                        emphasis="quiet"
-                        tone="destructive"
-                        icon-only
-                        class="[--button-quiet-ink:var(--muted-foreground)]"
-                        aria-label="Clear all keyframes"
-                        :disabled="state.keyframes.length === 0"
-                        @click="clearAll()"
-                    >
-                        <Trash class="icon-sm" />
-                    </Button>
-                </TooltipTrigger>
-                <TooltipContent>Clear all keyframes</TooltipContent>
-            </Tooltip>
-            <!-- X-DS pass 3 · KF-C3-09 — the affordance says what it does. The
-                 unfolded timeline stays in the rail's column (H.W3.S4: a
-                 vertical extension of the rail, never a full-grid span, and the
-                 stage column's foot is the transport's), so unfolding buys the
-                 track HEIGHT (46 → 126px of lanes), not width. "Expand" and the
-                 maximize glyph promised a larger surface it never delivered;
-                 the vertical unfold/fold pair names the real change. -->
-            <Tooltip>
-                <TooltipTrigger as-child>
-                    <Button
-                        size="sm"
-                        emphasis="quiet"
-                        icon-only
-                        :aria-label="props.expanded ? 'Fold timeline into the pane' : 'Unfold timeline'"
-                        @click="emit('toggleExpand')"
-                    >
-                        <component :is="props.expanded ? FoldVertical : UnfoldVertical" class="icon-sm" />
-                    </Button>
-                </TooltipTrigger>
-                <TooltipContent>{{ props.expanded ? "Fold timeline into the pane" : "Unfold timeline (taller track)" }}</TooltipContent>
-            </Tooltip>
-        </div>
+        <!-- X.KF.W13X.r4panes (UIA-KF-179, the two-toolbars limb) — ONE
+             toolbar per instrument. This row held Undo · Redo · Clear all ·
+             Unfold beside the title while the four verbs sat in a SECOND row at
+             the foot; the four tools now ride that one row's overflow menu
+             ("More timeline actions", below), so the header is the pane's
+             name alone — the title rung every sibling facet's header carries
+             (KF-P1-17, KF-C11-04). The control policy stated above (D-6 / D-8
+             / D-5 / D-14) is unchanged: the tools are the producer's menu items
+             now, at its own geometry, with Clear all disabled on an empty
+             timeline and destructive by tone. -->
+        <h3 class="configurator-section-label min-w-0 truncate">Timeline</h3>
 
         <!-- Preview stage — the ONE subject this instrument's engine paints
              (KF.W7 G2 / C-6): an inert clone of the instrumented element, driven
@@ -366,7 +281,12 @@
         <Teleport to="#timeline-ribbon-target" :disabled="props.expanded || !ribbonHost" defer>
             <div class="flex flex-col gap-3">
                 <Separator v-if="props.expanded" />
-                <div class="flex items-center justify-center gap-2">
+                <!-- UIA-KF-179 — the ONE toolbar: the four verbs, then the
+                     overflow that carries the four tools. The labels yield to
+                     their glyphs by the row's own width (KF-C5-02's idiom:
+                     each accessible name and title is unchanged), so the row
+                     stays one line in the 18rem pane at 1024. -->
+                <div class="@container flex items-center justify-center gap-2">
                     <Button size="sm" emphasis="secondary" @click="snapshot()">
                         <Camera class="icon-sm" /> Snapshot
                     </Button>
@@ -382,7 +302,7 @@
                         title="Import CSS (replaces the timeline)"
                         @click="openImportDialog()"
                     >
-                        <Download class="icon-sm" /> Import
+                        <Download class="icon-sm" /> <span class="@max-[20rem]:sr-only">Import</span>
                     </Button>
                     <Button
                         size="sm"
@@ -391,7 +311,7 @@
                         title="Add CSS (merges into the timeline)"
                         @click="openAddCSSDialog()"
                     >
-                        <FilePlus2 class="icon-sm" /> Add
+                        <FilePlus2 class="icon-sm" /> <span class="@max-[20rem]:sr-only">Add</span>
                     </Button>
                     <Button
                         size="sm"
@@ -400,8 +320,58 @@
                         title="Export CSS"
                         @click="exportCSS()"
                     >
-                        <Upload class="icon-sm" /> Export
+                        <Upload class="icon-sm" /> <span class="@max-[20rem]:sr-only">Export</span>
                     </Button>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger as-child>
+                            <Button
+                                size="sm"
+                                emphasis="quiet"
+                                icon-only
+                                aria-label="More timeline actions"
+                                title="More timeline actions"
+                            >
+                                <Ellipsis class="icon-sm" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" :collision-padding="16" class="z-popover text-body p-1.5">
+                            <!-- Undo / redo (F.W14.S2) — the discoverable
+                                 affordance for the Mod+Z / Mod+Shift+Z bindings,
+                                 bounded by the same history state. -->
+                            <DropdownMenuItem text-value="Undo" class="gap-2.5 px-1.5 py-1" :disabled="!canUndo" @select="undo()">
+                                <Undo2 class="icon-sm" aria-hidden="true" />
+                                Undo
+                                <DropdownMenuShortcut aria-hidden="true">{{ formatCombo("Mod+Z") }}</DropdownMenuShortcut>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem text-value="Redo" class="gap-2.5 px-1.5 py-1" :disabled="!canRedo" @select="redo()">
+                                <Redo2 class="icon-sm" aria-hidden="true" />
+                                Redo
+                                <DropdownMenuShortcut aria-hidden="true">{{ formatCombo("Mod+Shift+Z") }}</DropdownMenuShortcut>
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <!-- D-14 / KF-C3-08 — the destructive item says so by
+                                 tone, and is disabled with nothing to clear. -->
+                            <DropdownMenuItem
+                                text-value="Clear all keyframes"
+                                class="gap-2.5 px-1.5 py-1 text-destructive"
+                                :disabled="state.keyframes.length === 0"
+                                @select="clearAll()"
+                            >
+                                <Trash class="icon-sm" aria-hidden="true" />
+                                Clear all keyframes
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <!-- KF-C3-09 — the fold affordance says what it does. -->
+                            <DropdownMenuItem
+                                :text-value="props.expanded ? 'Fold timeline into the pane' : 'Unfold timeline'"
+                                class="gap-2.5 px-1.5 py-1"
+                                @select="emit('toggleExpand')"
+                            >
+                                <component :is="props.expanded ? FoldVertical : UnfoldVertical" class="icon-sm" aria-hidden="true" />
+                                {{ props.expanded ? "Fold timeline into the pane" : "Unfold timeline (taller track)" }}
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
             </div>
         </Teleport>
@@ -432,6 +402,7 @@ import type { Ref } from "vue";
 import {
     Camera,
     Download,
+    Ellipsis,
     FoldVertical,
     UnfoldVertical,
     FilePlus2,
@@ -446,6 +417,15 @@ import { Alert, AlertDescription, AlertTitle, Button, Card, CardContent, Separat
 import { toast, ToastAction } from "@mkbabb/glass-ui/toast";
 import { Input } from "@mkbabb/glass-ui/input";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@mkbabb/glass-ui/tooltip";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+    DropdownMenuShortcut,
+    DropdownMenuTrigger,
+} from "@mkbabb/glass-ui/menu";
+import { formatCombo } from "@mkbabb/glass-ui/keyboard";
 import { useTimeline } from "./composables/useTimeline";
 import TimelineTrack from "./components/TimelineTrack.vue";
 import { createPreviewSubject, fitPreviewSubject } from "./utils/timelineEngine";

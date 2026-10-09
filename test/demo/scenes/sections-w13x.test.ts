@@ -15,7 +15,8 @@
  * (4) A2-KE-L1-8 — the scene stage header is ONE component: every stage site
  *     renders `SceneStageHeader`, and the status-badge markup exists once.
  * (5) A2-KE-L3-15 · UIA-KF-179 — the Timeline ribbon is ONE row with a lead
- *     action: the lead is labelled, the rest are named icon commands, no wrap.
+ *     action: the lead is labelled, the rest are named icon commands, no wrap;
+ *     the row ends on the overflow that carries the four tools (r4panes).
  * (6) UIA-KF-175 — Apply CSS is a toggle and says so (`aria-pressed`).
  * (7) UIA-KF-173 — the two clipboard verbs are named for what they copy.
  */
@@ -148,8 +149,13 @@ describe("(5) A2-KE-L3-15 · UIA-KF-179 — the Timeline verbs are one row with 
         app.mount(el);
         mounted.push({ unmount: () => app.unmount(), el });
         const lead = [...el.querySelectorAll("button")].find((b) => b.textContent?.trim() === "Snapshot")!;
-        const buttons = [...lead.parentElement!.querySelectorAll("button")];
-        expect(buttons).toHaveLength(4);
+        // X.KF.W13X.r4panes (UIA-KF-179, the two-toolbars limb) — the row is
+        // the instrument's ONE toolbar: the four verbs, then the overflow that
+        // carries Undo / Redo / Clear all / Unfold.
+        const all = [...lead.parentElement!.querySelectorAll("button")];
+        expect(all).toHaveLength(5);
+        expect(all[4]?.getAttribute("aria-label")).toBe("More timeline actions");
+        const buttons = all.slice(0, 4);
         expect(buttons[0]?.hasAttribute("data-icon-only")).toBe(false);
         expect(buttons.slice(1).map((b) => b.textContent?.trim())).toEqual(["Import", "Add", "Export"]);
         for (const b of buttons.slice(1)) {
