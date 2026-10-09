@@ -65,13 +65,25 @@ export const WAAPI_CHORD_TOLERANCE = 0.005;
  */
 type ChannelSample = Map<string, number>;
 
-/** True when every emitted property can be faithfully baked as numeric slots. */
+/**
+ * A step easing's CSS twin (`steps(…)`, `step-start`, `step-end`). Its curve
+ * jumps, and a chord can never converge on a jump: the bisection spends the
+ * whole budget closing in on each cliff and still emits ramps (KFA-28 — the
+ * typing dots' `steps(4, jump-none)` became 35 linear stops with 2 of 8 cliffs
+ * left). The twin is exact, so such a segment is never baked.
+ */
+const STEP_EASING = /^(steps\(|step-start$|step-end$)/;
+
+/** True when every emitted property can be faithfully baked as numeric slots,
+ * under an easing whose curve a chord can follow (no step easing). */
 export const canDensifyWAAPISlots = <V extends Vars>(
     animation: KeyframesAnimation<V>,
 ): boolean => {
     const signatures = new Map<string, string>();
     const frames = animation.frames as CompiledAnimationFrame<V>[];
     for (const frame of frames) {
+        const css = frame.timingFunction.css;
+        if (css !== undefined && STEP_EASING.test(css.trim())) return false;
         for (const [property, value] of Object.entries(frame.interpVars)) {
             if (value.slots.length === 0 ||
                 value.slots.some((slot) => slot.kind !== "number")) {

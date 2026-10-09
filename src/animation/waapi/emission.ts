@@ -23,8 +23,9 @@ import {
  *
  * Emits every stop boundary. Stable numeric slot/template shapes additionally
  * receive curvature-adaptive interior samples (Q.WB4,
- * {@link densifyInteriorTimes}); structural or changing shapes retain their
- * native per-keyframe CSS easing instead of pretending sparse boundaries are a
+ * {@link densifyInteriorTimes}); structural or changing shapes, and every
+ * step easing (KFA-28: a chord cannot follow a jump), retain their native
+ * per-keyframe CSS easing instead of pretending sparse boundaries are a
  * faithful linearization.
  */
 export function toWAAPIKeyframes<V extends Vars>(
