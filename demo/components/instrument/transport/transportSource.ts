@@ -17,6 +17,7 @@
 // the transport never needs an impersonating group).
 // ─────────────────────────────────────────────────────────────────────────────
 
+import type { InjectionKey } from "vue";
 import type { ChannelHandle } from "@composables/scene-facility";
 
 /** One transport channel — the members of the app-side `ChannelHandle`
@@ -27,3 +28,13 @@ export type TransportChannel = Pick<
     ChannelHandle,
     "name" | "animation" | "sequence" | "progress" | "setProgress"
 >;
+
+/** UIA-KF-026 (X.KF.W13X.r4transport) — THE GROUP'S PAINTS, observable by the
+ *  transport's read-backs. A read-back (the channel ribbon's `currentT` sync)
+ *  idles while paused and was woken only by its own scrubs and by play/pause
+ *  flips, so a paint it did not cause — Reset's rewind after a takeover had
+ *  already paused the group — left the rail at the old time. The host that
+ *  owns the group provides its `onRender` here; a read-back re-derives on
+ *  every frame the group paints. Returns the unsubscribe. */
+export type ObserveGroupPaints = (listener: () => void) => () => void;
+export const GROUP_PAINTS_KEY: InjectionKey<ObserveGroupPaints> = Symbol("groupPaints");

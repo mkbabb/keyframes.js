@@ -157,7 +157,7 @@ import TransportDock from "./TransportDock.vue";
 
 import { getStoredAnimationGroupControlOptions } from "@state";
 import type { AnimationGroup, KeyframesAnimation } from "@mkbabb/keyframes.js";
-import type { TransportChannel } from "./transportSource";
+import { GROUP_PAINTS_KEY, type TransportChannel } from "./transportSource";
 import { useAnimationGroupActions } from "./AnimationControlsGroup/useAnimationGroupActions";
 import { useControlsKeyboardShortcuts } from "./AnimationControlsGroup/useControlsKeyboardShortcuts";
 import { useAnimationGroupPlayback } from "./AnimationControlsGroup/useAnimationGroupPlayback";
@@ -231,6 +231,11 @@ const selectedChannel = computed(() =>
 // host's handle).
 const commandSeat = createChannelCommandSeat();
 provide(CHANNEL_COMMANDS_KEY, commandSeat);
+
+// X.KF.W13X.r4transport · UIA-KF-026 (the scrubber limb) — the group's paints,
+// observable by the channel ribbon's read-back (`GROUP_PAINTS_KEY`'s docblock):
+// Reset's rewind re-derives the rail even when the group was already paused.
+provide(GROUP_PAINTS_KEY, (listener) => animationGroup.onRender(listener));
 
 // Validate stored selection — clear stale values via watchEffect (reacts to
 // group/channel changes). T.B1-β STAGE 1: the valid-name set is the CHANNEL

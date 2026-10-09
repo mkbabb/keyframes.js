@@ -1,6 +1,7 @@
-import { ref, watch, type Ref } from "vue";
+import { inject, onScopeDispose, ref, watch, type Ref } from "vue";
 import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 import { useDemoTicker } from "@composables/useDemoTicker";
+import { GROUP_PAINTS_KEY } from "@components/instrument/transport/transportSource";
 
 /**
  * Syncs reactive refs to a markRaw animation's state via rAF polling.
@@ -99,6 +100,13 @@ export function useAnimationSync(
         read();
         wake();
     });
+
+    // UIA-KF-026 (X.KF.W13X.r4transport) — every frame the owning group paints
+    // wakes the read-back, so a paint this ribbon did not cause (Reset's
+    // rewind while the group was already paused by a takeover) re-derives the
+    // rail; a host without a group provides none.
+    const observePaints = inject(GROUP_PAINTS_KEY, null);
+    if (observePaints) onScopeDispose(observePaints(wake));
 
     // Re-sync when the tab becomes visible again (it may have advanced/changed
     // while hidden, and rAF is throttled/paused by the browser when hidden).
