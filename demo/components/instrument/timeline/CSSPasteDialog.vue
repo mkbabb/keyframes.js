@@ -1,9 +1,11 @@
 <template>
     <Dialog v-model:open="modelOpen">
-        <!-- KF.W7 R-7 — the fold's ONE structural addition: the twin's
-             `DialogTrigger` needs reka's root context, so it renders HERE,
-             inside `<Dialog>`, never inside `<DialogContent>`. -->
-        <slot name="trigger" />
+        <!-- X.KF.W13X.r4panes — the shell has NO slots. `trigger` (inside
+             `<Dialog>`, for the deleted adapter's own `DialogTrigger`) and
+             `feedback` (the adapter's sweep along the dialog's foot) served
+             `KeyframesAddDialog` alone, which left with the card editor
+             (KFE-ORPHAN, `5e56d266`); the one mount opens it through
+             `v-model:open`, and a slot no caller fills is API with no reader. -->
         <!-- CPD R-2 + R-26 (S-9 companions, W6-I): the CONTENT is the scroll
              owner — `scroll` is the primitive's own prop for it (it emits the
              `max-h-[calc(100dvh-2rem)] overflow-y-auto` pair on the floating
@@ -98,12 +100,6 @@
                     @click="onSubmit"
                 >{{ buttonLabel }}<component v-if="buttonIcon" :is="buttonIcon" class="icon-md" /></Button>
             </DialogFooter>
-            <!-- KAD-15 (W6-I): the adapter's feedback sweep is HOISTED out of
-                 `DialogFooter` — the footer is bare flex again (the `grid`
-                 override that once fought it, KAD-16, has no reason to exist),
-                 and the sweep runs along the dialog's foot below the action,
-                 where its twin runs below the editor toolbar. -->
-            <slot name="feedback" />
         </DialogContent>
     </Dialog>
 </template>

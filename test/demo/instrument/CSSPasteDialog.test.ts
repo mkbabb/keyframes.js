@@ -19,9 +19,8 @@
  *   • the a11y composition is the fold's adopted half: `DialogTitle` and
  *     `DialogDescription` are SIBLINGS under `DialogContent`, never nested
  *     (KAD-6's content-model violation is what the fold adopted away from);
- *   • the fold's ONE structural addition: the `trigger` slot renders inside
- *     `<Dialog>` and never inside `<DialogContent>`, because the twin's
- *     `DialogTrigger` needs reka's root context.
+ *   • no slot surface: the fold's `trigger` slot (and KAD-15's `feedback`)
+ *     served the deleted adapter alone and left with it (X.KF.W13X.r4panes).
  *
  * THE PRODUCER SEAM, STATED — what is replaced here and why it is not a mock of
  * the subject. `@mkbabb/glass-ui`'s dist imports `@mkbabb/keyframes.js`, and a
@@ -268,19 +267,23 @@ describe("CSSPasteDialog — the ONE shell R-7 folded onto", () => {
         w.unmount();
     });
 
-    it("(9) the trigger slot renders inside <Dialog> and NEVER inside <DialogContent> (R-7's one structural addition)", () => {
+    it("(9) the shell has no adapter slots: a passed `trigger`/`feedback` renders nowhere (X.KF.W13X.r4panes)", () => {
+        // R-7's `trigger` slot and KAD-15's `feedback` slot served the deleted
+        // `KeyframesAddDialog` alone; the one mount opens the dialog through
+        // `v-model:open`, so the shell publishes no slot surface.
         const w = mount(CSSPasteDialog, {
             props: { ...baseProps, open: true, text: "a {}", submit: () => {} },
-            slots: { trigger: '<button id="the-trigger">open</button>' },
+            slots: {
+                trigger: '<button id="the-trigger">open</button>',
+                feedback: '<span id="the-feedback">sweep</span>',
+            },
             attachTo: document.body,
         });
 
-        const trigger = w.find("#the-trigger").element;
-        const dialog = w.find('[data-stub="Dialog"]').element;
-        const content = w.find('[data-stub="DialogContent"]').element;
-
-        expect(dialog.contains(trigger)).toBe(true);
-        expect(content.contains(trigger)).toBe(false);
+        expect(w.find('[data-stub="Dialog"]').exists()).toBe(true);
+        expect(w.find('[data-stub="DialogContent"]').exists()).toBe(true);
+        expect(w.find("#the-trigger").exists()).toBe(false);
+        expect(w.find("#the-feedback").exists()).toBe(false);
         w.unmount();
     });
 });
