@@ -93,11 +93,7 @@
                 </Tooltip>
                 </template>
 
-                <!-- X.KF.W13X.r4transport · UIA-KF-229 — on the start screen the
-                     transport is its one CTA, Play (which opens the scene): the
-                     channel list and Reset act on nothing there, so the row is
-                     not rendered (CLUTTER lens). -->
-                <div v-if="!startScreen" class="transport-row flex items-center">
+                <div class="transport-row flex items-center">
                     <!-- section (contextual): the animation select. Rendered ONLY when
                          channelZone is INHABITED (≥2 channels — kind "select"). One or
                          zero channels ⇒ zone ABSENT: NO node and NO flanking separator
@@ -171,7 +167,13 @@
                          DELETED from the transport: they were the third
                          collapse-timeline control, and the chip's home was always
                          the timeline pane it controls, whose own header Collapse
-                         is the one control (one affordance per verb). -->
+                         is the one control (one affordance per verb).
+                         X.KF.W13X.r4transport · UIA-KF-229 — not on the home start
+                         screen: its group is empty, so Reset has nothing to rewind
+                         (CLUTTER lens). The channel list stays there: the pick is
+                         carried into the scene Play opens (carryHomePick), which
+                         is what the start screen's copy asks for. -->
+                    <template v-if="!startScreen">
                     <DockSeparator />
                     <Tooltip>
                         <TooltipTrigger as-child>
@@ -183,6 +185,7 @@
                         </TooltipTrigger>
                         <TooltipContent>Reset animation</TooltipContent>
                     </Tooltip>
+                    </template>
                 </div>
 
             </GlassDock>
@@ -261,7 +264,7 @@ const { storedControls, isPlaying, animationNames, startScreen = false } = defin
     storedControls: StoredAnimationGroupControlOptions;
     isPlaying: boolean;
     animationNames: string[];
-    /** The home start screen: the transport shows Play alone (UIA-KF-229). */
+    /** The home start screen: no Reset there (UIA-KF-229). */
     startScreen?: boolean;
 }>();
 
