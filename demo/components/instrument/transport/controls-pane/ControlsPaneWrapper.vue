@@ -43,14 +43,20 @@
 
     <!-- The SHARED control-pane body — defined once, reused in both layouts. -->
     <DefinePaneBody>
-        <div
-            ref="paneElRef"
+        <!-- X.KF.W13X.r4pane · A2-KE-L1-4 (+ L3-3) — BOTH scroll ports are glass
+             `FadingScroll`, the producer's edge fade (a scroll-timeline mask with
+             its own JS fallback): the phone sheet's body here, and the desktop
+             rail's surface scroller below. The local copy (`useScrollFade`, its
+             `.scroll-fade-*` classes, and the CSS timeline rules that stood in
+             for it) is deleted. -->
+        <component
+            :is="isMobileLayout ? FadingScroll : 'div'"
+            v-bind="isMobileLayout ? { axis: 'y' } : {}"
             @mouseenter="paneMouseEnter"
             @mouseleave="paneMouseLeave"
             :class="[
                 'controls-pane group/controls min-w-0',
                 paneScrollable ? 'overflow-y-auto' : 'overflow-hidden',
-                scrollFadeClass,
             ]"
         >
             <div class="controls-content h-full flex flex-col">
@@ -91,7 +97,11 @@
                              the menubar band (ControlsPaneWrapper.css), so a
                              surface taller than the rail scrolls HERE while the
                              persistent ribbon below stays in view. -->
-                        <div class="controls-surface">
+                        <component
+                            :is="isMobileLayout ? 'div' : FadingScroll"
+                            v-bind="isMobileLayout ? {} : { axis: 'y' }"
+                            class="controls-surface"
+                        >
                             <!-- LP-1 — THE WRITE→RENDER EDGE. `host.layer` and
                                  `host.blendAvailable` are re-read from the engine
                                  at this edge on every layer write (see
@@ -130,7 +140,7 @@
                                     ></slot>
                                 </template>
                             </ChannelControls>
-                        </div>
+                        </component>
                     </template>
 
                     <!-- X.KF.W13V.s2 (§0cw ESC-s-1 (b)) — a master-clock channel
@@ -138,14 +148,16 @@
                          host is born for it; its one surface is the Timeline pane
                          in Sequence mode — the items as lanes, re-timed on the lane,
                          the master scrub as the playhead. -->
-                    <div
+                    <component
+                        :is="isMobileLayout ? 'div' : FadingScroll"
                         v-for="host in sequenceHosts"
                         :key="host.name"
                         v-show="storedControls.selectedAnimation == host.name"
+                        v-bind="isMobileLayout ? {} : { axis: 'y' }"
                         class="controls-surface"
                     >
                         <SequenceTimeline :source="host.sequence" />
-                    </div>
+                    </component>
 
                     <!-- Persistent controls ribbon (its actions address one
                          Animation's keyframes, so a Sequence host carries none). -->
@@ -163,7 +175,7 @@
                     </RibbonBar>
                 </component>
             </div>
-        </div>
+        </component>
     </DefinePaneBody>
 
     <!-- ── MOBILE (< 1024px): the adopted glass-ui Sheet (detented) ──────────
@@ -258,9 +270,10 @@ import {
 } from "@state";
 import { Card } from "@mkbabb/glass-ui/card";
 import { Dialog, DialogTitle } from "@mkbabb/glass-ui/dialog";
+import { FadingScroll } from "@mkbabb/glass-ui/fading-scroll";
 import { SheetContent } from "@mkbabb/glass-ui/sheet";
 import { createReusableTemplate, useMediaQuery } from "@vueuse/core";
-import { computed, shallowRef, useTemplateRef, watch, type ComponentPublicInstance } from "vue";
+import { computed, shallowRef, watch, type ComponentPublicInstance } from "vue";
 import type { TransportChannel } from "../transportSource";
 import ChannelControls from "../channel-controls/ChannelControls.vue";
 import RibbonBar from "./RibbonBar.vue";
@@ -442,8 +455,6 @@ const showSheet = computed(
 );
 
 
-// R.W6 B.1 — layout composable owns the pane-element ref; no parent prop-drilling.
-const paneElRef = useTemplateRef<HTMLElement>("paneElRef");
 const {
     isPanelTransitionDone,
     onPanelTransitionEnd,
@@ -451,8 +462,7 @@ const {
     isPaneIdle,
     onPaneMouseEnter: paneMouseEnter,
     onPaneMouseLeave: paneMouseLeave,
-    scrollFadeClass,
-} = useControlsLayout(props.storedControls, paneElRef);
+} = useControlsLayout(props.storedControls);
 
 // ── T.H3-ADOPT — the mobile Sheet open/detent state (was useSheetState) ──────
 // The 1023px mobile boundary (the SAME the sheet CSS + the mount-reset use).

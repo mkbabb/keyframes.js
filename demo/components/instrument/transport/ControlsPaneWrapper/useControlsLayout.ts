@@ -1,13 +1,13 @@
 import { useMediaQuery } from "@vueuse/core";
-import { ref, watch, type Ref } from "vue";
+import { ref, watch } from "vue";
 import type { StoredAnimationGroupControlOptions } from "@state";
 import { usePaneHover } from "./usePaneHover";
-import { useScrollFade } from "../composables/useScrollFade";
 
 /**
  * Owns the controls-pane LAYOUT reactivity for AnimationControlsGroup: the
- * max-height transition tracking, the pane-open auto-show on tab switch, the
- * pane hover-linger state, and the mobile vertical scroll-fade.
+ * max-height transition tracking, the pane-open auto-show on tab switch, and
+ * the pane hover-linger state. (The scroll ports' edge fade is glass
+ * `FadingScroll`, mounted by the pane itself — X.KF.W13X.r4pane, A2-KE-L1-4.)
  *
  * Extracted from AnimationControlsGroup.vue (D.W1.S1) — the sizing/open-state
  * is a composable's shape, lifted whole from the parent so the shell stays a
@@ -16,7 +16,6 @@ import { useScrollFade } from "../composables/useScrollFade";
  */
 export function useControlsLayout(
     storedControls: StoredAnimationGroupControlOptions,
-    controlsPaneEl: Ref<HTMLElement | null>,
 ) {
     // Track whether the panel's max-height transition has completed.
     const isPanelTransitionDone = ref(storedControls.isControlsPanelOpen);
@@ -72,14 +71,6 @@ export function useControlsLayout(
     const { isPaneHovered, isPaneIdle, paneMouseEnter, paneMouseLeave } =
         usePaneHover();
 
-    // --- Mobile vertical scroll fade ---
-    const { fadeClass: scrollFadeClass } = useScrollFade({
-        el: controlsPaneEl,
-        axis: "y",
-        classPrefix: "scroll-fade",
-        retrigger: isPanelTransitionDone,
-    });
-
     return {
         isPanelTransitionDone,
         onPanelTransitionEnd,
@@ -87,6 +78,5 @@ export function useControlsLayout(
         isPaneIdle,
         onPaneMouseEnter: paneMouseEnter,
         onPaneMouseLeave: paneMouseLeave,
-        scrollFadeClass,
     };
 }

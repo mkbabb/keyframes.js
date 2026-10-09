@@ -20,10 +20,13 @@
        [rail]/[bottom] grid (AnimationControlsGroup) and the shortcuts modal's scroll
        port (KeyboardShortcutsModal); it was mis-chartered as "caps mobile panels"
        while neither consumer was mobile-only (KSM R-21). --mask-fade is the
-       controls-pane scroll-fade extent. */
+       controls-pane scroll-fade extent — since X.KF.W13X.r4pane (A2-KE-L1-4)
+       the fade is glass `FadingScroll`'s, so the extent is glass's own
+       `--fade-scroll-width` (the readers — a header's scroll margin, the
+       heatmap's fold — clear the fade that actually paints). */
     --rail-width: clamp(25rem, 33svi, 32rem);
     --panel-max-h: 60dvh;
-    --mask-fade: 2.5rem;
+    --mask-fade: var(--fade-scroll-width);
 
     /* ── Recurring length homes (each routes a bracket-arbitrary literal to ONE token) ── */
     --dock-panel-width: 17rem; /* w-[17rem] dock / header panel width (recurs ×2) */
