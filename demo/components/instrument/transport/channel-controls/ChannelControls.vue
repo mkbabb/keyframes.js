@@ -40,7 +40,6 @@
                         :blend-available="blendAvailable"
                         :active="active"
                         @slider-update="(v) => emit('sliderUpdate', v)"
-                        @toggle-play="emit('togglePlay')"
                         @layer-config-update="(v) => emit('layerConfigUpdate', v)"
                         @scrub-start="emit('scrubStart')"
                         @scrub-end="emit('scrubEnd')"
@@ -277,7 +276,6 @@ const emit = defineEmits<{
             animation: KeyframesAnimation<any>;
         },
     ): void;
-    (e: "togglePlay"): void;
     (e: "layerConfigUpdate", val: Partial<AnimationLayerConfig>): void;
     (e: "scrubStart"): void;
     (e: "scrubEnd"): void;

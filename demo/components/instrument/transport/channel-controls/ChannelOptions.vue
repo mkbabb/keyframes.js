@@ -191,7 +191,6 @@
                         emit('sliderUpdate', v);
                     }
                 "
-                @toggle-play="toggleAnimation"
                 @toggle-reverse="toggleReverse"
             />
         </Teleport>
@@ -237,7 +236,6 @@ const props = defineProps<{
 
 const emit = defineEmits<{
     (e: "sliderUpdate", val: { t: number; animation: KeyframesAnimation<any> }): void;
-    (e: "togglePlay"): void;
     (e: "layerConfigUpdate", val: Partial<AnimationLayerConfig>): void;
     (e: "scrubStart"): void;
     (e: "scrubEnd"): void;
@@ -379,10 +377,7 @@ const {
     wake,
 } = useAnimationSync(() => props.animation, isPlayingRef);
 
-const { userReversed, toggleAnimation, toggleReverse } = usePlaybackToggle(
-    () => props.animation,
-    () => emit("togglePlay"),
-);
+const { userReversed, toggleReverse } = usePlaybackToggle(() => props.animation);
 
 // KFA-18 (X.KF.W13V.k) — NO mount-time re-apply of the stored easing: the
 // running animation is the truth at mount; the stored easing reaches the

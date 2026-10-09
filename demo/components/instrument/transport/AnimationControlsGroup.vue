@@ -43,7 +43,6 @@
             :is-playing="isPlaying"
             @slider-update="sliderUpdate"
             @keyframes-update="keyframesUpdate"
-            @toggle-play="toggleAnimationGroup"
             @layer-config-update="(name, v) => updateLayerConfig(name, v)"
             @scrub-start="onScrubStart"
             @scrub-end="onScrubEnd"

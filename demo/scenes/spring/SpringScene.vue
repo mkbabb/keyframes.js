@@ -192,7 +192,6 @@ const standardRibbon = () =>
         "onUpdate:preview": (next: "shown" | "hidden") => {
             storedControls.ballPreview = next;
         },
-        onTogglePlay: () => demo.togglePlay(),
         onToggleReverse,
         onSliderUpdate: onScrubUpdate,
         onScrubStart,

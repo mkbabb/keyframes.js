@@ -116,7 +116,6 @@
                             <ChannelControls
                                 @slider-update="(v) => emit('sliderUpdate', v)"
                                 @keyframes-update="(v) => emit('keyframesUpdate', v)"
-                                @toggle-play="emit('togglePlay')"
                                 @layer-config-update="
                                     (v) => onLayerConfigUpdate(host.name, v)
                                 "
@@ -311,7 +310,6 @@ const props = defineProps<{
 const emit = defineEmits<{
     (e: "sliderUpdate", val: { t: number; animation: KeyframesAnimation<any> }): void;
     (e: "keyframesUpdate", val: { animation: KeyframesAnimation<any> }): void;
-    (e: "togglePlay"): void;
     (
         e: "layerConfigUpdate",
         name: string,
