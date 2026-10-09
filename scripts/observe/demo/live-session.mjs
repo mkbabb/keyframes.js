@@ -1320,9 +1320,9 @@ async function runBattery() {
             // in the tab order; the walk breaks at play, so verify reachability
             // structurally. A select made unreachable (tabindex=-1 / removed) reds.
             const sawTransport =
-                walk.includes("Select animation") ||
+                walk.includes("Channel to edit") ||
                 (await page.evaluate(() => {
-                    const el = document.querySelector('[aria-label="Select animation"]');
+                    const el = document.querySelector('[aria-label="Channel to edit"]');
                     if (!el) return false;
                     const focusable =
                         el.matches('button,[role="combobox"],[tabindex]') ||

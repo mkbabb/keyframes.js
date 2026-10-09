@@ -9,7 +9,7 @@
  *   (2)  UIA-KF-152  — the channel list opens ABOVE the bottom dock, offset
  *                      clear of the dock's top edge (side "top").
  *   (3)  UIA-KF-256  — the trigger rides DockTrigger's own rung (no `dock-label`).
- *   (4)  UIA-KF-257  — no redundant "Select animation" Tooltip / wrapper div.
+ *   (4)  UIA-KF-257  — no redundant "Channel to edit" Tooltip / wrapper div.
  *   (5)  UIA-KF-151 · KFA-167 · UIA-KF-108 (dock half) · UIA-KF-261 — no
  *                      per-row status dot / progress ring / bold; the glass
  *                      SelectItem indicator is the one selection channel.
@@ -219,7 +219,7 @@ describe("X.KF.W13X.transport — the transport dock", () => {
 
     it("(3) UIA-KF-256 — the trigger rides DockTrigger's own rung (no dock-label on it)", () => {
         const w = mountTransport();
-        const trigger = (w.element as HTMLElement).querySelector<HTMLElement>('[aria-label="Select animation"]');
+        const trigger = (w.element as HTMLElement).querySelector<HTMLElement>('[aria-label="Channel to edit"]');
         expect(trigger).not.toBeNull();
         expect(trigger!.classList.contains("dock-label")).toBe(false);
     });
@@ -233,7 +233,7 @@ describe("X.KF.W13X.transport — the transport dock", () => {
             vm = vm.$parent;
         }
         expect(chain.filter((n) => /Tooltip/.test(n))).toEqual([]);
-        expect(read(TRANSPORT)).not.toMatch(/<TooltipContent>Select animation<\/TooltipContent>/);
+        expect(read(TRANSPORT)).not.toMatch(/<TooltipContent>Channel to edit<\/TooltipContent>/);
     });
 
     it("(5) UIA-KF-151 · KFA-167 · UIA-KF-108 · UIA-KF-261 — rows carry no status dot, progress ring or bold; the SelectItem indicator shows the selection", () => {

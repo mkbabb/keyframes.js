@@ -110,7 +110,12 @@
                              state HOLDS the dock (keepOpen/release, as ChromeDock's
                              Selects do — hold only, never expand); (UIA-KF-152) the
                              list opens ABOVE the bottom dock, offset clear of its
-                             top edge. -->
+                             top edge.
+                             X.KF.W13X.r4dock · UIA-KF-159 — the name says what the
+                             Select does: it picks the channel the controls pane
+                             edits (selecting is not playing, KFA-104; Play runs
+                             the whole group), so it is "Channel to edit", not
+                             "Select animation", which read as isolating playback. -->
                         <Select
                             v-model:open="channelSelectOpen"
                             class="p-0 m-0 cursor-pointer"
@@ -121,7 +126,7 @@
                                 }
                             "
                         >
-                            <DockTrigger ref="channelTrigger" for="select" aria-label="Select animation">
+                            <DockTrigger ref="channelTrigger" for="select" aria-label="Channel to edit">
                                 <!-- The empty-state leading glyph — rendered
                                      directly, not via reka's SelectIcon slot
                                      (the one headless reach past the glass-ui

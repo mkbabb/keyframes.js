@@ -155,7 +155,7 @@ describe("X.KF.W13X.r4transport — the transport dock", () => {
         expect(el.querySelector('[aria-label="Play animation"]')).not.toBeNull();
         expect(el.querySelector('[aria-label="Reset animation"]')).toBeNull();
         // the home pick is carried into the scene Play opens (carryHomePick), so the list acts there
-        expect(el.querySelector('[aria-label="Select animation"]')).not.toBeNull();
+        expect(el.querySelector('[aria-label="Channel to edit"]')).not.toBeNull();
         // a scene's transport keeps its row
         const scene = mountTransport().element as HTMLElement;
         expect(scene.querySelector('[aria-label="Reset animation"]')).not.toBeNull();

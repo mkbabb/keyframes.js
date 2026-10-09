@@ -700,10 +700,10 @@ export async function openControlsPanel(page) {
     // sentinel is retired); home still has no controls panel.
     if (!superKey || superKey === "home") return; // home has no panel
 
-    // 1. Select the first animation via the dock's "Select animation" trigger.
+    // 1. Select the first animation via the dock's "Channel to edit" trigger.
     //    This is what unhides the controls pane (its v-show keys on it).
     try {
-        await page.click('[aria-label="Select animation"]', { timeout: 4000 });
+        await page.click('[aria-label="Channel to edit"]', { timeout: 4000 });
         // SETTLE (L.W4 S2): the option list has MATERIALISED (the reka
         // SelectContent teleported its [role=option] nodes) — not a fixed 500 ms.
         await waitForRender(
@@ -733,7 +733,7 @@ export async function openControlsPanel(page) {
                 // The trigger's value text now reflects a pick (no longer empty,
                 // and matches the option chosen when text is available).
                 const trig = document.querySelector(
-                    '[aria-label="Select animation"]',
+                    '[aria-label="Channel to edit"]',
                 );
                 const trigText = trig?.textContent?.trim() ?? "";
                 const triggerSettled =

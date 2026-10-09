@@ -246,7 +246,7 @@ describe("G-KFW13-3 — one propagation policy, both faces, with the registry mo
     // channel Select's trigger.
     it("(2′) Space on the channel Select trigger leaves the activation default intact and does not fire playback", () => {
         const s = mountTransport();
-        const trigger = s.byName("Select animation");
+        const trigger = s.byName("Channel to edit");
         const { down } = pressSpace(trigger);
         expect(down.defaultPrevented).toBe(false);
         expect(s.registryToggle).not.toHaveBeenCalled();
