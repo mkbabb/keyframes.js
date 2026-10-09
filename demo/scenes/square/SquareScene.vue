@@ -23,10 +23,40 @@
          (`h-full`, the 3:4 hug retired) and the field stays centred in it by
          `place-items-center`. Size and travel still resolve from the plate's
          cqmin, the inline size at 390, so the travel is unchanged. -->
+    <!-- X-DS pass 16 (KF-C20-01) — THE HEADER IS A ROW OF THE PLATE, NOT A
+         CORNER OF THE FIELD. The telemetry strip floated over the arena's top
+         left while the field was measured on the whole plate, so the box at
+         y = −1 overpainted the very readout that reported it (at 1440 its
+         swollen top reached 152 px against the header's 215 px block end). The
+         plate is now two rows: the stage header, then the arena, and the arena
+         is the size container the subject's size and travel resolve against,
+         so the [-1,1]² field and the swollen box stay below the header by
+         construction. -->
     <Card
         :shadow="false"
-        class="square-stage grid h-full max-h-full w-full lg:mx-8 lg:w-auto place-items-center"
+        class="square-stage grid h-full max-h-full w-full lg:mx-8 lg:w-auto grid-rows-[auto_minmax(0,1fr)]"
     >
+        <!-- X.KF.W13X.sections (A2-KE-L1-8) — the telemetry strip is the ONE
+             SceneStageHeader (title · x/y readouts · status); it stays
+             `aria-hidden` decoration. -->
+        <SceneStageHeader
+            :title="SQUARE_ANIM_NAME"
+            :status="settled ? 'settled' : 'tracking'"
+            class="square-telemetry"
+            aria-hidden="true"
+            title-class="square-telemetry-title leading-none"
+            id-class="flex flex-col gap-1"
+        >
+            <template #readouts>
+                <!-- X-DS pass 7 (KF-C7-07) — the one stage readout anatomy
+                     (`.stage-readout`, design-idioms.css): a sans muted label, then
+                     the violet tabular value. -->
+                <div class="square-telemetry-axes">
+                    <span class="stage-readout"><span>x</span><span class="readout-accent text-mono-small">{{ readoutX }}</span></span>
+                    <span class="stage-readout"><span>y</span><span class="readout-accent text-mono-small">{{ readoutY }}</span></span>
+                </div>
+            </template>
+        </SceneStageHeader>
         <!-- X.KF.W13X · UIA-KF-090 / UIA-KF-296 / KFA-4 — the ARENA: the plate is
              the size container, and this layer (its first descendant) is where
              the subject's size and travel resolve against the plate's own
@@ -34,7 +64,7 @@
              a viewport guess (SquareScene.css). -->
         <div class="square-arena">
             <!-- L.W11 S4 — the draughtsman's instrument layer (the coordinate field,
-                 the rubber-band tether, the telemetry strip, the legend) lives in the
+                 the rubber-band tether, the legend) lives in the
                  colocated SquareInstrument sub-unit (markup + styles together). It is
                  fed DERIVED READS of the spring state — no second writer, no rAF. -->
             <SquareInstrument
@@ -125,6 +155,7 @@
 
 <script setup lang="ts">
 import {
+    computed,
     markRaw,
     onBeforeUnmount,
     onMounted,
@@ -143,6 +174,7 @@ import { useDoubleTap } from "@composables/useDoubleTap";
 import { useSquareDemo } from "./useSquareDemo";
 import { useSquareKeyboard } from "./useSquareKeyboard";
 import SquareInstrument from "./SquareInstrument.vue";
+import SceneStageHeader from "../SceneStageHeader.vue";
 import { SQUARE_ANIM_NAME, SQUARE_SCENE_ID } from "./squareKeys";
 import { facilityFromGroup } from "@composables/scene-facility";
 import { useSceneMachine } from "@state";
@@ -199,6 +231,31 @@ const tetherActive = ref(false);
 // The live normalized deflection (-1..1 per axis), mirrored at the loop cadence.
 const deflX = ref(0);
 const deflY = ref(0);
+/**
+ * L-D5 — ONE QUANTITY UNDER ONE LABEL. The numerals arrived as two formatted
+ * strings carrying the spring's TARGET while the tether beside them drew the
+ * spring's VALUE — commanded and actual, side by side, under bare `x`/`y`, with
+ * nothing saying which was which. They are derived from the SAME live deflection
+ * the tether uses now, so the strip and the line can no longer disagree; the
+ * per-axis `aria-valuenow`/`aria-valuetext` on the scene's slider children stay
+ * the COMMANDED target, which is what a slider's value means.
+ *
+ * C-3/L-D3 + L-4/C-12 — and the feed itself is no longer spring-only: the
+ * renderer pumps these reads whichever writer is painting, so the strip tells
+ * the truth through the engine tour as well as through a drag.
+ */
+/**
+ * D-11 — THE GRID STOPS RE-MEASURING ON A SIGN CHANGE. The four-`auto` readout
+ * track re-laid itself whenever a value crossed zero: `tabular-nums` equalises
+ * DIGIT widths and reserves no column for the minus sign, and the formatter
+ * emitted bare `toFixed(2)` strings. Every value now carries an explicit sign,
+ * so the string length is constant and the track never moves. (X-DS pass 16,
+ * KF-C20-01: the format moved with the header from SquareInstrument to this
+ * scene, which owns the deflection it reports.)
+ */
+const signed = (v: number) => `${v < 0 ? "−" : "+"}${Math.abs(v).toFixed(2)}`;
+const readoutX = computed(() => signed(deflX.value));
+const readoutY = computed(() => signed(deflY.value));
 // C-6 + D-5 — TWO EGGS, TWO DISCLOSURES. One `tumbleHintShown` flag gated two
 // unrelated affordances (the POINTER tumble and the KEYBOARD envelope tour), so
 // its name was false for one of them and neither could disclose on its own

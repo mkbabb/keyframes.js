@@ -11,10 +11,13 @@
          declares no prop to hide it (`initial playback label surface class
          modelValue`), so that half is the producer's (O-59) and is adopted when
          it lands — never hidden here with a copied producer selector. -->
-    <!-- X-DS pass 6 (KF-C6-03) — the host's inline size is capped by the
-         rail's free height (`--picker-cap`, ChannelOptions.vue), so the square
-         plot and its mode rows fit the rail and no edge fade sits on a control. -->
-    <div class="grid w-full max-w-(--picker-cap) grid-cols-[minmax(0,1fr)] gap-2" :style="seat.containerStyle">
+    <!-- X-DS pass 6 (KF-C6-03) — the rail's free height (`--picker-cap`,
+         ChannelOptions.vue) bounds the square plot, so the editor fits the rail
+         and no edge fade sits on a control.
+         X-DS pass 16 (KF-C20-02) — the cap lands on the PLOT's frame (the one
+         shared rule, layout.css), no longer on this host: the mode strip, the
+         curve select and the readout take the pane's full measure. -->
+    <div class="grid w-full grid-cols-[minmax(0,1fr)] gap-2" :style="seat.containerStyle">
         <!-- KF-TFP-1 ≡ KF-ES-12 — the picker sits in the shared
              `useEasingPickerSeat`. The `:key` bumps ONLY on an external NAMED
              re-seat; a custom quad, the step count and the term reach the

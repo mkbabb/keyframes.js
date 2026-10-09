@@ -460,10 +460,17 @@ const { userReversed, toggleAnimation, toggleReverse } = usePlaybackToggle(
    term at 1440×900 (704 px − 28rem = 256 px = the floor), so no budget could
    reach the plot. The host's single track is `minmax(0, 1fr)`
    (TimingFunctionPanel), so the plot honours the cap below its own
-   intrinsic width. */
+   intrinsic width.
+   X-DS pass 16 (KF-C20-02) — the cap lands on the PLOT's frame (the one
+   shared rule, layout.css), not the whole picker: the mode strip, the curve
+   select and the readout take the pane's full measure (363 px at 1440×900), so
+   the strip holds ONE line and the readout prints its literal whole. The
+   chrome under the plot fell by that wrap (the controls 139 → 91 px), so the
+   budget is re-measured on the one-line strip: 25.5rem (rail 704 px, plot
+   296 px), scroll range still 0. */
 @media (min-width: 1024px) {
     .subpane-body {
-        --picker-cap: max(15rem, calc(var(--rail-block, 100dvh) - 28.5rem));
+        --picker-cap: max(15rem, calc(var(--rail-block, 100dvh) - 25.5rem));
     }
 }
 @media (prefers-reduced-motion: reduce) {

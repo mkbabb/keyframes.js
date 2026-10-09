@@ -25,27 +25,9 @@
         <path class="square-tether-line" :d="tetherPath" />
     </svg>
 
-    <!-- X.KF.W13X.sections (A2-KE-L1-8) — the telemetry strip is the ONE
-         SceneStageHeader (title · x/y readouts · status), placed as this
-         instrument's corner chrome; it stays `aria-hidden` decoration. -->
-    <SceneStageHeader
-        :title="SQUARE_ANIM_NAME"
-        :status="settled ? 'settled' : 'tracking'"
-        class="square-telemetry"
-        aria-hidden="true"
-        title-class="square-telemetry-title leading-none"
-        id-class="flex flex-col gap-1"
-    >
-        <template #readouts>
-            <!-- X-DS pass 7 (KF-C7-07) — the one stage readout anatomy
-                 (`.stage-readout`, design-idioms.css): a sans muted label, then
-                 the violet tabular value. -->
-            <div class="square-telemetry-axes">
-                <span class="stage-readout"><span>x</span><span class="readout-accent text-mono-small">{{ readoutX }}</span></span>
-                <span class="stage-readout"><span>y</span><span class="readout-accent text-mono-small">{{ readoutY }}</span></span>
-            </div>
-        </template>
-    </SceneStageHeader>
+    <!-- X-DS pass 16 (KF-C20-01) — the telemetry strip (the ONE
+         SceneStageHeader) left this layer for the plate's own header row
+         (SquareScene.vue), so the field is measured below it. -->
 
     <!-- X-DS pass 15 (KF-C19-03) — the caption is a RESTING instruction, so
          it shows only while the scene reads settled: on a tour leg toward
@@ -86,12 +68,11 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
-import SceneStageHeader from "../SceneStageHeader.vue";
-import { SQUARE_ANIM_NAME } from "./squareKeys";
 
 /**
- * C-9 — THE DROP IS DECLARED NOW. This component has FIVE root nodes (the two
- * field layers · tether · telemetry · legend), so Vue has no single element to fall attributes
+ * C-9 — THE DROP IS DECLARED NOW. This component has FOUR root nodes (the two
+ * field layers · tether · legend; the telemetry left for the plate header,
+ * X-DS pass 16), so Vue has no single element to fall attributes
  * through to and silently discards any the parent passes — latent today (the
  * sole call site passes declared props only) but silent, and Vue dev-warns the
  * moment it stops being latent. `inheritAttrs: false` states the behaviour
@@ -131,31 +112,6 @@ const props = defineProps<{
     tourHintShown: boolean;
 }>();
 
-/**
- * L-D5 — ONE QUANTITY UNDER ONE LABEL. The numerals arrived as two formatted
- * strings carrying the spring's TARGET while the tether beside them drew the
- * spring's VALUE — commanded and actual, side by side, under bare `x`/`y`, with
- * nothing saying which was which. They are derived from the SAME live deflection
- * the tether uses now, so the strip and the line can no longer disagree; the
- * per-axis `aria-valuenow`/`aria-valuetext` on the scene's slider children stay
- * the COMMANDED target, which is what a slider's value means.
- *
- * C-3/L-D3 + L-4/C-12 — and the feed itself is no longer spring-only: the
- * renderer pumps these reads whichever writer is painting, so the strip tells
- * the truth through the engine tour as well as through a drag.
- */
-/**
- * D-11 — THE GRID STOPS RE-MEASURING ON A SIGN CHANGE. The four-`auto` readout
- * track re-laid itself whenever a value crossed zero: `tabular-nums` equalises
- * DIGIT widths and reserves no column for the minus sign, and the formatter
- * emitted bare `toFixed(2)` strings. Every value now carries an explicit sign,
- * so the string length is constant and the track never moves. (The row's own
- * note that the fix could not land in this component was true while the parent
- * owned the format; it owns it here now, with the quantity it reports.)
- */
-const signed = (v: number) => `${v < 0 ? "−" : "+"}${Math.abs(v).toFixed(2)}`;
-const readoutX = computed(() => signed(props.deflX));
-const readoutY = computed(() => signed(props.deflY));
 
 // ── D-1 + D-6 + D-16 + N-SQ-4 — THE TETHER IS DRAWN IN A FRAME THAT EXISTS ──
 //
@@ -312,39 +268,6 @@ const tetherPath = computed(() => {
     opacity: 0.9;
 }
 
-/* ── L.W11 S4 — the instrument telemetry strip (TYPOGRAPHY register) ──
-   Top-left: serif title + accent x/y readout + settled/tracking badge. Asymmetric
-   chrome around the centred subject — the instrument-plate composition. */
-.square-telemetry {
-    position: absolute;
-    /* X-DS pass 9 (KF-C9-04) — the one stage plate inset (layout.css). */
-    top: var(--stage-plate-pad-block);
-    left: var(--stage-plate-pad-inline);
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-    pointer-events: none;
-    /* D-8 + D-21 — THE CHROME OUTRANKS THE SUBJECT IT REPORTS ON. Both sat at
-       `--z-content`, the box's own rung, and the box comes later in the DOM —
-       so at high deflection the OPAQUE subject slid over the corner readouts,
-       and the `c` envelope tour scripts the collision deliberately (leg 2 parks
-       it on the legend, leg 4 on the telemetry). `pointer-events: none` spared
-       the gesture, never the legibility. Every chrome layer is `aria-hidden`
-       and pointer-transparent, so a rung above the subject changes nothing but
-       what you can read. */
-    z-index: calc(var(--z-content, 1) + 1);
-}
-/* The title renders inside SceneStageHeader, out of this file's scope. */
-.square-telemetry :deep(.square-telemetry-title) {
-    color: var(--foreground);
-    opacity: 0.92;
-}
-.square-telemetry-axes {
-    display: flex;
-    column-gap: 0.75rem;
-    align-items: baseline;
-}
-
 /* X-DS pass 6 (KF-C6-06) — THE LEGEND IS THE FIELD'S CAPTION. It was
    end-aligned to the plate's corner, ~75 px below and ~200 px right of the
    field it describes, an unanchored line of text. It now stands directly under
@@ -366,6 +289,10 @@ const tetherPath = computed(() => {
        so its row-gap never applied at all, and that half of the pair is gone
        with the shorthand.) */
     gap: 0.25rem;
+    /* X-DS pass 16 (KF-C20-01) — the field narrowed below the header (312 px
+       at 1440), so the caption balances its two lines rather than orphaning
+       "tour it". */
+    text-wrap: balance;
     pointer-events: none;
     z-index: calc(var(--z-content, 1) + 1);
     opacity: 0;

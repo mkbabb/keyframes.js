@@ -18,11 +18,15 @@
          title when it does not (a flex-wrap line, so it never breaks
          mid-word against the title again). The title holds the Back control's
          height, so the two stay level either way. The caption's own line had
-         grown the sub-pane past the rail at 1440×900. -->
+         grown the sub-pane past the rail at 1440×900.
+         X-DS pass 16 (KF-C20-03) — `reveal()` lands the header clear of its
+         scroller's edge fade (`scroll-margin-block-start` = the fade's extent,
+         `--mask-fade`), so a reveal mid-scroll never parks the title in the
+         fading band at half ink. -->
     <div
         ref="rootEl"
         data-subpane-header
-        class="grid grid-cols-[auto_minmax(0,1fr)] items-start gap-x-1.5 pb-1"
+        class="grid grid-cols-[auto_minmax(0,1fr)] items-start gap-x-1.5 pb-1 scroll-mt-(--mask-fade)"
     >
         <Button
             ref="backEl"

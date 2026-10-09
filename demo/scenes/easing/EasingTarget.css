@@ -63,11 +63,18 @@
    arguments at the same gap at every width. As an inline-flex pair, a wrapped
    <code> box filled its line and threw Copy to the plate's far edge (~95 px
    from the paren at 390). */
+/* X-DS pass 16 (KF-C20-05) — the call is ONE text run. KF-C10-06's atomic
+   argument list (an inline-block after `fn(`, now deleted with its split) was
+   a break opportunity before itself, so at 390 a lone `cubic-bezier(` dangled
+   on its own line. The run's only breaks are its comma-spaces (balanced), and
+   a wrapped line hangs under the call, the name never parted from its args. */
 .specimen-literal {
     display: block;
     min-width: 0;
     color: var(--muted-foreground);
     text-wrap: balance;
+    padding-inline-start: 2ch;
+    text-indent: -2ch;
 }
 /* The control's box (36 px, 54 px at the coarse floor) overhangs its line
    instead of setting the literal's leading: the negative block margin leaves a
@@ -84,13 +91,6 @@
 .literal-text {
     text-transform: none;
     overflow-wrap: break-word;
-}
-/* X-DS pass 10 (KF-C10-06) — the argument list is ONE atomic inline: it drops
-   whole under `fn(` when the line cannot hold the call, and breaks inside
-   itself (at its comma-spaces, balanced) only when it cannot fit a line alone. */
-.literal-args {
-    display: inline-block;
-    max-inline-size: 100%;
 }
 /* The two-rule pair that stood here (the easing literal's own copy-control
    class and its hover) is DELETED — routed to this unit by the S-7 reshell that

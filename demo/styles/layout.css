@@ -239,6 +239,27 @@
     }
 }
 
+/* X-DS pass 16 (KF-C20-02) — THE PICKER CAP LANDS ON THE PLOT, at every
+   host. KF-C8-01 moved the rail's block budget (`--picker-cap`, set by each
+   host: EasingSidebar.vue on the Easing route, ChannelOptions.vue in the cube's
+   drill-in) from the whole picker onto the plot's frame on the Easing route
+   only; the drill-in still capped the whole picker, so its mode strip, curve
+   select and readout sat in a 248 px column of a 363 px pane with a dead band
+   beside them, and the readout truncated its own literal. ONE rule now: the
+   plot is a square, so its block size IS its inline size, and the cap lands on
+   its frame alone (glass's `easing-curve` slot and the handle overlay share
+   that one box), centred; the rows under it keep the pane's full measure. A
+   host that sets no cap keeps the full measure. glass exposes no plot-size hook
+   yet (O-87 rider), so the cap reaches the picker through its data-slot
+   contract: layout only, no paint. Desktop only: the phone sheet has no rail
+   budget. */
+@media (min-width: 1024px) {
+    [data-slot="easing-picker"] > :has(> [data-slot="easing-curve"]) {
+        inline-size: min(100%, var(--picker-cap, 100%));
+        margin-inline: auto;
+    }
+}
+
 /* Mobile work-area cap (< lg). --work-area-max-width goes full-bleed; the height
    caps at min(64rem, viewport − the cycle-free --dock-band-reserve) with NO lower
    floor (a floor above the viewport is exactly what pinned the work-area above the

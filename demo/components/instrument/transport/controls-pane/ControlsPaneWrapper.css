@@ -84,9 +84,15 @@
 
     /* The scroll-fade mask degrades to un-faded content on a browser without
        mask-image support (D.W3.S3). The fade magnitude reads the single-sourced
-       --mask-fade token. scroll-fade-both aliases scroll-fade-y. */
-    @supports (-webkit-mask-image: linear-gradient(#000, #000)) or
-        (mask-image: linear-gradient(#000, #000)) {
+       --mask-fade token. scroll-fade-both aliases scroll-fade-y.
+       X-DS pass 16 (KF-C20-03) — this STATIC mask is now only the fallback for
+       a browser without scroll timelines. Where they exist, the sheet's body
+       wears the desktop scroller's timeline-driven fade (the one rule under
+       "THE SCROLLER'S CUT IS SOFT" below), so an edge at its scroll limit is
+       crisp: the static band greyed a sub-pane's title to half ink at rest. */
+    @supports ((-webkit-mask-image: linear-gradient(#000, #000)) or
+        (mask-image: linear-gradient(#000, #000))) and
+        (not (animation-timeline: scroll())) {
         .controls-drawer-content .scroll-fade-both {
             mask-image: linear-gradient(
                 to bottom,
@@ -167,30 +173,6 @@
         overflow-y: auto;
         overscroll-behavior: contain;
     }
-    /* X-DS pass 1 (KF-P1-12) — the scroller's cut is SOFT and says "more".
-       A surface taller than the rail was cut dead at the scroller's edge (the
-       card's side borders stopped with no bottom edge, no radius, no fade:
-       a broken card above the ribbon). The edge that still has content past
-       it fades over the single-sourced --mask-fade — the same mask the mobile
-       sheet wears — driven by the scroller's OWN scroll timeline, so a surface
-       that fits (no scroll range, an inactive timeline) wears no mask at all
-       and an edge at its limit is crisp. No JS, no scroll listener.
-       C1 (KF-C1-06): the scroller now sits INSIDE the one pane frame
-       (`.pane-frame`), so the fade dissolves content within a closed card and
-       never the card's own border. */
-    @supports (animation-timeline: scroll()) {
-        .controls-surface {
-            mask-image: linear-gradient(
-                to bottom,
-                transparent,
-                black var(--surface-fade-start),
-                black calc(100% - var(--surface-fade-end)),
-                transparent
-            );
-            animation: surface-scroll-fade linear both;
-            animation-timeline: scroll(self block);
-        }
-    }
     .controls-pane-wrapper.controls-pane--open {
         pointer-events: auto;
         /* The desktop open/close axis is the [rail]-track collapse; the F9
@@ -251,7 +233,39 @@
     }
 }
 
-/* KF-P1-12 — the desktop scroller's edge fades, as typed lengths so the scroll
+/* X-DS pass 1 (KF-P1-12) — THE SCROLLER'S CUT IS SOFT AND SAYS "MORE".
+   A surface taller than the rail was cut dead at the scroller's edge (the
+   card's side borders stopped with no bottom edge, no radius, no fade:
+   a broken card above the ribbon). The edge that still has content past
+   it fades over the single-sourced --mask-fade, driven by the scroller's OWN
+   scroll timeline, so a surface that fits (no scroll range, an inactive
+   timeline) wears no mask at all and an edge at its limit is crisp. No JS, no
+   scroll listener.
+   C1 (KF-C1-06): the desktop scroller sits INSIDE the one pane frame
+   (`.pane-frame`), so the fade dissolves content within a closed card and
+   never the card's own border.
+   X-DS pass 16 (KF-C20-03) — ONE rule for both scrollers: the desktop rail's
+   surface (`.controls-pane-wrapper` renders on desktop only) and the phone
+   sheet's body (`.controls-drawer-content .controls-pane`, the sheet renders
+   below lg only). The phone body no longer waits for the JS overflow class
+   (`scroll-fade-both`, useScrollFade), which kept the fade static and dropped
+   it whenever only one edge had more; that class now drives only the fallback. */
+@supports (animation-timeline: scroll()) {
+    .controls-pane-wrapper .controls-surface,
+    .controls-drawer-content .controls-pane {
+        mask-image: linear-gradient(
+            to bottom,
+            transparent,
+            black var(--surface-fade-start),
+            black calc(100% - var(--surface-fade-end)),
+            transparent
+        );
+        animation: surface-scroll-fade linear both;
+        animation-timeline: scroll(self block);
+    }
+}
+
+/* KF-P1-12 — the scrollers' edge fades, as typed lengths so the scroll
    timeline can interpolate them (0px = a crisp edge). */
 @property --surface-fade-start {
     syntax: "<length>";

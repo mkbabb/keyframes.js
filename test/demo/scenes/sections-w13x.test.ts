@@ -81,7 +81,7 @@ describe("(4) A2-KE-L1-8 — one scene stage header", () => {
         "demo/scenes/spring/SpringTarget.vue",
         "demo/scenes/sequence/SequenceTarget.vue",
         "demo/scenes/easing/EasingTarget.vue",
-        "demo/scenes/square/SquareInstrument.vue",
+        "demo/scenes/square/SquareScene.vue",
         "demo/scenes/spring/StartingStyleTarget.vue",
     ];
     it.each(SITES)("%s renders SceneStageHeader", (rel) => {

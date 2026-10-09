@@ -18,8 +18,6 @@
        (the I5 glass Card, D1) clips the spring overshoot at its rounded edge. */
     overflow: hidden;
     position: relative;
-    /* The plate is the size container the arena's envelope resolves against. */
-    container-type: size;
 
     /* N-SQ-6 — THE SQUARE JOINS ITS SIBLINGS' TONE CONTRACT. It was the one
        consumer scene that never declared `--ball-tone` at its stage root
@@ -62,13 +60,58 @@
    travel = size), capped at the desktop 12 rem.
      1440 (plate 878x646): size = travel ~191.7 px (unchanged)
      390: size = travel = (half the plate's short side − 1.5 rem) / 1.56 */
+/* X-DS pass 16 (KF-C20-01) — THE ENVELOPE IS THE PLATE BELOW ITS HEADER.
+   The budget above was the whole plate's, while the stage header stood in its
+   top band, so at y = −1 the swollen box covered the title, the status and the
+   x/y readout it is reported by. The arena is now the plate's second row (the
+   header is the first, SquareScene.vue) and is itself the size container, so
+   `cqmin` is the arena's: the same inequality (travel + 0.56 x size + 1.5 rem
+   <= the arena's half-extent) now holds below the header's block end, and the
+   field centres in the room the header leaves. A container cannot query
+   itself, so the two lengths are declared on the arena's children (the box,
+   the field, the tether, the legend), which all read the one arena.
+     1440x900 (arena 814x535): size = travel ~156 px (was ~184 on the plate)
+     390x844 (arena 334x545): size = travel ~92 px (the inline half binds, as
+     before) */
 .square-arena {
-    position: absolute;
-    inset: 0;
+    position: relative;
+    min-block-size: 0;
+    container-type: size;
     display: grid;
     place-items: center;
+}
+.square-arena > :deep(*) {
     --square-size: clamp(5rem, calc((50cqmin - 1.5rem) / 1.56), 12rem);
     --square-travel: var(--square-size);
+}
+
+/* ── L.W11 S4 — the instrument telemetry strip (TYPOGRAPHY register) ──
+   Serif title + accent x/y readout + settled/tracking badge, the plate's
+   header row (X-DS pass 16, KF-C20-01: it was an absolute corner over the
+   field; it now holds its own band, at the one stage plate inset, KF-C9-04). */
+.square-telemetry {
+    position: relative;
+    padding: var(--stage-plate-pad-block) var(--stage-plate-pad-inline) 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    pointer-events: none;
+    /* D-8 + D-21 — THE CHROME OUTRANKS THE SUBJECT IT REPORTS ON. Every chrome
+       layer is `aria-hidden` and pointer-transparent, so a rung above the
+       subject changes nothing but what you can read. Since KF-C20-01 the field
+       keeps the box below this row at full travel; the rung only covers a
+       spring overshoot past the envelope. */
+    z-index: calc(var(--z-content, 1) + 1);
+}
+/* The title renders inside SceneStageHeader, out of this file's scope. */
+.square-telemetry :deep(.square-telemetry-title) {
+    color: var(--foreground);
+    opacity: 0.92;
+}
+.square-telemetry-axes {
+    display: flex;
+    column-gap: 0.75rem;
+    align-items: baseline;
 }
 
 /* The instrument layer (field · tether · telemetry · legend) is styled inside

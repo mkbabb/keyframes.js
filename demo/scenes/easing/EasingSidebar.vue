@@ -296,7 +296,9 @@ watch(
    line (label + readout over the rail, the param-row idiom), so the chrome
    under the plot grows by that line: 25.5 → 27.5rem, 28.5 → 30.5rem, and
    the floor drops 9 → 8rem, because at 1280x760 and 1280x800 the 9rem floor
-   bound and the surface scrolled by 5 and 10 px. */
+   bound and the surface scrolled by 5 and 10 px.
+   X-DS pass 16 (KF-C20-02) — the plot-frame rule itself is ONE shared rule
+   (layout.css), shared with the cube's drill-in; this route sets its budget. */
 @media (min-width: 1024px) {
     .easing-sidebar {
         --picker-cap: max(8rem, calc(var(--rail-block, 100dvh) - 27.5rem));
@@ -305,10 +307,6 @@ watch(
         .easing-sidebar > .panel-content {
             --picker-cap: max(8rem, calc(var(--rail-block, 100dvh) - 30.5rem));
         }
-    }
-    .easing-sidebar :deep([data-slot="easing-picker"] > :has(> [data-slot="easing-curve"])) {
-        inline-size: min(100%, var(--picker-cap));
-        margin-inline: auto;
     }
     .easing-sidebar :deep([data-slot="easing-controls"] > button:has(> code)) {
         display: none;
