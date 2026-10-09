@@ -221,6 +221,7 @@ import { Card } from "@mkbabb/glass-ui/card";
 import SceneStageHeader from "../SceneStageHeader.vue";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@mkbabb/glass-ui/collapsible";
 import type { EntryRefusal } from "@mkbabb/keyframes.js";
+import { kfEngine } from "@kf-engine";
 
 import CopyButton from "@components/CopyButton/CopyButton.vue";
 
@@ -283,12 +284,24 @@ type ArtifactState =
     | { kind: "mismatched"; css: string }
     | { kind: "ready"; css: string };
 
-const describesThisCard = (css: string): boolean =>
-    css.includes(`${ENTRY_CONTRACT.selector}${ENTRY_CONTRACT.openSelector}`) &&
-    css.includes(ENTRY_CONTRACT.closed.transform) &&
-    css.includes(ENTRY_CONTRACT.open.transform) &&
-    css.includes(`${timing.value.enter.durationMs}ms`) &&
-    css.includes(`${timing.value.exit.durationMs}ms`);
+// X.KF.W13X.r4panes — each direction's duration is read in the EMITTER's own
+// spelling, through the library's one CSS-time writer (`reverseCSSTime`, the
+// function `compileToEntry` writes the transition with). The check spelled
+// `${ms}ms` by hand; once the writer moved to the shortest exact time
+// (`ca8c0433`, UIA-KF-177: 500 ms is `0.5s`), the default preset's own
+// artifact failed it and the panel refused a faithful artifact as "does not
+// describe the card above". The engine is warm here: a compile result exists
+// only after `useCompiledEntry` has loaded it.
+const describesThisCard = (css: string): boolean => {
+    const { reverseCSSTime } = kfEngine();
+    return (
+        css.includes(`${ENTRY_CONTRACT.selector}${ENTRY_CONTRACT.openSelector}`) &&
+        css.includes(ENTRY_CONTRACT.closed.transform) &&
+        css.includes(ENTRY_CONTRACT.open.transform) &&
+        css.includes(` ${reverseCSSTime(timing.value.enter.durationMs)} `) &&
+        css.includes(` ${reverseCSSTime(timing.value.exit.durationMs)} `)
+    );
+};
 
 const artifact = computed<ArtifactState>(() => {
     const result = demo.compiledEntry.value.result;
