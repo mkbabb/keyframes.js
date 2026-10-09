@@ -102,6 +102,12 @@ export function createGroupAdapter(
             const group = getGroup();
             return group.started && group.playing();
         },
+
+        reset(): void {
+            // KFA-39 — `stop()` rewinds every child to its initial frame and
+            // halts the draw loop: the group's born state.
+            getGroup().stop();
+        },
     };
 }
 
@@ -175,6 +181,8 @@ export interface RafSceneHandle {
     stopLoop(): void;
     /** Re-arm the rAF loop (re-seeds startTime from the current progress). */
     startLoop(): void;
+    /** KFA-39 — rewind the scene to its born state (absent: nothing beyond the clock). */
+    reset?(): void;
 }
 
 /**
@@ -214,6 +222,10 @@ export function createRafAdapter(handle: RafSceneHandle): ScenePlayback {
 
         isPlaying(): boolean {
             return handle.getPlaying() && handle.isLoopRunning();
+        },
+
+        reset(): void {
+            handle.reset?.();
         },
     };
 }

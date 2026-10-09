@@ -408,6 +408,8 @@ export function useSpringDemo() {
         getProgress: () => progress.value,
         setProgress: (t) => seatPhase(t),
         getPlaying: () => machine.status.value === "playing",
+        // KFA-39 — the machine's RESET effect rewinds the field through here.
+        reset: () => resetField(),
     });
 
     // ── K.W4 S2 + F5 — the ONE scrub seam (scrub-while-idle) ──────────────────
@@ -611,22 +613,12 @@ export function useSpringDemo() {
     // to the machine (the authority); the adapter re-arms/stops the loop.
 
     /**
-     * Rewind the whole field to the born state.
-     *
-     * KF-SS-2 — DECLARED, NOT CURED HERE, and the reason is a bound. This body is
-     * correct and complete; what is broken is the ROUTE to it. The dock's Reset,
-     * the `R` shortcut and `Escape` all end at `machine.dispatch({type:"RESET"})`,
-     * and the machine's effect layer has NO `RESET` case at all
-     * (`demo/state/useSceneMachine.ts`, `applyEffects` — PLAY/PAUSE/RESUME/
-     * SCENE_READY only), so no adapter is ever driven and this function is
-     * unreachable from every user-facing Reset. The honest cure is one `RESET`
-     * arm in that switch (or a `reset` member on the `ScenePlayback` contract) —
-     * BOTH bytes live in `demo/state/**`, outside this unit's §Bounds. A scene-
-     * side watcher that sniffed the reset SIGNATURE out of the persisted snapshot
-     * would be a shim around a missing contract arm, which this wave's law
-     * refuses. Relayed, with the byte named, rather than faked.
+     * Rewind the whole field to the born state — the body the machine's RESET
+     * effect drives (KFA-39: `applyEffects` RESET → `ScenePlayback.reset` →
+     * `useSweepScene`'s forward → here). It never dispatches: the machine is
+     * already resetting when it runs.
      */
-    const reset = () => {
+    const resetField = () => {
         // The born rest (KFA-38): settled at the initial value, target on it.
         liveSpring.reset(SPRING_BASE.initial);
         target.value = SPRING_BASE.initial;
@@ -644,8 +636,11 @@ export function useSpringDemo() {
         // C-1 — a reset is a discrete event, fully painted above: nothing is left
         // chasing, so the intent is withdrawn rather than left armed.
         chaseIntent = false;
-        machine.dispatch({ type: "RESET" });
     };
+
+    /** The scene's Reset verb: the machine owns it (dock Reset, `R`, `Escape`
+     *  and this all end at the one RESET, whose effect runs `resetField`). */
+    const reset = () => machine.dispatch({ type: "RESET" });
 
     // Mount-time start: the scene is created fresh on each swap-in under the bare
     // keyed <Suspense>. Arm the loop now; the machine's SCENE_READY restore (via

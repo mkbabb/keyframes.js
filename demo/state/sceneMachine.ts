@@ -267,4 +267,9 @@ export interface ScenePlayback {
     resume(): void;
     /** True iff the scene's loop is currently driving motion. */
     isPlaying(): boolean;
+    /**
+     * KFA-39 — rewind the scene to its born state (the machine's RESET effect).
+     * Optional: a scene with no born state beyond its clock omits it.
+     */
+    reset?(): void;
 }

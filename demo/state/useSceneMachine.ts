@@ -238,6 +238,12 @@ export const useSceneMachine = createGlobalState(() => {
             case "RESUME":
                 if (changed && state.status === "playing") adapter?.resume();
                 break;
+            case "RESET":
+                // KFA-39 — the effect arm RESET lacked: rewind the scene to its
+                // born state through the contract (the reducer has already
+                // rested the snapshot paused at progress 0).
+                adapter?.reset?.();
+                break;
             // TAB_HIDDEN / TAB_SHOWN are status-only: the preserved per-scene
             // `useSceneVisibilityPause` (autoPaused) owns the loop on tab
             // visibility, so the machine drives NO adapter here.

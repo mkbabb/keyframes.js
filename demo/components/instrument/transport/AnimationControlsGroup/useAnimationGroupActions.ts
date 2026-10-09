@@ -2,7 +2,7 @@ import type { AnimationGroup } from "@mkbabb/keyframes.js";
 import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 import type { AnimationLayerConfig } from "@mkbabb/keyframes.js";
 import type { StoredAnimationGroupControlOptions } from "@state";
-import { resetAllStores } from "@state";
+import { resetAllStores, useSceneMachine } from "@state";
 
 interface UseAnimationGroupActionsDeps {
     /** The active animation group (getter — the prop swaps on scene switch). */
@@ -52,11 +52,14 @@ export function useAnimationGroupActions(
         }
     };
 
+    const machine = useSceneMachine();
+
     const reset = () => {
-        // `stop()` rewinds + halts the draw loop (NOT a play/pause-axis method —
-        // it is the hard reset, allowed by proof:no-shadow-playback-authority);
-        // the emit(false) tells the machine to rest paused (PAUSE → adapter).
-        getGroup().stop();
+        // KFA-39 — Reset is the machine's RESET: its effect rewinds the ACTIVE
+        // scene through the contract (a group scene's adapter `stop()`s the
+        // group; a raw-rAF scene rewinds its own field). The emit(false) then
+        // reports the rested state to the host.
+        machine.dispatch({ type: "RESET" });
         syncPlayState(false);
     };
 

@@ -55,6 +55,8 @@ interface SweepSceneOptions {
      * the idempotency check, so it never fires on a redundant re-arm.
      */
     onArm: () => void;
+    /** KFA-39 — rewind the scene to its born state (the machine's RESET effect). */
+    reset?: () => void;
     /** The normalized [0,1] sweep parameter (the scene's `progress` ref read). */
     getProgress: () => number;
     /** Write the sweep parameter (restore the scrub position on SCENE_READY). */
@@ -104,6 +106,7 @@ export function useSweepScene(opts: SweepSceneOptions): SweepSceneHandleApi {
         isLoopRunning: () => playback.running,
         stopLoop,
         startLoop,
+        ...(opts.reset ? { reset: opts.reset } : {}),
     });
 
     // Stop the raw RAFPlayback on scope dispose (the genuine unmount seam — the
