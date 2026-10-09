@@ -4,11 +4,15 @@
          model, not dock plumbing: nothing outside this file reads or writes it. -->
     <DropdownMenu v-model:open="open">
         <!-- X.KF.W13X.dock · UIA-KF-237 — the trigger takes the dock's own label
-             rung (`dock-label`, the scene trigger's) and keeps only the mono FACE
-             (`@mbabb` is an identifier, `data-register="code"`). The former
-             caption/small type overrides (MM-29's pair) shrank its box to 26 px
-             at 390 and 31 px at 1440 beside a 30/39 px scene trigger. -->
-        <DockTrigger ref="mbabbTrigger" for="dropdown" aria-label="@mbabb menu" class="dock-label font-mono" data-register="code">@mbabb</DockTrigger>
+             rung (`dock-label`, the scene trigger's). The former caption/small
+             type overrides (MM-29's pair) shrank its box to 26 px at 390 and
+             31 px at 1440 beside a 30/39 px scene trigger.
+             X.KF.W13X.r4dock · UIA-KF-230 — and the dock's own label FACE: one
+             dock row reads in one register, so the trigger is a dock label
+             beside the sans 'Home'/scene trigger, not a mono identifier. The
+             identifier register stays where the menu names the account as an
+             identifier (the "@mbabb · GitHub" row below). -->
+        <DockTrigger ref="mbabbTrigger" for="dropdown" aria-label="@mbabb menu" class="dock-label">@mbabb</DockTrigger>
         <!-- MM-15 — `z-popover`, not `z-modal`. The dock menu is a popover and
              the demo's own written z-contract reserves `--z-modal` (140) for
              modal dialogs. The wrong rung was INERT and therefore invisible:
