@@ -149,11 +149,24 @@ export function warmScenesAtIdle(): void {
     else setTimeout(warmAll, 0);
 }
 
-/** The home/hero landing: the cube backdrop under the start screen. */
+/**
+ * The home/hero landing: the cube backdrop under the start screen.
+ *
+ * KFA-22 (X.KF.W13X.r4shell) — HOME STORES UNDER THE CUBE'S KEY. Home IS the
+ * cube scene (the same `CubeScene`, the same `<Suspense>` key, App.vue), and
+ * its transport lists the cube's channels. It kept a store key of its own, and
+ * `EditorShell` keys its `AnimationControlsGroup` on the store key, so the home
+ * Play (a hop to the cube) tore down the transport and the scene slot inside
+ * it and mounted both again inside the swap: the 230-320 ms frame gap after
+ * Play. One key keeps the one scene mounted across the hop (the shell binding
+ * re-binds the group on the shared-scene id change), and a pick on home's list
+ * is the cube's pick by construction: there is no second bucket to carry it
+ * out of (UIA-KF-004's carry is deleted with the bucket).
+ */
 export const homeScene: SceneDescriptor = {
     id: HOME_SCENE_ID,
     label: "Home",
-    superKey: HOME_SCENE_ID,
+    superKey: CUBE_SCENE_ID,
     stageMode: "subject",
     icon: HomeIcon,
     component: CubeScene,

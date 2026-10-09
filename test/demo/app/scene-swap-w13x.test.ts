@@ -20,6 +20,7 @@ import { createMemoryHistory, createRouter } from "vue-router";
 
 import * as scenesModule from "../../../demo/app/scene/scenes";
 import { allScenes, sceneMap } from "../../../demo/app/scene/scenes";
+import { CUBE_SCENE_ID } from "../../../demo/scenes/cube/cubeKeys";
 import type { SceneExposedApi } from "../../../demo/app/scene/sceneExposedApi";
 import { useSceneMachineRouterBinding } from "../../../demo/app/scene/useSceneMachineRouterBinding";
 import { useSceneTransition } from "../../../demo/app/transition/useSceneTransition";
@@ -155,7 +156,10 @@ describe("A2-KE-L1-13 / L1-14 — the scene contract carries no dead members", (
         for (const s of allScenes) {
             expect(Object.keys(s)).not.toContain("showStartScreen");
             expect(Object.keys(s)).not.toContain("gridBackground");
-            expect(s.superKey).toBe(s.id);
+            // KFA-22 (X.KF.W13X.r4shell): home stores under the cube's key (it IS
+            // the cube scene, one mount across the Play hop); every other scene
+            // stores under its own id.
+            expect(s.superKey).toBe(s.id === HOME_SCENE_ID ? CUBE_SCENE_ID : s.id);
         }
         // One HOME_SCENE_ID: the state layer's; the registry does not redefine it.
         expect(Object.keys(scenesModule)).not.toContain("HOME_SCENE_ID");

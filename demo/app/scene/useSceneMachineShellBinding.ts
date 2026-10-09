@@ -134,15 +134,12 @@ export function useSceneMachineShellBinding(opts: {
     // ── The SCENE_READY emit (S4 — once per entry, targets-attached) ──────────
     // The once-per-entry guard keys on the (scene-id × BOUND-GROUP-IDENTITY)
     // pair, not the scene-id alone (K.W0). A new scene-id re-arms it; so does a
-    // *fresh group object* for the same scene-id — the home→cube hero handoff
-    // crosses the `AnimationControlsGroup :key="superKey"` boundary
-    // (`__home__`→`Cube`, EditorShell.vue), so CubeScene REMOUNTS and exposes a
-    // BRAND-NEW group. Keying on scene-id alone, the synchronous pre-remount
-    // drive consumed the guard against the OLD (doomed) group — which the
-    // outgoing CubeScene's `onBeforeUnmount` then `stop()`ed — and the genuinely-
-    // live post-remount group was blocked from ever re-driving SCENE_READY/PLAY
-    // (the cold hero P0: the FSM read playing/started while the live engine was
-    // dead). Keying on the group identity, the post-remount group RE-drives.
+    // *fresh group object* for the same scene-id — a scene that remounts
+    // exposes a BRAND-NEW group, and keying on scene-id alone let a drive
+    // against the OLD (doomed) group consume the guard and block the live one
+    // from ever re-driving SCENE_READY/PLAY (the cold hero P0 of the era when
+    // home→cube remounted; KFA-22 keeps that hop on one mount now, `scenes.ts`
+    // homeScene). Keying on the group identity, a remounted group RE-drives.
     let readyFor: string | null = null;
     let readyGroup: object | null = null;
 
@@ -241,15 +238,12 @@ export function useSceneMachineShellBinding(opts: {
 
     // Re-arm the guard on every machine scene change; drive readiness DIRECTLY
     // for the home ↔ cube transition (shared Suspense key 'cube' → no @resolve).
-    // home and cube share the CubeScene component but NOT the `superKey`
-    // (`__home__` vs `Cube`), so crossing home→cube REMOUNTS the scene across the
-    // `AnimationControlsGroup :key="superKey"` boundary — the synchronous drive
-    // here lands on the OUTGOING group (no liveGroup yet for the incoming one),
-    // so markSceneReady binds nothing playable and DEFERS; the group-watcher's
-    // re-drive (the new group's bind) carries the SCENE_READY/PLAY. We still
-    // call it here to advance the restore for the home→home / cube→cube echo and
-    // to re-arm the guard. A genuine remount of another scene is driven by the
-    // group watcher / @resolve when the new scene's surface binds.
+    // KFA-22 (X.KF.W13X.r4shell) — home and cube share the CubeScene component
+    // AND the store key (`scenes.ts` homeScene), so the hop crosses no
+    // `AnimationControlsGroup :key` boundary: the scene stays mounted, its group
+    // is the live one, and this drive binds it and carries the SCENE_READY/PLAY
+    // inside the swap's update callback. A genuine remount of another scene is
+    // driven by the group watcher / @resolve when the new scene's surface binds.
     watch(currentSceneId, (id, prev) => {
         readyFor = null;
         readyGroup = null;
@@ -263,20 +257,10 @@ export function useSceneMachineShellBinding(opts: {
     }
 
     // ── Playback events from the bottom bar → the machine (S2) ────────────────
-    // UIA-KF-004 — home's transport lists the CUBE's channels (home renders the
-    // CubeScene backdrop), so a pick there is a "play this on cube" intent. The
-    // pick is written to HOME's control bucket (the transport's own store), and
-    // cube selects from ITS bucket, so the hop carries the pick across and
-    // consumes it — a later bare Play on home leaves cube's selection alone.
-    function carryHomePick() {
-        const home = getStoredAnimationGroupControlOptions(currentSuperKey.value);
-        const cube = sceneMap.get("cube");
-        if (!home.selectedAnimation || !cube) return;
-        getStoredAnimationGroupControlOptions(cube.superKey).selectedAnimation =
-            home.selectedAnimation;
-        home.selectedAnimation = null;
-    }
-
+    // UIA-KF-004 — home's transport lists the CUBE's channels, so a pick there
+    // is a "play this on cube" intent. Home stores under the cube's key
+    // (KFA-22, `scenes.ts` homeScene), so the pick IS the cube's selection when
+    // the hop lands; nothing is carried between buckets.
     function onPlayStateChange(playing: boolean) {
         // Home "play" is a user gesture — it navigates to cube and auto-plays.
         // Gate on the empty home group so re-activating a cached scene whose
@@ -284,7 +268,6 @@ export function useSceneMachineShellBinding(opts: {
         const group = currentAnimationGroup.value;
         const isHomeEmptyGroup = Object.keys(group.animations).length === 0;
         if (isHome.value && playing && isHomeEmptyGroup) {
-            carryHomePick();
             autoPlayNext.value = true;
             getRunSceneSwitch()("cube");
             return;
