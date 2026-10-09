@@ -340,6 +340,7 @@ defineExpose({ hostEl, columnEl });
 .lane-track {
     --lane-track-ruler: 1.25rem;
     --lane-track-inset: 0px;
+    --lane-track-gap: 0.75rem;
     --lane-track-playhead-ink: var(--primary);
 }
 .lane-track[data-ruled] {
@@ -350,7 +351,7 @@ defineExpose({ hostEl, columnEl });
 .lane-track--labelled {
     display: grid;
     grid-template-columns: max-content minmax(0, 1fr);
-    column-gap: 0.75rem;
+    column-gap: var(--lane-track-gap);
     align-items: center;
 }
 .lane-track-label {
@@ -390,10 +391,20 @@ defineExpose({ hostEl, columnEl });
     /* figures in the mono register, as written (no caption uppercasing) */
     text-transform: none;
 }
+/* The end labels reach back across the inset to the track's own ends (KF-C1-16:
+   "0%" starts where the rail starts, "100%" ends where it ends). */
 .lane-track-tick-label[data-edge="start"] {
     translate: calc(-1 * var(--lane-track-inset)) 0;
 }
 .lane-track-tick-label[data-edge="end"] {
     translate: calc(-100% + var(--lane-track-inset)) 0;
+}
+/* X-DS pass 15 (KF-C19-T1) — on a LABELLED track the room before the origin is
+   the label column's gap, so the start label keeps the rule every other tick
+   uses (CENTRED on its mark), hanging inward only by what that room cannot
+   hold. A bare '0' centres on the lane origin, where it used to start flush at
+   the column edge, ~4 px right of the playhead and lane origin it labels. */
+.lane-track--labelled .lane-track-tick-label[data-edge="start"] {
+    translate: max(-50%, -1 * (var(--lane-track-inset) + var(--lane-track-gap))) 0;
 }
 </style>

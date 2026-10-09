@@ -405,10 +405,15 @@ const { userReversed, toggleAnimation, toggleReverse } = usePlaybackToggle(
 .panel-content {
     overflow: hidden;
     min-height: 0;
-    /* Inset padding so focus rings (ring-2 + ring-offset-2 = 4px) aren't clipped
-       by the overflow:hidden the row collapse requires. */
-    padding: 2px;
-    margin: -2px;
+    /* X-DS pass 15 (KF-C19-02) — the inset is the focus ring's FULL reach, read
+       from glass's ring token: glass draws a ring `--focus-ring-width` wide at
+       an offset of `--focus-ring-width`, so it reaches twice the width past the
+       control. The old literal 2px was half of that, and the overflow:hidden the
+       row collapse needs cut the ring flat on its inline-end (and on the first
+       field's block-start). One token, so the inset and the ring cannot drift. */
+    --panel-ring-reach: calc(2 * var(--focus-ring-width, 2px));
+    padding: var(--panel-ring-reach);
+    margin: calc(-1 * var(--panel-ring-reach));
 }
 /* X.KF.W13X.controls · KFA-209 — a cross-fade, not a double exposure: the
    leaving pane's fade finishes in the first 40 % of the row window, and the
@@ -443,10 +448,22 @@ const { userReversed, toggleAnimation, toggleReverse } = usePlaybackToggle(
    frame's bottom inset: 28rem in all, measured at 1440×900 (plot 256 px, the
    surface's scroll range 0). The 16rem floor keeps a usable plot on a short
    rail (below ~800 px of viewport the sub-pane still scrolls, as before).
-   Desktop only: on the phone sheet the rail budget does not apply. */
+   Desktop only: on the phone sheet the rail budget does not apply.
+   X-DS pass 15 (KF-C19-01) — RE-MEASURED. The chrome had since grown by the
+   header's caption line ("from <preset>") and the picker's readout row (the
+   curve's text and its copy control) under the select: the surface overran by
+   26 px and the scroller's end fade sat on that readout. The caption now rides
+   the title's row (SubPaneHeader: the header is 40 px, was 59), and the budget
+   is re-measured on that: 28.5rem gives a scroll range of 0 at 1440×900 (rail
+   704 px, plot 248 px), so no fade sits on the readout at rest. The floor
+   steps to 15rem with it, because at 16rem the floor itself was the binding
+   term at 1440×900 (704 px − 28rem = 256 px = the floor), so no budget could
+   reach the plot. The host's single track is `minmax(0, 1fr)`
+   (TimingFunctionPanel), so the plot honours the cap below its own
+   intrinsic width. */
 @media (min-width: 1024px) {
     .subpane-body {
-        --picker-cap: max(16rem, calc(var(--rail-block, 100dvh) - 28rem));
+        --picker-cap: max(15rem, calc(var(--rail-block, 100dvh) - 28.5rem));
     }
 }
 @media (prefers-reduced-motion: reduce) {

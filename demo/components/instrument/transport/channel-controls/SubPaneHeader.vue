@@ -12,11 +12,17 @@
          E2E-USAB-1 (KF.W13X Repair 1) — both sub-panes stay in the DOM (the
          closed one `inert`), so each Back NAMES THE PANE IT LEAVES: two
          controls called "Back to controls" were one accessible name on two
-         buttons. -->
+         buttons.
+         X-DS pass 15 (KF-C19-01) — the caption joins the title's ROW when it
+         fits ("cubic-bézier  from ease-in-out"), and wraps WHOLE under the
+         title when it does not (a flex-wrap line, so it never breaks
+         mid-word against the title again). The title holds the Back control's
+         height, so the two stay level either way. The caption's own line had
+         grown the sub-pane past the rail at 1440×900. -->
     <div
         ref="rootEl"
         data-subpane-header
-        class="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-1.5 pb-1"
+        class="grid grid-cols-[auto_minmax(0,1fr)] items-start gap-x-1.5 pb-1"
     >
         <Button
             ref="backEl"
@@ -28,14 +34,18 @@
         >
             <ArrowLeft class="icon-sm" />
         </Button>
-        <h3 data-subpane-title class="text-subheading">{{ title }}</h3>
-        <p
-            v-if="$slots.caption"
-            data-subpane-caption
-            class="col-start-2 text-caption text-muted-foreground"
-        >
-            <slot name="caption" />
-        </p>
+        <div class="flex min-w-0 flex-wrap items-baseline gap-x-2">
+            <h3 data-subpane-title class="text-subheading flex min-h-(--control-h-sm) items-center">
+                {{ title }}
+            </h3>
+            <p
+                v-if="$slots.caption"
+                data-subpane-caption
+                class="text-caption text-muted-foreground"
+            >
+                <slot name="caption" />
+            </p>
+        </div>
     </div>
 </template>
 

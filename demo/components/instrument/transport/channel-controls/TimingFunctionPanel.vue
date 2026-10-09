@@ -14,7 +14,7 @@
     <!-- X-DS pass 6 (KF-C6-03) — the host's inline size is capped by the
          rail's free height (`--picker-cap`, ChannelOptions.vue), so the square
          plot and its mode rows fit the rail and no edge fade sits on a control. -->
-    <div class="grid w-full max-w-(--picker-cap) gap-2" :style="seat.containerStyle">
+    <div class="grid w-full max-w-(--picker-cap) grid-cols-[minmax(0,1fr)] gap-2" :style="seat.containerStyle">
         <!-- KF-TFP-1 ≡ KF-ES-12 — the picker sits in the shared
              `useEasingPickerSeat`. The `:key` bumps ONLY on an external NAMED
              re-seat; a custom quad, the step count and the term reach the

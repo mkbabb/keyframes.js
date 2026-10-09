@@ -47,7 +47,11 @@
         </template>
     </SceneStageHeader>
 
-    <div class="square-legend" aria-hidden="true">
+    <!-- X-DS pass 15 (KF-C19-03) — the caption is a RESTING instruction, so
+         it shows only while the scene reads settled: on a tour leg toward
+         y = +1 the box overhangs the field by half its size and ran under these
+         lines, muted text printed across the subject's fill. -->
+    <div class="square-legend" :data-resting="settled ? '' : undefined" aria-hidden="true">
         <!-- T.A13 + T.B3 (fold row 69) — the stage caption naming the live
              interaction. The G2 collapse is CURED: Play now drives the box's
              honest four-corner tour (the editor panel RETURNED, editing a LIVE
@@ -364,6 +368,11 @@ const tetherPath = computed(() => {
     gap: 0.25rem;
     pointer-events: none;
     z-index: calc(var(--z-content, 1) + 1);
+    opacity: 0;
+    transition: opacity var(--duration-normal) var(--ease-standard);
+}
+.square-legend[data-resting] {
+    opacity: 1;
 }
 /* D-3 ≡ kf-SquareScene D-11 — the hint opacity is GONE. `opacity: 0.8` on
    `text-caption` (italic, 400, the 12 px floor) composited the light arm to
@@ -373,7 +382,8 @@ const tetherPath = computed(() => {
    colour at full opacity passes everywhere. */
 
 @media (prefers-reduced-motion: reduce) {
-    .square-tether {
+    .square-tether,
+    .square-legend {
         transition: none;
     }
 }
