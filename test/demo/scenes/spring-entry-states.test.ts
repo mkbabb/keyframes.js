@@ -15,7 +15,7 @@
  * answers it: glass primitives become slot-rendering stubs, so the subject's
  * own template, bindings and classes execute for real.
  */
-import { describe, expect, it, vi } from "vitest";
+import { beforeAll, describe, expect, it, vi } from "vitest";
 import { ref, shallowRef } from "vue";
 import { mount } from "@vue/test-utils";
 import { readFileSync } from "node:fs";
@@ -66,6 +66,7 @@ vi.mock("@mkbabb/glass-ui/tooltip", () =>
 
 import StartingStyleTarget from "../../../demo/scenes/spring/StartingStyleTarget.vue";
 import { SPRING_DEMO_KEY } from "../../../demo/scenes/spring/springKeys";
+import { warmKfEngine } from "../../../demo/kf-engine";
 
 const SFC_SRC = readFileSync(
     resolve(process.cwd(), "demo/scenes/spring/StartingStyleTarget.vue"),
@@ -107,6 +108,14 @@ function rule(css: string, selector: string): string {
 }
 
 describe("X.KF.W13X.springd — the Entry view's states and surfaces", () => {
+    // X.KF.W13X.r4panes — the Target reads the engine's CSS-time writer
+    // (`kfEngine().reverseCSSTime`) to check an artifact's durations, so the
+    // mount honours the app's invariant: the engine is warm before a scene
+    // component renders (`demo/app/main.ts`).
+    beforeAll(async () => {
+        await warmKfEngine();
+    }, 20_000);
+
     it("UIA-KF-207 — compiling, refused and mismatched are three distinct surfaces", () => {
         const compiling = mountWith(null);
         const refused = mountWith({
