@@ -58,7 +58,12 @@ const pauseOnWrapTick = async (
         if (child.iteration !== before || (!wasDone && child.done)) seen += 1;
         if (seen === wraps) break;
     }
-    expect(child.startTime).toBeUndefined();
+    // KFA-145 (X.KF.W13X.r4lib): a non-final wrap opens the next iteration in
+    // the crossing tick, anchored on the boundary; a finished child keeps no
+    // anchor.
+    expect(child.startTime).toBe(
+        child.done ? undefined : from + wraps * DURATION,
+    );
     group.pause();
     return t;
 };
@@ -71,9 +76,10 @@ describe("X.KF.W13X.r — a resume never runs the playhead negative", () => {
         const group = new AnimationGroup<any>(rotations, matrix, hover);
         group.singleTarget = false;
         const tp = await pauseOnWrapTick(group, rotations, 120.2, 4);
-        // The rest the oracle read: the reversed 4th iteration ended, effectiveT 0.
-        expect(rotations.effectiveT).toBe(0);
         const overshoot = tp - (120.2 + 4 * DURATION);
+        // The oracle read the reversed 4th iteration's end (effectiveT 0); since
+        // KFA-145 the pause tick already paints the 5th iteration's wrapped pose.
+        expect(rotations.effectiveT).toBeCloseTo(overshoot, 6);
         group.resume();
         await group.advanceTo(tp + 1266.7);
         const first = rotations.t;

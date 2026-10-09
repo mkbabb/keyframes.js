@@ -66,7 +66,9 @@ describe("`delay` is PER-PLAY (G-DELAY · KF-W5R4(2))", () => {
         const end1 = anim.advanceTo(1000 + DELAY + DURATION);
         expect(typeof end1).toBe("number");
         expect(anim._playback.iteration).toBe(1);
-        expect(anim._playback.startTime).toBeUndefined();
+        // KFA-145 (X.KF.W13X.r4lib): the crossing frame opens iteration 2 on
+        // the bare boundary — no second phase offset.
+        expect(anim._playback.startTime).toBe(1000 + DELAY + DURATION);
 
         // Iteration 2 — the re-entry the defect lived in.
         const t2 = 1000 + DELAY + DURATION;
