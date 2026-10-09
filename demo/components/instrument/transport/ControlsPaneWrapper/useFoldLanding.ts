@@ -1,5 +1,5 @@
-import { onBeforeUnmount, watch } from "vue";
-import type { Ref } from "vue";
+import { onBeforeUnmount, shallowRef, watch } from "vue";
+import type { Ref, ShallowRef } from "vue";
 
 /**
  * X-DS r4 pass 5 (KF-C24-01) — THE FOLD NEVER LANDS IN A GAP.
@@ -18,6 +18,18 @@ import type { Ref } from "vue";
  *   • otherwise the scroller ends exactly on the foot of the last whole row
  *     above the fold (a trailing separator or gap goes under the fold with the
  *     rest), and the frame closes up under it.
+ *
+ * X-DS r4 pass 6 (KF-C25-01) — A ROW THE FOLD SITS ON IS WHOLE, SO NO FADE
+ * LIES ON IT. Glass FadingScroll's 16 px end fade is a "more below" cue; laid
+ * over a complete row it erased the row's foot (Bouncy and Gentle at 1440x900
+ * lost their bottom border and corners, the easing pill at 1280x800 faded into
+ * the ribbon's rule). Moving the cap one fade lower does not work: the gap from
+ * a row to the separator under it (8 px) is narrower than the fade, so the
+ * separator then sat half-faded 8 px above the ribbon's rule, a doubled
+ * hairline. So when the fold sits on a foot, the scroller's END fade is off
+ * (FadingScroll's own `fadeEnd`): the row and the ribbon's rule close the
+ * frame cleanly. The moment the reader scrolls, the fade returns, and with it
+ * the cue for whatever is still below; back at the top, it lands again.
  *
  * "Rows" are what paints: an element with its own text, a replaced element, or
  * a painted box (fill or border); hairline separators and empty layout boxes
@@ -106,23 +118,39 @@ function fadePx(scroller: HTMLElement): number {
         : n;
 }
 
-/** Land one scroller's fold on content: a row under the fade, or a row's foot. */
-export function landFold(scroller: HTMLElement): void {
+/**
+ * Land one scroller's fold on content: a row under the fade (`"cue"`), or a
+ * row's foot (`"foot"`, where the end fade must be off); `"none"` when nothing
+ * overflows or no row can be landed on.
+ */
+export function landFold(scroller: HTMLElement): "cue" | "foot" | "none" {
     scroller.style.maxBlockSize = "";
     const fold = scroller.clientHeight;
-    if (fold === 0 || scroller.scrollHeight - fold <= 1) return;
+    if (fold === 0 || scroller.scrollHeight - fold <= 1) return "none";
     const fade = fadePx(scroller);
     const spans = contentSpans(scroller);
-    if (spans.some((s) => s.top <= fold - fade && s.bottom > fold)) return;
+    if (spans.some((s) => s.top <= fold - fade && s.bottom > fold)) return "cue";
     const limit = Math.min(fold, ...spans.filter((s) => s.bottom > fold).map((s) => s.top));
     const feet = spans.filter((s) => s.bottom <= limit).map((s) => s.bottom);
-    if (feet.length === 0) return;
+    if (feet.length === 0) return "none";
     const chrome = scroller.offsetHeight - scroller.clientHeight;
     scroller.style.maxBlockSize = `${Math.ceil(Math.max(...feet)) + chrome}px`;
+    return "foot";
 }
 
-/** Keep every desktop rail scroller's fold on content while `rail` is mounted. */
-export function useFoldLanding(rail: Ref<HTMLElement | null | undefined>): void {
+/**
+ * Keep every desktop rail scroller's fold on content while `rail` is mounted.
+ * Returns the `data-fold-key`s of the scrollers whose fold sits on a row's foot
+ * while they rest at the top; the host binds `fadeEnd` off for those (KF-C25-01).
+ */
+export function useFoldLanding(
+    rail: Ref<HTMLElement | null | undefined>,
+): Readonly<ShallowRef<ReadonlySet<string>>> {
+    const footed = shallowRef<ReadonlySet<string>>(new Set());
+    const setFooted = (next: Set<string>) => {
+        const prev = footed.value;
+        if (next.size !== prev.size || [...next].some((k) => !prev.has(k))) footed.value = next;
+    };
     let frame = 0;
     const observed = new Set<Element>();
     const resize = new ResizeObserver(() => schedule());
@@ -134,7 +162,22 @@ export function useFoldLanding(rail: Ref<HTMLElement | null | undefined>): void 
         const contents = new Set(scrollers.flatMap((s) => [...s.children]));
         for (const el of observed) if (!contents.has(el)) { resize.unobserve(el); observed.delete(el); }
         for (const el of contents) if (!observed.has(el)) { resize.observe(el); observed.add(el); }
-        for (const s of scrollers) if (s.offsetParent) landFold(s);
+        const next = new Set<string>();
+        for (const s of scrollers) {
+            if (!s.offsetParent) continue;
+            const key = s.dataset.foldKey;
+            if (landFold(s) === "foot" && key && s.scrollTop === 0) next.add(key);
+        }
+        setFooted(next);
+    };
+    // Scrolled off the top, the end fade is the cue again; back at the top, re-land.
+    const onScroll = (event: Event) => {
+        const s = event.target;
+        if (!(s instanceof HTMLElement) || !s.matches(SURFACE)) return;
+        const key = s.dataset.foldKey;
+        if (s.scrollTop > 0) {
+            if (key && footed.value.has(key)) setFooted(new Set([...footed.value].filter((k) => k !== key)));
+        } else schedule();
     };
     function schedule() {
         frame ||= requestAnimationFrame(land);
@@ -157,6 +200,7 @@ export function useFoldLanding(rail: Ref<HTMLElement | null | undefined>): void 
                 resize.unobserve(previous);
                 previous.removeEventListener("transitionend", schedule);
                 previous.removeEventListener("animationend", schedule);
+                previous.removeEventListener("scroll", onScroll, true);
             }
             if (root) {
                 mutations.observe(root, { childList: true, subtree: true });
@@ -164,6 +208,7 @@ export function useFoldLanding(rail: Ref<HTMLElement | null | undefined>): void 
                 // A surface swap's enter motion settles the rows' final boxes.
                 root.addEventListener("transitionend", schedule);
                 root.addEventListener("animationend", schedule);
+                root.addEventListener("scroll", onScroll, { capture: true, passive: true });
             }
             schedule();
         },
@@ -174,6 +219,8 @@ export function useFoldLanding(rail: Ref<HTMLElement | null | undefined>): void 
         window.removeEventListener("resize", schedule);
         mutations.disconnect();
         resize.disconnect();
+        rail.value?.removeEventListener("scroll", onScroll, true);
         if (frame) cancelAnimationFrame(frame);
     });
+    return footed;
 }

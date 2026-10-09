@@ -50,8 +50,8 @@ vi.mock("@mkbabb/glass-ui", () => ({
 }));
 
 import * as THREE from "three";
-import { useAmigaThree } from "../../../demo/scenes/amiga/useAmigaThree";
-import { BOX_SIZE, CONTACT_FLOOR, SPHERE_RADIUS, WALL_X } from "../../../demo/scenes/amiga/useAmigaDemo";
+import { useAmigaThree, WALL_HEIGHT, WALL_TOP } from "../../../demo/scenes/amiga/useAmigaThree";
+import { APEX_Y, BOX_SIZE, CONTACT_FLOOR, SPHERE_RADIUS, WALL_X } from "../../../demo/scenes/amiga/useAmigaDemo";
 
 function fake2d(): CanvasRenderingContext2D {
     const grad = { addColorStop: (_o: number, c: string) => stops.list.push(c) };
@@ -106,6 +106,20 @@ describe("X.KF.W13X.amiga — the room", () => {
         })!;
         expect(back).toBeTruthy();
         expect(box(back).min.y).toBeCloseTo(CONTACT_FLOOR, 3);
+        wrapper.unmount();
+    });
+
+    it("KF-C25-03 — the walls' tops close inside the closest framing, above the apex", () => {
+        const { grids, box, wrapper } = build("light");
+        const walls = grids.map((g) => box(g)).filter((b) => b.max.y - b.min.y > 1 && b.min.y > CONTACT_FLOOR - 0.01);
+        expect(walls.length).toBe(3);
+        for (const b of walls) {
+            expect(b.min.y).toBeCloseTo(CONTACT_FLOOR, 3);
+            expect(b.max.y).toBeCloseTo(WALL_TOP, 3);
+        }
+        // Above the bounce (apex + radius), and whole ruled rows.
+        expect(WALL_TOP).toBeGreaterThan(APEX_Y + SPHERE_RADIUS);
+        expect(Number.isInteger(WALL_HEIGHT)).toBe(true);
         wrapper.unmount();
     });
 

@@ -104,7 +104,12 @@
                              persistent ribbon below stays in view. -->
                         <component
                             :is="isMobileLayout ? 'div' : FadingScroll"
-                            v-bind="isMobileLayout ? {} : { axis: 'y' }"
+                            v-bind="
+                                isMobileLayout
+                                    ? {}
+                                    : { axis: 'y', fadeEnd: !footed.has(String(host.animation.id)) }
+                            "
+                            :data-fold-key="host.animation.id"
                             class="controls-surface"
                         >
                             <!-- LP-1 — THE WRITE→RENDER EDGE. `host.layer` and
@@ -156,7 +161,8 @@
                         v-for="host in sequenceHosts"
                         :key="host.name"
                         v-show="storedControls.selectedAnimation == host.name"
-                        v-bind="isMobileLayout ? {} : { axis: 'y' }"
+                        v-bind="isMobileLayout ? {} : { axis: 'y', fadeEnd: !footed.has(host.name) }"
+                        :data-fold-key="host.name"
                         class="controls-surface"
                     >
                         <SequenceTimeline :source="host.sequence" />
@@ -294,7 +300,9 @@ import { useFoldLanding } from "../ControlsPaneWrapper/useFoldLanding";
 const [DefinePaneBody, ReusePaneBody] = createReusableTemplate();
 
 // X-DS r4 pass 5 (KF-C24-01) — the desktop rail (null on the phone sheet).
-useFoldLanding(useTemplateRef<HTMLElement>("railEl"));
+// r4 pass 6 (KF-C25-01) — a scroller whose fold sits on a row's foot (and rests
+// at the top) drops its end fade, so the whole row is not faded.
+const footed = useFoldLanding(useTemplateRef<HTMLElement>("railEl"));
 
 const props = defineProps<{
     animationGroup: AnimationGroup<any>;

@@ -281,13 +281,18 @@
         <Teleport to="#timeline-ribbon-target" :disabled="props.expanded || !ribbonHost" defer>
             <div class="flex flex-col gap-3">
                 <Separator v-if="props.expanded" />
+                <!-- X-DS r4 pass 6 (KF-C25-02) — the emphasis follows the
+                     verb the caption names: while the empty timeline names
+                     the scene's @keyframes, Import leads and Snapshot is
+                     quiet; otherwise Snapshot leads. Export, like Clear, has
+                     nothing to say at zero keyframes. -->
                 <!-- UIA-KF-179 — the ONE toolbar: the four verbs, then the
                      overflow that carries the four tools. The labels yield to
                      their glyphs by the row's own width (KF-C5-02's idiom:
                      each accessible name and title is unchanged), so the row
                      stays one line in the 18rem pane at 1024. -->
                 <div class="@container flex items-center justify-center gap-2">
-                    <Button size="sm" emphasis="secondary" @click="snapshot()">
+                    <Button size="sm" :emphasis="importLeads ? 'quiet' : 'secondary'" @click="snapshot()">
                         <Camera class="icon-sm" /> Snapshot
                     </Button>
                     <!-- X-DS pass 4 (KF-C4-12) — the three CSS paths are QUIET
@@ -297,7 +302,7 @@
                          accessible name. -->
                     <Button
                         size="sm"
-                        emphasis="quiet"
+                        :emphasis="importLeads ? 'secondary' : 'quiet'"
                         aria-label="Import CSS, replacing the timeline"
                         title="Import CSS (replaces the timeline)"
                         @click="openImportDialog()"
@@ -318,6 +323,7 @@
                         emphasis="quiet"
                         aria-label="Export CSS"
                         title="Export CSS"
+                        :disabled="state.keyframes.length === 0"
                         @click="exportCSS()"
                     >
                         <Upload class="icon-sm" /> <span class="@max-[20rem]:sr-only">Export</span>
@@ -617,7 +623,8 @@ const sceneSummary = computed(() => {
     const name = /@keyframes\s+([^\s{]+)/.exec(scene.css)?.[1] ?? "This animation";
     return { name, count: scene.count };
 });
-
+/** KF-C25-02 — the caption names Import, so Import leads the row. */
+const importLeads = computed(() => state.value.keyframes.length === 0 && sceneSummary.value !== null);
 
 const openAddCSSDialog = () => {
     addCSSDialogOpen.value = true;

@@ -80,8 +80,21 @@
     display: grid;
     place-items: center;
 }
+/* X-DS r4 pass 6 (KF-C25-04) — THE INLINE AXIS IS PAID ONCE, NOT TWICE.
+   `cqmin` charged both axes the same block budget (half-extent less the swollen
+   box and a 1.5 rem gutter). On the inline axis the plate already has its
+   inline pad, so the field's span (2 x travel) plus the box's own width (travel
+   = size) is the arena's measure less that pad: 3 x size = 100cqi − 2 x pad.
+   The block axis keeps the swollen-box budget. The box at full travel, swollen
+   (0.56 x size) with its 0.5 rem ring, still lands inside the plate.
+     1440x900 (arena 814x535): the block term binds, ~156 px (unchanged)
+     390x844 (arena 334x545): the inline term binds, ~98 px (was ~92) */
 .square-arena > :deep(*) {
-    --square-size: clamp(5rem, calc((50cqmin - 1.5rem) / 1.56), 12rem);
+    --square-size: clamp(
+        5rem,
+        min(calc((50cqb - 1.5rem) / 1.56), calc((100cqi - 2 * var(--stage-plate-pad-inline)) / 3)),
+        12rem
+    );
     --square-travel: var(--square-size);
 }
 

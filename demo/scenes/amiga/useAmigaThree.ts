@@ -86,6 +86,23 @@ const ENVELOPE_BELOW = SPHERE_HOME - CONTACT_FLOOR;
 const ENVELOPE_ABOVE = APEX_Y + SPHERE_RADIUS - SPHERE_HOME;
 /** A breath of margin so the ball never kisses the frame edge. */
 const FRAME_MARGIN = 1.04;
+/**
+ * X-DS r4 pass 6 (KF-C25-03) — THE ROOM CLOSES INSIDE THE FRAME AT EVERY
+ * WIDTH. The walls stood BOX_SIZE (12 u) tall, a cube, but the camera frames
+ * the bounce envelope (UIA-KF-196), whose top at the ball's plane is ~4.6 u
+ * above home at the closest framing (a wide stage): the side walls' front
+ * verticals ran off the canvas's top edge and were cut flat, while a portrait
+ * stage (dollied out for the sweep) closed the room. Fitting the camera to a
+ * 12 u room would push it ~1.6x out and shrink the ball, undoing 196; the room
+ * is fitted to the framing instead. The closest the camera ever sits is the
+ * vertical envelope fit; the wall top is the last whole ruled row below where
+ * that frustum meets the ball's plane, so the walls' top edges and corners are
+ * drawn at every aspect (a wider aspect only dollies the camera out).
+ */
+const CLOSEST_FRAMING =
+    FRAME_MARGIN * Math.max(ENVELOPE_BELOW / FLOOR_REACH, ENVELOPE_ABOVE / CEILING_REACH);
+export const WALL_TOP = Math.floor(SPHERE_HOME + CLOSEST_FRAMING * CEILING_REACH);
+export const WALL_HEIGHT = WALL_TOP - CONTACT_FLOOR;
 /** UIA-KF-197 — the authored viewing direction (the lift over the room). */
 const HOME_DIRECTION = new THREE.Vector3(0, CAMERA_LIFT, CAMERA_Z).normalize();
 /** UIA-KF-197 — how long the camera takes to arc back to the home view. */
@@ -400,14 +417,14 @@ export function useAmigaThree(
         // KFA-64 — the back wall STANDS on the floor: its bottom edge is the
         // floor line (it used to be centred on home and hang a unit below it,
         // showing through the translucent floor).
-        const WALL_CENTRE_Y = CONTACT_FLOOR + BOX_SIZE / 2;
-        panel("wall", BOX_SIZE, BOX_SIZE).position.set(0, WALL_CENTRE_Y, -BOX_SIZE / 2);
+        const WALL_CENTRE_Y = CONTACT_FLOOR + WALL_HEIGHT / 2;
+        panel("wall", BOX_SIZE, WALL_HEIGHT).position.set(0, WALL_CENTRE_Y, -BOX_SIZE / 2);
         // KFA-194 — the ball reverses at ±WALL_X, one radius from walls that now
         // exist: two side walls standing on the floor, from the back wall to the
         // ball's plane (the half of the room the ball lives in; a full-depth wall
         // would rule the whole foreground).
         for (const side of [-1, 1]) {
-            const wall = panel("wall", BOX_SIZE / 2, BOX_SIZE);
+            const wall = panel("wall", BOX_SIZE / 2, WALL_HEIGHT);
             wall.rotation.y = Math.PI / 2;
             wall.position.set((side * BOX_SIZE) / 2, WALL_CENTRE_Y, -BOX_SIZE / 4);
         }
