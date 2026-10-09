@@ -53,4 +53,14 @@ describe("A2-KE-L1-5 — one truth-from-curve mapping for both picker seats", ()
                 .presetName,
         ).toBeUndefined();
     });
+
+    it("a demo-named bezier names its preset by its own NAME (the Curve facet seeds by name)", () => {
+        // The facet's seat named the preset by the curve's name before the
+        // mapping was shared; the shared mapping keeps that identity — a named
+        // curve is never renamed by whatever quad happens to be stored beside it.
+        expect(
+            seat.seatTruthFor({ name: namedName, isSteps: false, points: custom, steps: 4, term: "jump-end" })
+                .presetName,
+        ).toBe(namedName);
+    });
 });

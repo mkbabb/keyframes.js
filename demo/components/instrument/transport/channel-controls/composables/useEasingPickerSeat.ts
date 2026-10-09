@@ -32,7 +32,10 @@ import type { ComputedRef, ShallowRef, StyleValue } from "vue";
 import { computed, shallowRef } from "vue";
 import type { EasingPickerValue, JumpTerm } from "@mkbabb/glass-ui/easing";
 import { cubicBezierToString } from "@mkbabb/value.js/math";
-import { NAMED_EASING_BEZIER_ENTRIES } from "@utils/reference-data/animationDescriptions";
+import {
+    NAMED_EASING_BEZIER,
+    NAMED_EASING_BEZIER_ENTRIES,
+} from "@utils/reference-data/animationDescriptions";
 
 import {
     cubicBezierEasing,
@@ -114,8 +117,11 @@ export interface SeatCurve {
  * mapping both picker seats read (the card's detail editor and the Easing
  * scene's Curve facet each carried a copy, the step-start/step-end branch word
  * for word). The two singular step keywords are their own one-step curves
- * (`steps(1, jump-*)`, KF-CO-10), never the authored step options; a bezier
- * names its preset by the quad it seats.
+ * (`steps(1, jump-*)`, KF-CO-10), never the authored step options. A bezier
+ * names its preset by the curve's own NAME when that name is a demo-named
+ * bezier (the identity the user picked — two names may share a quad, and the
+ * Curve facet seeds by name, `easing-catalogue` (3)); a peeked quad, or a
+ * literal / custom curve, is named by the quad it seats.
  */
 export function seatTruthFor(curve: SeatCurve): SeatTruth {
     const { name, isSteps, points, steps, term } = curve;
@@ -129,7 +135,11 @@ export function seatTruthFor(curve: SeatCurve): SeatTruth {
     }
     if (isSteps) return { mode: "steps", points, steps, term };
     const seated = curve.peek ?? points;
-    return { mode: "bezier", points: seated, steps, term, presetName: nameForQuad(seated) };
+    const named =
+        curve.peek === undefined && typeof name === "string" && name in NAMED_EASING_BEZIER
+            ? name
+            : nameForQuad(seated);
+    return { mode: "bezier", points: seated, steps, term, presetName: named };
 }
 
 export interface EasingPickerSeat {
