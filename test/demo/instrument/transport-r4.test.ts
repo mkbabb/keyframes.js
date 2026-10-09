@@ -140,4 +140,12 @@ describe("X.KF.W13X.r4transport — the transport dock", () => {
             expect(play.classList.contains(literal)).toBe(false);
         }
     });
+
+    it("(2) UIA-KF-122 — the channel list rows take glass's menu rung (no dock-label, no padding override)", () => {
+        const src = read(TRANSPORT);
+        const template = src.slice(0, src.indexOf("<script"));
+        expect(template).not.toMatch(/<SelectGroup[^>]*dock-label/);
+        expect(template).not.toMatch(/<SelectItem[^>]*\bpy-2\b/);
+        expect(template).not.toMatch(/<SelectItem[^>]*\bpx-3\b/);
+    });
 });

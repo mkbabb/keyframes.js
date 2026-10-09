@@ -145,11 +145,14 @@
                                      channel: all deleted. The glass SelectItem's own
                                      indicator marks the selection (no longer hidden);
                                      the transport's Play already shows the play state. -->
-                                <SelectGroup class="dock-label">
+                                <!-- X.KF.W13X.r4transport · UIA-KF-122 — the list
+                                     takes glass's menu type rung and row padding:
+                                     no dock label scale on the group and no
+                                     padding override on the rows. -->
+                                <SelectGroup>
                                     <SelectItem
                                         v-for="name in animationNames"
                                         :key="name"
-                                        class="py-2 px-3"
                                         :value="name"
                                     >
                                         {{ name }}
