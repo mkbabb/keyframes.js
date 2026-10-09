@@ -7,6 +7,7 @@ import { KeyframesAnimation } from "../engine";
 import { getAnimationId } from "../internal/animation-id";
 import { renderMultiTarget, requireEntry } from "./entries";
 import { drawFrame } from "./frame";
+import { elapsedOf, seek as seekGroup } from "./seek";
 import { RenderObservers } from "./render-observers";
 import { advanceBatched, advanceSlice } from "./yield-batch";
 import { advanceLayerSprings } from "./springs";
@@ -319,6 +320,22 @@ export class AnimationGroup<V extends Vars> {
             anim.pausedTime = anim.startTime + t;
         }
         return this;
+    }
+
+    /** KFA-69 — the group-level seek: seat EVERY child at the group's one
+     * master elapsed time (ms since its start), each at its own phase of it
+     * (modulo its duration, within its iteration count), so phase-locked
+     * children stay locked under a scrub. Chainable; `render()` to reflect it.
+     * Body in `./seek`. */
+    seek(elapsed: number) {
+        seekGroup(this, elapsed);
+        return this;
+    }
+
+    /** The master elapsed time a child's current position sits at (its delay +
+     * its completed iterations + its `t`) — the read `seek` inverts. */
+    elapsedOf(nameOrAnim: string | KeyframesAnimation<V>): number {
+        return elapsedOf(this, nameOrAnim);
     }
 
     /** Advance all child animations to absolute clock `t`. SYNC on the steady path
