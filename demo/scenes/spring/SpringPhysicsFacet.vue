@@ -23,7 +23,15 @@
             <!-- X-DS pass 2 · KF-C2-08 — the pane is named for the facet it
                  controls ("Physics", the name the stage copy already uses); the
                  stage keeps the subject's name, so "Spring" is said once. -->
-            <ConfiguratorLayer label="Physics" default-open body-class="flex flex-col gap-3">
+            <!-- X-DS r5 pass 4 (KF-C4-02) — ONE row rhythm, 12 px. The body
+                 carried a flex `gap-3` on top of the layer's own `space-y-2`
+                 margins, so every row sat 20 px from the next (two rhythms
+                 added, neither chosen) and the facet stood 438 px in a 400 px
+                 rail at 1440x900, the heatmap disclosure wholly under the fold.
+                 `space-y-3` is the layer's own spacing family one step up
+                 (it follows `space-y-2` in the sheet, so it is the one that
+                 applies), and equals the param rows' own gap. -->
+            <ConfiguratorLayer label="Physics" default-open body-class="space-y-3">
                 <template #actions>
                     <!-- X.KF.W13V.s (OA-37/46/51) — NO inline keyframes editor. The
                          Sweep channel's keyframes are edited in the SHARED Keyframes

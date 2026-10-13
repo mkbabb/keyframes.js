@@ -111,10 +111,15 @@
              px-0 plate would hug it), and the row hangs exactly that padding
              plus the Button's 1px edge into the frame's gutter (`-ms`), so the
              first word lands on the column and the plate still clears the
-             frame. Block size and hit height are glass's (min-block-size). -->
+             frame. Block size and hit height are glass's (min-block-size).
+             X-DS r5 pass 4 (KF-C4-07) — both verbs take glass's `sm` size:
+             its type is the label rung the fields above wear (the default
+             Button rung set these two secondary toggles louder than "time",
+             the label of the row they modify). -->
         <div class="flex flex-wrap items-center gap-2 -ms-[calc(0.5rem_+_1px)]">
             <Button
                 emphasis="quiet"
+                size="sm"
                 class="btn-playback rounded-full gap-2 px-2"
                 :aria-pressed="userReversed"
                 @click="onReverse"
@@ -142,6 +147,7 @@
                 <TooltipTrigger as-child>
                     <Button
                         emphasis="quiet"
+                        size="sm"
                         class="gap-2 px-2"
                         aria-label="Ball preview"
                         :aria-pressed="preview !== 'hidden'"

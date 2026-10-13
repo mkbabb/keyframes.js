@@ -50,7 +50,12 @@
         <!-- One figure for assistive tech: the plot's quantity as a sentence computed
              over the resolved points (never over the mapped {x, y} — K-5), with the
              marks and tick labels presentational beneath it. -->
-        <div role="img" :aria-label="figureLabel" class="flex min-h-0 flex-1 flex-col">
+        <!-- X-DS r5 pass 4 (KF-C4-04) — the PLOT takes the figure's inset
+             (`--plot-inset`, the rail's overshoot band, set by SpringTarget),
+             not the whole trace: the title row above stays on the stage's text
+             gutter, with the title, the readout and the caption. The stage has
+             two left edges, the text gutter and the value-0 axis. -->
+        <div role="img" :aria-label="figureLabel" class="plot-figure flex min-h-0 flex-1 flex-col">
             <div class="plot-frame">
                 <!-- Layer 1 — the reference geometry, NEUTRAL (D-3/D-4/N-3, the
                      EasingTarget sparkline precedent): the data hue belongs to the
@@ -374,6 +379,11 @@ const figureLabel = computed(
    55 % the lines read 3.82:1 light / 4.50:1 dark over the producer's `--card`
    arms (this seat's arithmetic; 45 % reads 2.85 light — 55 % is the first rung
    that clears both). */
+/* X-DS r5 pass 4 (KF-C4-04) — the plot's inline inset (the rail's overshoot
+   band, SpringTarget's `--plot-inset`); the title row above it takes none. */
+.plot-figure {
+    padding-inline: var(--plot-inset, 0);
+}
 /* X.KF.W13W.b (OA-56) — 4.5rem → 8rem: the frame is now also the plot box the
    spring's balls ride (the live ball + the sweep sampler), so the value range
    is drawn tall enough for a ball to read ON the trace. The viewBox constants

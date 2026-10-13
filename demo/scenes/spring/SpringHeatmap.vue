@@ -366,6 +366,23 @@ onMounted(() => {
     if (!(body instanceof HTMLElement) || body.clientHeight === 0) return;
     if (body.scrollHeight - body.clientHeight > 1) figureOpen.value = false;
 });
+// X-DS r5 pass 4 (KF-C4-02) — a figure the reader OPENS comes into the rail's
+// view. It opens under the row that discloses it; where that row is the last
+// one above the fold, the figure opened wholly below it and the press showed
+// nothing. Once its reveal has run (the producer's height animation ends) the
+// section is scrolled to the nearest edge of its scroller; off the top, the
+// scroller's end fade is the cue again.
+const revealFigure = (): void =>
+    sectionEl.value?.$el?.scrollIntoView?.({ block: "nearest" });
+watch(figureOpen, (open) => {
+    const section = sectionEl.value?.$el;
+    if (!open || !section) return;
+    requestAnimationFrame(() => {
+        const running = section.getAnimations?.({ subtree: true }) ?? [];
+        if (running.length === 0) revealFigure();
+        else void Promise.allSettled(running.map((a) => a.finished)).then(revealFigure);
+    });
+});
 const markerEl = useTemplateRef<HTMLElement>("markerEl");
 const readoutId = useId();
 

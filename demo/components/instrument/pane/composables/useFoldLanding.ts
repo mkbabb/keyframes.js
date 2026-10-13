@@ -38,6 +38,22 @@ import type { Ref, ShallowRef } from "vue";
  * `scroll-padding-block-end`, ControlsPaneWrapper.css), and never as far as
  * the next row or separator, which stay under the fold.
  *
+ * X-DS r5 pass 4 (KF-C4-03) — THE FOLD NEVER CUTS A LINE OF TEXT. A row under
+ * the fold was left wherever the fold fell, so at 1280x800 the spring preset
+ * tiles were sliced through their value line, while the widths either side
+ * landed on a foot. One rule now, in three outcomes the geometry picks:
+ *
+ *   • the fold cuts no text and the fade lies on none (it crosses a figure,
+ *     such as the heatmap's canvas, or a field): the crossing row is the cue,
+ *     as before;
+ *   • it would cut the text of a boxed row (a tile): the scroller ends where
+ *     that box's own text begins, so the box's top edge and leading padding sit
+ *     under the fade and its text is under the fold. The box edge is the cue;
+ *   • it would cut any other row's text: the scroller lands on the foot above.
+ *
+ * A row whose foot is nearer the fold than one row gap counts as cut: it has no
+ * room for the air KF-C3R-01 gives a foot.
+ *
  * "Rows" are what paints: an element with its own text, a replaced element, or
  * a painted box (fill or border); hairline separators and empty layout boxes
  * are not content. It runs only when the scroller's content or the viewport
@@ -45,11 +61,17 @@ import type { Ref, ShallowRef } from "vue";
  */
 const SURFACE = ".controls-surface";
 const SEPARATOR = "[data-slot=separator],[role=separator],hr";
+/** The tallest box that is still a row (a field, a tile), in fade widths: 96 px
+ *  at glass's 16 px fade. The rail's figures (the plot, the heatmap, the code
+ *  well) are floored well above it. */
+const ROW_MAX_FADES = 6;
 const REPLACED = new Set(["IMG", "CANVAS", "VIDEO", "INPUT", "TEXTAREA", "SELECT", "svg"]);
 
 interface Span {
     top: number;
     bottom: number;
+    /** The element's own text (a line the fold must not cut), not a box or a figure. */
+    text: boolean;
 }
 
 const transparent = (color: string) =>
@@ -111,7 +133,7 @@ function contentSpans(scroller: HTMLElement): Span[] {
         const top = Math.max(r.top, clip?.top ?? -Infinity);
         const bottom = Math.min(r.bottom, clip?.bottom ?? Infinity);
         if (bottom - top <= 1) continue;
-        spans.push({ top: top - origin, bottom: bottom - origin });
+        spans.push({ top: top - origin, bottom: bottom - origin, text });
     }
     return spans;
 }
@@ -134,26 +156,53 @@ function fadePx(scroller: HTMLElement): number {
 }
 
 /**
- * Land one scroller's fold on content: a row under the fade (`"cue"`), or one
- * row gap under a row's foot (`"foot"`, where the end fade must be off);
- * `"none"` when nothing overflows or no row can be landed on.
+ * Land one scroller's fold on content: a row under the fade (`"cue"`, its text
+ * never cut), or one row gap under a row's foot (`"foot"`, where the end fade
+ * must be off); `"none"` when nothing overflows or no row can be landed on.
  */
 export function landFold(scroller: HTMLElement): "cue" | "foot" | "none" {
     scroller.style.maxBlockSize = "";
     const fold = scroller.clientHeight;
     if (fold === 0 || scroller.scrollHeight - fold <= 1) return "none";
     const fade = fadePx(scroller);
+    const chrome = scroller.offsetHeight - fold;
+    // One row gap of air under a foot (KF-C3R-01). A row whose foot is nearer
+    // the fold than that is not whole: its edge would sit on the ribbon's rule.
+    const gap = Number.parseFloat(getComputedStyle(scroller).scrollPaddingBlockEnd) || 0;
+    const line = fold - gap;
     const spans = contentSpans(scroller);
-    if (spans.some((s) => s.top <= fold - fade && s.bottom > fold)) return "cue";
-    const limit = Math.min(fold, ...spans.filter((s) => s.bottom > fold).map((s) => s.top));
+    if (spans.some((s) => s.top <= fold - fade && s.bottom > line)) {
+        // Text the fold cuts, or the fade lies on (a line under the fade is
+        // erased as surely as one under the fold).
+        const texts = spans.filter((s) => s.text);
+        if (!texts.some((s) => s.top < fold && s.bottom > fold - fade)) return "cue";
+        // The innermost box across the fold: the row, when it is a boxed one.
+        const boxes = spans.filter((s) => !s.text && s.top < fold && s.bottom > line);
+        if (boxes.length > 0) {
+            const box = boxes.reduce((a, b) => (b.top > a.top ? b : a));
+            const inside = texts.filter((s) => s.top >= box.top && s.bottom <= box.bottom);
+            const peek = Math.floor(Math.min(fold, ...inside.map((s) => s.top)));
+            // The box's top edge has to sit under the fade, with at least half
+            // the fade of it showing, and no earlier line may lie in the fade.
+            const shown = peek - box.top;
+            const clear = !texts.some((s) => s.top < peek && s.bottom > peek - fade);
+            if (shown >= fade / 2 && shown <= fade && clear) {
+                scroller.style.maxBlockSize = `${peek + chrome}px`;
+                return "cue";
+            }
+            // No edge to show: a figure (taller than a row) still runs under
+            // the fold, since landing above it would hide it whole; a row
+            // goes under the fold whole, below.
+            if (box.bottom - box.top > ROW_MAX_FADES * fade) return "cue";
+        }
+    }
+    const limit = Math.min(fold, ...spans.filter((s) => s.bottom > line).map((s) => s.top));
     const feet = spans.filter((s) => s.bottom <= limit).map((s) => s.bottom);
     if (feet.length === 0) return "none";
     const foot = Math.ceil(Math.max(...feet));
-    // One row gap of air under the foot, short of whatever paints next.
-    const gap = Number.parseFloat(getComputedStyle(scroller).scrollPaddingBlockEnd) || 0;
+    // The air under the foot stops short of whatever paints next.
     const next = [...spans.map((s) => s.top), ...ruleTops(scroller)].filter((top) => top >= foot);
     const end = Math.max(foot, Math.min(foot + gap, fold, ...next.map(Math.floor)));
-    const chrome = scroller.offsetHeight - scroller.clientHeight;
     scroller.style.maxBlockSize = `${end + chrome}px`;
     return "foot";
 }

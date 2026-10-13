@@ -15,7 +15,7 @@
          The tiles are ONE `ToggleGroup type="single"` (one tab stop, arrows
          roving across every section) — the grid's selection model, not its
          paint. -->
-    <div class="easing-catalogue" data-easing-catalogue :data-density="density">
+    <div ref="rootEl" class="easing-catalogue" data-easing-catalogue :data-density="density">
         <!-- X-DS r3 pass 3 (KF-C22-01) — a TEN-way categorical filter takes
              glass's own axes, not the equal-width eyeglass: the pill strip
              forced every option to the widest label's width (960 px of strip in
@@ -27,7 +27,15 @@
              the host is narrow: below lg for the stage, and always in the
              Controls pane's popover (`density="menu"`, a narrow host at every
              viewport). The FadingScroll and the max-content row are deleted
-             with the overflow they existed to scroll. -->
+             with the overflow they existed to scroll.
+             X-DS r5 pass 4 (KF-C4-01) — the strip is ONE row or it is the
+             Select. Wrapping was the designed state: ten labels at the
+             section-heading rung needed ~850 px of a 772 px stage at 1440, so
+             "Steps" sat alone on a second row and the ink underline and the
+             strip's hairline were on different lines. The labels step one rung
+             down (`--type-small`, under the family headings they filter), the
+             row no longer wraps, and the collapse to the Select is driven by a
+             measured "does not fit one row" as well as the lg floor. -->
         <SegmentedTabs
             variant="underline"
             semantics="toggle"
@@ -134,7 +142,7 @@ import {
     useTemplateRef,
     watch,
 } from "vue";
-import { useMediaQuery } from "@vueuse/core";
+import { useMediaQuery, useResizeObserver } from "@vueuse/core";
 import { Separator } from "@mkbabb/glass-ui/separator";
 import { FadingScroll } from "@mkbabb/glass-ui/fading-scroll";
 import { SegmentedTabs, type SegmentedTabOption } from "@mkbabb/glass-ui/tabs";
@@ -194,12 +202,37 @@ const family = ref(ALL);
  *  reads the viewport, and the menu is narrow at every viewport, so its
  *  breakpoint is one no viewport reaches. */
 const STRIP_MIN_WIDTH = "1024px";
+const NEVER = "100000px";
+const wideViewport = useMediaQuery(`(min-width: ${STRIP_MIN_WIDTH})`);
+/** KF-C4-01 — and only where its options fit ONE row of the host. The strip's
+ *  one-row width is read while it shows (its `scrollWidth`: the row does not
+ *  wrap, so an overflowing row reports what it needs) and kept while the
+ *  Select stands in for it, so the strip returns when the host is that wide
+ *  again. */
+const rootEl = useTemplateRef<HTMLElement>("rootEl");
+const hostWidth = ref(Number.POSITIVE_INFINITY);
+const stripWidth = ref(0);
+const measureStrip = () => {
+    const root = rootEl.value;
+    if (!root) return;
+    hostWidth.value = root.clientWidth;
+    const strip = root.querySelector<HTMLElement>(".segmented-tabs.catalogue-filter");
+    if (strip) stripWidth.value = strip.scrollWidth;
+};
+useResizeObserver(rootEl, measureStrip);
+const filterIsStrip = computed(
+    () => props.density === "stage" && wideViewport.value && stripWidth.value <= hostWidth.value,
+);
 const filterResponsive = computed(() => ({
-    breakpoint: props.density === "menu" ? "100000px" : STRIP_MIN_WIDTH,
+    breakpoint: filterIsStrip.value ? STRIP_MIN_WIDTH : NEVER,
     ariaLabel: "Filter curves by family",
 }));
-const wideViewport = useMediaQuery(`(min-width: ${STRIP_MIN_WIDTH})`);
-const filterIsStrip = computed(() => props.density === "stage" && wideViewport.value);
+// The strip's own width changes with its labels (a font landing, the groups).
+watch([filterIsStrip, familyOptions], measureStrip, { flush: "post" });
+onMounted(() => {
+    measureStrip();
+    void document.fonts?.ready.then(measureStrip);
+});
 const onFamilyChange = (v: string) => {
     family.value = v;
 };
@@ -336,14 +369,16 @@ watch(
     min-width: 0;
 }
 
-/* ── 1 · the family filter: glass's underline strip, wrapping in the stage ── */
-/* The options keep their own widths (glass's underline is a flex row); the row
-   wraps rather than overflowing, so every family is on the page. The ink
-   indicator rides the active option on whichever line it sits. */
+/* ── 1 · the family filter: glass's underline strip, one row ── */
+/* The options keep their own widths (glass's underline is a flex row) and the
+   row never wraps: where ten do not fit, the filter is glass's Select
+   (`filterIsStrip`, measured). KF-C4-01 — the labels read glass's own type
+   token one rung down: the strip sets its options at `--type-subheading`, the
+   family headings' rung, and a filter sits under the headings it filters. */
 .catalogue-filter {
     flex: none;
-    flex-wrap: wrap;
     max-width: 100%;
+    --type-subheading: var(--type-small);
 }
 
 /* ── 2 · the divider (glass Separator owns its hairline) ── */

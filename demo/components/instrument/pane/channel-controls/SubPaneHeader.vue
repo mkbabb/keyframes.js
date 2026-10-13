@@ -22,11 +22,19 @@
          X-DS pass 16 (KF-C20-03) — `reveal()` lands the header clear of its
          scroller's edge fade (`scroll-margin-block-start` = the fade's extent,
          `--mask-fade`), so a reveal mid-scroll never parks the title in the
-         fading band at half ink. -->
+         fading band at half ink.
+         X-DS r5 pass 4 (KF-C4-06) — the Back ARROW sits on the pane's content
+         gutter, where every row below starts. The icon Button centres its
+         16 px glyph in a `--control-h-sm` square, so the arrow stood 10 px
+         inside the gutter; the header row hangs that half-difference into the
+         frame's gutter (the ribbon row's KF-C6-01 rule), the Button's own box
+         and hit area unchanged. Desktop rail only (`lg:`): on the phone sheet
+         the pane's clip sits 4 px outside the gutter and would cut the hung
+         Button's box. -->
     <div
         ref="rootEl"
         data-subpane-header
-        class="grid grid-cols-[auto_minmax(0,1fr)] items-start gap-x-1.5 pb-1 scroll-mt-(--mask-fade)"
+        class="grid grid-cols-[auto_minmax(0,1fr)] items-start gap-x-1.5 pb-1 scroll-mt-(--mask-fade) lg:-ms-[calc((var(--control-h-sm)_-_1rem)_/_2)]"
     >
         <Button
             ref="backEl"

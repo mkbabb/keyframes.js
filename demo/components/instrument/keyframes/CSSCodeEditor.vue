@@ -196,6 +196,10 @@ function defineGroundedTheme(m: typeof Monaco, dark: boolean): void {
     // six-digit hex without the `#`. UIA-KF-097 (X.KF.W13X.r4panes) — the
     // three rungs are `CODE_INK`'s, the one table the app's printed code
     // (the spring scene's artifact) is inked from too.
+    const slider = resolveTokenHex("color-mix(in srgb, var(--border) 70%, transparent)");
+    const sliderEngaged = resolveTokenHex(
+        "color-mix(in srgb, var(--foreground) 32%, transparent)",
+    );
     const ink = (css: string) => resolveTokenHex(css).slice(1, 7);
     const fg = ink(CODE_INK.structure);
     const muted = ink(CODE_INK.value);
@@ -230,6 +234,13 @@ function defineGroundedTheme(m: typeof Monaco, dark: boolean): void {
             "editorGutter.background": ground,
             "editor.lineHighlightBackground": highlight,
             "editor.lineHighlightBorder": highlight,
+            // X-DS r5 pass 4 (KF-C4-05) — the scroll slider is a hairline's
+            // tone, not the vendored theme's opaque grey slab (the heaviest
+            // mark in the pane, resting on the footer toolbar): `--border` at
+            // rest, a foreground step under the pointer.
+            "scrollbarSlider.background": slider,
+            "scrollbarSlider.hoverBackground": sliderEngaged,
+            "scrollbarSlider.activeBackground": sliderEngaged,
         },
     });
 }
@@ -462,10 +473,14 @@ const initEditor = async () => {
         // horizontal slider stays visible whenever a line overflows (Monaco
         // draws no slider when nothing does), and the scrollbar's edge shadows
         // are off (flat, X-DS canon).
+        // X-DS r5 pass 4 (KF-C4-05) — the cue stays and steps down: a 4 px
+        // slider in the hairline's tone (the theme's `scrollbarSlider.*`).
+        // It is not auto-hidden: hidden at rest, the clipped line has no cue
+        // again (KF-C7-12).
         scrollbar: {
             horizontal: "visible",
-            horizontalScrollbarSize: 6,
-            horizontalSliderSize: 6,
+            horizontalScrollbarSize: 4,
+            horizontalSliderSize: 4,
             useShadows: false,
         },
         scrollBeyondLastLine: false,

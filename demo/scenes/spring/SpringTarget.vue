@@ -56,10 +56,15 @@
              SceneStageHeader: the title is its glass section title, the badge
              (D-14: the region that publishes settled ↔ tracking, flipping only
              on a discrete transition) is its `status`, authored once there. -->
+        <!-- X-DS r5 pass 4 (KF-C4-04) — the header holds the figure's measure
+             (`max-w-3xl`), so the title, the readouts, the caption and the
+             trace's title row share one text gutter at every width (the header
+             ran the card's full width and sat 2 px outside the figure at 1440,
+             further on a wider card). -->
         <SceneStageHeader
             title="Spring"
             :status="stateLabel"
-            class="spring-header flex w-full flex-wrap items-end justify-between gap-3 gap-y-2 shrink-0"
+            class="spring-header flex w-full max-w-3xl flex-wrap items-end justify-between gap-3 gap-y-2 shrink-0"
             title-class="whitespace-nowrap leading-none"
             id-class="flex flex-col gap-1 min-w-0"
             aside-class="flex flex-col items-end gap-1 shrink-0"
@@ -301,7 +306,10 @@
         <!-- X-DS pass 3 · KF-C3-05 — ONE horizontal origin for the figure: the
              trace is inset by the rail's overshoot band (the same `railPct` map
              the track reads), so value 0 on the rail and t = 0 on the plot
-             share an x, and the horizon sits under the value-1 tick. -->
+             share an x, and the horizon sits under the value-1 tick.
+             X-DS r5 pass 4 (KF-C4-04) — the inset is the PLOT's (`--plot-inset`,
+             read by SpringTrace's plot box): the trace's title row keeps the
+             text gutter. -->
         <SpringTrace
             ref="traceEl"
             :style="figureInset"
@@ -455,7 +463,7 @@ const railPct = (v: number): number =>
 const railValue = (ratio: number): number => ratio * RAIL_SPAN - OVERSHOOT_ALLOWANCE;
 
 /** KF-C3-05 — the trace's inline inset: the rail's overshoot band, both ends. */
-const figureInset = { paddingInline: `${railPct(0)}% ${100 - railPct(1)}%` };
+const figureInset = { "--plot-inset": `${railPct(0)}% ${100 - railPct(1)}%` };
 /** The value TRACK: value 0 → value 1, inset inside the rail by the reserved
  *  band. `.stage-field-x`'s quarter gridlines ride this element, so they mark
  *  true value quarters (D-16's field stays honest under the new axis). */
