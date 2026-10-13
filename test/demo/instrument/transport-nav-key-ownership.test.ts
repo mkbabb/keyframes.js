@@ -23,7 +23,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { defineComponent, h, shallowRef } from "vue";
 import { mount, type VueWrapper } from "@vue/test-utils";
-import { useControlsKeyboardShortcuts } from "@components/instrument/transport/AnimationControlsGroup/useControlsKeyboardShortcuts";
+import { useControlsKeyboardShortcuts } from "@components/instrument/transport/composables/useControlsKeyboardShortcuts";
 
 let wrappers: VueWrapper[] = [];
 afterEach(() => {

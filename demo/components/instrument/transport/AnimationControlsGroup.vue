@@ -136,9 +136,9 @@ import TransportDock from "./TransportDock.vue";
 import { getStoredAnimationGroupControlOptions } from "@state";
 import type { AnimationGroup, KeyframesAnimation } from "@mkbabb/keyframes.js";
 import { GROUP_PAINTS_KEY, type TransportChannel } from "./transportSource";
-import { useAnimationGroupActions } from "./AnimationControlsGroup/useAnimationGroupActions";
-import { useControlsKeyboardShortcuts } from "./AnimationControlsGroup/useControlsKeyboardShortcuts";
-import { useAnimationGroupPlayback } from "./AnimationControlsGroup/useAnimationGroupPlayback";
+import { useAnimationGroupActions } from "./composables/useAnimationGroupActions";
+import { useControlsKeyboardShortcuts } from "./composables/useControlsKeyboardShortcuts";
+import { useAnimationGroupPlayback } from "./composables/useAnimationGroupPlayback";
 
 const { superKey, animationGroup, channels, autoPlay, hideControls, stageMode, hasControlSurfaces = true } = defineProps<{
     animationGroup: AnimationGroup<any>;

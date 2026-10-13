@@ -229,9 +229,9 @@ import { RotateCcw } from "@lucide/vue";
 
 import { GlassDock } from "@mkbabb/glass-ui/dock";
 import { DOCK_POPUP_GAP } from "@app/dock/dockEdge";
-import { usePlayActuation } from "./TransportDock/usePlayActuation";
-import { useMenubarMeasure } from "./TransportDock/useMenubarMeasure";
-import { useIconSpin } from "./TransportDock/useIconSpin";
+import { usePlayActuation } from "./composables/usePlayActuation";
+import { useMenubarMeasure } from "./composables/useMenubarMeasure";
+import { useIconSpin } from "./composables/useIconSpin";
 import type { StoredAnimationGroupControlOptions } from "@state";
 
 const dockRef = useTemplateRef<InstanceType<typeof GlassDock>>("dockRef");

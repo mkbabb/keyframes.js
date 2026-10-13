@@ -8,7 +8,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { reactive } from "vue";
 import type { StoredAnimationGroupControlOptions } from "@state";
-import { useAnimationGroupPlayback } from "../../../demo/components/instrument/transport/AnimationControlsGroup/useAnimationGroupPlayback";
+import { useAnimationGroupPlayback } from "@components/instrument/transport/composables/useAnimationGroupPlayback";
 import { CSSKeyframesAnimation } from "../../../src/animation/engine";
 import { AnimationGroup } from "../../../src/animation/group";
 

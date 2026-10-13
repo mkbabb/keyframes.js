@@ -28,7 +28,7 @@ import { mount, type VueWrapper } from "@vue/test-utils";
 import { TooltipProvider } from "@mkbabb/glass-ui/tooltip";
 import { warmKfEngine } from "../../../demo/kf-engine";
 import TransportDock from "../../../demo/components/instrument/transport/TransportDock.vue";
-import { useControlsKeyboardShortcuts } from "@components/instrument/transport/AnimationControlsGroup/useControlsKeyboardShortcuts";
+import { useControlsKeyboardShortcuts } from "@components/instrument/transport/composables/useControlsKeyboardShortcuts";
 import type { StoredAnimationGroupControlOptions } from "@state";
 
 // THE LANE'S KNOWN WALL (X.KF.W12.b's record): glass-ui's `dock.js` and the

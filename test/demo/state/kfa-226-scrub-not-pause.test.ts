@@ -16,7 +16,7 @@ import {
     type ScenePlayback,
 } from "../../../demo/state/sceneMachine";
 import { useSceneMachine } from "../../../demo/state/useSceneMachine";
-import { useAnimationGroupPlayback } from "../../../demo/components/instrument/transport/AnimationControlsGroup/useAnimationGroupPlayback";
+import { useAnimationGroupPlayback } from "@components/instrument/transport/composables/useAnimationGroupPlayback";
 import type { StoredAnimationGroupControlOptions } from "@state";
 
 beforeAll(async () => {

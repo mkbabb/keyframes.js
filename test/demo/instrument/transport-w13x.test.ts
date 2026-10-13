@@ -115,9 +115,9 @@ const { default: PlaybackRibbon } = await import("../../../demo/components/playb
 const { TooltipProvider } = await import("@mkbabb/glass-ui/tooltip");
 const { kfEngine, warmKfEngine } = await import("../../../demo/kf-engine");
 const { useIconSpin } =
-    await import("../../../demo/components/instrument/transport/TransportDock/useIconSpin");
+    await import("@components/instrument/transport/composables/useIconSpin");
 const { useAnimationGroupPlayback } =
-    await import("../../../demo/components/instrument/transport/AnimationControlsGroup/useAnimationGroupPlayback");
+    await import("@components/instrument/transport/composables/useAnimationGroupPlayback");
 const { CSSKeyframesAnimation } = await import("../../../src/animation/engine");
 const { AnimationGroup } = await import("../../../src/animation/group");
 

@@ -22,7 +22,7 @@ import { defineComponent, h, useTemplateRef } from "vue";
 import { mount, type VueWrapper } from "@vue/test-utils";
 import { RotateCcw } from "@lucide/vue";
 import { kfEngine, warmKfEngine } from "../../../demo/kf-engine";
-import { useIconSpin } from "@components/instrument/transport/TransportDock/useIconSpin";
+import { useIconSpin } from "@components/instrument/transport/composables/useIconSpin";
 
 beforeAll(async () => {
     await warmKfEngine();

@@ -19,7 +19,7 @@ import {
     createRafAdapter,
     type RafSceneHandle,
 } from "../../../demo/state/scenePlaybackAdapters";
-import { useAnimationGroupActions } from "../../../demo/components/instrument/transport/AnimationControlsGroup/useAnimationGroupActions";
+import { useAnimationGroupActions } from "@components/instrument/transport/composables/useAnimationGroupActions";
 import type { StoredAnimationGroupControlOptions } from "@state";
 
 beforeAll(async () => {

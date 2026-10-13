@@ -91,3 +91,19 @@ describe("limb (d) — shell/ is the instrument's host; the app's own chrome liv
         expect(up).toEqual([]);
     });
 });
+
+describe("limb (b) — one composables convention: a sibling composables/ directory", () => {
+    it("transport/ keeps its composables in transport/composables, not in directories named after a component", () => {
+        const transport = "demo/components/instrument/transport";
+        expect(has(`${transport}/AnimationControlsGroup`)).toBe(false);
+        expect(has(`${transport}/TransportDock`)).toBe(false);
+        expect(readdirSync(resolve(root, `${transport}/composables`)).sort()).toEqual([
+            "useAnimationGroupActions.ts",
+            "useAnimationGroupPlayback.ts",
+            "useControlsKeyboardShortcuts.ts",
+            "useIconSpin.ts",
+            "useMenubarMeasure.ts",
+            "usePlayActuation.ts",
+        ]);
+    });
+});
