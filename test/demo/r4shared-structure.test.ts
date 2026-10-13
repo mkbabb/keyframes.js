@@ -45,3 +45,15 @@ describe("limb (h) — a key lives with the keys, and a file is named for its co
         expect(read("demo/app/SceneSkeleton.vue")).not.toMatch(/defineOptions/);
     });
 });
+
+describe("limb (c) — the document-level chrome is the app's, mounted once", () => {
+    it("DemoGlobalChrome lives in demo/app and App.vue is its one mount", () => {
+        expect(has("demo/app/DemoGlobalChrome.vue")).toBe(true);
+        expect(has("demo/components/instrument/transport/components")).toBe(false);
+        const mounts = walk("demo").filter((f) => /<DemoGlobalChrome\b/.test(read(f).replace(/<!--[\s\S]*?-->/g, "")));
+        expect(mounts).toEqual(["demo/app/App.vue"]);
+        // above every scene key: a sibling of the Toaster, outside EditorShell's slots
+        const app = read("demo/app/App.vue").replace(/<!--[\s\S]*?-->/g, "");
+        expect(app.indexOf("<DemoGlobalChrome")).toBeGreaterThan(app.indexOf("</EditorShell>"));
+    });
+});

@@ -21,7 +21,7 @@ const toastSpy = vi.hoisted(() =>
 vi.mock("@mkbabb/glass-ui/toast", () => ({ toast: toastSpy, ToastAction: {} }));
 
 import { copyWithToast } from "@composables/copyWithToast";
-import DemoGlobalChrome from "../../../demo/components/instrument/transport/components/DemoGlobalChrome.vue";
+import DemoGlobalChrome from "../../../demo/app/DemoGlobalChrome.vue";
 
 let wrapper: VueWrapper | undefined;
 afterEach(() => {
@@ -44,7 +44,7 @@ describe("UIA-KF-001/002 — one glass toast surface", () => {
         });
     });
 
-    it("the super-keyed chrome mounts no toaster host of its own", () => {
+    it("the app-root chrome mounts no toaster host of its own", () => {
         wrapper = mount(DemoGlobalChrome, { attachTo: document.body });
         expect(document.querySelector("[data-sonner-toaster], ol[aria-live], section[aria-live]")).toBeNull();
         expect(document.querySelector("#rainbow-gradient")).not.toBeNull();

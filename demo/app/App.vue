@@ -112,6 +112,11 @@
          --z-toast layer), mounted here, above every scene key, so a toast
          raised just before a scene switch survives it. -->
     <Toaster />
+    <!-- A2-KE-L1-15 (c) — the document-level singleton (the rainbow-gradient
+         paint server the ribbon's Apply glyph strokes): the app's, mounted
+         ONCE here. It rode the super-keyed controls group, so every scene
+         switch tore the defs down and mounted them again. -->
+    <DemoGlobalChrome />
     </TooltipProvider>
 </template>
 
@@ -164,6 +169,7 @@ import { EditorShell, EditorStartScreen } from "@components/instrument/shell";
 const HeroAurora = defineAsyncComponent(
     () => import("@components/instrument/shell/HeroAurora.vue"),
 );
+import DemoGlobalChrome from "./DemoGlobalChrome.vue";
 import SceneSkeleton from "./SceneSkeleton.vue";
 import { ChromeDock, MbabbMenu } from "@app/dock";
 // DP-02 (CC-03) — the root tooltip provider (see the template wrap). The
