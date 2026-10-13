@@ -301,7 +301,10 @@
 }
 
 /* .stage-field-{x,y} — the ghosted coordinate frame: quarter-mark gridlines in the var(--border)
-   hairline. `-y` rules the VALUE axis (horizontal lines + baseline); `-x` a TIME/POSITION axis. */
+   hairline. `-y` rules the VALUE axis (horizontal lines + baseline); `-x` a TIME/POSITION axis
+   (vertical lines + its closing edge). Each axis rules five lines, 0 to 100 %: the repeat lays
+   the first four on the quarters' opening edges, and one hairline measured from the far edge
+   closes the field. */
 .stage-field-y {
     background-image:
         linear-gradient(to top, var(--border) 1px, transparent 1px),
@@ -312,11 +315,13 @@
         );
 }
 .stage-field-x {
-    background-image: repeating-linear-gradient(
-        to right,
-        var(--border) 0 1px,
-        transparent 1px calc(100% / 4)
-    );
+    background-image:
+        linear-gradient(to left, var(--border) 1px, transparent 1px),
+        repeating-linear-gradient(
+            to right,
+            var(--border) 0 1px,
+            transparent 1px calc(100% / 4)
+        );
 }
 
 /* .status-badge family — the caption-rung status tint, parameterized by --badge-tone.
