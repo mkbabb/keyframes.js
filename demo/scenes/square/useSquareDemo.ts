@@ -663,9 +663,9 @@ export function useSquareDemo(
     };
 
     // Self-clean on the host's setup scope tear-down (the SAME idiom the sibling
-    // scene composables ship — useSpringDemo/useEasingDemo/useSequenceDemo each
-    // `onScopeDispose(() => playback.stop())`, mirroring useRafLoop.ts's
-    // onUnmounted(stop)). The raw RAFPlayback loop owner MUST stop on dispose
+    // scene composables ship — useSequenceDemo stops its loop from its own
+    // `onScopeDispose`, useSpringDemo/useEasingDemo through useSweepScene's
+    // `onScopeDispose(stopLoop)` seam). The raw RAFPlayback loop owner MUST stop on dispose
     // itself, not lean on a host remembering to call dispose() — so the loop
     // cannot leak past unmount if a future host forgets the wiring (G.W9 §S3).
     // The host (SquareScene) still calls dispose() to stop its own AnimationGroup

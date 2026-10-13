@@ -31,12 +31,6 @@
     /* ── Recurring length homes (each routes a bracket-arbitrary literal to ONE token) ── */
     --dock-panel-width: 17rem; /* w-[17rem] dock / header panel width (recurs ×2) */
     --dropdown-min-width: 12rem; /* min-w-[var(--dropdown-min-width)] SelectContent dropdown min (recurs ×3) */
-    /* The cube target tracks the STAGE CELL, not the raw viewport: cqi/cqb resolve
-       against the clamped stage column so the loader glyph is bounded by the
-       work-area clamp. cqi = inline (width), cqb = block (height); the svi/svh
-       fallback keeps it sized if the container scope is absent. */
-    --target-viewport-h: 30cqb; /* h-[var(--target-viewport-h)] cube-target loader height */
-    --target-viewport-w: 30cqi; /* w-[var(--target-viewport-w)] cube-target loader width */
     --visualizer-track-gutter: 3rem; /* w-[calc(100%-var(--visualizer-track-gutter))] track inset — 1.5rem each side */
     --easing-dropdown-max-h: min(24rem, 60dvh); /* max-h-[…] easing picker popover cap */
     /* X.KF.W13V.s (OA-39) — the phone LANDING is ONE centred column: the idle

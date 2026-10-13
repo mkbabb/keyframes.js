@@ -3,11 +3,12 @@
  * R2-07's gate/test-prune blueprint).
  *
  * A composable that registers component lifecycle hooks (`onMounted`,
- * `onUnmounted`, `onScopeDispose`, a `watch`/`useRafLoop` that stops on
+ * `onUnmounted`, `onScopeDispose`, a `watch` or frame loop that stops on
  * unmount) cannot exercise its TEARDOWN under a bare `effectScope().run(fn)` +
  * `scope.stop()`: `effectScope` fires `onScopeDispose` but NEVER `onMounted`/
- * `onUnmounted`, so a `useRafLoop(...); onUnmounted(stop)` composable's loop is
- * never actually disposed by the test — the "teardown ran" claim is vacuous.
+ * `onUnmounted`, so a composable that starts a loop and stops it from
+ * `onUnmounted` is never actually disposed by the test — the "teardown ran"
+ * claim is vacuous.
  *
  * `withSetup` mounts the composable inside a real (headless) component instance
  * via `createApp`, so `onMounted` fires on mount and `onUnmounted` fires on
