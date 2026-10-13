@@ -190,8 +190,12 @@
                         <span class="text-small text-[var(--ppmycota-primary)]">ppmycota</span>
                     </div>
                     <!-- UIA-KF-138 · UIA-KF-246 — the site is a trailing glyph, not a
-                         second line (the one subtitle left in this menu is Clear all's). -->
-                    <a href="https://ppmycota.com" target="_blank" rel="noopener noreferrer" aria-label="ppmycota.com" title="ppmycota.com" class="text-muted-foreground hover:text-foreground" @click.stop><ExternalLink class="w-4 h-4" aria-hidden="true" /></a>
+                         second line (the one subtitle left in this menu is Clear all's).
+                         A2-KE-L2-14 — the link's target is the row's own height and a
+                         44 px inline slot (it was the bare 16 x 16 px glyph): the anchor
+                         stretches over the row's block padding and its end padding, and
+                         the glyph stays 16 px, centred in it. -->
+                    <a href="https://ppmycota.com" target="_blank" rel="noopener noreferrer" aria-label="ppmycota.com" title="ppmycota.com" class="self-stretch inline-flex items-center justify-center min-w-11 -my-1 -mr-1.5 text-muted-foreground hover:text-foreground" @click.stop><ExternalLink class="w-4 h-4" aria-hidden="true" /></a>
                 </DropdownMenuCheckboxItem>
 
                 <DropdownMenuSeparator />
