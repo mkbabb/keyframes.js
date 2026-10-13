@@ -17,7 +17,7 @@ import { mount } from "@vue/test-utils";
 import { TooltipProvider } from "@mkbabb/glass-ui/tooltip";
 import { GlassDock } from "@mkbabb/glass-ui/dock";
 import ChromeDock from "@app/dock/ChromeDock.vue";
-import MbabbMenu from "@app/dock/MbabbMenu.vue";
+import MbabbMenu from "@app/dock/menu/MbabbMenu.vue";
 
 // X.KF.W13X.esc2 · ESC-dock-3 — every scene descriptor carries its miniature
 // (`icon` is required, home included); a fixture glyph stands in for it here.

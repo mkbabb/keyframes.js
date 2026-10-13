@@ -38,7 +38,7 @@ vi.mock("@mkbabb/keyframes.js", async (importOriginal) => {
     };
 });
 
-const { default: TypingDots } = await import("@components/instrument/shell/TypingDots.vue");
+const { default: TypingDots } = await import("@app/hero/TypingDots.vue");
 
 let teardown: (() => void) | null = null;
 afterEach(() => {

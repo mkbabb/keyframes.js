@@ -35,9 +35,9 @@ vi.mock("@composables/copyWithToast", () => ({ copyWithToast: copySpy }));
 
 import { registerShortcut } from "@mkbabb/glass-ui/keyboard";
 import { encodeStateToHash, getAllState } from "@state";
-import { useShareState } from "@components/instrument/shell/useShareState";
-import SharePopover from "@components/instrument/shell/SharePopover.vue";
-import KeyboardShortcutsModal from "@components/instrument/shell/KeyboardShortcutsModal.vue";
+import { useShareState } from "@app/dock/menu/useShareState";
+import SharePopover from "@app/dock/menu/SharePopover.vue";
+import KeyboardShortcutsModal from "@app/dock/menu/KeyboardShortcutsModal.vue";
 
 beforeAll(() => {
     class NoopResizeObserver { observe() {} unobserve() {} disconnect() {} }

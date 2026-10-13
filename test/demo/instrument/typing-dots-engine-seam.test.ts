@@ -36,7 +36,7 @@
  */
 import { afterEach, describe, expect, it } from "vitest";
 import { createApp, nextTick } from "vue";
-import TypingDots from "@components/instrument/shell/TypingDots.vue";
+import TypingDots from "@app/hero/TypingDots.vue";
 
 let teardown: (() => void) | null = null;
 

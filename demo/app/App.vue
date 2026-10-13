@@ -150,7 +150,8 @@ import {
     CONTROLS_PANE_HOVER_KEY,
 } from "@components/instrument/transport/injectionKeys";
 
-import { EditorShell, EditorStartScreen } from "@components/instrument/shell";
+import { EditorShell } from "@components/instrument/shell";
+import EditorStartScreen from "./hero/EditorStartScreen.vue";
 // T.D13 — the home hero's Aurora backdrop (colocated in shell/ beside
 // the start screen it backs; imported directly, not via the barrel — a
 // single-consumer leaf, the P-HERO import shape).
@@ -167,7 +168,7 @@ import { EditorShell, EditorStartScreen } from "@components/instrument/shell";
 // correct for a decorative backdrop, and the reason the scene host's keyed
 // <Suspense> (which broke under a wrapping <Transition>) is untouched.
 const HeroAurora = defineAsyncComponent(
-    () => import("@components/instrument/shell/HeroAurora.vue"),
+    () => import("./hero/HeroAurora.vue"),
 );
 import DemoGlobalChrome from "./DemoGlobalChrome.vue";
 import SceneSkeleton from "./SceneSkeleton.vue";
@@ -435,7 +436,7 @@ const { runSceneSwitch, lastSwapBackend } = useSceneTransition({
 const { sceneSwapStyle } = useSceneSwap(activeSceneKey, lastSwapBackend);
 
 // The @mbabb dock dropdown (brand menu + the D9 pointerdown-synthesis workaround)
-// lives in @app/dock/MbabbMenu.vue (S.D1 · a23 F2). M-4: the App no longer
+// lives in @app/dock/menu/MbabbMenu.vue (S.D1 · a23 F2). M-4: the App no longer
 // mirrors its open state anywhere. The menu is authored HERE but RENDERED inside
 // ChromeDock's `<GlassDock>`, so it injects that dock's context and takes the
 // keep-open hold itself — the layer-collapse half of the D9 fix, held one level

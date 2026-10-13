@@ -523,10 +523,10 @@ async function clauseProvenance() {
 /** The eight enumerated citation targets (X.KF.W4 §Bounds, Citation targets). */
 const EMBEDDED_SITES = [
     "demo/DESIGN.md",
-    "demo/components/instrument/shell/EditorStartScreen.vue",
+    "demo/app/hero/EditorStartScreen.vue",
     "demo/app/App.vue",
-    "demo/components/instrument/shell/HeroAurora.vue",
-    "demo/components/instrument/shell/TypingDots.vue",
+    "demo/app/hero/HeroAurora.vue",
+    "demo/app/hero/TypingDots.vue",
     "demo/styles/layout.css",
     "demo/styles/design-idioms.css",
     "demo/scenes/spring/SpringPhysicsFacet.vue",

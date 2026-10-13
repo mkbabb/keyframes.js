@@ -300,7 +300,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 import { onBeforeUnmount, ref, useTemplateRef, watch } from "vue";
 import { useMediaQuery } from "@vueuse/core";
-import { SharePopover } from "@components/instrument/shell";
+import SharePopover from "./SharePopover.vue";
 // MM-24 — one subpath discipline: the menu family from `./menu`, the
 // dialog from `./dialog`, the button from `./button`. `Avatar*` alone stays on
 // the root barrel because `./avatar` is ABSENT from the producer's exports map —
@@ -313,10 +313,10 @@ import { useGlobalDark } from "@mkbabb/glass-ui/dark";
 import { DockTrigger, useOptionalDockContext } from "@mkbabb/glass-ui/dock";
 import { ExternalLink, Keyboard, Moon, Share2, Trash } from "@lucide/vue";
 import { registerShortcut } from "@mkbabb/glass-ui/keyboard";
-import KeyboardShortcutsModal from "@components/instrument/shell/KeyboardShortcutsModal.vue";
+import KeyboardShortcutsModal from "./KeyboardShortcutsModal.vue";
 import { getStoredAnimationGroupControlOptions, resetAllStores } from "@state";
-import { CUBE_SCENE_ID } from "../../scenes/cube/cubeKeys";
-import { useDockEdgeOffset } from "./dockEdge";
+import { CUBE_SCENE_ID } from "../../../scenes/cube/cubeKeys";
+import { useDockEdgeOffset } from "../dockEdge";
 defineProps<{
     // Scene restore from a shared URL (passed straight to SharePopover). The shell
     // owns the real switch (runSceneSwitch); the menu only forwards the id.

@@ -48,7 +48,7 @@ describe("the .stage-field-x idiom closes at 100 %", () => {
 
 describe("A2-KE-L2-14 — the ppmycota site link is a full target", () => {
     it("the anchor fills the row's height and holds a 44 px inline slot", () => {
-        const menu = read("demo/app/dock/MbabbMenu.vue").replace(/<!--[\s\S]*?-->/g, "");
+        const menu = read("demo/app/dock/menu/MbabbMenu.vue").replace(/<!--[\s\S]*?-->/g, "");
         const anchor = menu.match(/<a href="https:\/\/ppmycota\.com"[^>]*>/)?.[0] ?? "";
         expect(anchor).not.toBe("");
         const classes = (anchor.match(/class="([^"]*)"/)?.[1] ?? "").split(/\s+/);

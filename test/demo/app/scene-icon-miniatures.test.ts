@@ -30,7 +30,7 @@ import SquareMini from "../../../demo/scenes/square/SquareMini.vue";
 import EasingMini from "../../../demo/scenes/easing/EasingMini.vue";
 import SpringMini from "../../../demo/scenes/spring/SpringMini.vue";
 import SequenceMini from "../../../demo/scenes/sequence/SequenceMini.vue";
-import HomeMini from "../../../demo/components/instrument/shell/HomeMini.vue";
+import HomeMini from "@app/hero/HomeMini.vue";
 
 const MINIS: Record<string, Component> = {
     cube: CubeMini,

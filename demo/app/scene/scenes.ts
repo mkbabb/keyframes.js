@@ -15,7 +15,7 @@ import SquareIcon from "../../scenes/square/SquareMini.vue";
 import EasingIcon from "../../scenes/easing/EasingMini.vue";
 import SpringIcon from "../../scenes/spring/SpringMini.vue";
 import SequenceIcon from "../../scenes/sequence/SequenceMini.vue";
-import HomeIcon from "../../components/instrument/shell/HomeMini.vue";
+import HomeIcon from "../hero/HomeMini.vue";
 
 // The per-scene registry-id single-source (R.W5 C.4 / T.B9 — the ONE keyspace):
 // each scene's keys module OWNS its `*_SCENE_ID` constant; the descriptor below

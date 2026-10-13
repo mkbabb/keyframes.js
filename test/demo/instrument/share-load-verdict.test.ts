@@ -18,7 +18,7 @@ const toastSpy = vi.hoisted(() =>
 );
 vi.mock("@mkbabb/glass-ui/toast", () => ({ toast: toastSpy, ToastAction: {} }));
 
-import { useShareState } from "@components/instrument/shell/useShareState";
+import { useShareState } from "@app/dock/menu/useShareState";
 
 let wrapper: VueWrapper | undefined;
 afterEach(() => {

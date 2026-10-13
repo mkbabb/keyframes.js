@@ -9,7 +9,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest
 import { defineComponent, nextTick } from "vue";
 import { mount, type VueWrapper } from "@vue/test-utils";
 import { GlassDock } from "@mkbabb/glass-ui/dock";
-import MbabbMenu from "@app/dock/MbabbMenu.vue";
+import MbabbMenu from "@app/dock/menu/MbabbMenu.vue";
 
 const saved = (globalThis as { ResizeObserver?: unknown }).ResizeObserver;
 beforeAll(() => {

@@ -59,7 +59,7 @@ vi.mock("@mkbabb/glass-ui/aurora", () => ({
 }));
 
 const { default: HeroAurora, HERO_AURORA_OPACITY_CEILING } =
-    await import("@components/instrument/shell/HeroAurora.vue");
+    await import("@app/hero/HeroAurora.vue");
 
 /** The P-HERO prototype's ceiling — the OWNER's number, external to the code. */
 const P_HERO_CEILING = 0.15;

@@ -23,7 +23,7 @@ import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { defineComponent, nextTick } from "vue";
 import { mount } from "@vue/test-utils";
 import { GlassDock } from "@mkbabb/glass-ui/dock";
-import MbabbMenu from "@app/dock/MbabbMenu.vue";
+import MbabbMenu from "@app/dock/menu/MbabbMenu.vue";
 import ChromeDock from "@app/dock/ChromeDock.vue";
 
 const savedResizeObserver = (globalThis as { ResizeObserver?: unknown })

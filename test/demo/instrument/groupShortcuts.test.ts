@@ -29,7 +29,7 @@ import {
     DEFAULT_SHORTCUT_GROUP,
     groupShortcuts,
     type GroupableShortcut,
-} from "@components/instrument/shell/groupShortcuts";
+} from "@app/dock/menu/groupShortcuts";
 
 /** A registry entry, carrying an `id` so members are distinguishable. */
 interface Entry extends GroupableShortcut {

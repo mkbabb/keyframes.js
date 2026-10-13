@@ -57,3 +57,37 @@ describe("limb (c) — the document-level chrome is the app's, mounted once", ()
         expect(app.indexOf("<DemoGlobalChrome")).toBeGreaterThan(app.indexOf("</EditorShell>"));
     });
 });
+
+describe("limb (d) — shell/ is the instrument's host; the app's own chrome lives in demo/app", () => {
+    const names = (rel: string): string[] => (has(rel) ? readdirSync(resolve(root, rel)).sort() : []);
+
+    it("shell/ holds the host alone", () => {
+        expect(names("demo/components/instrument/shell")).toEqual(["EditorShell.vue", "index.ts"]);
+    });
+
+    it("the hero and the brand menu's surfaces are app directories", () => {
+        expect(names("demo/app/hero")).toEqual([
+            "AnimatedText.vue",
+            "EditorStartScreen.vue",
+            "HeroAurora.vue",
+            "HomeMini.vue",
+            "TypingDots.vue",
+        ]);
+        expect(names("demo/app/dock/menu")).toEqual([
+            "KeyboardShortcutsModal.vue",
+            "MbabbMenu.vue",
+            "SharePopover.vue",
+            "groupShortcuts.ts",
+            "useShareState.ts",
+        ]);
+    });
+
+    it("no component reaches up into either", () => {
+        const up = walk("demo/components").flatMap((f) =>
+            specifiers(f)
+                .filter((s) => /^@app\/(hero|dock\/menu)\//.test(s) || /\/app\/(hero|dock\/menu)\//.test(s))
+                .map((s) => `${f} <- ${s}`),
+        );
+        expect(up).toEqual([]);
+    });
+});

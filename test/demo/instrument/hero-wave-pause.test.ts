@@ -12,14 +12,14 @@ import { describe, expect, it, vi } from "vitest";
 import { defineComponent, h, nextTick } from "vue";
 import { mount } from "@vue/test-utils";
 
-vi.mock("../../../demo/components/instrument/shell/TypingDots.vue", () => ({
+vi.mock("@app/hero/TypingDots.vue", () => ({
     default: defineComponent({ name: "TypingDots", setup: () => () => h("span", { class: "dots-stub" }) }),
 }));
 
 describe("KFA-134 — the hero wave's pause is reachable from the UI", () => {
     it("one pressed toggle writes --motion-weight: 0 on the heading, and a second press releases it", async () => {
         const { default: EditorStartScreen } = await import(
-            "../../../demo/components/instrument/shell/EditorStartScreen.vue"
+            "@app/hero/EditorStartScreen.vue"
         );
         const w = mount(EditorStartScreen, { props: { hint: "or drag M. cubert" } });
         const heading = w.get("h1");

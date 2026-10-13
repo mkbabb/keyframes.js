@@ -16,7 +16,7 @@ const toastSpy = vi.hoisted(() =>
 );
 vi.mock("@mkbabb/glass-ui/toast", () => ({ toast: toastSpy, ToastAction: {} }));
 
-import SharePopover from "@components/instrument/shell/SharePopover.vue";
+import SharePopover from "@app/dock/menu/SharePopover.vue";
 
 const saved = (globalThis as { ResizeObserver?: unknown }).ResizeObserver;
 beforeAll(() => {

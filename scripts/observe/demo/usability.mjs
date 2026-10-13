@@ -87,7 +87,7 @@ const read = (p) => fs.readFileSync(p, "utf8");
 // SUBJECT; deriving the expected glyph count from it made the equality hold by
 // construction (G-L7 rule (e)).
 const DECLARED_HERO_TITLE = (() => {
-    const src = read(path.join(DEMO, "components/instrument/shell/EditorStartScreen.vue"));
+    const src = read(path.join(DEMO, "app/hero/EditorStartScreen.vue"));
     const m = src.match(/\btitle:\s*"([^"]+)"/);
     if (!m) {
         throw new Error(
