@@ -577,8 +577,16 @@ function onKeydown(e: KeyboardEvent): void {
     line-height: 1;
     white-space: nowrap;
 }
+/* X.KF.W13X.pc2 (ESC-W13X-pc-1 / PC1i) — the section's one column is the
+   rail's width, never its content's min-content. An implicit `auto` track
+   takes its minimum from its widest item: the title row's nowrap legend
+   sentence, 326 px in a 288 px section at 1024. The plot stretched to that
+   track, so the field ran 18 px under the layer's clip and its far-response
+   column could not be pointed. `minmax(0, 1fr)` holds every row to the rail,
+   and the plot's own `minmax(0, 1fr)` field column takes the squeeze. */
 .spring-heatmap-section {
     --spring-field-block: 12rem;
+    grid-template-columns: minmax(0, 1fr);
 }
 /* X-DS pass 11 (KF-C11-05) — THE FIGURE TAKES A SHARE OF THE RAIL, as the
    easing plot does (KF-C9-10). The 12rem field ran the pane's scroll fold
