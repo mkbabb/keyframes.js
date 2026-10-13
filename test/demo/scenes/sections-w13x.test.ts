@@ -48,7 +48,7 @@ const withoutActions = (src: string) => src.replace(/<template #actions>[\s\S]*?
 const withoutComments = (src: string) => src.replace(/<!--[\s\S]*?-->/g, "").replace(/^\s*\/\/.*$/gm, "");
 
 describe("(1) addendum (c) — no reset/refresh action on a body row", () => {
-    const files = [...vueFiles("demo/scenes"), 
+    const files = [...vueFiles("demo/scenes"),
         // the pane's own two files (their directory was transport/controls-pane until A2-KE-L1-15 (a))
         "demo/components/instrument/pane/ControlsPaneWrapper.vue",
         "demo/components/instrument/pane/RibbonBar.vue",
