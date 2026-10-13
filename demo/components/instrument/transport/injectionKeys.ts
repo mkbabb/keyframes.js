@@ -65,3 +65,13 @@ export function createChannelCommandSeat(): ChannelCommandSeat {
         },
     };
 }
+
+/**
+ * KF-SKEL-1 — the scene announcer's provide key. The shell (`EditorShell`)
+ * supplies the persistent live region and the transient `<Suspense>` fallback
+ * (`SceneSkeleton`) writes one line into it. `inject`ing it is OPTIONAL by
+ * contract — a standalone host that mounts `SceneSkeleton` without the shell
+ * simply announces nothing rather than throwing.
+ */
+export const SCENE_ANNOUNCER_KEY: InjectionKey<(message: string) => void> =
+    Symbol("scene-announcer");

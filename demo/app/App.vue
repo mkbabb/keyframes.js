@@ -164,7 +164,7 @@ import { EditorShell, EditorStartScreen } from "@components/instrument/shell";
 const HeroAurora = defineAsyncComponent(
     () => import("@components/instrument/shell/HeroAurora.vue"),
 );
-import SceneSkeleton from "./App.skeleton.vue";
+import SceneSkeleton from "./SceneSkeleton.vue";
 import { ChromeDock, MbabbMenu } from "@app/dock";
 // DP-02 (CC-03) — the root tooltip provider (see the template wrap). The
 // Glass-7/reka root-provider pattern; demo-owned, no Glass ask.

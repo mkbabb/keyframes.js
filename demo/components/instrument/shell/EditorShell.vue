@@ -104,21 +104,6 @@
     </div>
 </template>
 
-<script lang="ts">
-import type { InjectionKey } from "vue";
-
-/**
- * KF-SKEL-1 — the scene announcer's provide key. The PROVIDER owns the key (the
- * demo's own `*Keys.ts` convention, inlined here because the announcer has no
- * other consumer): the shell supplies the persistent live region and the
- * transient `<Suspense>` fallback writes one line into it. `inject`ing it is
- * OPTIONAL by contract — a standalone host that mounts `SceneSkeleton` without
- * this shell simply announces nothing rather than throwing.
- */
-export const SCENE_ANNOUNCER_KEY: InjectionKey<(message: string) => void> =
-    Symbol("scene-announcer");
-</script>
-
 <script setup lang="ts">
 import { provide, ref } from "vue";
 
@@ -126,6 +111,7 @@ import { initIOSPlatformClass } from "@components/instrument/utils/iosTextEntry"
 import AnimationControlsGroup from "@components/instrument/transport/AnimationControlsGroup.vue";
 
 import type { AnimationGroup } from "@mkbabb/keyframes.js";
+import { SCENE_ANNOUNCER_KEY } from "@components/instrument/transport/injectionKeys";
 import type { TransportChannel } from "@components/instrument/transport/transportSource";
 
 import "@styles/style.css";

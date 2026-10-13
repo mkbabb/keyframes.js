@@ -37,7 +37,7 @@ describe("X.KF.W13X.home — byte clauses", () => {
     });
 
     it("(2) UIA-KF-232 — SceneSkeleton's docblock is the contract, not a history, and names no removed token", () => {
-        const src = read("demo/app/App.skeleton.vue");
+        const src = read("demo/app/SceneSkeleton.vue");
         const doc = src.match(/<script setup lang="ts">\s*(\/\*\*[\s\S]*?\*\/)/)![1]!;
         expect(doc.split("\n").length).toBeLessThanOrEqual(24);
         expect(doc).not.toMatch(/KF-SKEL-\d+/);
