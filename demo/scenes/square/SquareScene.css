@@ -131,22 +131,6 @@
    the colocated SquareInstrument sub-unit (markup + styles together). This scene
    keeps only the subject (the box) + the stage's palette-sweep bloom. */
 
-/* P.W6 S1(a) — the per-axis sliders are SEMANTIC-only (the visible affordance is
-   the box itself + its instrument layer). Visually hidden but present for AT,
-   the canonical sr-only clip pattern (no layout footprint, focusable-exempt —
-   they carry no tabindex; the box is the single keyboard target). */
-.sr-only-slider {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border: 0;
-}
-
 .demo-box {
     display: flex;
     justify-content: center;

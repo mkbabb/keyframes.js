@@ -65,13 +65,19 @@
             tabindex="0"
             @keydown="onKeydown"
         >
-            <span :id="keyboardHelpId">
+            <!-- A2-KE-L1-18 — the description and the two read-outs are the
+                 shared SubjectAxes seat (the Square's box holds the same one). -->
+            <SubjectAxes
+                :help-id="keyboardHelpId"
+                :axes="[
+                    { label: 'yaw', value: `${spinNow.yaw}°` },
+                    { label: 'pitch', value: `${spinNow.pitch}°` },
+                ]"
+            >
                 Arrow keys spin the ball a sixteenth of a turn; hold Shift for a
                 fine nudge; Home returns it to its rest attitude. A pointer drag
                 spins it too, and on release the spin coasts to rest.
-            </span>
-            <span role="status">yaw {{ spinNow.yaw }}°</span>
-            <span role="status">pitch {{ spinNow.pitch }}°</span>
+            </SubjectAxes>
         </canvas>
     </div>
 </template>
@@ -94,6 +100,8 @@ import {
 } from "./useAmigaDemo";
 import { useSphereSpin } from "./useSphereSpin";
 import { useSceneVisibilityPause } from "@composables/scene-runtime/useSceneVisibilityPause";
+import SubjectAxes from "@components/SubjectAxes/SubjectAxes.vue";
+import { arrowNudge, isCommandChord } from "@components/SubjectAxes/arrowNudge";
 import { AMIGA_DEMO_KEY } from "./amigaKeys";
 
 /** The dev-only sampling probe's shape (L-M3/C-11 — the `__kfLoaf` idiom). */
@@ -181,33 +189,17 @@ const syncSpinReadout = (): void => {
 let keyboardEdge = false;
 
 function onKeydown(event: KeyboardEvent): void {
-    const step = event.shiftKey ? FINE_NUDGE_RAD : NUDGE_RAD;
-    let pitch = 0;
-    let yaw = 0;
-    switch (event.key) {
-        case "ArrowLeft":
-            yaw = -step;
-            break;
-        case "ArrowRight":
-            yaw = step;
-            break;
-        case "ArrowUp":
-            pitch = -step;
-            break;
-        case "ArrowDown":
-            pitch = step;
-            break;
-        case "Home":
-            // UIA-KF-197 — Home returns the ball AND the room view to rest: a
-            // drag that missed the ball orbits the camera, and nothing else
-            // brought it back.
-            sphereSpin.rest();
-            three.homeView();
-            break;
-        default:
-            return;
-    }
-    if (pitch !== 0 || yaw !== 0) sphereSpin.nudge(pitch, yaw);
+    // A2-KE-L1-18 — the shared arrow keymap (x is yaw, y is pitch). It declines
+    // a ctrl / meta / alt chord, which this handler used to swallow.
+    const nudge = arrowNudge(event, { step: NUDGE_RAD, fine: FINE_NUDGE_RAD });
+    if (nudge) sphereSpin.nudge(nudge.dy, nudge.dx);
+    else if (event.key === "Home" && !isCommandChord(event)) {
+        // UIA-KF-197 — Home returns the ball AND the room view to rest: a
+        // drag that missed the ball orbits the camera, and nothing else
+        // brought it back.
+        sphereSpin.rest();
+        three.homeView();
+    } else return;
     syncSpinReadout();
     keyboardEdge = true;
     event.preventDefault();

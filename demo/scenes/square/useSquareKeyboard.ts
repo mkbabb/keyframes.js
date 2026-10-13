@@ -1,5 +1,6 @@
 import type { SpringProgress } from "@mkbabb/keyframes.js";
 import { clamp } from "@mkbabb/value.js/math";
+import { arrowNudge, isCommandChord } from "@components/SubjectAxes/arrowNudge";
 
 /**
  * R.W6-decomp — the square scene's keyboard layer (the arrow/Home nudge + the
@@ -135,15 +136,15 @@ export function useSquareKeyboard(opts: SquareKeyboardOptions) {
     const PAGE_STEP = 0.5;
 
     const onKeydown = (e: KeyboardEvent) => {
-        if (e.ctrlKey || e.metaKey || e.altKey) return;
+        if (isCommandChord(e)) return;
 
-        const step = e.shiftKey ? FINE_STEP : STEP;
+        // A2-KE-L1-18 — the four arrows and Shift's fine grain are the shared
+        // two-axis keymap (Amiga's canvas reads the same one); the Page keys,
+        // Home and End are this scene's own verbs.
+        const nudge = arrowNudge(e, { step: STEP, fine: FINE_STEP });
         let dx = 0;
         let dy = 0;
-        if (e.key === "ArrowRight") dx = step;
-        else if (e.key === "ArrowLeft") dx = -step;
-        else if (e.key === "ArrowDown") dy = step;
-        else if (e.key === "ArrowUp") dy = -step;
+        if (nudge) ({ dx, dy } = nudge);
         else if (e.key === "PageDown") dy = PAGE_STEP;
         else if (e.key === "PageUp") dy = -PAGE_STEP;
         else if (e.key === "Home" || e.key === "End") {

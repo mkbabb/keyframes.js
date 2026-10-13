@@ -83,15 +83,13 @@
                  word on the bold subject (the same display register the other
                  scene titles carry inward).
 
-                 P.W6 S1(a) — the per-axis 2D-slider-group ARIA contract. A single
+                 P.W6 S1(a) — the two-axis subject's ARIA contract. A single
                  `role="slider"` with a scalar `aria-valuenow` is a lossy
                  misrepresentation of a 2D drag (a 1D control reporting a blended
-                 scalar). Instead the box is the `role="group"` container (the 2D
-                 instrument) holding TWO visually-hidden `role="slider"` children, one
-                 per axis, each carrying a COMPLETE WCAG 4.1.2 contract
-                 (`aria-valuemin="-1"`, `aria-valuemax="1"`, live `:aria-valuenow`
-                 tracking `springX.target`/`springY.target`). The box stays the
-                 keyboard target (arrow nudges move both axis sliders).
+                 scalar). The box is the `role="group"` container (the 2D
+                 instrument) and the one keyboard target; it holds one
+                 visually-hidden read-out per axis, tracking
+                 `springX.target`/`springY.target` (the SubjectAxes seat below).
 
                  §B.1 row 5 — the ring idiom is `kf-focus-ring`, not the bare
                  `focus-ring`. glass-ui 7.0.0 ships a REALIZED `.focus-ring:focus-visible`
@@ -107,7 +105,7 @@
                  PageUp/Down, Home, End, `c`) was undeclared, and all three on-screen
                  instruction surfaces are `aria-hidden` — so there was no channel at
                  all. `aria-keyshortcuts` publishes the bindings and
-                 `aria-describedby` points at an sr-only twin of the visual hints. -->
+                 `aria-describedby` points at a visually-hidden twin of the visual hints. -->
             <div
                 ref="box"
                 class="demo-box text-display kf-focus-ring"
@@ -121,32 +119,23 @@
                 @pointerdown="onPointerDown"
                 @keydown="onKeydown"
             >
-                <span :id="keyboardHelpId" class="sr-only-slider">
+                <!-- A2-KE-L1-18 — the description and the two read-outs are the
+                     shared SubjectAxes seat (Amiga's canvas holds the same one):
+                     `role="status"` read-outs of each axis's commanded target,
+                     where two `role="slider"` spans stood with no tabindex and
+                     no keys (UIA-KF-291). The box is the keyboard target. -->
+                <SubjectAxes
+                    :help-id="keyboardHelpId"
+                    :axes="[
+                        { label: 'x', value: springReadout.x },
+                        { label: 'y', value: springReadout.y },
+                    ]"
+                >
                     Arrow keys nudge the box a quarter of its travel; hold Shift for a
                     fine nudge; Page Up and Page Down move a half-step vertically;
                     Home re-centres it; End sends it to the far corner; press C to
                     trace the travel envelope; double-tap to tumble.
-                </span>
-                <span
-                    class="sr-only-slider"
-                    role="slider"
-                    aria-label="Horizontal position"
-                    aria-orientation="horizontal"
-                    aria-valuemin="-1"
-                    aria-valuemax="1"
-                    :aria-valuenow="axisNow.x"
-                    :aria-valuetext="`x ${springReadout.x}`"
-                />
-                <span
-                    class="sr-only-slider"
-                    role="slider"
-                    aria-label="Vertical position"
-                    aria-orientation="vertical"
-                    aria-valuemin="-1"
-                    aria-valuemax="1"
-                    :aria-valuenow="axisNow.y"
-                    :aria-valuetext="`y ${springReadout.y}`"
-                />
+                </SubjectAxes>
                 drag me
             </div>
         </div>
@@ -172,6 +161,7 @@ import { kfEngine } from "@kf-engine";
 import { useDragScrub } from "@composables/useDragScrub";
 import { useDoubleTap } from "@composables/useDoubleTap";
 import { useSquareDemo } from "./useSquareDemo";
+import SubjectAxes from "@components/SubjectAxes/SubjectAxes.vue";
 import { useSquareKeyboard } from "./useSquareKeyboard";
 import SquareInstrument from "./SquareInstrument.vue";
 import SceneStageHeader from "../SceneStageHeader.vue";
@@ -217,7 +207,7 @@ const mode = ref<SquareMode>("idle");
 
 const box = useTemplateRef<HTMLElement>("box");
 
-/** D-4/D-7 — the id the box's `aria-describedby` points at (the sr-only twin of
+/** D-4/D-7 — the id the box's `aria-describedby` points at (the hidden twin of
  *  the three `aria-hidden` instruction surfaces). */
 const keyboardHelpId = useId();
 
@@ -237,8 +227,8 @@ const deflY = ref(0);
  * spring's VALUE — commanded and actual, side by side, under bare `x`/`y`, with
  * nothing saying which was which. They are derived from the SAME live deflection
  * the tether uses now, so the strip and the line can no longer disagree; the
- * per-axis `aria-valuenow`/`aria-valuetext` on the scene's slider children stay
- * the COMMANDED target, which is what a slider's value means.
+ * per-axis read-outs in the box's accessible subtree stay the COMMANDED target,
+ * which is what a keyboard nudge sets.
  *
  * C-3/L-D3 + L-4/C-12 — and the feed itself is no longer spring-only: the
  * renderer pumps these reads whichever writer is painting, so the strip tells
@@ -380,27 +370,18 @@ const takeOverFromPlayback = () => {
     mode.value = "idle";
 };
 
-// A live spring read-out for the slider's aria-valuetext (no per-frame Vue work
-// on the hot path — read on demand from the markRaw springs).
+// The per-axis read-out the box's accessible subtree announces: each spring's
+// COMMANDED target. Written at the few-Hz cadence the drag/keyboard events fire
+// (NOT the 60 Hz paint loop), so assistive tech reads the live target without
+// any hot-path Vue work; read on demand from the markRaw springs.
 const springReadout = reactive({ x: "0.00", y: "0.00" });
 
-// P.W6 S1(a) — the per-axis NUMERIC `aria-valuenow` (each axis slider's WCAG
-// 4.1.2 value). Written beside `springReadout` at the same few-Hz cadence the
-// drag/keyboard events fire (NOT the 60 Hz paint loop), so assistive tech reads
-// the live per-axis target without any hot-path Vue work. Rounded to 2 dp so a
-// screen reader announces a stable value, not float noise.
-const axisNow = reactive({ x: 0, y: 0 });
-
-// L-15 — ONE readout sync, ONE rounding rule. The pair was written from three
-// call sites with TWO rules (`toFixed(2)` on the text, `Math.round(v*100)/100`
-// on the number), which disagree at tie-adjacent doubles — so `aria-valuenow`
-// and `aria-valuetext` could announce different numbers for one position. Both
-// now derive from the SAME rounded value, in one place.
+// L-15 — ONE readout sync, ONE rounding rule (2 dp, so a screen reader
+// announces a stable value, not float noise). A2-KE-L1-18 retired the numeric
+// twin (`axisNow`) with the two inert slider spans that read it.
 const syncReadouts = () => {
-    axisNow.x = Math.round(springX.target * 100) / 100;
-    axisNow.y = Math.round(springY.target * 100) / 100;
-    springReadout.x = axisNow.x.toFixed(2);
-    springReadout.y = axisNow.y.toFixed(2);
+    springReadout.x = (Math.round(springX.target * 100) / 100).toFixed(2);
+    springReadout.y = (Math.round(springY.target * 100) / 100).toFixed(2);
 };
 
 // T.A13 — the FSM tracks the machine's play state. Play (rising edge) enters

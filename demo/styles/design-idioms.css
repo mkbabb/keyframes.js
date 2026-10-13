@@ -283,6 +283,23 @@
     white-space: nowrap;
 }
 
+/* .subject-axes-hidden — the accessible subtree of a keyboard-operable two-axis subject
+   (the SubjectAxes seat: its description and one read-out per axis). Semantic only: the
+   visible affordance is the subject itself, so the nodes are clipped out of paint and
+   layout and stay in the accessibility tree. They carry no tabindex; the subject is the
+   one keyboard target. */
+.subject-axes-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
 /* .stage-field-{x,y} — the ghosted coordinate frame: quarter-mark gridlines in the var(--border)
    hairline. `-y` rules the VALUE axis (horizontal lines + baseline); `-x` a TIME/POSITION axis. */
 .stage-field-y {
