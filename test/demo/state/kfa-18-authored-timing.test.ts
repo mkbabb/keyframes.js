@@ -4,7 +4,7 @@ import { beforeAll, describe, expect, it } from "vitest";
 import { warmKfEngine } from "../../../demo/kf-engine";
 import { CSSKeyframesAnimation } from "../../../src/animation/engine";
 import { getStoredAnimationOptions } from "../../../demo/state";
-import { useTimingFunctionEditor } from "../../../demo/components/instrument/transport/channel-controls/composables/useTimingFunctionEditor";
+import { useTimingFunctionEditor } from "@components/instrument/pane/channel-controls/composables/useTimingFunctionEditor";
 
 /**
  * KFA-18 / KFA-21 (X.KF.W13V.k) — an authored channel keeps its authored timing.

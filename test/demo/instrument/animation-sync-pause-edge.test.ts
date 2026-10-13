@@ -17,7 +17,7 @@
  */
 import { describe, expect, it } from "vitest";
 import { effectScope, nextTick, ref } from "vue";
-import { useAnimationSync } from "@components/instrument/transport/channel-controls/composables/useAnimationSync";
+import { useAnimationSync } from "@components/instrument/pane/channel-controls/composables/useAnimationSync";
 
 describe("useAnimationSync — the play-state edge settles the readout in the same flush", () => {
     it("a pause publishes the engine's paused time before any ticker frame", async () => {

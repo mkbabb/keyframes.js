@@ -111,7 +111,7 @@ const KeyframesStringControls = (
 ).default;
 const RibbonBar = (
     await import(
-        "@components/instrument/transport/controls-pane/RibbonBar.vue"
+        "@components/instrument/pane/RibbonBar.vue"
     )
 ).default;
 

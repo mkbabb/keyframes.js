@@ -132,7 +132,7 @@ vi.mock("@mkbabb/glass-ui/easing", () => ({
 }));
 
 const { default: ChannelOptions } =
-    await import("../../../demo/components/instrument/transport/channel-controls/ChannelOptions.vue");
+    await import("@components/instrument/pane/channel-controls/ChannelOptions.vue");
 
 const savedRO = (globalThis as { ResizeObserver?: unknown }).ResizeObserver;
 beforeAll(async () => {
@@ -422,7 +422,7 @@ describe("X.KF.W13X.controls — the keyframes reveal (KFA-118)", () => {
     it("(12) revealing the keyframes pane focuses it without scrolling the pane", async () => {
         const { effectScope, ref } = await import("vue");
         const { useKeyframesPaneReveal } = await import(
-            "../../../demo/components/instrument/transport/channel-controls/composables/useKeyframesPaneReveal"
+            "@components/instrument/pane/channel-controls/composables/useKeyframesPaneReveal"
         );
         const el = document.createElement("div");
         el.tabIndex = 0;

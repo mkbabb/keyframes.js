@@ -181,7 +181,7 @@ import { Copy, FileCode, Paintbrush, Sparkles } from "@lucide/vue";
 import { computed, inject, watch } from "vue";
 import { Button, Separator } from "@mkbabb/glass-ui";
 import type { StoredAnimationGroupControlOptions } from "@state";
-import { CHANNEL_COMMANDS_KEY } from "../injectionKeys";
+import { CHANNEL_COMMANDS_KEY } from "../transport/injectionKeys";
 
 // The ribbon's Buttons carry NO class string of their own: `size="sm"` +
 // `emphasis="secondary"` is the whole request, and the producer answers it

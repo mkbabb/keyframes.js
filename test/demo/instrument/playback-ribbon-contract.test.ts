@@ -139,7 +139,7 @@ const { default: PlaybackRibbon } =
     await import("../../../demo/components/playback/PlaybackRibbon.vue");
 type RibbonProps = InstanceType<typeof PlaybackRibbon>["$props"];
 const { default: ChannelOptions } =
-    await import("../../../demo/components/instrument/transport/channel-controls/ChannelOptions.vue");
+    await import("@components/instrument/pane/channel-controls/ChannelOptions.vue");
 const { TooltipProvider } = await import("@mkbabb/glass-ui/tooltip");
 
 type PointerCaptureSurface = {

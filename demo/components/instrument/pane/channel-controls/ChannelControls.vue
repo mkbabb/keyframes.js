@@ -174,7 +174,7 @@ import {
     watch,
 } from "vue";
 import type KeyframeTimelineComponent from "../../timeline/KeyframeTimeline.vue";
-import { CHANNEL_COMMANDS_KEY, type ChannelCommands } from "../injectionKeys";
+import { CHANNEL_COMMANDS_KEY, type ChannelCommands } from "../../transport/injectionKeys";
 import { useKeyframesPaneReveal } from "./composables/useKeyframesPaneReveal";
 import { useSelectedControlSurface } from "./composables/useSelectedControlSurface";
 import {

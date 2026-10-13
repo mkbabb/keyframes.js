@@ -130,7 +130,7 @@ import {
     seatTruthFor,
     useEasingPickerSeat,
     type SeatTruth,
-} from "@components/instrument/transport/channel-controls/composables/useEasingPickerSeat";
+} from "@components/instrument/pane/channel-controls/composables/useEasingPickerSeat";
 import type { EasingDemoContext } from "./easingKeys";
 
 const props = defineProps<{ demo: EasingDemoContext }>();

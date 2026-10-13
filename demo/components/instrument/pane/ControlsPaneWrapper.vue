@@ -285,12 +285,12 @@ import { FadingScroll } from "@mkbabb/glass-ui/fading-scroll";
 import { SheetContent } from "@mkbabb/glass-ui/sheet";
 import { createReusableTemplate, useMediaQuery } from "@vueuse/core";
 import { computed, shallowRef, useTemplateRef, watch } from "vue";
-import type { TransportChannel } from "../transportSource";
-import ChannelControls from "../channel-controls/ChannelControls.vue";
+import type { TransportChannel } from "../transport/transportSource";
+import ChannelControls from "./channel-controls/ChannelControls.vue";
 import RibbonBar from "./RibbonBar.vue";
-import SequenceTimeline from "../../timeline/SequenceTimeline.vue";
-import { useControlsLayout } from "../ControlsPaneWrapper/useControlsLayout";
-import { useFoldLanding } from "../ControlsPaneWrapper/useFoldLanding";
+import SequenceTimeline from "../timeline/SequenceTimeline.vue";
+import { useControlsLayout } from "./composables/useControlsLayout";
+import { useFoldLanding } from "./composables/useFoldLanding";
 // The sheet's bottom lift above the menubar is the `bottom` style set on
 // `<SheetContent>` in the template (D-B1; glass 10's sheet pins `bottom: 0` at
 // zero specificity, and its 7.0.0 `--drawer-inset-block-end` lever is gone).

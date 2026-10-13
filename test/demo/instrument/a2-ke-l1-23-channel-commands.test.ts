@@ -11,7 +11,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp, defineComponent, h, nextTick, reactive } from "vue";
 import * as transportKeys from "../../../demo/components/instrument/transport/injectionKeys";
-import RibbonBar from "../../../demo/components/instrument/transport/controls-pane/RibbonBar.vue";
+import RibbonBar from "@components/instrument/pane/RibbonBar.vue";
 import type { StoredAnimationGroupControlOptions } from "@state";
 
 const mounted: { unmount: () => void; el: HTMLElement }[] = [];

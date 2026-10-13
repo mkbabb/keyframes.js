@@ -130,7 +130,7 @@ import { CHANNEL_COMMANDS_KEY, createChannelCommandSeat } from "./injectionKeys"
 
 import { clamp } from "@mkbabb/value.js/math";
 
-import ControlsPaneWrapper from "./controls-pane/ControlsPaneWrapper.vue";
+import ControlsPaneWrapper from "../pane/ControlsPaneWrapper.vue";
 import TransportDock from "./TransportDock.vue";
 
 import { getStoredAnimationGroupControlOptions } from "@state";

@@ -107,3 +107,44 @@ describe("limb (b) — one composables convention: a sibling composables/ direct
         ]);
     });
 });
+
+describe("limb (a) — the pane is instrument/pane; transport/ keeps the dock and playback", () => {
+    const names = (rel: string): string[] => (has(rel) ? readdirSync(resolve(root, rel)).sort() : []);
+
+    it("transport/ holds the controls group, the dock, their keys and their composables", () => {
+        expect(names("demo/components/instrument/transport")).toEqual([
+            "AnimationControlsGroup.css",
+            "AnimationControlsGroup.vue",
+            "TransportDock.vue",
+            "composables",
+            "injectionKeys.ts",
+            "transportSource.ts",
+        ]);
+    });
+
+    it("pane/ holds the pane, its ribbon, its channel controls and (limb b) its composables/", () => {
+        expect(names("demo/components/instrument/pane")).toEqual([
+            "ControlsPaneWrapper.css",
+            "ControlsPaneWrapper.vue",
+            "RibbonBar.vue",
+            "channel-controls",
+            "composables",
+        ]);
+        expect(names("demo/components/instrument/pane/composables")).toEqual([
+            "useControlsLayout.ts",
+            "useFoldLanding.ts",
+            "usePaneHover.ts",
+        ]);
+    });
+
+    it("the pane reaches transport/ for keys and the channel type only, and transport/ mounts the pane once", () => {
+        const intoTransport = walk("demo/components/instrument/pane").flatMap((f) =>
+            specifiers(f).filter((s) => /(^|\/)transport\//.test(s)).map((s) => s.replace(/^.*transport\//, "")),
+        );
+        expect([...new Set(intoTransport)].sort()).toEqual(["injectionKeys", "transportSource"]);
+        const intoPane = walk("demo/components/instrument/transport").flatMap((f) =>
+            specifiers(f).filter((s) => /(^|\/)pane\//.test(s)).map((s) => `${f.replace(/^.*transport\//, "")} <- ${s}`),
+        );
+        expect(intoPane).toEqual(["AnimationControlsGroup.vue <- ../pane/ControlsPaneWrapper.vue"]);
+    });
+});

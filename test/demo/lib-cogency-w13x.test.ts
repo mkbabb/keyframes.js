@@ -104,7 +104,7 @@ describe("A2-KE-L1-21 — dead CSS and the tab-role idiom", () => {
 
     it("every surface panel carries the attribute the rule keys on", () => {
         const controls = source(
-            "demo/components/instrument/transport/channel-controls/ChannelControls.vue",
+            "demo/components/instrument/pane/channel-controls/ChannelControls.vue",
         );
         const panels = controls.match(/role="tabpanel"\n\s*data-surface-panel\n/g) ?? [];
         expect(panels).toHaveLength((controls.match(/^\s*role="tabpanel"$/gm) ?? []).length);

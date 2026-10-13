@@ -15,7 +15,7 @@ import { mount } from "@vue/test-utils";
 import { CSSKeyframesAnimation } from "../../../src/animation/engine";
 import { warmKfEngine } from "../../../demo/kf-engine";
 import * as transportKeys from "../../../demo/components/instrument/transport/injectionKeys";
-import { useSelectedControlSurface } from "../../../demo/components/instrument/transport/channel-controls/composables/useSelectedControlSurface";
+import { useSelectedControlSurface } from "@components/instrument/pane/channel-controls/composables/useSelectedControlSurface";
 import { useSceneMachine, type StoredAnimationGroupControlOptions } from "@state";
 
 beforeAll(async () => {

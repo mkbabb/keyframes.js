@@ -15,7 +15,7 @@ import { createApp, defineComponent, h, provide, ref, type Ref } from "vue";
 import { CSSKeyframesAnimation } from "../../../src/animation/engine";
 import { AnimationGroup } from "../../../src/animation/group";
 import { GROUP_PAINTS_KEY } from "../../../demo/components/instrument/transport/transportSource";
-import { useAnimationSync } from "../../../demo/components/instrument/transport/channel-controls/composables/useAnimationSync";
+import { useAnimationSync } from "@components/instrument/pane/channel-controls/composables/useAnimationSync";
 
 const frames = (ms: number) => new Promise((r) => setTimeout(r, ms));
 

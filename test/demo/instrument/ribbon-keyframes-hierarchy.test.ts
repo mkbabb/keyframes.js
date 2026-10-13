@@ -12,7 +12,7 @@
  */
 import { afterEach, describe, expect, it } from "vitest";
 import { createApp, h, reactive } from "vue";
-import RibbonBar from "../../../demo/components/instrument/transport/controls-pane/RibbonBar.vue";
+import RibbonBar from "@components/instrument/pane/RibbonBar.vue";
 
 const mounted: { unmount: () => void; el: HTMLElement }[] = [];
 afterEach(() => {

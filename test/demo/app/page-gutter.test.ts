@@ -86,7 +86,7 @@ describe("OA-64 — one page gutter for the phone controls and panes", () => {
     });
 
     it("(4) the Sheet body adds no inline padding of its own", () => {
-        const css = stripComments(read("demo/components/instrument/transport/controls-pane/ControlsPaneWrapper.css"));
+        const css = stripComments(read("demo/components/instrument/pane/ControlsPaneWrapper.css"));
         const phone = phoneBlocks(css).join("\n");
         const rule = phone.match(/\.controls-drawer-content \.controls-content\s*\{([^}]*)\}/);
         expect(rule, "the sheet body rule exists").not.toBeNull();

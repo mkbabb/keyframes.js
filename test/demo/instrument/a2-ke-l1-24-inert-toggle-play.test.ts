@@ -21,13 +21,13 @@ describe("X.KF.W13X.r4transport — the ribbon mounts", () => {
         for (const rel of ["demo/scenes/easing/EasingScene.vue", "demo/scenes/spring/SpringScene.vue"]) {
             expect(read(rel)).not.toMatch(/onTogglePlay/);
         }
-        const options = read("demo/components/instrument/transport/channel-controls/ChannelOptions.vue");
+        const options = read("demo/components/instrument/pane/channel-controls/ChannelOptions.vue");
         expect(options).not.toMatch(/@toggle-play/);
         expect(options).not.toMatch(/"togglePlay"/);
         for (const rel of [
-            "demo/components/instrument/transport/channel-controls/ChannelControls.vue",
-            "demo/components/instrument/transport/controls-pane/ControlsPaneWrapper.vue",
-            "demo/components/instrument/transport/channel-controls/composables/usePlaybackToggle.ts",
+            "demo/components/instrument/pane/channel-controls/ChannelControls.vue",
+            "demo/components/instrument/pane/ControlsPaneWrapper.vue",
+            "demo/components/instrument/pane/channel-controls/composables/usePlaybackToggle.ts",
         ]) {
             expect(read(rel)).not.toMatch(/togglePlay|toggle-play|toggleAnimation\b/);
         }

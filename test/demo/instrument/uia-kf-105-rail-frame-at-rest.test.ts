@@ -12,10 +12,10 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp, defineComponent, h, nextTick, reactive } from "vue";
 
-vi.mock("../../../demo/components/instrument/transport/channel-controls/ChannelControls.vue", () => ({
+vi.mock("@components/instrument/pane/channel-controls/ChannelControls.vue", () => ({
     default: defineComponent({ name: "ChannelControlsStub", setup: () => () => h("div") }),
 }));
-vi.mock("../../../demo/components/instrument/transport/controls-pane/RibbonBar.vue", () => ({
+vi.mock("@components/instrument/pane/RibbonBar.vue", () => ({
     default: defineComponent({ name: "RibbonBarStub", setup: () => () => h("div") }),
 }));
 vi.mock("../../../demo/components/instrument/timeline/SequenceTimeline.vue", () => ({
@@ -23,7 +23,7 @@ vi.mock("../../../demo/components/instrument/timeline/SequenceTimeline.vue", () 
 }));
 
 const { default: ControlsPaneWrapper } =
-    await import("../../../demo/components/instrument/transport/controls-pane/ControlsPaneWrapper.vue");
+    await import("@components/instrument/pane/ControlsPaneWrapper.vue");
 
 const mounted: { unmount: () => void; el: HTMLElement }[] = [];
 afterEach(() => {

@@ -1,7 +1,7 @@
 import { computed, inject, ref } from "vue";
 import type { ComputedRef } from "vue";
 import { useIdle, useTimeoutFn } from "@vueuse/core";
-import { CONTROLS_PANE_HOVER_KEY } from "../injectionKeys";
+import { CONTROLS_PANE_HOVER_KEY } from "../../transport/injectionKeys";
 
 /** Global window idle threshold before the controls pane rest-dims (F9). */
 const IDLE_MS = 10_000;

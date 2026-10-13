@@ -217,7 +217,7 @@ vi.mock("@mkbabb/glass-ui/easing", () => ({
 }));
 
 const { default: ControlsPaneWrapper } =
-    await import("../../../demo/components/instrument/transport/controls-pane/ControlsPaneWrapper.vue");
+    await import("@components/instrument/pane/ControlsPaneWrapper.vue");
 // The app mounts ONE TooltipProvider at its root (the ribbon's tooltips inject
 // it); the subpath is clean (its closure reaches no keyframes.js import).
 const { TooltipProvider } = await import("@mkbabb/glass-ui/tooltip");
