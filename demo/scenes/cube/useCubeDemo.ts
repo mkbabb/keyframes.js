@@ -47,8 +47,18 @@ export function useCubeDemo(
     matrixAnim.value.name = CUBE_ANIMATION_NAMES.Matrix;
     matrixAnim.value.superKey = CUBE_SCENE_ID;
 
+    // MATRIX-PAUSED-EDIT-UNPAINTED (X.KF.W13X.r4cube) — `adoptCompiled` re-keys
+    // the channel without painting it. Idle, the pre-start painter
+    // (`useTransformState`'s `paintTarget`) shows the edit; playing, the next
+    // group tick does; PAUSED, nothing did, so a cell edit or a Reset moved the
+    // digits and never the die. The started group owns the element (one writer
+    // per element, KFA-2), so the paused frame is repainted by the group itself
+    // at every child's own playhead (`render()`, the same verb the scrub's
+    // seek paints with). Playback is not resumed.
     watch([matrix3dStart, matrix3dEnd], () => {
         matrixAnim.value.adoptCompiled(compileMatrixAnimation());
+        const group = animationGroup.value;
+        if (group.started && group.paused) group.render();
     });
 
     const rotationAnimationOptions = getStoredAnimationOptions(
