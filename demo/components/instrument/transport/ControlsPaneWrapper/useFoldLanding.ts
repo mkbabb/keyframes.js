@@ -31,6 +31,13 @@ import type { Ref, ShallowRef } from "vue";
  * frame cleanly. The moment the reader scrolls, the fade returns, and with it
  * the cue for whatever is still below; back at the top, it lands again.
  *
+ * X-DS r5 pass 3 (KF-C3R-01) — THE FOOT AND THE RIBBON'S RULE ARE TWO LINES.
+ * Landed exactly on the foot, a bordered row (the spring preset tiles at
+ * 1440x900) drew its bottom border on the ribbon's hairline: one doubled edge.
+ * The scroller now ends one row gap below the foot (its own
+ * `scroll-padding-block-end`, ControlsPaneWrapper.css), and never as far as
+ * the next row or separator, which stay under the fold.
+ *
  * "Rows" are what paints: an element with its own text, a replaced element, or
  * a painted box (fill or border); hairline separators and empty layout boxes
  * are not content. It runs only when the scroller's content or the viewport
@@ -109,6 +116,14 @@ function contentSpans(scroller: HTMLElement): Span[] {
     return spans;
 }
 
+/** The tops of the scroller's visible separators, in its unscrolled content box. */
+function ruleTops(scroller: HTMLElement): number[] {
+    const origin = scroller.getBoundingClientRect().top + scroller.clientTop - scroller.scrollTop;
+    return [...scroller.querySelectorAll(SEPARATOR)]
+        .filter((el) => el.checkVisibility({ contentVisibilityAuto: true, visibilityProperty: true }))
+        .map((el) => el.getBoundingClientRect().top - origin);
+}
+
 function fadePx(scroller: HTMLElement): number {
     const raw = getComputedStyle(scroller).getPropertyValue("--fade-scroll-width").trim();
     const n = Number.parseFloat(raw);
@@ -119,9 +134,9 @@ function fadePx(scroller: HTMLElement): number {
 }
 
 /**
- * Land one scroller's fold on content: a row under the fade (`"cue"`), or a
- * row's foot (`"foot"`, where the end fade must be off); `"none"` when nothing
- * overflows or no row can be landed on.
+ * Land one scroller's fold on content: a row under the fade (`"cue"`), or one
+ * row gap under a row's foot (`"foot"`, where the end fade must be off);
+ * `"none"` when nothing overflows or no row can be landed on.
  */
 export function landFold(scroller: HTMLElement): "cue" | "foot" | "none" {
     scroller.style.maxBlockSize = "";
@@ -133,8 +148,13 @@ export function landFold(scroller: HTMLElement): "cue" | "foot" | "none" {
     const limit = Math.min(fold, ...spans.filter((s) => s.bottom > fold).map((s) => s.top));
     const feet = spans.filter((s) => s.bottom <= limit).map((s) => s.bottom);
     if (feet.length === 0) return "none";
+    const foot = Math.ceil(Math.max(...feet));
+    // One row gap of air under the foot, short of whatever paints next.
+    const gap = Number.parseFloat(getComputedStyle(scroller).scrollPaddingBlockEnd) || 0;
+    const next = [...spans.map((s) => s.top), ...ruleTops(scroller)].filter((top) => top >= foot);
+    const end = Math.max(foot, Math.min(foot + gap, fold, ...next.map(Math.floor)));
     const chrome = scroller.offsetHeight - scroller.clientHeight;
-    scroller.style.maxBlockSize = `${Math.ceil(Math.max(...feet)) + chrome}px`;
+    scroller.style.maxBlockSize = `${end + chrome}px`;
     return "foot";
 }
 

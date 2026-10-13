@@ -153,6 +153,12 @@
         flex: 1 1 auto;
         min-block-size: 0;
         overscroll-behavior: contain;
+        /* X-DS r5 pass 3 (KF-C3R-01) — the air the scroller keeps under the
+           row its fold lands on: the facets' own row gap (their `gap-2`), so
+           a bordered row's foot and the ribbon's rule are two lines.
+           `useFoldLanding` reads this; it is also the room a focused control
+           scrolled into view keeps from the fold. */
+        scroll-padding-block-end: calc(var(--spacing) * 2);
     }
     .controls-pane-wrapper.controls-pane--open {
         pointer-events: auto;
