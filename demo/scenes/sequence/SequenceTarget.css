@@ -202,12 +202,19 @@
    takes the stage cell below lg too, so the lg gate left the phone's lanes at
    the J.WZ 0.15rem pitch in a 169 px strip of a 600 px plate. The gate and that
    mobile override (written for the old hugging plate overflowing under the
-   sheet at 375x667) are retired; the floor above still scrolls a short cell. */
+   sheet at 375x667) are retired; the floor above still scrolls a short cell.
+   X-DS r6 pass 3 (KF-C3-01) — THE FIGURE SITS UNDER ITS HEADING. The free
+   block was shared over n + 1 gaps and the lanes centred, so only the n - 1
+   gaps between lanes were drawn and the other two became empty bands (~115 px
+   above lane 1 and ~100 px under lane 5 at 1440, ~120 / ~100 at 390): the title
+   was cut off from its figure. The lanes now start at the storyboard's own
+   block padding under the title row (one rhythm gap) and the free block goes
+   into the n - 1 lane gaps; past the cap, the rest falls under the last lane. */
 .seq-storyboard {
     container-type: size;
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: flex-start;
     min-block-size: calc(3rem + var(--seq-n, 5) * 2rem + (var(--seq-n, 5) - 1) * 1rem);
 }
 .seq-stage {
@@ -217,7 +224,7 @@
 .seq-rows {
     row-gap: clamp(
         1rem,
-        (100cqb - 3rem - var(--seq-n, 5) * var(--seq-lane)) / (var(--seq-n, 5) + 1),
+        (100cqb - 3rem - var(--seq-n, 5) * var(--seq-lane)) / (var(--seq-n, 5) - 1),
         4.5rem
     );
 }

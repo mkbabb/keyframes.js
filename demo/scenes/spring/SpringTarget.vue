@@ -64,10 +64,9 @@
         <SceneStageHeader
             title="Spring"
             :status="stateLabel"
-            class="spring-header flex w-full max-w-3xl flex-wrap items-end justify-between gap-3 gap-y-2 shrink-0"
+            class="spring-header flex w-full max-w-3xl shrink-0"
             title-class="whitespace-nowrap leading-none"
             id-class="flex flex-col gap-1 min-w-0"
-            aside-class="flex flex-col items-end gap-1 shrink-0"
         >
             <template #readouts>
                 <!-- X.KF.W13V.y (OA-51; DESIGN-NOTE N-3 · N-6) — the title is the
@@ -78,27 +77,34 @@
                      the sampler is the thing moving, so the primary readout is
                      its value, labelled "sweep"; the resting solver's position
                      steps down to the quiet rung beside it. -->
-                <div class="stage-readout">
-                    <span>{{ sweepLeads ? "sweep" : "position" }}</span>
-                    <span class="spring-readout-primary" data-readout="primary">{{
-                        (sweepLeads ? demo.sampled.value : demo.liveValue.value).toFixed(3)
-                    }}</span>
-                </div>
-            </template>
-            <template #aside>
-                <!-- X-DS pass 4 (KF-C4-08) — position's peer readout wears the
-                     same anatomy: a sans muted label and a Fira Code tabular
-                     value, one rung below position (it was one fused mono
-                     string, so the pair read as a headline and a footnote).
-                     N-2 — the label is lowercase and transform-free, so it
-                     never renders as "V". -->
-                <div v-if="sweepLeads" class="stage-readout">
-                    <span>position</span>
-                    <span class="spring-readout-secondary">{{ demo.liveValue.value.toFixed(3) }}</span>
-                </div>
-                <div v-else class="stage-readout">
-                    <span>velocity</span>
-                    <span class="spring-readout-secondary">{{ demo.liveVelocity.value.toFixed(2) }}</span>
+                <!-- X-DS r6 pass 3 (KF-C3-04) — ONE STATE, ONE ROW: position
+                     and its partner (velocity, or position while the sweep
+                     leads) sit on one baseline row under the title, the partner
+                     a fixed gap-x rung after the primary. They stood at the
+                     header's two edges (the aside, `justify-between`), ~650 px
+                     apart at 1440, so the partner read as an orphan. The row
+                     may wrap at a narrow card; it never spreads. -->
+                <div class="flex flex-wrap items-baseline gap-x-6 gap-y-1">
+                    <div class="stage-readout">
+                        <span>{{ sweepLeads ? "sweep" : "position" }}</span>
+                        <span class="spring-readout-primary" data-readout="primary">{{
+                            (sweepLeads ? demo.sampled.value : demo.liveValue.value).toFixed(3)
+                        }}</span>
+                    </div>
+                    <!-- X-DS pass 4 (KF-C4-08) — position's peer readout wears the
+                         same anatomy: a sans muted label and a Fira Code tabular
+                         value, one rung below position (it was one fused mono
+                         string, so the pair read as a headline and a footnote).
+                         N-2 — the label is lowercase and transform-free, so it
+                         never renders as "V". -->
+                    <div v-if="sweepLeads" class="stage-readout">
+                        <span>position</span>
+                        <span class="spring-readout-secondary">{{ demo.liveValue.value.toFixed(3) }}</span>
+                    </div>
+                    <div v-else class="stage-readout">
+                        <span>velocity</span>
+                        <span class="spring-readout-secondary">{{ demo.liveVelocity.value.toFixed(2) }}</span>
+                    </div>
                 </div>
             </template>
         </SceneStageHeader>

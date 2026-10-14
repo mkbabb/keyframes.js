@@ -269,6 +269,55 @@ function pageCensus() {
         const k = l.match(/oklch\(([\d.]+)/);
         return k ? Number(k[1]) > 0.85 : false;
     };
+    // X-DS r6 pass 3 (KF-C3-03) — a DRAWN RULE is content, not a fill. A
+    // gradient whose every layer is two-tone (one ink plus transparent) with
+    // hard stops only, and whose ink runs are each at most 1px wide, draws
+    // hairlines (a scale's ticks, a graph's rules); it lights nothing. Such a
+    // background is not counted as a control gradient. Positions read as
+    // `N%`, `Npx` or `calc(N% ± Mpx)`; anything else is not exempt.
+    const pos = (t) => {
+        let m = t.match(/^(-?[\d.]+)(px|%)$/);
+        if (m) return m[2] === "%" ? { pct: +m[1], px: 0 } : { pct: 0, px: +m[1] };
+        m = t.match(/^calc\((-?[\d.]+)%\s*([+-])\s*([\d.]+)px\)$/);
+        if (m) return { pct: +m[1], px: (m[2] === "-" ? -1 : 1) * +m[3] };
+        return null;
+    };
+    const COLOR = /^(?:rgba?\([^)]*\)|oklch\([^)]*\)|color\([^)]*\)|transparent)/;
+    const clear = (c) => c === "transparent" || /rgba\([^)]*,\s*0\)$/.test(c) || /\/\s*0\)$/.test(c);
+    const ruleLayer = (layer) => {
+        const m = layer.match(/^(?:repeating-)?linear-gradient\((.*)\)$/);
+        if (!m) return false;
+        const parts = split(m[1]);
+        if (!COLOR.test(parts[0])) parts.shift(); // the direction or angle
+        const stops = [];
+        for (const p of parts) {
+            const c = p.match(COLOR);
+            if (!c) return false;
+            const ps = p.slice(c[0].length).trim().split(/\s+(?![^(]*\))/).filter(Boolean).map(pos);
+            if (ps.some((x) => x === null)) return false;
+            if (ps.length === 0) return false;
+            for (const x of ps) stops.push({ c: c[0], clear: clear(c[0]), at: x });
+        }
+        const inks = new Set(stops.filter((t) => !t.clear).map((t) => t.c));
+        if (inks.size !== 1) return false;
+        // Hard stops: every colour change happens at one position.
+        const same = (a, b) => a.pct === b.pct && a.px === b.px;
+        for (let i = 1; i < stops.length; i++) if (stops[i].clear !== stops[i - 1].clear && !same(stops[i].at, stops[i - 1].at)) return false;
+        // Ink runs at most 1px: a run's ends differ by px only, by ≤ 1. A
+        // leading ink stop with one position starts at 0px.
+        let i = 0;
+        while (i < stops.length) {
+            if (stops[i].clear) { i++; continue; }
+            const a = i === 0 && stops.length > 1 && !stops[1].clear ? stops[0].at : i === 0 ? { pct: 0, px: 0 } : stops[i].at;
+            let j = i;
+            while (j + 1 < stops.length && !stops[j + 1].clear) j++;
+            const b = stops[j].at;
+            if (a.pct !== b.pct || Math.abs(b.px - a.px) > 1) return false;
+            i = j + 1;
+        }
+        return true;
+    };
+    const ruleOnly = (bg) => split(bg).every(ruleLayer);
     const label = (el) => {
         const id = el.id ? `#${el.id}` : "";
         const cls = typeof el.className === "string" ? el.className.trim().split(/\s+/).slice(0, 3).join(".") : "";
@@ -278,6 +327,7 @@ function pageCensus() {
         chrome: { shadowEls: 0, shadowLayers: 0, maxLayers: 0, nonFloatingShadowEls: 0, insetHighlights: 0, textShadow: 0, dropShadow: 0, filterBlur: 0, backdropBlur: 0, controlGradients: 0, loopingAnimations: 0 },
         subject: { shadowEls: 0, shadowLayers: 0, maxLayers: 0, nonFloatingShadowEls: 0, insetHighlights: 0, textShadow: 0, dropShadow: 0, filterBlur: 0, backdropBlur: 0, controlGradients: 0, loopingAnimations: 0, gradientFills: 0 },
         identityGradients: 0,
+        drawnRules: 0,
         offenders: [],
     };
     const offend = (bucket, kind, el, detail) => {
@@ -322,6 +372,7 @@ function pageCensus() {
         if (bf && bf !== "none" && /blur\(/.test(bf)) b.backdropBlur++;
         if (/gradient\(/.test(cs.backgroundImage)) {
             if (el.matches(IDENTITY)) r.identityGradients++;
+            else if (ruleOnly(cs.backgroundImage)) r.drawnRules++;
             else if (el.matches(CONTROL) || el.closest(CONTROL)) {
                 b.controlGradients++;
                 offend(bucket, "control-gradient", el, cs.backgroundImage);
