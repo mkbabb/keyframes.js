@@ -588,10 +588,29 @@ const formatCSSContent = async () => {
     toast({ title: "CSS formatted", tone: "success" });
 };
 
+// X.KF.W13X · KFA-81 (stall limb, ESC-r4shell-1, COHESION §0fa item 3) — the
+// boot runs PAST THE PANE'S FIRST PAINT, in the first idle period after it.
+// Called inline from `onMounted`, Monaco's chunk evaluation, `editor.create`
+// and its first layout landed in the very frame that mounts the pane, so a
+// scene entry that reveals the Keyframes surface stalled ~0.5 s before its
+// first frame could present. The well paints at once under its Skeleton
+// (`phase === 'booting'`) and the editor fills it when the page is idle:
+// `requestIdleCallback` where the engine ships it (the house idiom of
+// `warmScenesAtIdle` and the Keyframes warm), else one task past the next
+// paint. It waits on the frame, never on a clock: no fixed delay. Retry stays
+// a direct boot (a user act wants its answer now).
+const initAfterPaint = () => {
+    const run = () => {
+        if (!disposed) void initEditor();
+    };
+    if ("requestIdleCallback" in window) requestIdleCallback(run);
+    else requestAnimationFrame(() => setTimeout(run));
+};
+
 onMounted(() => {
     const el = containerEl.value!;
     if (el.offsetWidth > 0 && el.offsetHeight > 0) {
-        initEditor();
+        initAfterPaint();
         return;
     }
     // Deferred init: wait for the container to gain non-zero size, then
@@ -602,7 +621,7 @@ onMounted(() => {
         const entry = entries[0];
         if (entry && entry.contentRect.width > 0 && entry.contentRect.height > 0) {
             stop();
-            initEditor();
+            initAfterPaint();
         }
     });
 });

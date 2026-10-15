@@ -286,4 +286,33 @@ describe("G-KFW12-4 — the Monaco seam", () => {
         await sleep(350);
         expect(updateFromString).toHaveBeenCalledWith(FORMATTED);
     });
+
+    // X.KF.W13X.r4init — KFA-81 stall limb (ESC-r4shell-1, COHESION §0fa item 3).
+    // Booted inline from `onMounted`, Monaco's evaluation and `editor.create`
+    // landed in the frame that mounts the pane (a 525 ms LoAF on a cold cube
+    // entry, `evidence/W13X/r4shell/swapprof-gh-coldcube.txt`). The boot now
+    // waits for the first idle period after the pane's paint; the well holds
+    // its Skeleton (`aria-busy`) until then. The idle queue is driven by hand.
+    it("(5) KFA-81: the editor boots in the first idle period after the pane paints, the well busy under its Skeleton until then", async () => {
+        const idle: Array<() => void> = [];
+        const w = window as unknown as { requestIdleCallback?: (cb: () => void) => number };
+        w.requestIdleCallback = (cb) => idle.push(cb);
+        try {
+            mounted = mount(CSSCodeEditor, {
+                props: { modelValue: "a { color: red }" },
+                attachTo: document.body,
+            });
+            // Longer than a boot takes when it is not held (the cases above).
+            await sleep(600);
+            expect(mounted.element.querySelector(".monaco-editor")).toBeNull();
+            expect(mounted.element.querySelector("[aria-busy='true']")).not.toBeNull();
+            expect(mounted.element.querySelector("[data-stub='Skeleton']")).not.toBeNull();
+            expect(idle.length).toBe(1);
+            idle.splice(0).forEach((run) => run());
+            await booted(mounted);
+            expect(mounted.element.querySelector("[aria-busy='true']")).toBeNull();
+        } finally {
+            delete w.requestIdleCallback;
+        }
+    });
 });
