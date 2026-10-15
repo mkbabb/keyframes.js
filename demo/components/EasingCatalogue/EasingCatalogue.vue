@@ -261,7 +261,13 @@ const rowsOf = (drawer: HTMLElement, selector: string) => {
         };
     });
 };
+/*  X-DS r6 pass 7 (KF-C7-02 · KF-C7-03) — the fold is landed by HEIGHT only in
+ *  the menu, which is content-sized under its max-height. The stage drawer
+ *  keeps the stage's free block: shrinking it shortened the plate below its
+ *  siblings' (1440) and left the stage's free block under a cut last tile
+ *  (390). It lands its rows by scroll (`landTop`). */
 const landDrawer = () => {
+    if (props.density !== "menu") return;
     const drawer = drawerEl.value?.$el;
     if (!(drawer instanceof HTMLElement)) return;
     drawer.style.maxBlockSize = "";
@@ -315,8 +321,17 @@ const landTop = () => {
         all.filter((at) => at >= (tile ? tile.bottom + room - port : 0) && at <= high);
     const rests = within(padEnd).length > 0 ? within(padEnd) : within(0);
     const now = drawer.scrollTop;
-    if (rests.length === 0 || rests.some((at) => Math.abs(at - now) <= 1)) return;
-    drawer.scrollTop = rests.reduce((a, b) => (Math.abs(b - now) < Math.abs(a - now) ? b : a));
+    if (rests.length === 0) return;
+    let at = rests.reduce((a, b) => (Math.abs(b - now) < Math.abs(a - now) ? b : a));
+    // X-DS r6 pass 7 (KF-C7-02) — AND THE BOTTOM EDGE LANDS: a rest that
+    // leaves less than one row of scroll cuts the drawer's last row at the
+    // fold (steps-end 69 of 107 px, 54 px of scroll left, at 390). The drawer
+    // then rests at its end, where the last row is whole, provided the
+    // selected tile stays whole too (`high`).
+    const row = Math.min(...marks.map((m) => m.bottom - m.top).filter((h) => h > 0));
+    if (max - at < row && max <= high + padStart) at = max;
+    if (Math.abs(at - now) <= 1) return;
+    drawer.scrollTop = at;
 };
 // The tiles are `content-visibility: auto` (a 132 px placeholder until first
 // rendered): a tile a pick or a focus scroll brings on screen renders at its

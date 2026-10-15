@@ -116,7 +116,12 @@
              sweep-readout row, a 128 px plot), so a reading eye found no
              primary; the sweep readout now sits in the trace's one legend
              line, subordinate. -->
-        <figure class="spring-figure m-0 flex w-full max-w-3xl min-h-0 flex-1 flex-col gap-6" data-subject>
+        <!-- X-DS r6 pass 7 (KF-C7-05) — ONE RIGHT EDGE: the figure carries the
+             plot's inline box (`--plot-inset`, the rail's overshoot band), and
+             at lg every text row of the figure (the caption with Re-seat, the trace's
+             title and legend) sits on it, so Re-seat lands under the rail's
+             right end and the legend ends where the plot does. -->
+        <figure class="spring-figure m-0 flex w-full max-w-3xl min-h-0 flex-1 flex-col gap-6" :style="figureInset" data-subject>
         <!-- The rail: tap/drag to re-seat the live target -->
         <div class="flex w-full flex-col items-center justify-center gap-6">
             <!-- J.W7a S4 (D17 / C2) — the displacement rail carries the shared
@@ -314,11 +319,9 @@
              the track reads), so value 0 on the rail and t = 0 on the plot
              share an x, and the horizon sits under the value-1 tick.
              X-DS r5 pass 4 (KF-C4-04) — the inset is the PLOT's (`--plot-inset`,
-             read by SpringTrace's plot box): the trace's title row keeps the
-             text gutter. -->
+             read by SpringTrace). r6 pass 7 (KF-C7-05): set on the figure. -->
         <SpringTrace
             ref="traceEl"
-            :style="figureInset"
             :response="demo.response.value"
             :damping-fraction="demo.dampingFraction.value"
             :sweep="demo.sampled.value"
@@ -1054,6 +1057,14 @@ const onKeydown = (e: KeyboardEvent) => {
 /* KFA-40 — the hint + Re-seat row steps back under the derby's legend. */
 .spring-rail-verbs {
     transition: opacity var(--duration-fast) ease;
+}
+/* X-DS r6 pass 7 (KF-C7-05) — at lg the row stands on the plot's inline box,
+   so Re-seat ends under the rail's right end (below lg the caption keeps the
+   plate's full measure; KF-C9-09 drops Re-seat under it there). */
+@media (min-width: 1024px) {
+    .spring-rail-verbs {
+        padding-inline: var(--plot-inset, 0);
+    }
 }
 /* X-DS pass 9 (KF-C9-09) — the caption claims a 20 rem basis, so the wrapping
    row drops Re-seat under it on a narrow plate. */

@@ -394,13 +394,16 @@ defineExpose({ hostEl, columnEl });
     /* figures in the mono register, as written (no caption uppercasing) */
     text-transform: none;
 }
-/* The end labels reach back across the inset to the track's own ends (KF-C1-16:
-   "0%" starts where the rail starts, "100%" ends where it ends). */
+/* X-DS r6 pass 7 (KF-C7-06) — EVERY LABEL CENTRES ON ITS LINE. The end labels
+   used to start flush at the track's own ends (KF-C1-16), so "0%" sat ~11 px
+   left of the gridline it names while every other label centred on its line.
+   They now take the one rule, hanging inward only by what the inset cannot
+   hold (the KF-C19-T1 form, which the labelled start below already used). */
 .lane-track-tick-label[data-edge="start"] {
-    translate: calc(-1 * var(--lane-track-inset)) 0;
+    translate: max(-50%, -1 * var(--lane-track-inset)) 0;
 }
 .lane-track-tick-label[data-edge="end"] {
-    translate: calc(-100% + var(--lane-track-inset)) 0;
+    translate: min(-50%, -100% + var(--lane-track-inset)) 0;
 }
 /* X-DS pass 15 (KF-C19-T1) — on a LABELLED track the room before the origin is
    the label column's gap, so the start label keeps the rule every other tick

@@ -29,7 +29,7 @@
         <!-- §0dz — the row WRAPS: with the sweep clause the legend no longer
              fits beside the title at phone width, so it drops beneath it
              (one unbroken line itself) instead of running over the title. -->
-        <div class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 mb-2">
+        <div class="trace-title-row flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 mb-2">
             <!-- D-11 — the primary slot names the plot; it no longer dresses the
                  invariant stop count as a live readout (the count is a fact about
                  the sampling grid and lives on the time axis, below). -->
@@ -52,9 +52,8 @@
              marks and tick labels presentational beneath it. -->
         <!-- X-DS r5 pass 4 (KF-C4-04) — the PLOT takes the figure's inset
              (`--plot-inset`, the rail's overshoot band, set by SpringTarget),
-             not the whole trace: the title row above stays on the stage's text
-             gutter, with the title, the readout and the caption. The stage has
-             two left edges, the text gutter and the value-0 axis. -->
+             (r6 pass 7, KF-C7-05: and at lg the title row with it, so the
+             figure has one right edge). -->
         <div role="img" :aria-label="figureLabel" class="plot-figure flex min-h-0 flex-1 flex-col">
             <div class="plot-frame">
                 <!-- Layer 1 — the reference geometry, NEUTRAL (D-3/D-4/N-3, the
@@ -380,9 +379,18 @@ const figureLabel = computed(
    arms (this seat's arithmetic; 45 % reads 2.85 light — 55 % is the first rung
    that clears both). */
 /* X-DS r5 pass 4 (KF-C4-04) — the plot's inline inset (the rail's overshoot
-   band, SpringTarget's `--plot-inset`); the title row above it takes none. */
+   band, SpringTarget's `--plot-inset`).
+   X-DS r6 pass 7 (KF-C7-05) — at lg the title row takes it too: the legend
+   ran ~110 px past the plot's right end, so the figure had two right edges.
+   Below lg the band is a large share of a phone plate, and an inset title row
+   would push the one-line legend past the plot, so the row keeps the gutter. */
 .plot-figure {
     padding-inline: var(--plot-inset, 0);
+}
+@media (min-width: 1024px) {
+    .trace-title-row {
+        padding-inline: var(--plot-inset, 0);
+    }
 }
 /* X.KF.W13W.b (OA-56) — 4.5rem → 8rem: the frame is now also the plot box the
    spring's balls ride (the live ball + the sweep sampler), so the value range

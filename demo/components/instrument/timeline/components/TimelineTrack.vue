@@ -126,14 +126,18 @@
              focus ring carry the affordance.
              X-DS r6 pass 6 (KF-C6-07) — an empty track draws no playhead: the
              editor's own lane time has nothing to time there, and a violet
-             mark parked at 0 while the subject plays read as "stopped". -->
+             mark parked at 0 while the subject plays read as "stopped".
+             X-DS r6 pass 7 (KF-C7-06) — and an empty track keeps the resting
+             rung (h-12) when unfolded: a 127 px empty well outweighed the
+             notice under it, the one actionable line. The taller well is room
+             for stops, so it comes with the first one. -->
         <LaneTrack
             ref="laneTrack"
             :id="railId"
             :data-expanded="expanded ? 'true' : undefined"
             :class="[
                 'kf-focus-ring timeline-track relative rounded-[var(--radius-field)] border border-border bg-muted cursor-pointer select-none overflow-x-clip overflow-y-visible touch-pan-y',
-                expanded ? 'h-32' : 'h-12',
+                expanded && sortedKeyframes.length > 0 ? 'h-32' : 'h-12',
             ]"
             scrub-label="Playhead — scrub the animation"
             :value="scrubT * 100"

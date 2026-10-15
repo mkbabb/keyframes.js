@@ -33,10 +33,20 @@ export function useSceneSwap(
     lastSwapBackend: Ref<ViewTransitionHandle["backend"] | null>,
 ) {
     const sceneOpacity = ref(1);
+    // X-DS r6 pass 7 (KF-C7-01) — AT REST THE HOST CARRIES NO TRANSFORM. The
+    // fade's end state (`transform: scale(1)`) stayed inline on the scene host
+    // after every fade, and a host left with a transform after an animated
+    // leg kept the stage plates' backdrop stale: the plates computed
+    // `blur(16px)` and showed the page's graph paper crisp until something
+    // repainted them (served, headless Chrome 1440x900 after a hard load:
+    // grid-line contrast inside the Spring plate 27.2, inside the Square
+    // plate 26.8; with no transform at rest, the material's 2.8 / 1.6). The
+    // fade is unchanged while it runs; the opacity stays the host's one
+    // readable channel (1 at rest, which makes no stacking context).
     const sceneSwapStyle = computed(() => ({
         opacity: sceneOpacity.value,
         // lerp(0.97, 1, v): subtle scale-up as the scene settles in.
-        transform: `scale(${0.97 + 0.03 * sceneOpacity.value})`,
+        ...(sceneOpacity.value < 1 ? { transform: `scale(${0.97 + 0.03 * sceneOpacity.value})` } : {}),
     }));
 
     // KFA-12 (X.KF.W13V.k) — the spring stands down ONLY for a swap a native

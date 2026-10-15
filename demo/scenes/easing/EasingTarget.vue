@@ -14,10 +14,16 @@
          it hangs from the stage's top (`self-start`). The drawer still takes
          what the cap leaves (`flex-1 min-h-0`); when its fold lands on a row
          (EasingCatalogue's `landDrawer`), the freed height leaves the plate
-         instead of standing under the fold as bare card. -->
+         instead of standing under the fold as bare card.
+         X-DS r6 pass 7 (KF-C7-03) — REVERSED: the plate stands at the stage
+         cap (`h-full`), as Square, Spring and Sequence do, so the stage frame
+         keeps one height across scenes. The drawer takes the whole free block
+         and lands its rows by scrolling (EasingCatalogue's `landTop`), never
+         by shrinking the plate: at 1440 the plate ended 82 px short of its
+         siblings while the drawer still scrolled. -->
     <Card
         :shadow="false"
-        class="easing-target easing-gallery flex max-h-full w-full self-start flex-col gap-4
+        class="easing-target easing-gallery flex h-full w-full flex-col gap-4
             overflow-hidden px-(--stage-plate-pad-inline) py-(--stage-plate-pad-block)"
     >
         <!-- Header: the selected specimen PROMOTED. Left — the curve name at

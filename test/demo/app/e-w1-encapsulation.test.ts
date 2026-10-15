@@ -59,7 +59,9 @@ describe("E.W1 — render smoke (the preserved useSceneSwap driver)", () => {
                 const { sceneSwapStyle } = useSceneSwap(activeSceneKey, ref(null));
                 // The style is a reactive computed binding the template consumes.
                 expect(sceneSwapStyle.value).toHaveProperty("opacity");
-                expect(sceneSwapStyle.value).toHaveProperty("transform");
+                // X-DS r6 pass 7 (KF-C7-01) — at rest the host carries no
+                // transform (a resting `scale(1)` left the plates' backdrop stale).
+                expect(sceneSwapStyle.value).not.toHaveProperty("transform");
             }),
         ).not.toThrow();
     });

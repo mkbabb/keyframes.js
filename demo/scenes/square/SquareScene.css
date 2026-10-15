@@ -92,6 +92,27 @@
     display: grid;
     place-items: center;
 }
+/* X-DS r6 pass 7 (KF-C7-08) — BELOW lg THE PLATE TAKES ITS CONTENT'S HEIGHT,
+   as Sequence's does (KF-C3-01). On a phone the inline term binds the field,
+   so the arena stood ~545 px tall around a ~200 px field: ~145 px of dead
+   plate above the field and ~140 px under its caption, a small arena centred
+   in an over-tall plate. The arena is now as tall as it is wide (the field is
+   square; with the block side equal to the inline side the two terms below
+   agree to within a few px), it starts under the title row, and the plate
+   hangs from the stage's top and ends one caption block under the field.
+   At lg the plate keeps the stage cap, as every sibling stage does (KF-C7-03:
+   one stage frame height across scenes). */
+@media (max-width: 1023px) {
+    .square-stage {
+        block-size: auto;
+        align-self: start;
+        grid-template-rows: auto auto;
+    }
+    .square-arena {
+        aspect-ratio: 1;
+    }
+}
+
 /* X-DS r4 pass 6 (KF-C25-04) — THE INLINE AXIS IS PAID ONCE, NOT TWICE.
    `cqmin` charged both axes the same block budget (half-extent less the swollen
    box and a 1.5 rem gutter). On the inline axis the plate already has its

@@ -111,9 +111,14 @@
                      presets are ONE `type="single"` group — a labelled group, an
                      exclusive model derived from the live params (a deselect is
                      refused), roving focus; `aria-pressed` is the producer's. -->
+                <!-- X-DS r6 pass 7 (KF-C7-07) — the `shadow-none
+                     backdrop-filter-none` reset is DELETED: glass's toggle-group
+                     track rule outranks it, so it never landed (served: a 5-layer
+                     track edge under it). The track's lighting is glass's, cited
+                     to O-87; no stronger local override. -->
                 <ToggleGroup
                     type="single"
-                    class="preset-grid grid w-auto max-w-none grid-cols-2 items-stretch gap-2 rounded-none bg-transparent p-0 shadow-none backdrop-filter-none"
+                    class="preset-grid grid w-auto max-w-none grid-cols-2 items-stretch gap-2 rounded-none bg-transparent p-0"
                     aria-label="Spring presets"
                     :model-value="activePresetName ?? NO_PRESET"
                     @update:model-value="onPresetSelect"
