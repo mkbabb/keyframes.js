@@ -87,7 +87,11 @@
                 :style="sceneSwapStyle"
                 @pointerdown="engageStartScreen"
             >
-                <Suspense :key="activeSceneKey" @resolve="onSceneResolved">
+                <Suspense
+                    :key="activeSceneKey"
+                    @fallback="onSceneFallback"
+                    @resolve="onSceneResolved(); onSceneResolve()"
+                >
                     <component
                         :is="activeSceneComponent"
                         ref="sceneRef"
@@ -438,7 +442,10 @@ const { runSceneSwitch, lastSwapBackend } = useSceneTransition({
 // fallback for any swap no native View Transition carried (KFA-12: read off the
 // dispatch handle's `backend`). The per-scene playback codec is the machine +
 // its ScenePlayback adapters.
-const { sceneSwapStyle } = useSceneSwap(activeSceneKey, lastSwapBackend);
+const { sceneSwapStyle, onSceneFallback, onSceneResolve } = useSceneSwap(
+    activeSceneKey,
+    lastSwapBackend,
+);
 
 // The @mbabb dock dropdown (brand menu + the D9 pointerdown-synthesis workaround)
 // lives in @app/dock/menu/MbabbMenu.vue (S.D1 · a23 F2). M-4: the App no longer

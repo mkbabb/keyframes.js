@@ -49,14 +49,47 @@ export function useSceneSwap(
     // flip mounts the resolved scene and this spring fades IT in, never the
     // <Suspense> fallback (UIA-KF-125).
     const sceneSwapSpring = new SpringProgress({ respectReducedMotion: true });
+    /**
+     * The house swap fade: the one motion every swap no VT carried takes.
+     * The leg (0 → 1) is seated BEFORE `play()`, because `play()` is where
+     * the engine reads the reduced-motion query: under it the spring snaps to
+     * the seated target and emits that ONE frame (1: an instant clean swap).
+     * Seated after `play()`, the snap landed on the reset value (0) and the
+     * re-target's snap never reached the play callback, so a reduced-motion
+     * swap left the scene host at opacity 0 (X.KF.W13X.r4fade).
+     */
+    function fadeSceneIn() {
+        sceneSwapSpring.reset(0);
+        sceneSwapSpring.target = 1;
+        sceneSwapSpring.play((v) => { sceneOpacity.value = v; });
+    }
     watch(activeSceneKey, () => {
         const carriedByVT = lastSwapBackend.value === "view-transition";
         lastSwapBackend.value = null;
         if (carriedByVT) return;
-        sceneSwapSpring.reset(0);
-        sceneSwapSpring.play((v) => { sceneOpacity.value = v; });
-        sceneSwapSpring.target = 1;
+        fadeSceneIn();
     });
 
-    return { sceneSwapStyle };
+    // UIA-KF-125 motion half (X.KF.W13X.r4fade) — a HARD load has no source
+    // scene and no dispatch: the keyed <Suspense> shows its fallback while the
+    // cold chunk loads, then resolves the scene in place. No View Transition
+    // can carry that resolve (the platform captures the old state before a
+    // mutation it is handed, and Suspense's patch is not one), so it is a swap
+    // no VT carried and takes the same fade, through the same spring (same
+    // response/damping, the same reduced-motion snap). Only a resolve that
+    // followed a shown fallback fades: a warm mount (an in-app switch preloads
+    // its chunk, KFA-25) never pends, so it never fades twice.
+    let fallbackShown = false;
+    /** <Suspense @fallback> — the placeholder stands in the stage slot. */
+    function onSceneFallback() {
+        fallbackShown = true;
+    }
+    /** <Suspense @resolve> — the scene replaced a shown fallback: fade it in. */
+    function onSceneResolve() {
+        if (!fallbackShown) return;
+        fallbackShown = false;
+        fadeSceneIn();
+    }
+
+    return { sceneSwapStyle, onSceneFallback, onSceneResolve };
 }
