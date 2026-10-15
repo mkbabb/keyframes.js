@@ -78,10 +78,9 @@
              2) — its content is rendered HERE, off the seat this host provides
              (`EXPANDED_TIMELINE_KEY`): the selected channel's host publishes its
              timeline while the timeline is unfolded. It used to arrive by a
-             Teleport aimed at this cell's DOM id. Desktop: aligned to the
-             [rail] track (grid-column: rail) + [bottom] row — a vertical
-             extension of the controls rail, inheriting --rail-width, NOT a
-             full-grid-span surface (H.W3.S4 / a-demo-architecture F2). Mobile
+             Teleport aimed at this cell's DOM id. Desktop (X-DS r6 pass 5,
+             KF-C5-01): the cell holds nothing and is not drawn; an unfolded
+             timeline stays in the rail's one pane frame. Mobile
              (H.W7.S1): the expanded timeline is `position: fixed`, anchored
              ABOVE the bottom menubar band — it folds OUT of grid flow so it
              NEVER re-introduces a third consuming row that re-starves the fixed
@@ -91,7 +90,7 @@
                 'timeline-expanded-cell z-dock overflow-hidden',
                 'transition-[max-height,opacity] duration-slow ease-standard',
                 storedControls.isTimelineExpanded
-                    ? 'max-h-[var(--panel-max-h)] lg:pt-(--work-band-start) lg:pb-2'
+                    ? 'max-h-[var(--panel-max-h)]'
                     : 'max-h-0',
             ]"
         >

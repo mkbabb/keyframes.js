@@ -112,8 +112,7 @@
    existing cycle-free --dock-band-reserve token (dock-icon-height + dock-margin
    + safe-area-inset-bottom). The former per-scene `dock-inset` (bottom-only,
    so the top clipped) is DELETED with this — no legacy beside the replacement.
-   This sits on .stage-cell (not the [top]/[bottom] grid rows) so the expanded
-   timeline in the [bottom] row keeps its own `auto`-sized growth track. */
+   This sits on .stage-cell (not the [top]/[bottom] grid rows). */
 /* X-DS r4 pass 4 (KF-C23-02) — THE WORK BAND: the two block insets are named
    once, on the layout, so the stage cell and the desktop rail
    (ControlsPaneWrapper.css) read the same top line and the same foot. The pane
@@ -244,7 +243,8 @@
    The grid + the named template themselves are the UNCONDITIONAL base (above —
    an element can't match its own @container query). What is genuinely
    desktop-only is the PLACEMENT of the children INTO the named cells: the pane
-   in [rail], the subject in [stage], the timeline in [rail]/[bottom]. These
+   in [rail], the subject in [stage] (the expanded-timeline cell is not drawn
+   here, r6 pass 5). These
    target DESCENDANTS of `.controls-layout`, which CAN query their ancestor
    container — so the @media (min-width:1024px) → @container (min-width:64rem)
    promotion lands HERE (the macro tier reads ITS box). On mobile (the
@@ -270,27 +270,15 @@
         anchor-name: --stage;
     }
 
-    /* The expanded timeline is a vertical extension of the rail: the [rail]
-       track (not a full-grid span).
-       X-DS pass 4 (KF-C4-14) — it EXTENDS rather than jumps: the cell spans
-       the [stage] and [bottom] rows from the [stage] line and hangs from its
-       top, so the unfolded card keeps the docked pane's top edge and grows
-       downward. In the [bottom] row alone it dropped to the rail's foot
-       (y 63 → 413 at 1440×900) and left ~350px of empty rail above it, and
-       its auto row starved the stage beside it. The expanded state's top inset
-       (`lg:pt-(--work-band-start)`, AnimationControlsGroup.vue) is the rail's
-       own work-band inset (ControlsPaneWrapper.css; X-DS r4 pass 4), so the
-       two tops coincide, on the stage plate's top line. */
+    /* X-DS r6 pass 5 (KF-C5-01) — ONE SURFACE PER RAIL POSITION. The
+       expanded cell held the unfolded timeline as a second, floating card hung
+       from the pane's top line (KF-C4-14), drawn over the docked pane: card on
+       card, its blur smearing the pane's own fields, its cast stamped on the
+       pane. On the desktop rail the unfolded timeline now stays in the pane's
+       one frame (ChannelControls), so this cell holds nothing here and takes
+       no grid cell. Its placement rules (rail track, stage/-1 rows, the
+       rail-column inline inset) are deleted with the card they placed. */
     .timeline-expanded-cell {
-        grid-column: rail;
-        grid-row: stage / -1;
-        align-self: start;
-        /* X-DS pass 2 (KF-C2-04) — the floating card stands in the RAIL'S
-           COLUMN: the same inline box as the pane frame above it (the pane
-           body's 0.75rem inset + the frame's 1rem start / 1.75rem end margins,
-           ControlsPaneWrapper), not flush with the track's edge 28px left of
-           it. (Its 0.5rem foot, so the clip never cuts the card's edge, is
-           the expanded state's `pb-2`, AnimationControlsGroup.vue.) */
-        padding-inline: calc(0.75rem + 1rem) calc(0.75rem + 1.75rem);
+        display: none;
     }
 }

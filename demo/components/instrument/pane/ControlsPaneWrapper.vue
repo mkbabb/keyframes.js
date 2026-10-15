@@ -441,8 +441,11 @@ const selectedIsSequence = computed(() =>
 // X-DS pass 2 (KF-C2-04) — the keyframe timeline has floated out of the rail
 // (expanded, on its own surface): the rail's frame would be empty. A Sequence
 // channel's Timeline pane never floats (it mounts no KeyframeTimeline).
+// X-DS r6 pass 5 (KF-C5-01) — only the 390 sheet floats it out: on the
+// desktop rail the unfolded timeline stays in this frame (ChannelControls).
 const timelineFloated = computed(
     () =>
+        isMobileLayout.value &&
         props.storedControls.selectedControl === "timeline" &&
         props.storedControls.isTimelineExpanded &&
         !selectedIsSequence.value,

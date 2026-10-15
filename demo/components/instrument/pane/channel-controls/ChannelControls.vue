@@ -153,6 +153,7 @@ import {
     watch,
     type VNode,
 } from "vue";
+import { useMediaQuery } from "@vueuse/core";
 import type KeyframeTimelineComponent from "../../timeline/KeyframeTimeline.vue";
 import {
     CHANNEL_COMMANDS_KEY,
@@ -286,8 +287,17 @@ const sceneKeyframes = computed(() =>
         : null,
 );
 
-const isTimelineVisible = computed(() =>
-    storedControls.selectedControl === "timeline" || storedControls.isTimelineExpanded,
+// X-DS r6 pass 5 (KF-C5-01) — ONE SURFACE PER RAIL POSITION. On the desktop
+// rail the timeline is the Timeline surface's body, docked or unfolded
+// (unfolded is a taller track in place); it no longer floats as a second card
+// over whichever surface the pane shows. Only the 390 layout unfolds it out of
+// the sheet, into the expanded cell over the stage (the SAME 1023 px boundary
+// the pane host's sheet fork reads).
+const isMobileLayout = useMediaQuery("(max-width: 1023px)");
+const isTimelineVisible = computed(
+    () =>
+        storedControls.selectedControl === "timeline" ||
+        (storedControls.isTimelineExpanded && isMobileLayout.value),
 );
 
 // ── X.KF.W13X.r4ribbon · A2-KE-L1-23 step 2 — THE TIMELINE, ONE RENDER, TWO
@@ -300,7 +310,11 @@ const isTimelineVisible = computed(() =>
 const expandedTimeline = inject(EXPANDED_TIMELINE_KEY, null);
 const timelineShown = computed(() => Boolean(active) && isTimelineVisible.value);
 const timelineUnfolded = computed(
-    () => timelineShown.value && storedControls.isTimelineExpanded && expandedTimeline !== null,
+    () =>
+        timelineShown.value &&
+        storedControls.isTimelineExpanded &&
+        isMobileLayout.value &&
+        expandedTimeline !== null,
 );
 const renderTimeline = (): VNode | null => {
     const Timeline = KeyframeTimeline.value;
@@ -318,6 +332,7 @@ const renderTimeline = (): VNode | null => {
             clock: animation,
             scene: sceneKeyframes.value,
             expanded: storedControls.isTimelineExpanded,
+            sheet: timelineUnfolded.value,
             onToggleExpand: () => {
                 storedControls.isTimelineExpanded = !storedControls.isTimelineExpanded;
             },

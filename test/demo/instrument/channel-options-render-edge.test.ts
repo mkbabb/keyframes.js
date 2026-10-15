@@ -27,8 +27,10 @@
  * (`useDragMorph`), and `number-field` (its stepper `Button` → `useLiquidPress`
  * → `useSpring`; the z-index row is not a subject of this gate); and the
  * `EasingPicker` — replaced by a contract-faithful stub
- * declaring the SAME props the real component declares (`mode preset steps
- * term modelValue playback label readout`, emit `update:modelValue`) so the
+ * declaring the SAME props the real component declares at glass 10.1.0
+ * (`initial modelValue playback label surface`, emit `update:modelValue`;
+ * X-DS r6 pass 5, KF-C5-03: the 7.0.0 `mode preset steps term` props are
+ * gone from the producer, so the stub drops them too) so the
  * seat's remount discipline is observable as a mount count. No test.skip, no
  * allowlist, no try/catch around a defect.
  */
@@ -196,14 +198,11 @@ vi.mock("@mkbabb/glass-ui/easing", () => ({
     EasingPicker: defineComponent({
         name: "EasingPickerStub",
         props: {
-            mode: { type: String, default: undefined },
-            preset: { type: String, default: undefined },
-            steps: { type: Number, default: undefined },
-            term: { type: String, default: undefined },
+            initial: { type: Object, default: undefined },
             modelValue: { type: Object, default: undefined },
             playback: { type: Boolean, default: undefined },
             label: { type: String, default: undefined },
-            readout: { type: Boolean, default: undefined },
+            surface: { type: String, default: undefined },
         },
         emits: ["update:modelValue"],
         setup(props, { emit }) {
@@ -485,8 +484,12 @@ describe("G-KFW12-2 — the ChannelOptions render edge", () => {
             await settle();
             expect(pickerInstances.length).toBe(before + 1);
             const seated = pickerInstances[pickerInstances.length - 1]!;
-            expect(seated.props.mode).toBe("bezier");
-            expect(seated.props.preset).toBe("ease-in-out");
+            // KF-C5-03 — the seed is glass 10's `initial`: the stored curve
+            // itself (its mode and its named quad), never a dropped `preset`.
+            const initial = seated.props.initial as Record<string, unknown>;
+            expect(initial.mode).toBe("bezier");
+            expect(initial.points).toEqual(NAMED_EASING_BEZIER["ease-in-out"]);
+            expect(seated.props).not.toHaveProperty("preset");
 
             // X.KF.W13X.controls · UIA-KF-165 — the preset is SEATED, never
             // written: opening the editor to look leaves the store's easing

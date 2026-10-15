@@ -19,10 +19,12 @@
  *     steps (projected into the picker's own 1–12 domain) and term all reach a
  *     MOUNTED picker through the model; the vendor swallows its own emitted
  *     value on re-entry (its by-value suppressor);
- *   • `EasingPickerValue` carries NO preset field, so a NAMED preset can only be
- *     DISPLAYED by (re)mounting on the `preset` initial prop. That is the one
- *     remaining remount, and it is keyed by an EXTERNAL named re-seat — never by
- *     the picker's own emissions.
+ *   • `EasingPickerValue` carries NO preset field. At 7.0.0 a NAMED preset was
+ *     DISPLAYED by (re)mounting on the `preset` initial prop; glass 10.1.0
+ *     dropped that prop (see `SeatSeed`), so the remount now re-seats the named
+ *     curve's points and the label reads "custom" until glass lands the ask.
+ *     The remount stays keyed by an EXTERNAL named re-seat only — never by the
+ *     picker's own emissions.
  *
  * KF-ES-3's cure-lock: `presetName` is the CONSUMER's, resolved against the
  * demo's `NAMED_EASING_BEZIER` only — never value.js `bezierPresets` (the two
@@ -55,17 +57,22 @@ export interface SeatTruth {
     presetName?: string | undefined;
 }
 
-/** The picker's initial props — `preset` is present ONLY when there is one
- *  (no `undefined` keys: `exactOptionalPropertyTypes` is the type-check, and a
- *  seed built this way needs no cast at either seat). */
-export type SeatSeed =
-    | { mode: "bezier" | "steps"; steps: number; term: JumpTerm }
-    | {
-          mode: "bezier" | "steps";
-          steps: number;
-          term: JumpTerm;
-          preset: string;
-      };
+/** The picker's initial props, bound with `v-bind="seat.seed"`.
+ *  X-DS r6 pass 5 (KF-C5-03) — glass 10.1.0's `EasingPicker` declares ONE
+ *  initial prop, `initial: Partial<EasingPickerValue>` (dist/easing.js
+ *  `props.initial`, read by `usePicker`). The seat still bound the 7.0.0
+ *  props (`mode` `steps` `term` `preset` at the top level): none was read,
+ *  all four fell through as attributes, and the picker mounted on its family
+ *  default and was only re-seated by the model write-through. The seed is
+ *  now the curve itself — mode, points, steps and term — so a steps curve is
+ *  born a steps curve. A NAMED preset cannot be shown at 10.1.0: `usePicker`
+ *  stamps the label "custom" whenever points are seeded, and
+ *  `EasingPickerValue` has no preset field. That half is glass's (ask:
+ *  `initial.preset`, or match the seeded quad against the catalogue), cited
+ *  in the pass receipt; this seat never re-adds the dropped `preset` prop. */
+export interface SeatSeed {
+    initial: Partial<EasingPickerValue>;
+}
 
 /**
  * The picker's authoring domain for the step count, quoted from the installed
@@ -173,14 +180,16 @@ export function useEasingPickerSeat(
      *  label shows), or `undefined` once it shows a custom/steps curve. */
     let shownPreset: string | undefined;
 
-    const seedFor = (t: SeatTruth): SeatSeed => {
-        const base = { mode: t.mode, steps: t.steps, term: t.term };
-        return t.presetName === undefined
-            ? base
-            : { ...base, preset: t.presetName };
-    };
+    const seedFor = (t: SeatTruth): SeatSeed => ({
+        initial: {
+            mode: t.mode,
+            points: [t.points[0], t.points[1], t.points[2], t.points[3]],
+            steps: t.steps,
+            term: t.term,
+        },
+    });
     // The seed is read at (re)mount only — it tracks truth so the remount the
-    // key bump causes lands on the named preset that caused it.
+    // key bump causes lands on the named curve that caused it.
     const seed = computed<SeatSeed>(() => seedFor(truth()));
 
     /** A full `EasingPickerValue` for the truth — what the model write carries
@@ -213,7 +222,7 @@ export function useEasingPickerSeat(
     };
 
     // The first seat: born on the truth (the initial mount is a "remount"
-    // onto it — the seed carries the preset, the model the same quad).
+    // onto it — the seed carries the curve, the model the same quad).
     const born = truth();
     shownPreset = born.presetName;
     const model = shallowRef<EasingPickerValue>(valueFor(born));
@@ -266,9 +275,9 @@ export function useEasingPickerSeat(
         }
         if (t.presetName !== undefined && t.presetName !== shownPreset) {
             // A NAMED curve the picker does not show: the only remount. The
-            // seed carries `preset`; the model carries the same quad, so the
-            // vendor's immediate write-through applies no `setHandle` and the
-            // preset label survives.
+            // seed carries the curve; the model carries the same quad, so the
+            // vendor's immediate write-through applies no `setHandle`. (The
+            // label reads "custom" at glass 10.1.0: KF-C5-03, glass-owned.)
             shownPreset = t.presetName;
             model.value = valueFor(t);
             key.value += 1;

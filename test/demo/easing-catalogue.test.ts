@@ -47,6 +47,15 @@
  * is a DATA gate over `EASING_GROUPS` (every item resolves through value.js).
  * This one asserts a different proposition — caption-class claim vs `seedFor`'s
  * source vs the seeded quad — and neither weakens the other.
+ *
+ * X-DS r6 pass 5 (KF-C5-03) — clause (3) reads glass 10.1.0's seam. The
+ * producer's `EasingPicker` declares ONE initial prop, `initial` (the 7.0.0
+ * `mode preset steps term` props are gone), so the stub declares exactly that
+ * and the seat seeds the curve itself: its mode and its quad. A named preset
+ * is no longer seeded at all (glass stamps "custom" whenever points seed; the
+ * label is a glass ask), so the cure-lock's falsifier is restated on the quad:
+ * a seed that reached `bezierPresets` by name would hand `smooth-step-3` the
+ * preset's approximation, never the quad the stage runs.
  */
 import { describe, expect, it, vi } from "vitest";
 import { computed, createApp, defineComponent, h, ref } from "vue";
@@ -62,10 +71,7 @@ type Quad = [number, number, number, number];
 
 /** What the real component handed the vendor picker on its last render. */
 const received: {
-    mode?: unknown;
-    preset?: unknown;
-    steps?: unknown;
-    term?: unknown;
+    initial?: { mode?: unknown; points?: unknown; steps?: unknown; term?: unknown } | undefined;
 } = {};
 
 vi.mock("@mkbabb/glass-ui/easing", () => ({
@@ -78,19 +84,15 @@ vi.mock("@mkbabb/glass-ui/easing", () => ({
     EasingPicker: defineComponent({
         name: "EasingPickerStub",
         props: {
-            mode: { type: String, default: undefined },
-            preset: { type: String, default: undefined },
-            steps: { type: Number, default: undefined },
-            term: { type: String, default: undefined },
+            initial: { type: Object, default: undefined },
+            modelValue: { type: Object, default: undefined },
             playback: { type: Boolean, default: undefined },
             label: { type: String, default: undefined },
+            surface: { type: String, default: undefined },
         },
         setup(props) {
             return () => {
-                received.mode = props.mode;
-                received.preset = props.preset;
-                received.steps = props.steps;
-                received.term = props.term;
+                received.initial = props.initial as typeof received.initial;
                 return h("div", { class: "picker-stub" });
             };
         },
@@ -140,11 +142,12 @@ const STEPS_TILES = ["steps", "step-start", "step-end"];
  * rest of the context is inert for this gate; `EasingSidebar.vue` reads exactly
  * these eight members.
  */
+const STORED_QUAD: Quad = [0.1, 0.2, 0.3, 0.9];
 const makeDemoContext = (name: string) => {
     const currentEasingName = ref(name);
     return {
         currentEasingName,
-        bezierControlPoints: ref<Quad>([0, 0, 1, 1]),
+        bezierControlPoints: ref<Quad>([...STORED_QUAD]),
         stepOptions: ref({ steps: 4, jumpTerm: "jump-end" as const }),
         duration: ref(1500),
         isBezierEditable: computed(
@@ -231,21 +234,22 @@ describe("the easing catalogue — one truth per tile", () => {
             expect(captionShown).toBe(gap);
             if (gap) expect(captionText).toContain(name);
 
+            const initial = picker.initial!;
             if (isSteps) {
-                expect(picker.mode).toBe("steps");
-                expect(picker.preset).toBeUndefined();
+                expect(initial.mode).toBe("steps");
                 return;
             }
 
-            // BITE (the cure-lock's falsifier): `seedFor` reaching
-            // `bezierPresets` seeds `smooth-step-3` — a name the caption above
-            // has just called engine-native — and this line reds. An unseedable
-            // name leaves the mounted picker on its declared initial fallback,
-            // which is never the tile's own name.
-            if (editable) {
-                expect(picker.preset).toBe(name);
-            } else {
-                expect(picker.preset).not.toBe(name);
+            // The seed is the live curve the stage runs (the context's stored
+            // quad), in bezier mode, for every bezier tile.
+            expect(initial.mode).toBe("bezier");
+            expect(initial.points).toEqual(STORED_QUAD);
+            // BITE (the cure-lock's falsifier, on the quad): a seed that
+            // reached `bezierPresets` by name hands `smooth-step-3` — a name
+            // the caption above has just called engine-native — the preset's
+            // approximation, and this line reds.
+            if (!editable && name in presetQuads) {
+                expect(initial.points).not.toEqual(presetQuads[name]);
             }
 
             if (editable) {

@@ -8,10 +8,18 @@
          draws no card of its own: the pane host draws the one frame
          (ControlsPaneWrapper). Expanded, it floats over the stage, so there
          the Card is still the surface. -->
+    <!-- X-DS r6 pass 5 (KF-C5-01 · KF-C5-02) — ONE SURFACE PER PLACE. On the
+         desktop rail the timeline, docked or unfolded, is a section of the
+         pane's one frame: unfolding is a taller track in place, never a
+         second card hung over the pane (it covered the Controls fields and
+         stamped its cartoon cast onto the pane under it). Only the 390 sheet
+         over the stage (`sheet`, the expanded cell) draws a Card, at the tier
+         the controls sheet under it wears, and with no `cartoon-surface`
+         stamp (the stacked -3/-5/-7 px cast is out under O-87). -->
     <component
-        :is="props.expanded ? Card : 'div'"
-        v-bind="props.expanded ? { tier: 'floating' } : {}"
-        :class="['w-full overflow-visible', props.expanded ? 'cartoon-surface' : '']"
+        :is="props.sheet ? Card : 'div'"
+        v-bind="props.sheet ? { tier: 'floating' } : {}"
+        class="w-full overflow-visible"
     >
         <!-- X-DS pass 9 (KF-C9-07) — the pane's ONE inset and ONE title rung:
              the inline inset is glass's `--configurator-pad-inline` and the
@@ -26,7 +34,7 @@
         <CardContent
             :class="[
                 'relative flex flex-col gap-3 px-(--configurator-pad-inline)',
-                props.expanded ? 'py-4' : 'pt-2 pb-4',
+                props.sheet ? 'py-4' : 'pt-2 pb-4',
             ]"
         >
         <!-- Pane action buttons.
@@ -272,15 +280,17 @@
              THIS component's. In the pane it is teleported to the frame's
              ribbon section, under the pane's one hairline, as the Controls
              surface's playback row is mounted there (RibbonBar's one transport).
-             Expanded, the teleport is off, so the row renders HERE, as the
-             floating card's footer: it used to stay behind in the rail as a
+             In the 390 sheet (`sheet`; r6 pass 5, KF-C5-01: on the desktop
+             rail an unfolded timeline stays in the pane, so its verbs stay in
+             the ribbon), the teleport is off, so the row renders HERE, as the
+             sheet card's footer: it used to stay behind in the rail as a
              titleless card holding only these four buttons, ~450px from the
              track they act on. A timeline mounted with no pane ribbon in the
              document (`ribbonHost`, read once the tree is in) keeps the row
              in place rather than teleporting into nothing. -->
-        <Teleport to="#timeline-ribbon-target" :disabled="props.expanded || !ribbonHost" defer>
+        <Teleport to="#timeline-ribbon-target" :disabled="props.sheet || !ribbonHost" defer>
             <div class="flex flex-col gap-3">
-                <Separator v-if="props.expanded" />
+                <Separator v-if="props.sheet" />
                 <!-- X-DS r4 pass 6 (KF-C25-02) — the emphasis follows the
                      verb the caption names: while the empty timeline names
                      the scene's @keyframes, Import leads and Snapshot is
@@ -447,6 +457,9 @@ const props = defineProps<{
     /** The channel's parsed @keyframes and its stop count (KF-C24-05), or null. */
     scene?: { css: string; count: number } | null;
     expanded?: boolean;
+    /** Rendered in the expanded cell, the sheet over the stage (390): the one
+     *  place the timeline draws its own Card and carries its own verbs. */
+    sheet?: boolean;
 }>();
 
 const emit = defineEmits<{

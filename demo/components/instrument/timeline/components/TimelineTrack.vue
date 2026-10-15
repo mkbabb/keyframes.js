@@ -118,12 +118,18 @@
              scrub's keyboard map and the one pointer policy are the primitive's;
              this adapter supplies the percent domain through its zoom/pan map
              and paints the stops (markers, carets) in the scrub row. -->
+        <!-- X-DS r6 pass 5 (KF-C5-02) — the track is the timeline's content, so
+             it stands on an opaque --muted ground: at /50 the subject under the
+             390 sheet washed through it (the stops sat on a pink-and-green
+             smear). The hover fill step went with it (a lighter /70 over an
+             opaque ground would read as a hole); the pointer cursor and the
+             focus ring carry the affordance. -->
         <LaneTrack
             ref="laneTrack"
             :id="railId"
             :data-expanded="expanded ? 'true' : undefined"
             :class="[
-                'kf-focus-ring timeline-track relative rounded-[var(--radius-field)] border border-border bg-muted/50 hover:bg-muted/70 transition-colors duration-fast cursor-pointer select-none overflow-x-clip overflow-y-visible touch-pan-y',
+                'kf-focus-ring timeline-track relative rounded-[var(--radius-field)] border border-border bg-muted cursor-pointer select-none overflow-x-clip overflow-y-visible touch-pan-y',
                 expanded ? 'h-32' : 'h-12',
             ]"
             scrub-label="Playhead — scrub the animation"
