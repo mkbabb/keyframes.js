@@ -22,7 +22,7 @@ import type { AnimationGroup, KeyframesAnimation } from "@mkbabb/keyframes.js";
 import type { ControlSurface, ScenePlayback, SurfaceChannelLike } from "@state";
 import { createGroupAdapter } from "@state";
 import { clamp } from "@mkbabb/value.js/math";
-import type { SequenceTimelineSource } from "@components/instrument/timeline/timelineTypes";
+import type { SequenceTimelineSource } from "./sequenceTimeline";
 
 /**
  * ONE transport channel. `name` is the transport-select label. A channel that

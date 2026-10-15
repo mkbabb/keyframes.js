@@ -21,7 +21,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { nextTick, reactive } from "vue";
 import { mount } from "@vue/test-utils";
 import SequenceLanes from "../../../demo/components/instrument/timeline/components/SequenceLanes.vue";
-import type { SequenceTimelineSource } from "../../../demo/components/instrument/timeline/timelineTypes";
+import type { SequenceTimelineSource } from "../../../demo/composables/scene-facility/sequenceTimeline";
 
 const SPAN = 900;
 const LANE = { left: 100, width: 400 };

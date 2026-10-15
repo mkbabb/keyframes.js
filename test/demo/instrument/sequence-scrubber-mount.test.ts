@@ -7,7 +7,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { mount } from "@vue/test-utils";
 import SequenceLanes from "../../../demo/components/instrument/timeline/components/SequenceLanes.vue";
-import type { SequenceTimelineSource } from "../../../demo/components/instrument/timeline/timelineTypes";
+import type { SequenceTimelineSource } from "../../../demo/composables/scene-facility/sequenceTimeline";
 
 /**
  * KF.W7 G11 fixture 4 — THE MASTER SCRUB IS MOUNTED BY A TEST AT ALL.

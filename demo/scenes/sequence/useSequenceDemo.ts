@@ -10,7 +10,7 @@ import { clamp } from "@mkbabb/value.js/math";
 import { useSweepScene } from "@composables/scene-runtime/useSweepScene";
 import { useSceneTransport } from "@composables/scene-runtime/useSceneTransport";
 import type { SceneFacility } from "@composables/scene-facility";
-import type { SequenceTimelineSource } from "@components/instrument/timeline/timelineTypes";
+import type { SequenceTimelineSource } from "@composables/scene-facility/sequenceTimeline";
 import { prefersReducedMotion, useSequenceInstrument } from "./useSequenceInstrument";
 import {
     ROW_COUNT,

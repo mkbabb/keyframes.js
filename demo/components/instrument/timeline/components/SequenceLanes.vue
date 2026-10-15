@@ -85,7 +85,7 @@
 import { computed, ref } from "vue";
 import { clamp } from "@mkbabb/value.js/math";
 import LaneTrack, { type LaneTrackBeginDrag, type LaneTrackTick } from "./LaneTrack.vue";
-import type { SequenceTimelineSource } from "../timelineTypes";
+import type { SequenceTimelineSource } from "@composables/scene-facility/sequenceTimeline";
 
 const props = defineProps<{ source: SequenceTimelineSource }>();
 // THE SOURCE GUARD (C·C-4, carried from the stage scrubber's provider guard):

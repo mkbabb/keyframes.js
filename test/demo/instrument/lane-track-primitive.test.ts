@@ -25,10 +25,8 @@ import { mount } from "@vue/test-utils";
 import { TooltipProvider } from "@mkbabb/glass-ui/tooltip";
 import TimelineTrack from "../../../demo/components/instrument/timeline/components/TimelineTrack.vue";
 import SequenceLanes from "../../../demo/components/instrument/timeline/components/SequenceLanes.vue";
-import type {
-    SequenceTimelineSource,
-    TimelineKeyframe,
-} from "../../../demo/components/instrument/timeline/timelineTypes";
+import type { SequenceTimelineSource } from "../../../demo/composables/scene-facility/sequenceTimeline";
+import type { TimelineKeyframe } from "../../../demo/components/instrument/timeline/timelineTypes";
 import { percentSelector } from "../../../demo/utils/keyframeSelector";
 
 const kf = (id: string, percent: number): TimelineKeyframe => ({

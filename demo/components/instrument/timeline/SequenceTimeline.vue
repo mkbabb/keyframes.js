@@ -77,7 +77,7 @@ import { Button, Separator } from "@mkbabb/glass-ui";
 import { ConfiguratorLayer } from "@mkbabb/glass-ui/configurator";
 import { RotateCcw } from "@lucide/vue";
 import SequenceLanes from "./components/SequenceLanes.vue";
-import type { SequenceTimelineSource } from "./timelineTypes";
+import type { SequenceTimelineSource } from "@composables/scene-facility/sequenceTimeline";
 
 const { source } = defineProps<{ source: SequenceTimelineSource }>();
 </script>
