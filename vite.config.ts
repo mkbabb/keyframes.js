@@ -241,8 +241,6 @@ export default defineConfig((mode) => {
             "vendor-monaco",
             "vendor-three",
             "vendor-prettier",
-            "vendor-highlight",
-            "html2canvas",
         ];
 
         return {
@@ -267,8 +265,8 @@ export default defineConfig((mode) => {
                 // is structurally free of the dev-only "Source Map loading errors
                 // ×47" DevTools noise. That x47 is benign dev-only diagnostics
                 // from Vite's dep-optimizer serving pre-bundled vendor maps
-                // (Monaco per-language chunks + html2canvas, whose
-                // `sourceMappingURL` points at a `.map` it does not co-emit) — it
+                // (Monaco's per-language chunks, whose
+                // `sourceMappingURL` points at a `.map` they do not co-emit) — it
                 // is ACCEPTED + documented, NOT suppressed: adding machinery at
                 // the dep-optimize layer to silence it would risk masking REAL
                 // future map errors (anti-KISS). The icon-paint gate asserts
@@ -322,10 +320,6 @@ export default defineConfig((mode) => {
                                 {
                                     name: "vendor-prettier",
                                     test: /node_modules[\\/][^\\/]*prettier/,
-                                },
-                                {
-                                    name: "vendor-highlight",
-                                    test: /node_modules[\\/][^\\/]*highlight/,
                                 },
                                 {
                                     name: "vendor-reka-ui",
