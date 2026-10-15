@@ -51,9 +51,8 @@
              over the resolved points (never over the mapped {x, y} — K-5), with the
              marks and tick labels presentational beneath it. -->
         <!-- X-DS r5 pass 4 (KF-C4-04) — the PLOT takes the figure's inset
-             (`--plot-inset`, the rail's overshoot band, set by SpringTarget),
-             (r6 pass 7, KF-C7-05: and at lg the title row with it, so the
-             figure has one right edge). -->
+             (`--plot-inset`, the rail's overshoot band, set by SpringTarget);
+             the title row above keeps the header's gutter (r6 pass 8, KF-C8-01). -->
         <div role="img" :aria-label="figureLabel" class="plot-figure flex min-h-0 flex-1 flex-col">
             <div class="plot-frame">
                 <!-- Layer 1 — the reference geometry, NEUTRAL (D-3/D-4/N-3, the
@@ -380,17 +379,11 @@ const figureLabel = computed(
    that clears both). */
 /* X-DS r5 pass 4 (KF-C4-04) — the plot's inline inset (the rail's overshoot
    band, SpringTarget's `--plot-inset`).
-   X-DS r6 pass 7 (KF-C7-05) — at lg the title row takes it too: the legend
-   ran ~110 px past the plot's right end, so the figure had two right edges.
-   Below lg the band is a large share of a phone plate, and an inset title row
-   would push the one-line legend past the plot, so the row keeps the gutter. */
+   X-DS r6 pass 8 (KF-C8-01) — the PLOT's only. KF-C7-05 inset the title row
+   with it at lg, which put "Sampled curve" 111 px right of the stage title (a
+   second left gutter); the title row keeps the header's gutter at every width. */
 .plot-figure {
     padding-inline: var(--plot-inset, 0);
-}
-@media (min-width: 1024px) {
-    .trace-title-row {
-        padding-inline: var(--plot-inset, 0);
-    }
 }
 /* X.KF.W13W.b (OA-56) — 4.5rem → 8rem: the frame is now also the plot box the
    spring's balls ride (the live ball + the sweep sampler), so the value range

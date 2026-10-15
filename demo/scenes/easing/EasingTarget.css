@@ -103,12 +103,28 @@
    dissolved into grid items) parted the glyph from the value it copies; it
    is deleted. The literal and its Copy are the one inline group they are at
    1440, wrapping to the line under the name by the id row's own flex-wrap. */
+/* X-DS r6 pass 8 (KF-C8-06) — ONE LITERAL LINE WITH ITS COPY. The size took
+   the plate's whole content measure (100cqi / 22) with no room for the Copy
+   beside it, so at 390 the 36-character call still broke mid-value ("0.10,"
+   then a hanging-indented "0.25, 1.00)") with the glyph trailing the ragged
+   line. Below lg the literal and its Copy hold one line (nowrap, no hanging
+   indent), sized to the plate's content measure (the container's `cqi`) less
+   the Copy's box and gap (~3rem), over 37 Fira Code advances of 0.6em (the
+   longest two-sign quad, `cubic-bezier(0.68, -0.55, 0.27, 1.55)`). */
 @media (max-width: 1023px) {
     .easing-target {
         container-type: inline-size;
     }
+    .specimen-literal {
+        white-space: nowrap;
+        padding-inline-start: 0;
+        text-indent: 0;
+    }
     .literal-text {
-        font-size: min(var(--type-small), 100cqi / 22);
+        font-size: min(
+            var(--type-small),
+            (100cqi - 3rem) / 22.2
+        );
     }
 }
 /* X-DS pass 3 · KF-C3-16 — the literal breaks at its comma-spaces, balanced

@@ -57,10 +57,16 @@
             <div ref="columnEl" class="lane-track-column">
                 <!-- The ruler. A graduation is decoration to AT (the slider's
                      value text says where the playhead is). -->
+                <!-- X-DS r6 pass 8 (KF-C8-07) — an adapter with nothing to
+                     time (`playhead` null, KF-C6-07) draws no END rules: the
+                     0 % and 100 % lines sat a lane inset inside the track's
+                     rounded ends and framed two blank end cells that carry no
+                     time. Their labels stay; the inner rules stay. -->
                 <div
                     v-for="tick in ticks"
                     :key="tick.key"
-                    class="absolute top-0 h-full border-l border-border/30"
+                    class="absolute top-0 h-full border-border/30"
+                    :class="{ 'border-l': playhead !== null || edgeOf(tick.at) === 'mid' }"
                     :style="{ left: `${tick.at}%` }"
                     aria-hidden="true"
                 >

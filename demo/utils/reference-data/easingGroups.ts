@@ -84,11 +84,15 @@ export const EASING_GROUPS: CurveGroup[] = [
             item("ease-in-back", "pulls back first"),
             item("ease-out-back", "overshoots, settles"),
             item("ease-in-out-back", "pull back & overshoot"),
+            // X-DS r6 pass 8 (KF-C8-02) — the catalogue names what the tile
+            // draws. value.js's `ease-in-bounce` is a bezier solve on
+            // (0.09, 0.91, 0.5, 1.5): a fast rise that overshoots and settles,
+            // no bounce. It stood alone under a "Bounce" heading with the copy
+            // "bouncing ramp up", contradicting its own thumbnail; it sits in
+            // the overshoot family it belongs to. The engine name is value.js's
+            // public contract and is kept (a true bounce is a value.js ruling).
+            item("ease-in-bounce", "fast rise, overshoots"),
         ],
-    },
-    {
-        family: "Bounce",
-        items: [item("ease-in-bounce", "bouncing ramp up")],
     },
     {
         family: "Steps",

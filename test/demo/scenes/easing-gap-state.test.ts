@@ -93,7 +93,12 @@ describe("UIA-KF-093 — the catalogue gap shows the selected curve", () => {
         expect(cap!.classList.contains("text-small")).toBe(true);
         expect(cap!.classList.contains("text-mono-caption")).toBe(false);
         expect(cap!.querySelector("code")?.textContent).toBe("ease-in-bounce");
-        expect(cap!.textContent?.replace(/\s+/g, " ").trim()).toMatch(/^ease-in-bounce is engine-native: .*\.$/);
+        // X-DS r6 pass 8 (KF-C8-02) — restated: the caption no longer claims
+        // "no cubic-bezier reproduces it" (false of ease-in-bounce, a bezier
+        // solve in value.js); it says what holds of every gap curve.
+        const text = cap!.textContent?.replace(/\s+/g, " ").trim();
+        expect(text).toMatch(/^ease-in-bounce is a named engine curve; .*\.$/);
+        expect(text).not.toMatch(/no cubic-bezier reproduces it/);
         done();
     });
 

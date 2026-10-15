@@ -65,10 +65,18 @@
                     @update:model-value="seat.onPickerChange"
                 />
 
-                <!-- BG-8 (the honest catalogue gap, quiet): an engine-native curve
-                     (bounce/elastic families) is not expressible as one
-                     cubic-bezier — the tile + header literal carry the selection;
-                     authoring here departs into a custom cubic-bezier. -->
+                <!-- BG-8 (the honest catalogue gap, quiet): a named engine curve
+                     the editor cannot seat by name — the tile + header literal
+                     carry the selection; authoring here departs into a custom
+                     cubic-bezier.
+                     X-DS r6 pass 8 (KF-C8-02) — the caption claims only what is
+                     true of every gap curve. It said "engine-native: no
+                     cubic-bezier reproduces it", which is false of
+                     `ease-in-bounce` (value.js solves it as the bezier
+                     (0.09, 0.91, 0.5, 1.5)); what holds for it and for
+                     `smooth-step-3` alike is that it is a named engine curve the
+                     editor does not seat by name (the two catalogues are never
+                     merged, §0j.C KF-SS3). -->
                 <!-- UIA-KF-054 (easing limb) — status copy in the small register,
                      sentence case; the curve's identifier is the one code chip and
                      is never uppercased (DESIGN.md §8). -->
@@ -77,8 +85,8 @@
                     class="gap-caption text-small text-muted-foreground"
                 >
                     <code data-register="code">{{ demo.currentEasingName.value }}</code>
-                    is engine-native: no cubic-bezier reproduces it, so editing it
-                    here departs into a custom curve.
+                    is a named engine curve; editing it here departs into a
+                    custom curve.
                 </p>
                 <Button
                     v-if="showGapPlot"
@@ -203,8 +211,8 @@ const showGapPlot = computed(() => catalogueGap.value && !departed.value);
 const gapPlot = computed(() =>
     curvePlot(namedEasing(demo.currentEasingName.value), unitEasingFrame()),
 );
-// The bounce family overshoots the unit box (value.js `ease-in-bounce` peaks
-// near 1.18): glass marks a plot that leaves its frame on the crossed edges.
+// An overshooting gap curve leaves the unit box (value.js `ease-in-bounce`
+// peaks near 1.18): glass marks a plot that leaves its frame on the crossed edges.
 const gapLeavesFrame = computed(() =>
     gapPlot.value.vertices.some(({ v }) => v > 1 || v < 0),
 );

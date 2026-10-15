@@ -305,7 +305,10 @@ const landTop = () => {
     const drawer = drawerEl.value?.$el;
     if (!(drawer instanceof HTMLElement)) return;
     const port = drawer.clientHeight;
-    const max = drawer.scrollHeight - port;
+    // X-DS r6 pass 8 (KF-C8-05) — the end room this rest added last time
+    // (below) is not content: the catalogue's own scroll range excludes it.
+    const room = Number.parseFloat(drawer.style.getPropertyValue("--drawer-end-room")) || 0;
+    const max = drawer.scrollHeight - port - room;
     if (port === 0 || max <= 1) return;
     const style = getComputedStyle(drawer);
     const padStart = Number.parseFloat(style.scrollPaddingBlockStart) || 0;
@@ -313,23 +316,51 @@ const landTop = () => {
     const headings = rowsOf(drawer, ".catalogue-family");
     const marks = headings.length > 0 ? headings : rowsOf(drawer, ".specimen-tile");
     const tile = rowsOf(drawer, '.specimen-tile[data-state="on"]')[0];
-    const high = Math.min(max, tile ? tile.top - padStart : max);
     const all = [...new Set(marks.map((row) => Math.max(0, Math.round(row.top - padStart))))];
     // The selected tile clear of the end padding where a rest allows it, else
     // merely whole (the drawer's end, which the last family's tiles reach).
-    const within = (room: number) =>
-        all.filter((at) => at >= (tile ? tile.bottom + room - port : 0) && at <= high);
-    const rests = within(padEnd).length > 0 ? within(padEnd) : within(0);
+    const within = (gap: number, high: number) =>
+        all.filter((at) => at >= (tile ? tile.bottom + gap - port : 0) && at <= high);
+    const restsUnder = (high: number) =>
+        within(padEnd, high).length > 0 ? within(padEnd, high) : within(0, high);
     const now = drawer.scrollTop;
+    const nearest = (rests: number[]) =>
+        rests.reduce((a, b) => (Math.abs(b - now) < Math.abs(a - now) ? b : a));
+    const high = Math.min(max, tile ? tile.top - padStart : max);
+    let rests = restsUnder(high);
+    // X-DS r6 pass 8 (KF-C8-05) — THE TOP EDGE IS A FAMILY BOUNDARY, at the
+    // catalogue's end too. Where no heading the drawer can scroll to keeps the
+    // selected tile whole (a short port: after 'steps' at 1440 the port could
+    // not reach the Back heading, so the pick rested at the end with the Circ
+    // row cut through its curves under the family tabs), the drawer gains the
+    // missing scroll as end room under its last row (in glass's end fade), and
+    // rests on that heading. The room goes when a rest no longer needs it.
+    let need = 0;
+    if (rests.length === 0 && headings.length > 0 && tile) {
+        const beyond = restsUnder(tile.top - padStart);
+        if (beyond.length > 0) {
+            rests = [nearest(beyond)];
+            need = Math.max(0, Math.ceil(rests[0]! - max));
+        }
+    }
+    if (need !== room) drawer.style.setProperty("--drawer-end-room", `${need}px`);
     if (rests.length === 0) return;
-    let at = rests.reduce((a, b) => (Math.abs(b - now) < Math.abs(a - now) ? b : a));
+    let at = nearest(rests);
     // X-DS r6 pass 7 (KF-C7-02) — AND THE BOTTOM EDGE LANDS: a rest that
     // leaves less than one row of scroll cuts the drawer's last row at the
     // fold (steps-end 69 of 107 px, 54 px of scroll left, at 390). The drawer
     // then rests at its end, where the last row is whole, provided the
     // selected tile stays whole too (`high`).
+    // X-DS r6 pass 8 (KF-C8-05) — but never at the price of the TOP edge: the
+    // end rest is taken only where the port's top line crosses no row.
+    // Otherwise the heading rest stands, and the last row's fold runs under
+    // glass's end fade (the "more below" cue).
     const row = Math.min(...marks.map((m) => m.bottom - m.top).filter((h) => h > 0));
-    if (max - at < row && max <= high + padStart) at = max;
+    const clearAt = (top: number) =>
+        !rowsOf(drawer, ".catalogue-family, .specimen-tile").some(
+            (r) => r.top < top - 1 && r.bottom > top + 1,
+        );
+    if (need === 0 && max - at < row && max <= high + padStart && clearAt(max)) at = max;
     if (Math.abs(at - now) <= 1) return;
     drawer.scrollTop = at;
 };
@@ -351,6 +382,18 @@ const landTopSettled = () => {
     };
     requestAnimationFrame(tick);
 };
+// KF-C8-05 — end room is sized against the port it was measured in; the
+// port changes height after a pick (the header's name swaps out-in, and its
+// literal line with it), so a rest that holds end room is re-landed when the
+// drawer resizes. A rest without end room is never moved by a resize.
+useResizeObserver(
+    () => drawerEl.value?.$el as HTMLElement | undefined,
+    () => {
+        const drawer = drawerEl.value?.$el;
+        if (!(drawer instanceof HTMLElement)) return;
+        if ((Number.parseFloat(drawer.style.getPropertyValue("--drawer-end-room")) || 0) > 0) landTop();
+    },
+);
 const landDrawerEdges = () => {
     landDrawer();
     landTopSettled();
@@ -523,6 +566,10 @@ watch(
     /* X-DS r6 pass 6 (KF-C6-04) — where the first row rests after a restore
        or a pick (`landTop`): under the start fade (glass's 1rem), not in it. */
     scroll-padding-block-start: 1rem;
+    /* X-DS r6 pass 8 (KF-C8-05) — and the user's own scroll comes to rest the
+       same way: a family heading is a snap position (proximity, so a long
+       family still scrolls freely), at the same 1rem `landTop` lands on. */
+    scroll-snap-type: y proximity;
 }
 
 /* ── 2 · the divider (glass Separator owns its hairline) ── */
@@ -544,6 +591,9 @@ watch(
     gap: 1.25rem;
     inline-size: 100%;
     padding: 2px 2px 1rem;
+    /* KF-C8-05 — the end room `landTop` writes when a family heading could
+       not otherwise reach the top (0 at every other rest). */
+    padding-block-end: calc(1rem + var(--drawer-end-room, 0px));
     border-radius: 0;
     background: none;
     -webkit-backdrop-filter: none;
@@ -556,6 +606,8 @@ watch(
     gap: 0.5rem;
 }
 .catalogue-family {
+    /* KF-C8-05 — the drawer's snap position (see `.specimen-drawer`). */
+    scroll-snap-align: start;
     color: var(--foreground);
     text-transform: none;
 }

@@ -113,6 +113,23 @@
     }
 }
 
+/* X-DS r6 pass 8 (KF-C8-04) — AT lg THE ENVELOPE IS THE PLATE'S WHOLE BODY.
+   The arena ended one caption block (4rem) above the plate's foot, and the
+   field's travel budget was paid inside what was left, so the caption's room
+   was charged twice: once as that margin, once as the envelope's lower band the
+   caption already sits in. At 1440x900 the field was 271 px in an 812x470
+   arena (box 135 px), with 100 px of card over it and 107 px under the
+   caption. The arena now takes every row below the header; the caption keeps
+   hanging in the envelope's lower band (the box crosses it only at y = +1),
+   and the same inequality still keeps the swollen box under the header.
+     1440x900 (arena 812x536): size = travel ~156 px, field ~313 px
+   Below lg the plate is content-sized (KF-C7-08) and keeps the caption block. */
+@media (min-width: 1024px) {
+    .square-arena {
+        --square-caption-block: 0rem;
+    }
+}
+
 /* X-DS r4 pass 6 (KF-C25-04) — THE INLINE AXIS IS PAID ONCE, NOT TWICE.
    `cqmin` charged both axes the same block budget (half-extent less the swollen
    box and a 1.5 rem gutter). On the inline axis the plate already has its

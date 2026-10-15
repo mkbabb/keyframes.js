@@ -103,7 +103,7 @@
                     </div>
                     <div v-else class="stage-readout">
                         <span>velocity</span>
-                        <span class="spring-readout-secondary">{{ demo.liveVelocity.value.toFixed(2) }}</span>
+                        <span class="spring-readout-secondary">{{ demo.liveVelocity.value.toFixed(3) }}</span>
                     </div>
                 </div>
             </template>
@@ -116,11 +116,11 @@
              sweep-readout row, a 128 px plot), so a reading eye found no
              primary; the sweep readout now sits in the trace's one legend
              line, subordinate. -->
-        <!-- X-DS r6 pass 7 (KF-C7-05) — ONE RIGHT EDGE: the figure carries the
-             plot's inline box (`--plot-inset`, the rail's overshoot band), and
-             at lg every text row of the figure (the caption with Re-seat, the trace's
-             title and legend) sits on it, so Re-seat lands under the rail's
-             right end and the legend ends where the plot does. -->
+        <!-- X-DS r6 pass 7 (KF-C7-05) — the figure carries the plot's inline
+             box (`--plot-inset`, the rail's overshoot band) for the rail and
+             the plot. r6 pass 8 (KF-C8-01): the band is the axis's, never a
+             text gutter — the caption and the trace's title row keep the
+             header's gutter; Re-seat alone ends under the rail's right end. -->
         <figure class="spring-figure m-0 flex w-full max-w-3xl min-h-0 flex-1 flex-col gap-6" :style="figureInset" data-subject>
         <!-- The rail: tap/drag to re-seat the live target -->
         <div class="flex w-full flex-col items-center justify-center gap-6">
@@ -472,7 +472,13 @@ const railPct = (v: number): number =>
 const railValue = (ratio: number): number => ratio * RAIL_SPAN - OVERSHOOT_ALLOWANCE;
 
 /** KF-C3-05 — the trace's inline inset: the rail's overshoot band, both ends. */
-const figureInset = { "--plot-inset": `${railPct(0)}% ${100 - railPct(1)}%` };
+const figureInset = {
+    "--plot-inset": `${railPct(0)}% ${100 - railPct(1)}%`,
+    /** X-DS r6 pass 8 (KF-C8-01) — the band's END side alone: Re-seat's own
+     *  margin, so the verb ends under the rail's right end and no text row of
+     *  the figure takes the axis's band as a gutter. */
+    "--plot-inset-end": `${100 - railPct(1)}%`,
+};
 /** The value TRACK: value 0 → value 1, inset inside the rail by the reserved
  *  band. `.stage-field-x`'s quarter gridlines ride this element, so they mark
  *  true value quarters (D-16's field stays honest under the new axis). */
@@ -697,11 +703,19 @@ const onKeydown = (e: KeyboardEvent) => {
     font-variant-numeric: tabular-nums;
 }
 
+/* X-DS r6 pass 8 (KF-C8-08) — PARTNER READOUTS, ONE VALUE INK AND ONE
+   PRECISION. Velocity (or position, while the sweep leads) is live state as
+   much as the primary is: it read in the muted ink at two decimals beside a
+   violet three, so the pair said "subject and chrome". Both values now wear
+   the scene's value ink (`--ball-tone`, as Square's x and y do) at three
+   decimals, tabular; the labels keep the muted ink, and the partner keeps its
+   one rung below the primary (KF-C3-04, KF-C4-08). */
 .spring-readout-secondary {
     font-family: var(--font-mono);
     font-size: var(--type-body);
+    font-weight: var(--font-weight-medium, 500);
     line-height: 1;
-    color: var(--muted-foreground);
+    color: var(--ball-tone, var(--color-progress));
     font-variant-numeric: tabular-nums;
 }
 
@@ -1058,12 +1072,16 @@ const onKeydown = (e: KeyboardEvent) => {
 .spring-rail-verbs {
     transition: opacity var(--duration-fast) ease;
 }
-/* X-DS r6 pass 7 (KF-C7-05) — at lg the row stands on the plot's inline box,
-   so Re-seat ends under the rail's right end (below lg the caption keeps the
-   plate's full measure; KF-C9-09 drops Re-seat under it there). */
+/* X-DS r6 pass 8 (KF-C8-01) — ONE TEXT GUTTER. KF-C7-05 stood the whole row
+   on the plot's inline box (`--plot-inset`, the rail's overshoot band), so at
+   lg the caption started 111 px right of the title and the readouts it sits
+   under: two left gutters on one card. The band is the axis's geometry, not
+   text's: the caption keeps the header's gutter, and only Re-seat takes the
+   band's END side as its own margin, so it still ends under the rail's right
+   end (below lg KF-C9-09 drops it under the caption, on the text edge). */
 @media (min-width: 1024px) {
-    .spring-rail-verbs {
-        padding-inline: var(--plot-inset, 0);
+    .spring-reseat {
+        margin-inline-end: var(--plot-inset-end, 0);
     }
 }
 /* X-DS pass 9 (KF-C9-09) — the caption claims a 20 rem basis, so the wrapping

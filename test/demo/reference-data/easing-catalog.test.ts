@@ -40,7 +40,8 @@ describe("the demo-owned easing catalogue", () => {
     it.each([
         ["ease-out-expo", "exponential decay", easeOutExpo],
         ["smooth-step-3", "Hermite interpolation", smoothStep3],
-        ["ease-in-bounce", "bouncing ramp up", easeInBounce],
+        // X-DS r6 pass 8 (KF-C8-02) — the copy names the shape the tile draws.
+        ["ease-in-bounce", "fast rise, overshoots", easeInBounce],
     ] as const)(
         "uses Value's canonical %s easing",
         (name, description, easing) => {
