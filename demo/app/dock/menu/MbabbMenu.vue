@@ -316,7 +316,7 @@ import { registerShortcut } from "@mkbabb/glass-ui/keyboard";
 import KeyboardShortcutsModal from "./KeyboardShortcutsModal.vue";
 import { getStoredAnimationGroupControlOptions, resetAllStores } from "@state";
 import { CUBE_SCENE_ID } from "../../../scenes/cube/cubeKeys";
-import { useDockEdgeOffset } from "../dockEdge";
+import { useDockEdgeOffset } from "@composables/dockEdge";
 defineProps<{
     // Scene restore from a shared URL (passed straight to SharePopover). The shell
     // owns the real switch (runSceneSwitch); the menu only forwards the id.

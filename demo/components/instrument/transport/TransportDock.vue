@@ -228,7 +228,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@mkbabb/glass-ui/toolti
 import { RotateCcw } from "@lucide/vue";
 
 import { GlassDock } from "@mkbabb/glass-ui/dock";
-import { DOCK_POPUP_GAP } from "@app/dock/dockEdge";
+import { DOCK_POPUP_GAP } from "@composables/dockEdge";
 import { usePlayActuation } from "./composables/usePlayActuation";
 import { useMenubarMeasure } from "./composables/useMenubarMeasure";
 import { useIconSpin } from "./composables/useIconSpin";

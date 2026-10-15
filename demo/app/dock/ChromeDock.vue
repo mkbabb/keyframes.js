@@ -9,7 +9,7 @@ import {
     DockSeparator,
 } from "@mkbabb/glass-ui/dock";
 import { Button } from "@mkbabb/glass-ui/button";
-import { provideDockPlate, useDockEdgeOffset } from "./dockEdge";
+import { provideDockPlate, useDockEdgeOffset } from "@composables/dockEdge";
 // T.C1 — the elision RENDER consumes T.B5's AUTHORITATIVE cardinality model
 // (the DFA projection — ONE source of the count arithmetic, per lane 18's
 // dual-formula rule).
