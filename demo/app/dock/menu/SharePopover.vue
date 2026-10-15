@@ -138,7 +138,7 @@ import { Popover, PopoverContent } from "@mkbabb/glass-ui/popover";
 import { Input } from "@mkbabb/glass-ui/input";
 import { LabeledField } from "@mkbabb/glass-ui/labeled-field";
 import { Separator } from "@mkbabb/glass-ui/separator";
-import { isInsideToaster } from "@components/instrument/utils/toastGuard";
+import { isInsideToaster } from "@utils/toastGuard";
 import { useShareState } from "./useShareState";
 
 const { anchor, sideOffset = 8, onSceneRestore } = defineProps<{

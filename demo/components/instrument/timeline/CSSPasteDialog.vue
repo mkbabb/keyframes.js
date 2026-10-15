@@ -116,7 +116,7 @@ import {
     DialogTitle,
 } from "@mkbabb/glass-ui";
 import { Textarea } from "@mkbabb/glass-ui/textarea";
-import { isInsideToaster } from "@components/instrument/utils/toastGuard";
+import { isInsideToaster } from "@utils/toastGuard";
 import { useMediaQuery } from "@vueuse/core";
 
 /**

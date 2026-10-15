@@ -342,7 +342,7 @@ import {
     formatCombo,
     formatComboParts,
 } from "@mkbabb/glass-ui/keyboard";
-import { isInsideToaster } from "@components/instrument/utils/toastGuard";
+import { isInsideToaster } from "@utils/toastGuard";
 import { groupShortcuts } from "./groupShortcuts";
 
 const open = defineModel<boolean>('open', { required: true });

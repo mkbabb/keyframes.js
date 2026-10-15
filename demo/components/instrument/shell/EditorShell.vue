@@ -103,7 +103,7 @@
 <script setup lang="ts">
 import { provide, ref } from "vue";
 
-import { initIOSPlatformClass } from "@components/instrument/utils/iosTextEntry";
+import { initIOSPlatformClass } from "@utils/iosTextEntry";
 import AnimationControlsGroup from "@components/instrument/transport/AnimationControlsGroup.vue";
 
 import type { AnimationGroup } from "@mkbabb/keyframes.js";

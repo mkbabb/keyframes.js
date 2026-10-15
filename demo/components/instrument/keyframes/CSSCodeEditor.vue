@@ -95,7 +95,7 @@ import LightTheme from "./monaco-themes/GitHub.json";
 import { CODE_INK } from "./utils/codeTokens";
 import { Card } from "@mkbabb/glass-ui/card";
 import { useGlobalDark } from "@mkbabb/glass-ui/dark";
-import { clampIOSNoZoomFontSize } from "@components/instrument/utils/iosTextEntry";
+import { clampIOSNoZoomFontSize } from "@utils/iosTextEntry";
 import { formatEditorCSS } from "@utils/formatEditorCSS";
 import { debounce } from "@utils/helpers";
 import { toast } from "@mkbabb/glass-ui/toast";
