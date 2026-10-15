@@ -39,8 +39,12 @@
                 @click="handleClick"
             >
                 <span ref="stack" class="clipboard-stack" aria-hidden="true">
-                    <Clipboard ref="clipboard" class="icon-md" />
-                    <ClipboardCheck
+                    <!-- X-DS r5 pass 5 (KF-C5-04) — the app's ONE copy glyph:
+                         lucide Copy (the pane footer's and glass
+                         EasingPicker's), confirmed by Check. The stage drew
+                         a clipboard beside them. -->
+                    <Copy ref="clipboard" class="icon-md" />
+                    <Check
                         ref="clipboardChecked"
                         class="icon-md opacity-0"
                     />
@@ -58,7 +62,7 @@
 </template>
 
 <script setup lang="ts">
-import { Clipboard, ClipboardCheck } from "@lucide/vue";
+import { Check, Copy } from "@lucide/vue";
 
 import { onBeforeUnmount, onMounted, ref, shallowRef, useTemplateRef } from "vue";
 import { Button } from "@mkbabb/glass-ui/button";

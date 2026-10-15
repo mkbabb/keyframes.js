@@ -38,13 +38,20 @@
    inside the 16px card (a hard-edged debug rectangle) and painted a muddy
    tone-mixed wash in dark; glass 10.1.0 publishes no nested-radius relay
    (`--radius-floor/--radius-ctx/--radius-inset`), so the plate is dropped, not
-   re-rounded by a local formula. The inline padding is the travellers' glow room
-   at both lane ends. */
+   re-rounded by a local formula.
+   X-DS r5 pass 5 (KF-C5-10) — TWO LEFT EDGES: the lane ordinals stand on the
+   plate's text gutter (the title's, `--stage-plate-pad-inline`, which the
+   storyboard now pads by) and the lanes are the second edge. The ordinals sat
+   on a third, 20 px inside the title (the storyboard's 1rem, this stage's 1rem
+   and a right-aligned digit in a 1.25rem column). The stage keeps no inline
+   start padding, the digit starts its column, and the column is one digit
+   wide. The end padding is the room a traveller at the lane's end hangs into
+   (half a ball), inside the card's clip. */
 .seq-stage {
     /* The index column: one ordinal digit at the caption rung (A2-KE-L3-7 — the
        lanes are unlabelled on the stage, an index at most; the `@ms` offsets are
        the Timeline pane's). */
-    --label-col: 1.25rem;
+    --label-col: 0.75rem;
     /* X-DS pass 7 (KF-C7-08) — the gap clears the traveller's RADIUS too. The
        time column starts at the track's inline start and a ball at p = 0 is
        centred on it, so half of it hung into the gap and lane 1's ball sat
@@ -56,7 +63,7 @@
     display: grid;
     grid-template-columns: var(--label-col) 1fr;
     column-gap: var(--col-gap);
-    padding: 0.5rem 1rem;
+    padding: 0.5rem 0.75rem 0.5rem 0;
 }
 
 .seq-rows {
@@ -80,11 +87,11 @@
 }
 
 /* The lane's ordinal: redundant with order and the tone spectrum, so it is the
-   quiet mark — a real semibold, muted, right-aligned against the lane. */
+   quiet mark — a real semibold, muted, on the plate's text gutter (KF-C5-10). */
 .seq-row-name {
     font-weight: var(--font-weight-semibold, 600);
     color: var(--muted-foreground);
-    text-align: right;
+    text-align: start;
     line-height: 1;
 }
 

@@ -133,7 +133,11 @@
                     title="Format"
                     @click="keyframes?.format()"
                 >
-                    <Sparkles class="icon-sm" />
+                    <!-- X-DS r5 pass 5 (KF-C5-05) — a glyph that says
+                         formatting (set lines), in the row's neutral ink.
+                         Sparkles says "magic", which Format is not, and it
+                         stood alone once the word yielded. -->
+                    <AlignLeft class="icon-sm" />
                     <span class="@max-[25rem]:sr-only">Format</span>
                 </Button>
                 <!-- K.W10 CC-4 — Export CSS: compile the orchestration graph
@@ -171,7 +175,7 @@
 </template>
 
 <script setup lang="ts">
-import { Copy, FileCode, Paintbrush, Sparkles } from "@lucide/vue";
+import { AlignLeft, Copy, FileCode, Paintbrush } from "@lucide/vue";
 import { computed, inject, watch } from "vue";
 import { Button, Separator } from "@mkbabb/glass-ui";
 import type { StoredAnimationGroupControlOptions } from "@state";

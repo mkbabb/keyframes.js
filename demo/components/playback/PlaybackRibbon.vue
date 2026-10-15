@@ -169,7 +169,10 @@
         <!-- OA-10 (§0ao.1) → OA-61 (X.KF.W13W.e) — the ball preview; its
              body fades in PreviewToggle (hidden stays mounted; its row collapses, C1). The mount owns
              the state and its persistence; every mount binds it. -->
-        <PreviewToggle v-if="animation" :state="preview">
+        <!-- X-DS r5 pass 5 (KF-C5-03) — the track YIELDS on a short rail
+             (`showTrack`, the script): the time rail above already shows the
+             playhead, and the pinned ribbon was taking the scroller's rows. -->
+        <PreviewToggle v-if="animation && showTrack" :state="preview">
             <AnimationVisualizer
                 :animation="animation"
                 :is-playing="isAnimPlaying"
@@ -199,6 +202,7 @@ import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 // test file is not this packet's to edit. The move lands the day that seam is
 // widened by its owner.
 import { Button, Slider } from "@mkbabb/glass-ui";
+import { useMediaQuery } from "@vueuse/core";
 import { useDragScrub } from "@composables/useDragScrub";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@mkbabb/glass-ui/tooltip";
 import { LabeledField } from "@mkbabb/glass-ui/labeled-field";
@@ -368,9 +372,26 @@ const timeReadout = computed(() => {
         : `${Math.round(railT.value * 100)} %`;
 });
 
+/** X-DS r5 pass 5 (KF-C5-03) — THE BALL TRACK YIELDS TO THE SCROLLER ON A
+ *  SHORT RAIL. The ribbon is pinned under the pane's scroller, and its three
+ *  rows (time, Reverse / Preview, the 64 px track with its gap: 205 px) left
+ *  the scroller 301 px of a 368 px Easing facet at 1280x800, so `duration`,
+ *  the scene's one timing control, rested under the fold (the cube, square and
+ *  amiga panes lost `layer`, spring half its presets). The track repeats what
+ *  the time rail shows, so it is the row that gives way; the time rail and
+ *  Reverse stay pinned. The rail's block budget is the stage plate's (the work
+ *  band), which follows the viewport's height: the tallest resting facet
+ *  (spring Physics, 406 px) fits beside the track from 890 px of viewport up
+ *  (416 px of scroller at 900), so below that the track is not mounted and the
+ *  eye that toggles it is not offered. Desktop rail only: the phone sheet
+ *  scrolls the ribbon with its pane. Where the track shows, it is unchanged
+ *  (the ghost dot included). */
+const railShort = useMediaQuery("(min-width: 1024px) and (max-height: 889px)");
+const showTrack = computed(() => animation !== undefined && !railShort.value);
+
 /** KF-P1-01 — the eye is offered where there is a preview to hide AND a mount
  *  that owns its state (an unbound harness mount offers none). */
-const showEye = computed(() => animation !== undefined && preview !== undefined);
+const showEye = computed(() => showTrack.value && preview !== undefined);
 
 /** D-5 — the id the sr-only hint carries, forwarded to the thumb by the producer. */
 const scrubHintId = useId();

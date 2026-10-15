@@ -97,7 +97,7 @@
                  cell below lg too (KF-C15-02), so the storyboard takes it and the
                  lanes spread rather than crush into a strip in the middle. -->
             <div
-                class="seq-storyboard px-4 py-4 flex-1"
+                class="seq-storyboard px-(--stage-plate-pad-inline) py-4 flex-1"
                 :style="{ '--seq-n': ROW_COUNT }"
             >
                 <!-- L.W11 S7 — the cascade host (`.cascade-chase`, a marker

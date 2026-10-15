@@ -54,12 +54,17 @@
                  was the scroller's last row at rest, so the rail's end fade
                  ate it to ~1.7:1); KF-C3-11 — the ζ axis title went to its
                  axis, so this slot was free. -->
-            <span v-else-if="figureOpen" class="flex items-center gap-1.5 min-w-0 text-caption text-muted-foreground" data-figure-legend>
+            <!-- X-DS r5 pass 5 (KF-C5-02) — the sentence wraps WHOLE under the
+                 swatch where the rail cannot hold the two on one line (the
+                 row is a flex-wrap line, SubPaneHeader's caption rule). At
+                 1280x800 the nowrap sentence ran 27 px past its own box and
+                 the rail cut it mid-word. -->
+            <span v-else-if="figureOpen" class="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 min-w-0 text-caption text-muted-foreground" data-figure-legend>
                 <!-- X-DS pass 16 (KF-C16-04) — the swatch keys the field's ramp.
                      r4 pass 5 (KF-C24-01) — so does the sentence: both show only
                      while the field does. -->
                 <span class="spring-heatmap-swatch shrink-0" aria-hidden="true"></span>
-                <span class="min-w-0 tabular-nums" title="Peak overshoot varies with damping ζ only; response sets the tempo, not the peak">{{ LEGEND }}</span>
+                <span class="tabular-nums" title="Peak overshoot varies with damping ζ only; response sets the tempo, not the peak">{{ LEGEND }}</span>
             </span>
             <span :id="readoutId" class="sr-only">
                 {{ response.toFixed(2) }} s / ζ {{ dampingFraction.toFixed(2) }}
@@ -372,8 +377,27 @@ onMounted(() => {
 // nothing. Once its reveal has run (the producer's height animation ends) the
 // section is scrolled to the nearest edge of its scroller; off the top, the
 // scroller's end fade is the cue again.
-const revealFigure = (): void =>
-    sectionEl.value?.$el?.scrollIntoView?.({ block: "nearest" });
+// X-DS r5 pass 5 (KF-C5-01) — and the fold lands on content there too. The
+// nearest edge left the scroller 17 px short of its end at 1440x900, so the
+// response axis' labels lay across the fold and under the end fade. The figure
+// is the facet's last row: where the scroller can hold it whole, the scroller
+// rests at its END (the axis row whole above the fold, the producer's end fade
+// off at the limit); where it cannot, the figure starts at the scroller's top.
+// One frame after the reveal, so the rail's own landing (useFoldLanding, which
+// re-caps the scroller when its content resizes) has run first.
+const revealFigure = (): void => {
+    const section = sectionEl.value?.$el;
+    if (!section) return;
+    const scroller = section.closest?.(".controls-surface");
+    if (!(scroller instanceof HTMLElement)) {
+        section.scrollIntoView?.({ block: "nearest" });
+        return;
+    }
+    requestAnimationFrame(() => {
+        if (section.offsetHeight <= scroller.clientHeight) scroller.scrollTop = scroller.scrollHeight;
+        else section.scrollIntoView?.({ block: "start" });
+    });
+};
 watch(figureOpen, (open) => {
     const section = sectionEl.value?.$el;
     if (!open || !section) return;

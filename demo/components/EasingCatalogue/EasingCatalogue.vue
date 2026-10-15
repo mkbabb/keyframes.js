@@ -53,7 +53,9 @@
              is glass's collapsed Select. -->
         <Separator v-if="!filterIsStrip" class="catalogue-divider" />
 
-        <FadingScroll axis="y" class="specimen-drawer min-h-0 w-full flex-1">
+        <!-- X-DS r5 pass 5 (KF-C5-09) — the stage's drawer lands its fold on
+             a row (`landDrawer`, the script), as the rail's scrollers do. -->
+        <FadingScroll ref="drawerEl" axis="y" class="specimen-drawer min-h-0 w-full flex-1">
             <ToggleGroup
                 type="single"
                 size="sm"
@@ -229,9 +231,50 @@ const filterResponsive = computed(() => ({
 }));
 // The strip's own width changes with its labels (a font landing, the groups).
 watch([filterIsStrip, familyOptions], measureStrip, { flush: "post" });
+
+/** X-DS r5 pass 5 (KF-C5-09) — THE STAGE DRAWER'S FOLD LANDS ON A ROW, the
+ *  rail's rule (useFoldLanding) for the stage's one scroller. Its height was
+ *  whatever the plate left, so at 1440x900 the fold ran through the Sine row's
+ *  curves and balls (93 px of a 133 px tile). At rest a tile the fold would cut
+ *  shows its top edge only (the drawer's `scroll-padding-block-end`, under
+ *  glass's end fade: the "more below" cue), and a family heading it would cut
+ *  goes under the fold whole. One `max-block-size` on the drawer, written when
+ *  the host resizes or the filter changes, never per frame. The popover's
+ *  compact grid (`density="menu"`) is sized by its own menu and is left alone. */
+const drawerEl = useTemplateRef<{ $el: HTMLElement }>("drawerEl");
+const landDrawer = () => {
+    const drawer = drawerEl.value?.$el;
+    if (!(drawer instanceof HTMLElement)) return;
+    drawer.style.maxBlockSize = "";
+    if (props.density !== "stage") return;
+    const fold = drawer.clientHeight;
+    if (fold === 0 || drawer.scrollHeight - fold <= 1) return;
+    const origin = drawer.getBoundingClientRect().top + drawer.clientTop - drawer.scrollTop;
+    const cut = [...drawer.querySelectorAll<HTMLElement>(".catalogue-family, .specimen-tile")]
+        .map((el) => ({ el, rect: el.getBoundingClientRect() }))
+        .filter(({ rect }) => rect.top - origin < fold && rect.bottom - origin > fold)
+        .reduce<{ el: HTMLElement; rect: DOMRect } | null>(
+            (first, row) => (first && first.rect.top <= row.rect.top ? first : row),
+            null,
+        );
+    if (!cut) return;
+    const peek = cut.el.classList.contains("specimen-tile")
+        ? Number.parseFloat(getComputedStyle(drawer).scrollPaddingBlockEnd) || 0
+        : 0;
+    const end = Math.floor(cut.rect.top - origin + peek);
+    // A port too short to hold a row whole is left as it stands.
+    if (end < fold / 2) return;
+    drawer.style.maxBlockSize = `${end + drawer.offsetHeight - fold}px`;
+};
+useResizeObserver(rootEl, landDrawer);
+
 onMounted(() => {
     measureStrip();
-    void document.fonts?.ready.then(measureStrip);
+    landDrawer();
+    void document.fonts?.ready.then(() => {
+        measureStrip();
+        landDrawer();
+    });
 });
 const onFamilyChange = (v: string) => {
     family.value = v;
@@ -241,6 +284,8 @@ const visibleGroups = computed(() =>
         ? props.groups
         : props.groups.filter((g) => g.family === family.value),
 );
+// The drawer's rows change with the filter (and its own top with the strip).
+watch([visibleGroups, filterIsStrip], landDrawer, { flush: "post" });
 
 // ── Selection: the tile press IS the curve pick ─────────────────────
 // Single-select, never empty: the deselect toggle (pressing the pressed tile)
@@ -379,6 +424,13 @@ watch(
     flex: none;
     max-width: 100%;
     --type-subheading: var(--type-small);
+}
+
+/* X-DS r5 pass 5 (KF-C5-09) — how much of a tile shows under the fold at rest:
+   its top edge and corners, inside glass's 1rem end fade (`landDrawer`). It is
+   also the room a focused tile scrolled into view keeps from the fold. */
+.specimen-drawer {
+    scroll-padding-block-end: 0.75rem;
 }
 
 /* ── 2 · the divider (glass Separator owns its hairline) ── */

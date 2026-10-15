@@ -73,9 +73,21 @@
      1440x900 (arena 814x535): size = travel ~156 px (was ~184 on the plate)
      390x844 (arena 334x545): size = travel ~92 px (the inline half binds, as
      before) */
+/* X-DS r5 pass 5 (KF-C5-08) — THE SUBJECT BLOCK IS THE FIELD AND ITS CAPTION.
+   The field was centred in the track under the header and the caption hung
+   below it, so the room above the field was the room below the caption plus
+   the caption's own block (167 px over 99 px at 390, 125 over 67 at 1440: a
+   top-heavy plate). The arena now ends one caption block above the plate's
+   foot (`--square-caption-block`: the caption's 0.75rem offset and its resting
+   lines, 58 px served at 1440 and 68 px at 390), so the field with its caption
+   is centred as one block and the two gaps match. The arena is still the one
+   origin of the field, the box, the tether and the caption, and the travel
+   budget is still the arena's, so the swollen box stays under the header. */
 .square-arena {
+    --square-caption-block: 4rem;
     position: relative;
     min-block-size: 0;
+    margin-block-end: var(--square-caption-block);
     container-type: size;
     display: grid;
     place-items: center;
