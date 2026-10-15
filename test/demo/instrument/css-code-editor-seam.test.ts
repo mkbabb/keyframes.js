@@ -315,4 +315,26 @@ describe("G-KFW12-4 — the Monaco seam", () => {
             delete w.requestIdleCallback;
         }
     });
+
+    it("(6) KFA-81: the outgoing editor's teardown also waits for the paint (a swap unmounts one pane and mounts the next in one frame)", async () => {
+        mounted = mount(CSSCodeEditor, {
+            props: { modelValue: "a { color: red }" },
+            attachTo: document.body,
+        });
+        await booted(mounted);
+        await sleep(50);
+        const idle: Array<() => void> = [];
+        const w = window as unknown as { requestIdleCallback?: (cb: () => void) => number };
+        w.requestIdleCallback = (cb) => idle.push(cb);
+        try {
+            const live = monaco.editor.getEditors().length;
+            mounted.unmount();
+            mounted = undefined;
+            expect(monaco.editor.getEditors().length).toBe(live);
+            idle.splice(0).forEach((run) => run());
+            expect(monaco.editor.getEditors().length).toBe(live - 1);
+        } finally {
+            delete w.requestIdleCallback;
+        }
+    });
 });

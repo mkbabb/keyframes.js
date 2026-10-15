@@ -598,14 +598,18 @@ const formatCSSContent = async () => {
 // `requestIdleCallback` where the engine ships it (the house idiom of
 // `warmScenesAtIdle` and the Keyframes warm), else one task past the next
 // paint. It waits on the frame, never on a clock: no fixed delay. Retry stays
-// a direct boot (a user act wants its answer now).
-const initAfterPaint = () => {
-    const run = () => {
-        if (!disposed) void initEditor();
-    };
+// a direct boot (a user act wants its answer now). The outgoing editor's
+// teardown takes the same seat (`onUnmounted`): a scene swap unmounts one pane
+// and mounts the next inside one frame, and Monaco's dispose is no part of the
+// destination's first paint.
+const whenPainted = (run: () => void) => {
     if ("requestIdleCallback" in window) requestIdleCallback(run);
     else requestAnimationFrame(() => setTimeout(run));
 };
+const initAfterPaint = () =>
+    whenPainted(() => {
+        if (!disposed) void initEditor();
+    });
 
 onMounted(() => {
     const el = containerEl.value!;
@@ -630,7 +634,9 @@ onUnmounted(() => {
     disposed = true;
     debouncedEmit.cancel();
     stopFlipSettled();
-    editor?.dispose();
+    const outgoing = editor;
+    editor = undefined;
+    if (outgoing) whenPainted(() => outgoing.dispose());
 });
 
 // The ONE exposed member (KF-CE-27). `setValue`/`getValue`/`editor()` had no
