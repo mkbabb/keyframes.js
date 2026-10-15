@@ -49,19 +49,25 @@ export function useSceneSwap(
     // flip mounts the resolved scene and this spring fades IT in, never the
     // <Suspense> fallback (UIA-KF-125).
     const sceneSwapSpring = new SpringProgress({ respectReducedMotion: true });
+    // The host opacity reads the spring's whole value stream (`subscribe`:
+    // every reset, re-target, snap and tick), so each leg's first value lands
+    // synchronously with the mutation that asked for it: no frame paints the
+    // incoming scene at the stale 1 before the first tick.
+    sceneSwapSpring.subscribe((v) => { sceneOpacity.value = v; });
     /**
      * The house swap fade: the one motion every swap no VT carried takes.
-     * The leg (0 → 1) is seated BEFORE `play()`, because `play()` is where
-     * the engine reads the reduced-motion query: under it the spring snaps to
-     * the seated target and emits that ONE frame (1: an instant clean swap).
-     * Seated after `play()`, the snap landed on the reset value (0) and the
-     * re-target's snap never reached the play callback, so a reduced-motion
-     * swap left the scene host at opacity 0 (X.KF.W13X.r4fade).
+     * The leg (0 → 1) is seated BEFORE `play()`, because the engine reads the
+     * reduced-motion query at the re-target and at `play()`: under it the
+     * spring snaps to 1 and emits it (an instant clean swap). The old order
+     * (`play()` with a frame callback, THEN the target) snapped onto the reset
+     * value 0, and the re-target's snap never reached that callback, so every
+     * reduced-motion swap left the scene host at opacity 0, a blank stage
+     * (X.KF.W13X.r4fade).
      */
     function fadeSceneIn() {
         sceneSwapSpring.reset(0);
         sceneSwapSpring.target = 1;
-        sceneSwapSpring.play((v) => { sceneOpacity.value = v; });
+        sceneSwapSpring.play();
     }
     watch(activeSceneKey, () => {
         const carriedByVT = lastSwapBackend.value === "view-transition";
