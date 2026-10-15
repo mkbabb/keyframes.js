@@ -72,8 +72,11 @@
                 </div>
                 <!-- The playhead, through every row. KFA-172 — placed by a
                      WHOLE-PIXEL translate (a fractional offset rasterises soft
-                     while it moves). -->
+                     while it moves). X-DS r6 pass 6 (KF-C6-07) — an adapter
+                     with nothing to time hands `null` and no playhead is
+                     drawn (a mark parked at 0 read as "stopped"). -->
                 <div
+                    v-if="playhead !== null"
                     class="lane-track-playhead absolute top-0 left-0 h-full w-0.5 z-content pointer-events-none"
                     data-lane-track-playhead
                     aria-hidden="true"
@@ -158,8 +161,8 @@ const props = withDefaults(
         lanes?: readonly L[];
         /** The ruler's graduations, placed in the column (%). */
         ticks?: readonly LaneTrackTick[];
-        /** The playhead's place in the column (%). */
-        playhead: number;
+        /** The playhead's place in the column (%); `null` draws none. */
+        playhead: number | null;
         /** The column → domain map a pointer projects through (an adapter's
          *  zoom/pan inverse); default the linear [min, max] map. */
         unplace?: (position: number) => number;
@@ -189,7 +192,7 @@ const columnEl = useTemplateRef<HTMLElement>("columnEl");
 const { width: columnWidth } = useElementSize(columnEl);
 
 /** KFA-172 — the playhead's whole-pixel offset along the column. */
-const playheadPx = computed(() => Math.round((props.playhead / 100) * columnWidth.value));
+const playheadPx = computed(() => Math.round(((props.playhead ?? 0) / 100) * columnWidth.value));
 
 /** Project a pointer onto the domain through the column. `null` — never an
  *  in-band value — when the column is not laid out: a failed projection moves

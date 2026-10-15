@@ -123,7 +123,10 @@
              390 sheet washed through it (the stops sat on a pink-and-green
              smear). The hover fill step went with it (a lighter /70 over an
              opaque ground would read as a hole); the pointer cursor and the
-             focus ring carry the affordance. -->
+             focus ring carry the affordance.
+             X-DS r6 pass 6 (KF-C6-07) — an empty track draws no playhead: the
+             editor's own lane time has nothing to time there, and a violet
+             mark parked at 0 while the subject plays read as "stopped". -->
         <LaneTrack
             ref="laneTrack"
             :id="railId"
@@ -136,7 +139,7 @@
             :value="scrubT * 100"
             :value-text="`${Math.round(scrubT * 100)}%`"
             :ticks="ticks"
-            :playhead="percentToPosition(scrubT * 100)"
+            :playhead="sortedKeyframes.length > 0 ? percentToPosition(scrubT * 100) : null"
             :unplace="positionToPercent"
             @scrub="(percent: number) => emit('update:scrubT', percent / 100)"
             @keydown="onZoomKeydown"

@@ -1,26 +1,14 @@
 <template>
     <div class="flex flex-col gap-3">
-    <!-- UIA-KF-085 — the Card IS the surface in both modes: expanded, it
-         floats over the stage at glass's floating tier instead of having its
-         material stripped by class overrides inside a hand-dressed wash cell
-         (the cell is now a placement slot, AnimationControlsGroup.vue).
-         X-DS pass 1, C1 (KF-C1-07) — in the pane (collapsed) the timeline
-         draws no card of its own: the pane host draws the one frame
-         (ControlsPaneWrapper). Expanded, it floats over the stage, so there
-         the Card is still the surface. -->
-    <!-- X-DS r6 pass 5 (KF-C5-01 · KF-C5-02) — ONE SURFACE PER PLACE. On the
-         desktop rail the timeline, docked or unfolded, is a section of the
-         pane's one frame: unfolding is a taller track in place, never a
-         second card hung over the pane (it covered the Controls fields and
-         stamped its cartoon cast onto the pane under it). Only the 390 sheet
-         over the stage (`sheet`, the expanded cell) draws a Card, at the tier
-         the controls sheet under it wears, and with no `cartoon-surface`
-         stamp (the stacked -3/-5/-7 px cast is out under O-87). -->
-    <component
-        :is="props.sheet ? Card : 'div'"
-        v-bind="props.sheet ? { tier: 'floating' } : {}"
-        class="w-full overflow-visible"
-    >
+    <!-- UIA-KF-085 → X-DS pass 1 (KF-C1-07) → r6 pass 5 (KF-C5-01) → r6
+         pass 6 (KF-C6-01) — ONE SURFACE PER PLACE, and the timeline has one
+         place at every width: the pane (the desktop rail's frame, the 390
+         controls sheet). It draws no card of its own: the pane host draws the
+         one frame, and in the sheet the sheet IS the plate. Unfolding is a
+         taller track in place. The 390 expanded cell, the last place it drew
+         a Card (stacked on the sheet, over the cube), is deleted, and the
+         `sheet` prop with it. -->
+    <div class="w-full overflow-visible">
         <!-- X-DS pass 9 (KF-C9-07) — the pane's ONE inset and ONE title rung:
              the inline inset is glass's `--configurator-pad-inline` and the
              title wears glass's configurator section label, as every scene
@@ -29,13 +17,9 @@
              X-DS pass 11 (KF-C11-04) — ONE block start too: in the pane the
              title takes the header line every sibling facet's title sits on
              (the configurator header's and the Keyframes header's 0.5rem), so
-             it no longer drops 8 px when the dock switches facets. The floating
-             Card keeps its py-4. -->
+             it no longer drops 8 px when the dock switches facets. -->
         <CardContent
-            :class="[
-                'relative flex flex-col gap-3 px-(--configurator-pad-inline)',
-                props.sheet ? 'py-4' : 'pt-2 pb-4',
-            ]"
+            class="relative flex flex-col gap-3 px-(--configurator-pad-inline) pt-2 pb-4"
         >
         <!-- Pane action buttons.
              D-6 + the wave's ONE min-block-size policy (D-8), both spent by
@@ -280,17 +264,15 @@
              THIS component's. In the pane it is teleported to the frame's
              ribbon section, under the pane's one hairline, as the Controls
              surface's playback row is mounted there (RibbonBar's one transport).
-             In the 390 sheet (`sheet`; r6 pass 5, KF-C5-01: on the desktop
-             rail an unfolded timeline stays in the pane, so its verbs stay in
-             the ribbon), the teleport is off, so the row renders HERE, as the
-             sheet card's footer: it used to stay behind in the rail as a
-             titleless card holding only these four buttons, ~450px from the
-             track they act on. A timeline mounted with no pane ribbon in the
+             The timeline has one place at every width (r6 pass 6, KF-C6-01),
+             so its verbs are always in that pane's ribbon: they used to stay
+             behind in the rail as a titleless card holding only these four
+             buttons, ~450px from the track they act on. A timeline mounted
+             with no pane ribbon in the
              document (`ribbonHost`, read once the tree is in) keeps the row
              in place rather than teleporting into nothing. -->
-        <Teleport to="#timeline-ribbon-target" :disabled="props.sheet || !ribbonHost" defer>
+        <Teleport to="#timeline-ribbon-target" :disabled="!ribbonHost" defer>
             <div class="flex flex-col gap-3">
-                <Separator v-if="props.sheet" />
                 <!-- X-DS r4 pass 6 (KF-C25-02) — the emphasis follows the
                      verb the caption names: while the empty timeline names
                      the scene's @keyframes, Import leads and Snapshot is
@@ -379,12 +361,12 @@
                             <DropdownMenuSeparator />
                             <!-- KF-C3-09 — the fold affordance says what it does. -->
                             <DropdownMenuItem
-                                :text-value="props.expanded ? 'Fold timeline into the pane' : 'Unfold timeline'"
+                                :text-value="props.expanded ? 'Fold timeline' : 'Unfold timeline'"
                                 class="gap-2.5 px-1.5 py-1"
                                 @select="emit('toggleExpand')"
                             >
                                 <component :is="props.expanded ? FoldVertical : UnfoldVertical" class="icon-sm" aria-hidden="true" />
-                                {{ props.expanded ? "Fold timeline into the pane" : "Unfold timeline (taller track)" }}
+                                {{ props.expanded ? "Fold timeline (shorter track)" : "Unfold timeline (taller track)" }}
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
@@ -393,7 +375,7 @@
         </Teleport>
 
         </CardContent>
-    </component>
+    </div>
 
     <!-- L-16/L-17 — the two paste dialogs differed in four strings and nothing
              else, so they are ONE mount over a descriptor. An in-file `v-for`,
@@ -429,7 +411,7 @@ import {
     Upload,
 } from "@lucide/vue";
 import CSSPasteDialog from "./CSSPasteDialog.vue";
-import { Alert, AlertDescription, AlertTitle, Button, Card, CardContent, Separator } from "@mkbabb/glass-ui";
+import { Alert, AlertDescription, AlertTitle, Button, CardContent, Separator } from "@mkbabb/glass-ui";
 import { toast, ToastAction } from "@mkbabb/glass-ui/toast";
 import { Input } from "@mkbabb/glass-ui/input";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@mkbabb/glass-ui/tooltip";
@@ -457,9 +439,6 @@ const props = defineProps<{
     /** The channel's parsed @keyframes and its stop count (KF-C24-05), or null. */
     scene?: { css: string; count: number } | null;
     expanded?: boolean;
-    /** Rendered in the expanded cell, the sheet over the stage (390): the one
-     *  place the timeline draws its own Card and carries its own verbs. */
-    sheet?: boolean;
 }>();
 
 const emit = defineEmits<{

@@ -159,7 +159,7 @@
    mobile full-bleed-to-viewport keeps @media, the correct query for a
    viewport-relative layer (and the proof:mobile-single-page S1 contract). */
 @media (max-width: 1023px) {
-    /* The layout root's children (stage + sheet + expanded-timeline) are all
+    /* The layout root's children (stage + sheet) are all
        `fixed` on mobile, so it carries no in-flow content; centering is a no-op. */
     .controls-layout {
         align-content: center;
@@ -223,28 +223,14 @@
            own it on their own roots); this cell is a passive frame, so the swipe
            is owned by the sheet GRAB HANDLE — spatially disjoint (BLK-6). */
     }
-
-    /* The expanded-timeline teleport target FOLDS OUT of grid flow on mobile —
-       `position: fixed`, anchored ABOVE the bottom menubar band, full-bleed
-       width. It NEVER re-introduces a third consuming row (the single-stage-model
-       invariant): collapsed it is `max-h-0` (invisible), expanded it grows
-       upward from the menubar anchor. z-dock so it sits above the fixed stage
-       but it does NOT overlap the menubar's own controls (anchored just above
-       the reserve). */
-    .timeline-expanded-cell {
-        position: fixed;
-        left: 0;
-        right: 0;
-        bottom: var(--dock-menubar-reserve);
-    }
 }
 
 /* ── Desktop: the named rail·stage·rail item PLACEMENTS (H.W3.S4; K.W3 M2) ──
    The grid + the named template themselves are the UNCONDITIONAL base (above —
    an element can't match its own @container query). What is genuinely
    desktop-only is the PLACEMENT of the children INTO the named cells: the pane
-   in [rail], the subject in [stage] (the expanded-timeline cell is not drawn
-   here, r6 pass 5). These
+   in [rail], the subject in [stage] (the expanded-timeline cell is deleted,
+   r6 pass 6). These
    target DESCENDANTS of `.controls-layout`, which CAN query their ancestor
    container — so the @media (min-width:1024px) → @container (min-width:64rem)
    promotion lands HERE (the macro tier reads ITS box). On mobile (the
@@ -268,17 +254,5 @@
         grid-column: stage;
         grid-row: stage;
         anchor-name: --stage;
-    }
-
-    /* X-DS r6 pass 5 (KF-C5-01) — ONE SURFACE PER RAIL POSITION. The
-       expanded cell held the unfolded timeline as a second, floating card hung
-       from the pane's top line (KF-C4-14), drawn over the docked pane: card on
-       card, its blur smearing the pane's own fields, its cast stamped on the
-       pane. On the desktop rail the unfolded timeline now stays in the pane's
-       one frame (ChannelControls), so this cell holds nothing here and takes
-       no grid cell. Its placement rules (rail track, stage/-1 rows, the
-       rail-column inline inset) are deleted with the card they placed. */
-    .timeline-expanded-cell {
-        display: none;
     }
 }

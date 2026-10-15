@@ -13,6 +13,8 @@
  * (`RIBBON_SEAT_KEY`) that the selected channel's host and the scene publish
  * bindings into; the expanded cell renders from AnimationControlsGroup off a
  * second seat (`EXPANDED_TIMELINE_KEY`). No DOM id is a layout seam.
+ * X-DS r6 pass 6 (KF-C6-01) — the expanded cell and its seat are deleted: the
+ * timeline unfolds in its one place, the pane, at every width.
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { defineComponent, h, nextTick, reactive } from "vue";
@@ -44,7 +46,6 @@ const PANE = "demo/components/instrument/pane";
 const RIBBON_BAR = `${PANE}/RibbonBar.vue`;
 const OPTIONS = `${PANE}/channel-controls/ChannelOptions.vue`;
 const CHANNEL = `${PANE}/channel-controls/ChannelControls.vue`;
-const GROUP = "demo/components/instrument/transport/AnimationControlsGroup.vue";
 
 describe("X.KF.W13X.r4ribbon — structure", () => {
     it("(1) A2-KE-L1-23 step 2 — neither DOM-id portal stands: no Teleport to either id, and neither id exists", () => {
@@ -84,12 +85,11 @@ describe("X.KF.W13X.r4ribbon — structure", () => {
         expect(code(read("demo/app/App.vue"))).toMatch(/provide\(\s*RIBBON_SEAT_KEY/);
     });
 
-    it("(5) the expanded timeline cell renders from AnimationControlsGroup, off the seat the channel host publishes into", () => {
-        const group = code(read(GROUP));
-        expect(group).toMatch(/provide\(EXPANDED_TIMELINE_KEY/);
-        const cell = group.slice(group.indexOf("timeline-expanded-cell"), group.indexOf("<TransportDock"));
-        expect(cell).toMatch(/<component\s+:is="expandedTimeline\.current\.value"/);
-        expect(code(read(CHANNEL))).toMatch(/inject\(EXPANDED_TIMELINE_KEY/);
+    it("(5) KF-C6-01 — the expanded timeline cell and its seat are deleted: the timeline renders in the pane only", () => {
+        expect(sitesOf(/EXPANDED_TIMELINE_KEY|createExpandedTimelineSeat|timeline-expanded-cell/)).toEqual([]);
+        const channel = code(read(CHANNEL));
+        expect(channel).toMatch(/<component :is="renderTimeline" v-if="timelineShown" \/>/);
+        expect(channel).toMatch(/storedControls\.selectedControl === "timeline"/);
     });
 });
 

@@ -1,5 +1,5 @@
 import { shallowRef } from "vue";
-import type { ComputedRef, InjectionKey, Ref, ShallowRef, VNode } from "vue";
+import type { ComputedRef, InjectionKey, Ref, ShallowRef } from "vue";
 import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 
 export const CONTROLS_PANE_HOVER_KEY: InjectionKey<Ref<boolean>> = Symbol("controlsPaneHover");
@@ -119,22 +119,6 @@ export function createRibbonSeat(sceneSource: () => RibbonSource | null | undefi
         },
         publishChannel: channel.publish,
     };
-}
-
-/** X.KF.W13X.r4ribbon · A2-KE-L1-23 step 2 — the expanded timeline cell's
- *  content. The cell's host (`AnimationControlsGroup`) provides the seat and
- *  renders what is published; the selected channel's host publishes its
- *  timeline while the timeline is unfolded. No DOM id is the seam. */
-export interface ExpandedTimelineSeat {
-    readonly current: Readonly<ShallowRef<(() => VNode | null) | null>>;
-    /** Publish the timeline's render; returns the release. */
-    publish(render: () => VNode | null): () => void;
-}
-
-export const EXPANDED_TIMELINE_KEY: InjectionKey<ExpandedTimelineSeat> = Symbol("expandedTimeline");
-
-export function createExpandedTimelineSeat(): ExpandedTimelineSeat {
-    return createSeat<() => VNode | null>();
 }
 
 /**

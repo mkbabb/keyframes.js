@@ -239,41 +239,114 @@ watch([filterIsStrip, familyOptions], measureStrip, { flush: "post" });
  *  shows its top edge only (the drawer's `scroll-padding-block-end`, under
  *  glass's end fade: the "more below" cue), and a family heading it would cut
  *  goes under the fold whole. One `max-block-size` on the drawer, written when
- *  the host resizes or the filter changes, never per frame. The popover's
- *  compact grid (`density="menu"`) is sized by its own menu and is left alone. */
+ *  the host resizes or the filter changes, never per frame.
+ *  X-DS r6 pass 6 (KF-C6-05) — the popover's compact grid (`density="menu"`)
+ *  lands the same way: its fold ran through the Sine heading's glyphs. The
+ *  popover is content-sized under its max-height, so a capped drawer shortens
+ *  the menu rather than leaving a band under the fold. */
 const drawerEl = useTemplateRef<{ $el: HTMLElement }>("drawerEl");
+/** The drawer's rows in its own CONTENT box (scroll- and transform-free): a
+ *  popover measured mid-reveal is scaled, and its client rects with it
+ *  (r6 pass 6, KF-C6-05: the menu's fold was landed 15 px short that way). */
+const rowsOf = (drawer: HTMLElement, selector: string) => {
+    const box = drawer.getBoundingClientRect();
+    const scale = drawer.offsetHeight > 0 ? box.height / drawer.offsetHeight : 1;
+    const origin = box.top + drawer.clientTop * scale;
+    return [...drawer.querySelectorAll<HTMLElement>(selector)].map((el) => {
+        const rect = el.getBoundingClientRect();
+        return {
+            el,
+            top: (rect.top - origin) / scale + drawer.scrollTop,
+            bottom: (rect.bottom - origin) / scale + drawer.scrollTop,
+        };
+    });
+};
 const landDrawer = () => {
     const drawer = drawerEl.value?.$el;
     if (!(drawer instanceof HTMLElement)) return;
     drawer.style.maxBlockSize = "";
-    if (props.density !== "stage") return;
     const fold = drawer.clientHeight;
     if (fold === 0 || drawer.scrollHeight - fold <= 1) return;
-    const origin = drawer.getBoundingClientRect().top + drawer.clientTop - drawer.scrollTop;
-    const cut = [...drawer.querySelectorAll<HTMLElement>(".catalogue-family, .specimen-tile")]
-        .map((el) => ({ el, rect: el.getBoundingClientRect() }))
-        .filter(({ rect }) => rect.top - origin < fold && rect.bottom - origin > fold)
-        .reduce<{ el: HTMLElement; rect: DOMRect } | null>(
-            (first, row) => (first && first.rect.top <= row.rect.top ? first : row),
+    const at = drawer.scrollTop;
+    const cut = rowsOf(drawer, ".catalogue-family, .specimen-tile")
+        .filter((row) => row.top - at < fold && row.bottom - at > fold)
+        .reduce<ReturnType<typeof rowsOf>[number] | null>(
+            (first, row) => (first && first.top <= row.top ? first : row),
             null,
         );
     if (!cut) return;
     const peek = cut.el.classList.contains("specimen-tile")
         ? Number.parseFloat(getComputedStyle(drawer).scrollPaddingBlockEnd) || 0
         : 0;
-    const end = Math.floor(cut.rect.top - origin + peek);
+    const end = Math.floor(cut.top - at + peek);
     // A port too short to hold a row whole is left as it stands.
     if (end < fold / 2) return;
     drawer.style.maxBlockSize = `${end + drawer.offsetHeight - fold}px`;
 };
 useResizeObserver(rootEl, landDrawer);
 
+/** X-DS r6 pass 6 (KF-C6-04) — AND THE TOP EDGE LANDS, as the bottom does. A
+ *  restored or selection-driven scroll (the browser's focus scroll, a pick
+ *  made off-view) left the drawer's top fold mid-row: at 1440 the 'Bounce'
+ *  heading half under the start fade, at 390 the ease-in-bounce tile cut under
+ *  the divider with its heading scrolled away. On a restore, a pick or a filter
+ *  change the drawer comes to rest with a FAMILY HEADING as its first row
+ *  (a tile row on a one-family filter, which shows no headings), at the
+ *  drawer's `scroll-padding-block-start` (the start fade's depth): the resting
+ *  place nearest where it stands that keeps the selected tile wholly in view.
+ *  Never on the user's own scroll. */
+const landTop = () => {
+    const drawer = drawerEl.value?.$el;
+    if (!(drawer instanceof HTMLElement)) return;
+    const port = drawer.clientHeight;
+    const max = drawer.scrollHeight - port;
+    if (port === 0 || max <= 1) return;
+    const style = getComputedStyle(drawer);
+    const padStart = Number.parseFloat(style.scrollPaddingBlockStart) || 0;
+    const padEnd = Number.parseFloat(style.scrollPaddingBlockEnd) || 0;
+    const headings = rowsOf(drawer, ".catalogue-family");
+    const marks = headings.length > 0 ? headings : rowsOf(drawer, ".specimen-tile");
+    const tile = rowsOf(drawer, '.specimen-tile[data-state="on"]')[0];
+    const high = Math.min(max, tile ? tile.top - padStart : max);
+    const all = [...new Set(marks.map((row) => Math.max(0, Math.round(row.top - padStart))))];
+    // The selected tile clear of the end padding where a rest allows it, else
+    // merely whole (the drawer's end, which the last family's tiles reach).
+    const within = (room: number) =>
+        all.filter((at) => at >= (tile ? tile.bottom + room - port : 0) && at <= high);
+    const rests = within(padEnd).length > 0 ? within(padEnd) : within(0);
+    const now = drawer.scrollTop;
+    if (rests.length === 0 || rests.some((at) => Math.abs(at - now) <= 1)) return;
+    drawer.scrollTop = rests.reduce((a, b) => (Math.abs(b - now) < Math.abs(a - now) ? b : a));
+};
+// The tiles are `content-visibility: auto` (a 132 px placeholder until first
+// rendered): a tile a pick or a focus scroll brings on screen renders at its
+// real size a few frames later, and the rows move with it. The top lands once
+// the drawer's content height has held for two frames (at most half a second).
+const landTopSettled = () => {
+    let last = -1;
+    let held = 0;
+    let frames = 0;
+    const tick = () => {
+        const drawer = drawerEl.value?.$el;
+        if (!(drawer instanceof HTMLElement)) return;
+        held = drawer.scrollHeight === last ? held + 1 : 0;
+        last = drawer.scrollHeight;
+        if (held >= 2 || ++frames > 30) landTop();
+        else requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+};
+const landDrawerEdges = () => {
+    landDrawer();
+    landTopSettled();
+};
+
 onMounted(() => {
     measureStrip();
-    landDrawer();
+    landDrawerEdges();
     void document.fonts?.ready.then(() => {
         measureStrip();
-        landDrawer();
+        landDrawerEdges();
     });
 });
 const onFamilyChange = (v: string) => {
@@ -285,7 +358,8 @@ const visibleGroups = computed(() =>
         : props.groups.filter((g) => g.family === family.value),
 );
 // The drawer's rows change with the filter (and its own top with the strip).
-watch([visibleGroups, filterIsStrip], landDrawer, { flush: "post" });
+watch([visibleGroups, filterIsStrip], landDrawerEdges, { flush: "post" });
+watch(() => props.modelValue, landTopSettled, { flush: "post" });
 
 // ── Selection: the tile press IS the curve pick ─────────────────────
 // Single-select, never empty: the deselect toggle (pressing the pressed tile)
@@ -431,6 +505,9 @@ watch(
    also the room a focused tile scrolled into view keeps from the fold. */
 .specimen-drawer {
     scroll-padding-block-end: 0.75rem;
+    /* X-DS r6 pass 6 (KF-C6-04) — where the first row rests after a restore
+       or a pick (`landTop`): under the start fade (glass's 1rem), not in it. */
+    scroll-padding-block-start: 1rem;
 }
 
 /* ── 2 · the divider (glass Separator owns its hairline) ── */

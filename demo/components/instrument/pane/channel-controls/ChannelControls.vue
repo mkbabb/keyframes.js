@@ -114,16 +114,16 @@
                     <slot name="tabs-content"></slot>
                 </div>
 
-                <!-- The timeline, docked: outside the gated panels, inside the
-                     scrollable area. Unfolded, the SAME render is published
-                     into the expanded cell's seat and AnimationControlsGroup
-                     renders it there (X.KF.W13X.r4ribbon · A2-KE-L1-23 step 2:
-                     the DOM-id Teleport is retired); one of the two places
-                     holds it at a time.
+                <!-- The timeline: outside the gated panels, inside the
+                     scrollable area, on the Timeline surface only. X-DS r6
+                     pass 6 (KF-C6-01) — it has ONE place at every width: the
+                     pane (the desktop rail's frame, the 390 sheet). Unfolded
+                     it is a taller track in that place; the expanded cell
+                     that floated it over the stage at 390 is deleted.
                      KFA-56 / UIA-KF-019 (X.KF.W13X.timeline) — only the ACTIVE
                      channel mounts its timeline. The session survives the
                      unmount (KFA-58, useTimeline's per-channel owner). -->
-                <component :is="renderTimeline" v-if="timelineShown && !timelineUnfolded" />
+                <component :is="renderTimeline" v-if="timelineShown" />
             </div>
         </div>
     </div>
@@ -153,11 +153,9 @@ import {
     watch,
     type VNode,
 } from "vue";
-import { useMediaQuery } from "@vueuse/core";
 import type KeyframeTimelineComponent from "../../timeline/KeyframeTimeline.vue";
 import {
     CHANNEL_COMMANDS_KEY,
-    EXPANDED_TIMELINE_KEY,
     RIBBON_SEAT_KEY,
     type ChannelCommands,
     type PlaybackRibbonBinding,
@@ -287,34 +285,15 @@ const sceneKeyframes = computed(() =>
         : null,
 );
 
-// X-DS r6 pass 5 (KF-C5-01) — ONE SURFACE PER RAIL POSITION. On the desktop
-// rail the timeline is the Timeline surface's body, docked or unfolded
-// (unfolded is a taller track in place); it no longer floats as a second card
-// over whichever surface the pane shows. Only the 390 layout unfolds it out of
-// the sheet, into the expanded cell over the stage (the SAME 1023 px boundary
-// the pane host's sheet fork reads).
-const isMobileLayout = useMediaQuery("(max-width: 1023px)");
-const isTimelineVisible = computed(
-    () =>
-        storedControls.selectedControl === "timeline" ||
-        (storedControls.isTimelineExpanded && isMobileLayout.value),
-);
-
-// ── X.KF.W13X.r4ribbon · A2-KE-L1-23 step 2 — THE TIMELINE, ONE RENDER, TWO
-// PLACES ────────────────────────────────────────────────────────────────────
-// The timeline used to be teleported by DOM id from here into the expanded
-// cell AnimationControlsGroup owns. It is now ONE render function: docked, the
-// template above mounts it in the pane; unfolded, it is published into the
-// cell's typed seat (`EXPANDED_TIMELINE_KEY`) and the cell's host renders it.
-// A host with no seat (a standalone mount) keeps it docked.
-const expandedTimeline = inject(EXPANDED_TIMELINE_KEY, null);
-const timelineShown = computed(() => Boolean(active) && isTimelineVisible.value);
-const timelineUnfolded = computed(
-    () =>
-        timelineShown.value &&
-        storedControls.isTimelineExpanded &&
-        isMobileLayout.value &&
-        expandedTimeline !== null,
+// X-DS r6 pass 5 (KF-C5-01) → r6 pass 6 (KF-C6-01) — ONE SURFACE PER RAIL
+// POSITION, at every width. The timeline is the Timeline surface's body,
+// docked or unfolded (unfolded is a taller track in place), in the pane's one
+// frame on the desktop rail and in the controls sheet at 390. At 390 it used to
+// unfold OUT of the sheet into a fixed cell over the stage, drawn on every
+// surface: a second card stacked on the sheet, covering the cube, with the
+// sheet under it titleless and empty on the Timeline surface.
+const timelineShown = computed(
+    () => Boolean(active) && storedControls.selectedControl === "timeline",
 );
 const renderTimeline = (): VNode | null => {
     const Timeline = KeyframeTimeline.value;
@@ -332,20 +311,12 @@ const renderTimeline = (): VNode | null => {
             clock: animation,
             scene: sceneKeyframes.value,
             expanded: storedControls.isTimelineExpanded,
-            sheet: timelineUnfolded.value,
             onToggleExpand: () => {
                 storedControls.isTimelineExpanded = !storedControls.isTimelineExpanded;
             },
         }),
     );
 };
-watch(
-    timelineUnfolded,
-    (unfolded, _was, onCleanup) => {
-        if (unfolded && expandedTimeline) onCleanup(expandedTimeline.publish(renderTimeline));
-    },
-    { immediate: true },
-);
 
 // ── X.KF.W13X.r4ribbon · A2-KE-L1-24 — THE CHANNEL'S TRANSPORT, PUBLISHED ────
 // The ribbon's state lived in ChannelOptions, which teleported its own ribbon
@@ -425,7 +396,7 @@ const { keyframesActive, keyframesWarmed } = useKeyframesPaneReveal({
 });
 // KFA-119 — the idle warm, or the first ask, fetches the timeline module.
 watch(
-    [keyframesWarmed, isTimelineVisible],
+    [keyframesWarmed, () => storedControls.selectedControl === "timeline"],
     ([warmed, visible]) => {
         if (visible || (warmed && hasSurface("timeline"))) loadKeyframeTimeline();
     },

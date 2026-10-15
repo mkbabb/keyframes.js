@@ -38,9 +38,13 @@
     >
         <!-- X.KF.W13X.sections (A2-KE-L1-8) — the telemetry strip is the ONE
              SceneStageHeader (title · x/y readouts · status); it stays
-             `aria-hidden` decoration. -->
+             `aria-hidden` decoration.
+             X-DS r6 pass 6 (KF-C6-08) — the stage names the SCENE ("Square",
+             as Sequence's stage does), and the pane keeps the channel's name
+             ("Transform", KF-R6C4-02): the two titles repeated one word, so
+             neither oriented. -->
         <SceneStageHeader
-            :title="SQUARE_ANIM_NAME"
+            title="Square"
             :status="settled ? 'settled' : 'tracking'"
             class="square-telemetry"
             aria-hidden="true"

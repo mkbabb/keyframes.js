@@ -9,11 +9,13 @@
  * `evidence/W13X/timeline/cell.mjs` — BEFORE ×2 3 timelines in the cell, the
  * card transparent inside a 16px wash; AFTER ×2 1 timeline, the card painted.
  *
- * X-DS r6 pass 5 (KF-C5-01 · KF-C5-02) — the Card is drawn only in the 390
- * sheet over the stage (`sheet`, the expanded cell), at the controls sheet's
- * floating tier and with no `cartoon-surface` stamp. Unfolded on the desktop
- * rail (`expanded` without `sheet`) the timeline is a section of the pane's
- * one frame: no card of its own, its verbs in the pane ribbon.
+ * X-DS r6 pass 5 (KF-C5-01 · KF-C5-02) — unfolded on the desktop rail the
+ * timeline is a section of the pane's one frame: no card of its own, its verbs
+ * in the pane ribbon.
+ * X-DS r6 pass 6 (KF-C6-01) — and at 390 too: the expanded cell over the
+ * stage (the last place the timeline drew a Card, stacked on the controls
+ * sheet over the cube) is deleted with the `sheet` prop, so the timeline has
+ * one place at every width and never draws a card of its own.
  */
 import { afterEach, describe, expect, it } from "vitest";
 import { defineComponent, h } from "vue";
@@ -25,34 +27,21 @@ afterEach(() => {
     document.body.innerHTML = "";
 });
 
-const mountTimeline = (expanded: boolean, sheet = expanded) =>
+const mountTimeline = (expanded: boolean) =>
     mount(
         defineComponent(() => () =>
             h(TooltipProvider, null, () =>
-                h(KeyframeTimeline, { targets: [document.createElement("div")], expanded, sheet }),
+                h(KeyframeTimeline, { targets: [document.createElement("div")], expanded }),
             ),
         ),
         { attachTo: document.body, global: { stubs: { CSSPasteDialog: true } } },
     );
 
-describe("UIA-KF-085 — the expanded timeline keeps its Card's material", () => {
-    it("expanded: no class strips the Card's border, shadow or fill", () => {
-        const w = mountTimeline(true);
-        const card = w.get(".card");
-        for (const stripped of ["border-0", "shadow-none", "bg-transparent"]) {
-            expect(card.classes()).not.toContain(stripped);
-        }
-        const content = card.get(".relative.flex.flex-col");
-        // X-DS pass 9 (KF-C9-07): the inline inset is the pane's one token.
-        expect(content.classes()).toEqual(expect.arrayContaining(["px-(--configurator-pad-inline)", "py-4"]));
-        expect(content.classes()).not.toContain("px-0");
-        w.unmount();
-    });
-
+describe("UIA-KF-085 → KF-C6-01 — the timeline draws no card of its own, folded or unfolded", () => {
     // X-DS pass 1, C1 (KF-C1-07) — in the pane the timeline draws no card of
     // its own: the pane host draws the one frame, so a second stamp would be a
     // card in a card. Its content keeps its own inset.
-    it("collapsed (in the pane): no card of its own, the content keeps its inset", () => {
+    it("folded (in the pane): no card of its own, the content keeps its inset", () => {
         const w = mountTimeline(false);
         expect(w.find(".card").exists()).toBe(false);
         const content = w.get(".relative.flex.flex-col");
@@ -62,35 +51,32 @@ describe("UIA-KF-085 — the expanded timeline keeps its Card's material", () =>
         w.unmount();
     });
 
-    it("in the sheet, the Card wears the controls sheet's floating tier, with no cartoon stamp", () => {
+    // KF-C5-01 · KF-C6-01 — unfolded: a taller track in the pane's one frame
+    // (the rail's, or the 390 sheet's), never a second card over the pane.
+    it("unfolded: no card of its own, no cartoon stamp, the same inset", () => {
         const w = mountTimeline(true);
-        const card = w.get(".card");
-        const root = card.element as HTMLElement;
-        expect([root.className, ...Object.values(root.dataset)].join(" ")).toMatch(/floating/);
+        expect(w.find(".card").exists()).toBe(false);
         expect(w.find(".cartoon-surface").exists()).toBe(false);
+        const content = w.get(".relative.flex.flex-col");
+        expect(content.classes()).toEqual(expect.arrayContaining(["px-(--configurator-pad-inline)", "pt-2", "pb-4"]));
         w.unmount();
     });
 
-    // KF-C5-01 — unfolded on the desktop rail: a taller track in the pane's
-    // one frame, never a second card over the pane.
-    it("unfolded on the rail (expanded, not the sheet): no card of its own", () => {
-        const w = mountTimeline(true, false);
-        expect(w.find(".card").exists()).toBe(false);
-        expect(w.find(".cartoon-surface").exists()).toBe(false);
-        w.unmount();
+    it("the `sheet` prop is retired with the expanded cell", () => {
+        expect(Object.keys((KeyframeTimeline as { props?: object }).props ?? {})).not.toContain("sheet");
     });
 });
 
 // X-DS pass 2 (KF-C2-04) — the timeline's verbs travel with it. Docked in the
 // pane they are teleported to the frame's ribbon (one row under the pane's
-// hairline); expanded they are the floating card's footer — never left behind
-// in the rail as a titleless card of four buttons.
+// hairline), folded or unfolded, at every width (KF-C6-01) — never left
+// behind in the rail as a titleless card of four buttons.
 describe("KF-C2-04 — the timeline's verbs go where the timeline goes", () => {
-    const withRibbon = (expanded: boolean, sheet = expanded) => {
+    const withRibbon = (expanded: boolean) => {
         const ribbon = document.createElement("div");
         ribbon.id = "timeline-ribbon-target";
         document.body.appendChild(ribbon);
-        const w = mountTimeline(expanded, sheet);
+        const w = mountTimeline(expanded);
         return { w, ribbon };
     };
     const snapshotIn = (root: Element) =>
@@ -104,22 +90,11 @@ describe("KF-C2-04 — the timeline's verbs go where the timeline goes", () => {
         w.unmount();
     });
 
-    it("unfolded on the rail: the verbs stay in the pane ribbon", async () => {
-        const { w, ribbon } = withRibbon(true, false);
+    it("unfolded: the verbs stay in the pane ribbon", async () => {
+        const { w, ribbon } = withRibbon(true);
         await w.vm.$nextTick();
         expect(snapshotIn(ribbon)).toBe(true);
         expect(snapshotIn(w.element as Element)).toBe(false);
-        w.unmount();
-    });
-
-    it("in the sheet: the verbs are the sheet card's footer, under a separator", async () => {
-        const { w, ribbon } = withRibbon(true);
-        await w.vm.$nextTick();
-        expect(snapshotIn(ribbon)).toBe(false);
-        const card = w.get(".card").element;
-        expect(snapshotIn(card)).toBe(true);
-        const lead = [...card.querySelectorAll("button")].find((b) => b.textContent?.trim() === "Snapshot")!;
-        expect(lead.parentElement?.previousElementSibling?.classList.contains("separator")).toBe(true);
         w.unmount();
     });
 });

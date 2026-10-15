@@ -74,28 +74,13 @@
             <slot name="animation-content"></slot>
         </div>
 
-        <!-- The expanded timeline cell. X.KF.W13X.r4ribbon (A2-KE-L1-23 step
-             2) — its content is rendered HERE, off the seat this host provides
-             (`EXPANDED_TIMELINE_KEY`): the selected channel's host publishes its
-             timeline while the timeline is unfolded. It used to arrive by a
-             Teleport aimed at this cell's DOM id. Desktop (X-DS r6 pass 5,
-             KF-C5-01): the cell holds nothing and is not drawn; an unfolded
-             timeline stays in the rail's one pane frame. Mobile
-             (H.W7.S1): the expanded timeline is `position: fixed`, anchored
-             ABOVE the bottom menubar band — it folds OUT of grid flow so it
-             NEVER re-introduces a third consuming row that re-starves the fixed
-             full-bleed stage (the single-stage-model invariant). -->
-        <div
-            :class="[
-                'timeline-expanded-cell z-dock overflow-hidden',
-                'transition-[max-height,opacity] duration-slow ease-standard',
-                storedControls.isTimelineExpanded
-                    ? 'max-h-[var(--panel-max-h)]'
-                    : 'max-h-0',
-            ]"
-        >
-            <component :is="expandedTimeline.current.value" v-if="expandedTimeline.current.value" />
-        </div>
+        <!-- X-DS r6 pass 6 (KF-C6-01) — the expanded timeline cell is
+             DELETED. At 390 it floated the unfolded timeline over the stage
+             as a second card stacked on the controls sheet, on whatever
+             surface the sheet showed (it covered three quarters of the cube
+             and left the Timeline surface's sheet empty). The timeline now
+             unfolds in its one place, the pane (ChannelControls), at every
+             width; so its seat (`EXPANDED_TIMELINE_KEY`) goes with it. -->
 
         <!-- Bottom transport dock — T.C2: the transport MOUNTS iff the scene
              exposes ≥1 painting channel (`transportNames.length > 0`). Home derives
@@ -126,12 +111,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, provide, useTemplateRef, watchEffect } from "vue";
-import {
-    CHANNEL_COMMANDS_KEY,
-    EXPANDED_TIMELINE_KEY,
-    createChannelCommandSeat,
-    createExpandedTimelineSeat,
-} from "./injectionKeys";
+import { CHANNEL_COMMANDS_KEY, createChannelCommandSeat } from "./injectionKeys";
 
 import { clamp } from "@mkbabb/value.js/math";
 
@@ -214,12 +194,6 @@ const selectedChannel = computed(() =>
 // host's handle).
 const commandSeat = createChannelCommandSeat();
 provide(CHANNEL_COMMANDS_KEY, commandSeat);
-
-// X.KF.W13X.r4ribbon · A2-KE-L1-23 step 2 — the expanded timeline cell's seat:
-// this host owns the cell, so it provides the seat and renders what the
-// selected channel's host publishes into it (the template's cell, above).
-const expandedTimeline = createExpandedTimelineSeat();
-provide(EXPANDED_TIMELINE_KEY, expandedTimeline);
 
 // X.KF.W13X.r4transport · UIA-KF-026 (the scrubber limb) — the group's paints,
 // observable by the channel ribbon's read-back (`GROUP_PAINTS_KEY`'s docblock):

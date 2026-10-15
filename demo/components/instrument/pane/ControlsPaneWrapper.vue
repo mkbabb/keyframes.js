@@ -78,14 +78,12 @@
                      a hairline. In the mobile sheet the sheet IS the plate, so
                      the body renders flat on it (a plain box): no plate in a
                      plate. The surfaces themselves draw no card. -->
-                <!-- X-DS pass 2 (KF-C2-04) — on the Timeline surface with the
-                     timeline EXPANDED, the timeline (and its verbs, its footer)
-                     has floated out to the stage's bottom row, so the frame
-                     would hold nothing: it is not drawn (v-show keeps the
-                     surface and the timeline's teleport source mounted). -->
+                <!-- X-DS r6 pass 6 (KF-C6-01) — the frame is always drawn: an
+                     unfolded timeline no longer floats out of it (at 390 it
+                     left the sheet titleless and empty), so the v-show that
+                     hid the emptied frame is deleted. -->
                 <component
                     :is="isMobileLayout ? 'div' : Card"
-                    v-show="!timelineFloated"
                     v-bind="isMobileLayout ? {} : { tier: 'quiet' }"
                     class="pane-frame"
                 >
@@ -436,19 +434,6 @@ const sequenceHosts = computed(() =>
 );
 const selectedIsSequence = computed(() =>
     sequenceHosts.value.some((h) => h.name === props.storedControls.selectedAnimation),
-);
-
-// X-DS pass 2 (KF-C2-04) — the keyframe timeline has floated out of the rail
-// (expanded, on its own surface): the rail's frame would be empty. A Sequence
-// channel's Timeline pane never floats (it mounts no KeyframeTimeline).
-// X-DS r6 pass 5 (KF-C5-01) — only the 390 sheet floats it out: on the
-// desktop rail the unfolded timeline stays in this frame (ChannelControls).
-const timelineFloated = computed(
-    () =>
-        isMobileLayout.value &&
-        props.storedControls.selectedControl === "timeline" &&
-        props.storedControls.isTimelineExpanded &&
-        !selectedIsSequence.value,
 );
 
 // X.KF.W13X.mobile (UIA-KF-008) — a scene facet (easing Curve, spring Physics,
