@@ -148,3 +148,63 @@ describe("limb (a) — the pane is instrument/pane; transport/ keeps the dock an
         expect(intoPane).toEqual(["AnimationControlsGroup.vue <- ../pane/ControlsPaneWrapper.vue"]);
     });
 });
+
+describe("limb (f) — one utils root: demo/utils", () => {
+    it("iosTextEntry and toastGuard live in demo/utils; instrument/ keeps no utils directory", () => {
+        expect(has("demo/utils/iosTextEntry.ts")).toBe(true);
+        expect(has("demo/utils/toastGuard.ts")).toBe(true);
+        expect(has("demo/components/instrument/utils")).toBe(false);
+    });
+
+    it("no importer reaches the old root", () => {
+        const stale = [...walk("demo"), ...walk("test")].flatMap((f) =>
+            specifiers(f)
+                .filter((s) => /components\/instrument\/utils\//.test(s))
+                .map((s) => `${f} <- ${s}`),
+        );
+        expect(stale).toEqual([]);
+    });
+});
+
+describe("limb (g1) — the Sequence descriptor is the facility's type, not a component's", () => {
+    const facility = "demo/composables/scene-facility/sequenceTimeline.ts";
+
+    it("SequenceTimelineLane and SequenceTimelineSource are declared beside the facility, once", () => {
+        expect(has(facility)).toBe(true);
+        for (const name of ["SequenceTimelineLane", "SequenceTimelineSource"]) {
+            const pattern = new RegExp(`^export interface ${name}\\b`, "m");
+            expect(walk("demo").filter((f) => pattern.test(read(f)))).toEqual([facility]);
+        }
+    });
+
+    it("no composable reaches up into demo/components", () => {
+        const up = walk("demo/composables").flatMap((f) =>
+            specifiers(f)
+                .filter((s) => /^@components\//.test(s) || /(^|\/)components\//.test(s))
+                .map((s) => `${f} <- ${s}`),
+        );
+        expect(up).toEqual([]);
+    });
+});
+
+describe("limb (g2) — a composable with hosts in two layers lives in demo/composables", () => {
+    it("useEasingPickerSeat lives in demo/composables, not under the pane", () => {
+        expect(has("demo/composables/useEasingPickerSeat.ts")).toBe(true);
+        expect(has("demo/components/instrument/pane/channel-controls/composables/useEasingPickerSeat.ts")).toBe(false);
+    });
+
+    it("both hosts import it from @composables, and no scene reaches into the pane's composables", () => {
+        for (const host of [
+            "demo/components/instrument/pane/channel-controls/TimingFunctionPanel.vue",
+            "demo/scenes/easing/EasingSidebar.vue",
+        ]) {
+            expect(specifiers(host)).toContain("@composables/useEasingPickerSeat");
+        }
+        const deep = walk("demo/scenes").flatMap((f) =>
+            specifiers(f)
+                .filter((s) => /pane\/channel-controls\/composables\//.test(s))
+                .map((s) => `${f} <- ${s}`),
+        );
+        expect(deep).toEqual([]);
+    });
+});
