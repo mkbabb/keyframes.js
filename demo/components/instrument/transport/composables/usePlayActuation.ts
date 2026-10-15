@@ -25,6 +25,11 @@
  *    `pointercancel` listener (registered at press, bubble phase so the control's
  *    own handler runs first) clears the entry — the stale id a persistent mouse
  *    pointerId would otherwise resurrect on a later drag-release is gone.
+ *    X.KF.W13X.r4press (ESC-W13X-r4cube-1): that listener also completes the
+ *    press whose control MOVED: a release inside the box the origin control had
+ *    at `pointerdown` is its click even though another node is under the
+ *    pointer now (the idle-collapsed dock expands on the press and slides Play
+ *    away). The press is identified by its control, never by the release node.
  *  · Keyboard: `spaceArmed` is the control that armed, not a boolean; a keyup on
  *    another control (focus moved mid-press — an inert swap, the 3600 ms
  *    collapse) does not actuate, and a keyup with no arm (an orphan) never does.
@@ -53,38 +58,67 @@ const controlOf = (e: Event): EventTarget | null => e.currentTarget ?? null;
 const isPrimaryPress = (e: PointerEvent): boolean =>
     e.isPrimary && !(e.button !== 0 && e.pointerType === "mouse");
 
+/** A press's origin: the control it began on, and where that control was. */
+interface PressOrigin {
+    control: EventTarget | null;
+    /** The control's box at `pointerdown` — `null` for a target with no layout. */
+    rect: DOMRectReadOnly | null;
+}
+
+const contains = (rect: DOMRectReadOnly, e: PointerEvent): boolean =>
+    e.clientX >= rect.left &&
+    e.clientX <= rect.right &&
+    e.clientY >= rect.top &&
+    e.clientY <= rect.bottom;
+
 export function usePlayActuation(actuate: () => void): PlayActuationHandlers {
     // Press-origin: pointerId → the control its `pointerdown` landed on.
-    const pressOrigins = new Map<number, EventTarget | null>();
+    const pressOrigins = new Map<number, PressOrigin>();
     // Keyboard press-origin for Space: the control whose keydown armed it.
     let spaceArmed: { control: EventTarget | null } | null = null;
 
-    /** Release-elsewhere cleanup: clear `pointerId` when the gesture ends anywhere. */
+    /**
+     * The gesture's end, seen on the window (bubble phase, so the control's own
+     * `pointerup` has already consumed its entry when the release landed on it).
+     * An entry still standing means the release reached no Play control:
+     *  · `pointerup` inside the box the origin control had at `pointerdown` is
+     *    that control's click — the control moved out from under a still pointer
+     *    (ESC-W13X-r4cube-1: the press expands the idle-collapsed dock and the
+     *    persistent Play slides away, so the release lands on its neighbour).
+     *    The press is identified by its control, not by the node under the
+     *    pointer at release.
+     *  · `pointerup` outside that box is a drag-off, and `pointercancel` is a
+     *    cancel: neither actuates; both clear the id (no stale-id resurrection).
+     */
     const watchRelease = (pointerId: number) => {
         if (typeof window === "undefined") return;
-        const clear = (e: PointerEvent) => {
+        const end = (e: PointerEvent) => {
             if (e.pointerId !== pointerId) return;
+            window.removeEventListener("pointerup", end);
+            window.removeEventListener("pointercancel", end);
+            const origin = pressOrigins.get(pointerId);
             pressOrigins.delete(pointerId);
-            window.removeEventListener("pointerup", clear);
-            window.removeEventListener("pointercancel", clear);
+            if (e.type === "pointerup" && origin?.rect && contains(origin.rect, e)) actuate();
         };
-        window.addEventListener("pointerup", clear);
-        window.addEventListener("pointercancel", clear);
+        window.addEventListener("pointerup", end);
+        window.addEventListener("pointercancel", end);
     };
 
     return {
         onPlayPointerDown(e) {
             if (!isPrimaryPress(e)) return;
-            pressOrigins.set(e.pointerId, controlOf(e));
+            const control = controlOf(e);
+            const rect = control instanceof Element ? control.getBoundingClientRect() : null;
+            pressOrigins.set(e.pointerId, { control, rect });
             watchRelease(e.pointerId);
         },
         onPlayPointerUp(e) {
             if (!isPrimaryPress(e)) return;
-            if (!pressOrigins.has(e.pointerId)) return;
             const origin = pressOrigins.get(e.pointerId);
+            if (origin === undefined) return;
             pressOrigins.delete(e.pointerId);
             // Same-control guard: down on one mirror, up on the other, is no click.
-            if (origin !== controlOf(e)) return;
+            if (origin.control !== controlOf(e)) return;
             actuate();
         },
         onPlayPointerCancel(e) {
@@ -111,7 +145,7 @@ export function usePlayActuation(actuate: () => void): PlayActuationHandlers {
             const control = controlOf(e);
             if (spaceArmed !== null && spaceArmed.control === control) spaceArmed = null;
             for (const [id, origin] of pressOrigins) {
-                if (origin === control) pressOrigins.delete(id);
+                if (origin.control === control) pressOrigins.delete(id);
             }
         },
     };
