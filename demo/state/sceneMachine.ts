@@ -75,7 +75,18 @@ export type SceneEvent =
     | { type: "SCENE_READY" }
     | { type: "PLAY" }
     | { type: "PAUSE" }
-    | { type: "SCRUB"; t: number }
+    | {
+          type: "SCRUB";
+          /** The scrubbed position: a raw-rAF scene's normalized `progress`. */
+          t: number;
+          /**
+           * KFA-69 — the group scenes' per-child clocks AFTER the scrub's seek,
+           * read from the live scene through the contract by the writer
+           * (`useSceneMachine.dispatch`). A group scrub seats every child at its
+           * own phase of one master time, so no single `t` describes them.
+           */
+          animations?: Record<string, AnimationPlaybackSnapshot>;
+      }
     | { type: "SCRUB_START" }
     | { type: "SCRUB_END" }
     | { type: "SUSPEND" }
@@ -195,10 +206,10 @@ function playbackTransition(state: MachineState, event: SceneEvent): MachineStat
         }
 
         case "SCRUB": {
-            // A scrub does not change the playing/paused axis; it records `t`
-            // onto every animation snapshot the scene owns (the group scenes)
-            // and the raw `progress` (the raw-rAF scenes).
-            return { status, context: scrub(context, event.t) };
+            // A scrub does not change the playing/paused axis; it records the
+            // raw `progress` (the raw-rAF scenes) and the live per-child clocks
+            // the event carries (the group scenes, KFA-69).
+            return { status, context: scrub(context, event.t, event.animations) };
         }
 
         case "SCRUB_START": {
@@ -275,13 +286,20 @@ function writeSnapshot(
     };
 }
 
-/** Record a scrub `t` onto the active scene's snapshot (pure). */
-function scrub(context: SceneContext, t: number): SceneContext {
+/**
+ * Record a scrub onto the active scene's snapshot (pure): `progress` is the
+ * scrubbed `t`; the per-child clocks are the live ones the event carries. A
+ * scrub with no live reading leaves them as they were — writing the one `t`
+ * onto every child would record siblings the group seek holds at other
+ * phases (KFA-69).
+ */
+function scrub(
+    context: SceneContext,
+    t: number,
+    live: Record<string, AnimationPlaybackSnapshot> | undefined,
+): SceneContext {
     const prev = context.perScene[context.activeScene] ?? freshSnapshot();
-    const animations: Record<string, AnimationPlaybackSnapshot> = {};
-    for (const [name, snap] of Object.entries(prev.animations)) {
-        animations[name] = { ...snap, t };
-    }
+    const animations = live ? { ...prev.animations, ...live } : prev.animations;
     return {
         activeScene: context.activeScene,
         perScene: {

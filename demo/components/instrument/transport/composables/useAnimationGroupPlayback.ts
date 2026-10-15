@@ -118,9 +118,9 @@ export function useAnimationGroupPlayback(
         // playhead persists WITHOUT waiting for a NAVIGATE/SUSPEND capture (closes
         // the group-scene scrub-persistence gap: cube/amiga/square previously only
         // refreshed `t` at captureActive()/NAVIGATE-away, so a scrub-then-reload
-        // lost it). SCRUB records `t` onto every animation snapshot the scene owns
-        // (the group scenes are synchronized, so a shared `t` is faithful); the
-        // reducer records it purely — no adapter is driven.
+        // lost it). The machine's writer records each child's own post-seek
+        // clock (KFA-69: the children sit at different phases of the master
+        // time, so no shared `t` is faithful); no adapter is driven.
         machine.dispatch({ type: "SCRUB", t });
     };
 

@@ -166,6 +166,15 @@ export const useSceneMachine = createGlobalState(() => {
             prev = captureActive(prev);
         }
 
+        // ── KFA-69: a scrub records the scene's live clocks ──
+        // The pure reducer cannot read the group; the writer reads the per-child
+        // clocks the scrub's seek just seated (each child at its own phase of
+        // one master time) through the contract, and the event carries them.
+        if (event.type === "SCRUB" && !event.animations) {
+            const live = adapters.get(prev.context.activeScene)?.snapshot().animations;
+            if (live && Object.keys(live).length > 0) event = { ...event, animations: live };
+        }
+
         // ── the pure reducer ──
         const next = transition(prev, event);
 

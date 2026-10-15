@@ -140,7 +140,13 @@ describe("H.W1 reducer — the two orthogonal axes", () => {
                 perScene: { cube: snap({ animations: { a: { t: 0, reversed: false, iteration: 0 } } }) },
             },
         };
-        const next = transition(state, { type: "SCRUB", t: 500 });
+        // KFA-69 (.r3res): the per-child clocks are the live ones the writer
+        // reads from the group; the reducer records what the event carries.
+        const next = transition(state, {
+            type: "SCRUB",
+            t: 500,
+            animations: { a: { t: 500, reversed: false, iteration: 0 } },
+        });
         expect(next.status).toBe("playing"); // unchanged
         expect(next.context.perScene["cube"]!.animations["a"]!.t).toBe(500);
         expect(next.context.perScene["cube"]!.progress).toBe(500);
