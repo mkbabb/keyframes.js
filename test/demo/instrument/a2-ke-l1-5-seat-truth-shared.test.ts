@@ -8,7 +8,7 @@
 // `nameForQuad` already lives), and both seats read it.
 
 import { describe, expect, it } from "vitest";
-import * as seat from "@components/instrument/pane/channel-controls/composables/useEasingPickerSeat";
+import * as seat from "@composables/useEasingPickerSeat";
 import { NAMED_EASING_BEZIER_ENTRIES } from "@utils/reference-data/animationDescriptions";
 
 const [namedName, namedQuad] = NAMED_EASING_BEZIER_ENTRIES[0]!;

@@ -25,7 +25,7 @@
                  (the same one-frame rule as the Sequence stage, `.sq`). -->
             <ConfiguratorLayer label="Easing" default-open body-class="flex flex-col">
                 <!-- KF-ES-12 ≡ KF-TFP-1 — the picker sits in the shared
-                     `useEasingPickerSeat` (channel-controls/composables), the SAME
+                     `useEasingPickerSeat` (demo/composables), the SAME
                      seat the transport's TimingFunctionPanel uses. A tile that
                      names a curve in the demo's bezier map re-seats by REMOUNT on
                      the `preset` initial prop (the only way 7.0.0 displays a named
@@ -130,7 +130,7 @@ import {
     seatTruthFor,
     useEasingPickerSeat,
     type SeatTruth,
-} from "@components/instrument/pane/channel-controls/composables/useEasingPickerSeat";
+} from "@composables/useEasingPickerSeat";
 import type { EasingDemoContext } from "./easingKeys";
 
 const props = defineProps<{ demo: EasingDemoContext }>();

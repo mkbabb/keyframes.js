@@ -50,7 +50,7 @@ import {
     useEasingPickerSeat,
     type Quad,
     type SeatTruth,
-} from "./composables/useEasingPickerSeat";
+} from "@composables/useEasingPickerSeat";
 
 const props = defineProps<{
     storedAnimationOptions: StoredAnimationOptions;
