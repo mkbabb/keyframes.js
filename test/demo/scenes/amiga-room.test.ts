@@ -32,6 +32,10 @@ vi.mock("three", async (importOriginal) => {
         setPixelRatio() {}
         setClearColor() {}
         setSize() {}
+        // KFA-76 — the room's build awaits its program compile (a frame of its own).
+        compileAsync() {
+            return Promise.resolve();
+        }
         render() {}
         dispose() {}
         forceContextLoss() {}
@@ -63,7 +67,9 @@ function fake2d(): CanvasRenderingContext2D {
     } as unknown as CanvasRenderingContext2D;
 }
 
-function build(theme: "light" | "dark") {
+// KFA-76 (X.KF.W13X.r4init) — the room builds past the scene's first paint,
+// a stage per frame; `build` awaits the settled build before reading it.
+async function build(theme: "light" | "dark") {
     stops.list = [];
     document.documentElement.classList.toggle("dark", theme === "dark");
     vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockImplementation(
@@ -77,11 +83,11 @@ function build(theme: "light" | "dark") {
         defineComponent({
             setup() {
                 handle = useAmigaThree(ref(canvas), () => false);
-                handle.setup();
                 return () => h("div");
             },
         }),
     );
+    await handle.setup();
     const scene = handle.getContactShadow()!.parent as THREE.Scene;
     // The room's ruled planes (floor, walls): every line set in the graph.
     const grids: THREE.LineSegments[] = [];
@@ -98,8 +104,8 @@ describe("X.KF.W13X.amiga — the room", () => {
         document.documentElement.classList.remove("dark");
     });
 
-    it("KFA-64 — the back wall stands on the floor", () => {
-        const { grids, box, wrapper } = build("light");
+    it("KFA-64 — the back wall stands on the floor", async () => {
+        const { grids, box, wrapper } = await build("light");
         const back = grids.find((g) => {
             const b = box(g);
             return b.max.z - b.min.z < 0.01 && b.max.z < 0;
@@ -109,8 +115,8 @@ describe("X.KF.W13X.amiga — the room", () => {
         wrapper.unmount();
     });
 
-    it("KF-C25-03 — the walls' tops close inside the closest framing, above the apex", () => {
-        const { grids, box, wrapper } = build("light");
+    it("KF-C25-03 — the walls' tops close inside the closest framing, above the apex", async () => {
+        const { grids, box, wrapper } = await build("light");
         const walls = grids.map((g) => box(g)).filter((b) => b.max.y - b.min.y > 1 && b.min.y > CONTACT_FLOOR - 0.01);
         expect(walls.length).toBe(3);
         for (const b of walls) {
@@ -123,8 +129,8 @@ describe("X.KF.W13X.amiga — the room", () => {
         wrapper.unmount();
     });
 
-    it("KFA-194 — the ball reverses at walls that exist (±BOX_SIZE/2)", () => {
-        const { grids, box, wrapper } = build("light");
+    it("KFA-194 — the ball reverses at walls that exist (±BOX_SIZE/2)", async () => {
+        const { grids, box, wrapper } = await build("light");
         const sides = grids
             .map((g) => box(g))
             .filter((b) => b.max.x - b.min.x < 0.01)
@@ -135,9 +141,9 @@ describe("X.KF.W13X.amiga — the room", () => {
         wrapper.unmount();
     });
 
-    it("KFA-67 / UIA-KF-195 — grid and shadow come from the theme's ink, in both themes", () => {
+    it("KFA-67 / UIA-KF-195 — grid and shadow come from the theme's ink, in both themes", async () => {
         for (const theme of ["light", "dark"] as const) {
-            const { grids, wrapper } = build(theme);
+            const { grids, wrapper } = await build(theme);
             const ink = new THREE.Color(theme === "dark" ? "rgb(236, 232, 226)" : "rgb(28, 25, 23)");
             for (const g of grids) {
                 const m = g.material as THREE.LineBasicMaterial;
@@ -159,15 +165,15 @@ describe("X.KF.W13X.amiga — the room", () => {
         }
     });
 
-    it("KFA-195 — the checker texture is sRGB", () => {
-        const { handle, wrapper } = build("light");
+    it("KFA-195 — the checker texture is sRGB", async () => {
+        const { handle, wrapper } = await build("light");
         const mat = handle.getSphere()!.material as THREE.MeshLambertMaterial;
         expect(mat.map?.colorSpace).toBe(THREE.SRGBColorSpace);
         wrapper.unmount();
     });
 
-    it("X-DS pass 2 · KF-C2-01 — the ball is diffuse: no gloss (no specular material)", () => {
-        const { handle, wrapper } = build("light");
+    it("X-DS pass 2 · KF-C2-01 — the ball is diffuse: no gloss (no specular material)", async () => {
+        const { handle, wrapper } = await build("light");
         const mat = handle.getSphere()!.material;
         expect(mat).toBeInstanceOf(THREE.MeshLambertMaterial);
         expect(mat).not.toBeInstanceOf(THREE.MeshPhongMaterial);
@@ -175,16 +181,16 @@ describe("X.KF.W13X.amiga — the room", () => {
         wrapper.unmount();
     });
 
-    it("X-DS pass 2 · KF-C2-02 — the shadow plate lies behind the ball's plane (the frame's cut is in front of it)", () => {
-        const { handle, box, wrapper } = build("light");
+    it("X-DS pass 2 · KF-C2-02 — the shadow plate lies behind the ball's plane (the frame's cut is in front of it)", async () => {
+        const { handle, box, wrapper } = await build("light");
         const plate = box(handle.getContactShadow()!);
         expect(plate.max.z).toBeLessThanOrEqual(1e-6);
         expect(plate.min.z).toBeLessThan(0);
         wrapper.unmount();
     });
 
-    it("KFA-195 — the rig lights a sky-facing white tile to white (physical light units)", () => {
-        const { scene, handle, wrapper } = build("light");
+    it("KFA-195 — the rig lights a sky-facing white tile to white (physical light units)", async () => {
+        const { scene, handle, wrapper } = await build("light");
         let fill = 0;
         let key = 0;
         const ball = handle.getSphere()!.position;
@@ -205,8 +211,8 @@ describe("X.KF.W13X.amiga — the room", () => {
         wrapper.unmount();
     });
 
-    it("UIA-KF-196 — the camera frames the bounce envelope (the sweep fills the view)", () => {
-        const { handle, wrapper } = build("light");
+    it("UIA-KF-196 — the camera frames the bounce envelope (the sweep fills the view)", async () => {
+        const { handle, wrapper } = await build("light");
         const cam = handle.getCamera()!;
         const halfW = cam.position.length() * Math.tan(THREE.MathUtils.degToRad(cam.fov / 2)) * cam.aspect;
         // the sweep (±WALL_X plus the radius) spans at least 85 % of the view width at the ball's depth

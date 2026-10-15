@@ -62,6 +62,7 @@
             "
             aria-keyshortcuts="ArrowUp ArrowDown ArrowLeft ArrowRight Shift+ArrowUp Shift+ArrowDown Shift+ArrowLeft Shift+ArrowRight Home"
             :aria-describedby="keyboardHelpId"
+            :aria-busy="roomBooting ? 'true' : undefined"
             tabindex="0"
             @keydown="onKeydown"
         >
@@ -79,6 +80,16 @@
                 spins it too, and on release the spin coasts to rest.
             </SubjectAxes>
         </canvas>
+        <!-- X.KF.W13X · KFA-76 (ESC-r4shell-1) — the room is built past this
+             scene's first paint, a stage per frame (useAmigaThree's `setup`), so
+             the stage presents at once and the ball's silhouette holds its seat
+             under glass's Skeleton breathe until the room's first frame is
+             armed. Decorative: the canvas carries `aria-busy` meanwhile. -->
+        <Skeleton
+            v-if="roomBooting"
+            class="amiga-skeleton"
+            aria-hidden="true"
+        />
     </div>
 </template>
 
@@ -89,6 +100,7 @@ import * as THREE from "three";
 // OD-U21 / SPEC-B3 §N3 (D7) — consume value.js's LIGHT lerp primitive.
 import { clamp, lerp } from "@mkbabb/value.js/math";
 
+import { Skeleton } from "@mkbabb/glass-ui";
 import { contactShadowScale, useAmigaThree } from "./useAmigaThree";
 import {
     createPoseContinuity,
@@ -148,6 +160,7 @@ const prm = usePreferredReducedMotion();
 // D-8 — the room's failure state (no WebGL, a refused context, a lost context).
 // The subject's affordances must not outlive the object they advertise.
 const roomFailed = three.failed;
+const roomBooting = three.booting;
 
 const sphereSpin = useSphereSpin({
     getMesh: () => three.getSphere(),
@@ -432,8 +445,9 @@ function onFrame(now: number): boolean {
 }
 
 onMounted(() => {
-    // Build the Three.js room now the canvas ref is live.
-    three.setup();
+    // Build the Three.js room now the canvas ref is live — past this scene's
+    // first paint, one stage per frame (KFA-76).
+    void three.setup();
     // Wire the sphere-spin gesture onto the canvas (capture-phase hit-test runs
     // before OrbitControls' own pointerdown).
     sphereSpin.attach(canvasEl.value!);
@@ -581,6 +595,20 @@ onBeforeUnmount(() => {
 .amiga-canvas--unavailable,
 .amiga-canvas--unavailable:active {
     cursor: default;
+}
+
+/* KFA-76 — the ball's silhouette while the room builds: a round Skeleton at the
+   home seat (the camera frames the ball at the stage's centre), sized to the
+   ball's framed diameter band. It takes no pointer, so the stage stays live. */
+.amiga-skeleton {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: min(32vmin, 18rem);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    translate: -50% -50%;
+    pointer-events: none;
 }
 
 </style>

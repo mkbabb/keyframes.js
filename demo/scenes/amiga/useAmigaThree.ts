@@ -112,9 +112,24 @@ const VIEW_HOME_MS = 360;
 const shortestTurn = (a: number, b: number): number =>
     ((((b - a + Math.PI) % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI)) - Math.PI;
 
+/**
+ * X.KF.W13X · KFA-76 — resolve after the frame now being produced has painted:
+ * the next rendering opportunity's rAF callback, then one task past it (a task
+ * queued from rAF runs after that frame's paint). It waits on the frame, never
+ * on a clock: no fixed delay.
+ */
+const afterPaint = (): Promise<void> =>
+    new Promise((resolve) => requestAnimationFrame(() => setTimeout(resolve)));
+
 interface AmigaThreeHandle {
-    /** Build the Three.js room. Call once at mount, after the canvas ref is live. */
-    setup(): void;
+    /**
+     * Build the Three.js room. Call once at mount, after the canvas ref is live.
+     * KFA-76 — the build runs past the scene's first paint, one stage per frame;
+     * the promise settles when the room's first frame is armed (or it failed).
+     */
+    setup(): Promise<void>;
+    /** KFA-76 — true until the room's first frame is armed: the stage's skeleton. */
+    readonly booting: Readonly<Ref<boolean>>;
     /**
      * The boing-ball mesh (the interactive subject). L-M5/C-4 — genuinely
      * `undefined` before `setup()` runs (and after a context loss), and the type
@@ -358,8 +373,8 @@ export function useAmigaThree(
         renderDirty = true;
     };
 
-    const buildRoom = () => {
-        const canvas = canvasEl.value!;
+    /** The CPU half of the room: scene, camera, lights, grids, shadow, ball. */
+    const buildGraph = () => {
         disposed = false;
 
         scene = new THREE.Scene();
@@ -371,18 +386,6 @@ export function useAmigaThree(
         // φ bias (the derivation is at the constants).
         camera = new THREE.PerspectiveCamera(CAMERA_FOV, 1, 0.1, 1000);
         camera.position.set(0, CAMERA_LIFT, CAMERA_Z);
-
-        renderer = new THREE.WebGLRenderer({
-            antialias: true,
-            alpha: true,
-            canvas,
-        });
-        // A2 — cap DPR at 2 (MSAA carries edge quality; extra super-sampling is
-        // pure fill-rate waste on retina).
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-        // T.A10 — clear to TRANSPARENT so the canvas composites over the themed
-        // CSS paper-grid backdrop instead of a foreign gray slab.
-        renderer.setClearColor(0xffffff, 0);
 
         // Lighting: a soft sky/ground fill + a gentle top-front key that only
         // MODELS the ball (diffuse form), never a highlight.
@@ -453,7 +456,28 @@ export function useAmigaThree(
         sphereMesh.position.set(SPHERE_HOME, SPHERE_HOME, SPHERE_HOME);
         scene.add(sphereMesh);
 
-        controls = new OrbitControls(camera, renderer.domElement);
+    };
+
+    /**
+     * X.KF.W13X · KFA-76 (heavy-scene-init limb, ESC-r4shell-1) — the GL half:
+     * the context, its pixel ratio and clear, and the orbit controls bound to
+     * the canvas. Split from the graph so each lands in its own frame.
+     */
+    const attachRenderer = () => {
+        const canvas = canvasEl.value!;
+        renderer = new THREE.WebGLRenderer({
+            antialias: true,
+            alpha: true,
+            canvas,
+        });
+        // A2 — cap DPR at 2 (MSAA carries edge quality; extra super-sampling is
+        // pure fill-rate waste on retina).
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        // T.A10 — clear to TRANSPARENT so the canvas composites over the themed
+        // CSS paper-grid backdrop instead of a foreign gray slab.
+        renderer.setClearColor(0xffffff, 0);
+
+        controls = new OrbitControls(camera!, renderer.domElement);
         controls.enableDamping = true;
         controls.dampingFactor = 0.05;
         controls.screenSpacePanning = false;
@@ -468,7 +492,6 @@ export function useAmigaThree(
 
         frameRoom(canvas.clientWidth, canvas.clientHeight);
         renderDirty = true;
-        start();
     };
 
     /**
@@ -480,14 +503,44 @@ export function useAmigaThree(
      * object that was never built. A failure is now a STATE the scene can read
      * and paint honestly, not an exception that takes the route down.
      */
-    const setup = () => {
+    //
+    // X.KF.W13X · KFA-76 (heavy-scene-init limb, ESC-r4shell-1, COHESION §0fa
+    // item 3) — the room is built PAST THE DESTINATION'S FIRST PAINT, one stage
+    // per frame. Built inline at mount it was one ~540 ms task of three.js init
+    // (graph, context, program compile, the first texture upload and draw)
+    // inside the swap's own frame, so the new scene could not present until the
+    // ball was ready. Now the scene paints its stage under the skeleton first;
+    // then the graph, the GL context, the program compile and the first draw
+    // each take a frame of their own (`afterPaint`: no fixed delay, the next
+    // rendering opportunity and one task past it). `booting` holds the
+    // skeleton until the first frame of the room is drawn. A dispose (or a
+    // context loss that rebuilds) mid-build retires the stale build by epoch.
+    let buildEpoch = 0;
+    const booting = ref(true);
+    const setup = async (): Promise<void> => {
+        const epoch = ++buildEpoch;
+        const live = () => epoch === buildEpoch && !failed.value;
+        booting.value = true;
         try {
-            buildRoom();
+            await afterPaint();
+            if (!live()) return;
+            buildGraph();
+            await afterPaint();
+            if (!live()) return;
+            attachRenderer();
+            await afterPaint();
+            if (!live() || !renderer || !scene || !camera) return;
+            await renderer.compileAsync(scene, camera);
+            if (!live()) return;
             failed.value = false;
+            renderDirty = true;
+            start();
         } catch (error) {
             failed.value = true;
             stop();
             console.warn("[amiga] the WebGL room could not be built", error);
+        } finally {
+            if (epoch === buildEpoch) booting.value = false;
         }
     };
 
@@ -535,7 +588,7 @@ export function useAmigaThree(
     };
 
     function start() {
-        if (present.running || failed.value) return;
+        if (present.running || failed.value || !renderer) return;
         present.loop((now: number) => {
             // OrbitControls.update() applies damping and returns true while the
             // camera is still settling — a render trigger on its own (T.A12).
@@ -635,6 +688,7 @@ export function useAmigaThree(
     function dispose() {
         if (disposed) return;
         disposed = true;
+        buildEpoch++;
         stop();
         disposeGraph();
     }
@@ -660,7 +714,7 @@ export function useAmigaThree(
     useEventListener(canvasEl, "webglcontextrestored", () => {
         disposeGraph();
         failed.value = false;
-        setup();
+        void setup();
     });
 
     onBeforeUnmount(() => {
@@ -681,6 +735,7 @@ export function useAmigaThree(
         },
         homeView,
         failed,
+        booting,
         get running() {
             return present.running;
         },
