@@ -9,9 +9,15 @@
          the curve; the hairline rail is gone) — under ONE shared sweep clock:
          all balls depart together, arrive per their curve. The comparative
          read IS the pedagogy. -->
+    <!-- X-DS r6 pass 4 (KF-R6C4-01) — the plate ends with its drawer: its
+         block size is its content's, capped at the stage's (`max-h-full`), and
+         it hangs from the stage's top (`self-start`). The drawer still takes
+         what the cap leaves (`flex-1 min-h-0`); when its fold lands on a row
+         (EasingCatalogue's `landDrawer`), the freed height leaves the plate
+         instead of standing under the fold as bare card. -->
     <Card
         :shadow="false"
-        class="easing-target easing-gallery flex h-full w-full flex-col gap-4
+        class="easing-target easing-gallery flex max-h-full w-full self-start flex-col gap-4
             overflow-hidden px-(--stage-plate-pad-inline) py-(--stage-plate-pad-block)"
     >
         <!-- Header: the selected specimen PROMOTED. Left — the curve name at

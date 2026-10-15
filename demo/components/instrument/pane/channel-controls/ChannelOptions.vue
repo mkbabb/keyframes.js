@@ -22,6 +22,19 @@
                         :inert="!stack.isOpen('main')"
                     >
                         <div class="panel-content flex flex-col gap-2">
+                            <!-- X-DS r6 pass 4 (KF-R6C4-02) — the Controls surface
+                                 names its channel, as every other pane names what
+                                 it edits (the Keyframes well's `Rotations`, the
+                                 facets' section labels): the same title rung
+                                 (glass's configurator section label), on the
+                                 column's own gutter, the main row's first row. So
+                                 the card no longer opens onto `duration`, and the
+                                 phone sheet's peek shows a title in every scene.
+                                 It leaves with its row on a drill-in, where the
+                                 sub-pane header titles the pane. -->
+                            <h3 data-pane-title class="configurator-section-label min-w-0 truncate">
+                                {{ channelName }}
+                            </h3>
                             <ChannelOptionsForm
                                 v-model:open-select="openSelect"
                                 :animation="animation"
@@ -182,6 +195,7 @@ import { Button, Separator } from "@mkbabb/glass-ui";
 import { ChevronRight } from "@lucide/vue";
 import { EASING_GROUPS } from "@utils/reference-data/easingGroups";
 import { timingFunctionKind } from "@utils/reference-data/animationDescriptions";
+import { kfEngine } from "@kf-engine";
 import {
     getChannelControlsState,
     getStoredAnimationGroupControlOptions,
@@ -215,6 +229,9 @@ const emit = defineEmits<{
     (e: "layerConfigUpdate", val: Partial<AnimationLayerConfig>): void;
     (e: "durationCommitted", ms: number): void;
 }>();
+
+// The channel's name as authored (`Rotations`), the Keyframes pane's own read.
+const channelName = kfEngine().getAnimationId(props.animation);
 
 const storedAnimationOptions = getStoredAnimationOptions(props.animation);
 // The channel's scene bucket (the animation's superKey): the controls panel's

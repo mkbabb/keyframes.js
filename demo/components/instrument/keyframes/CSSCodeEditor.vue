@@ -37,7 +37,7 @@
             <div
                 ref="containerEl"
                 class="w-full"
-                :style="{ height }"
+                :style="{ height: contentHeight ? `max(${height}, ${contentHeight}px)` : height }"
                 :aria-busy="phase === 'booting' ? 'true' : undefined"
             ></div>
             <Skeleton
@@ -196,10 +196,6 @@ function defineGroundedTheme(m: typeof Monaco, dark: boolean): void {
     // six-digit hex without the `#`. UIA-KF-097 (X.KF.W13X.r4panes) — the
     // three rungs are `CODE_INK`'s, the one table the app's printed code
     // (the spring scene's artifact) is inked from too.
-    const slider = resolveTokenHex("color-mix(in srgb, var(--border) 70%, transparent)");
-    const sliderEngaged = resolveTokenHex(
-        "color-mix(in srgb, var(--foreground) 32%, transparent)",
-    );
     const ink = (css: string) => resolveTokenHex(css).slice(1, 7);
     const fg = ink(CODE_INK.structure);
     const muted = ink(CODE_INK.value);
@@ -234,13 +230,8 @@ function defineGroundedTheme(m: typeof Monaco, dark: boolean): void {
             "editorGutter.background": ground,
             "editor.lineHighlightBackground": highlight,
             "editor.lineHighlightBorder": highlight,
-            // X-DS r5 pass 4 (KF-C4-05) — the scroll slider is a hairline's
-            // tone, not the vendored theme's opaque grey slab (the heaviest
-            // mark in the pane, resting on the footer toolbar): `--border` at
-            // rest, a foreground step under the pointer.
-            "scrollbarSlider.background": slider,
-            "scrollbarSlider.hoverBackground": sliderEngaged,
-            "scrollbarSlider.activeBackground": sliderEngaged,
+            // X-DS r6 pass 4 (KF-R6C4-03) — no `scrollbarSlider.*` re-ink: the
+            // well draws no scrollbar (the editor options below).
         },
     });
 }
@@ -293,6 +284,10 @@ const themeName = () =>
 /** The editor ground under the well's right gutter: the editor's own ground,
  *  `--muted` (KF-C4-01; the system Canvas under forced colours). */
 const wellGround = computed(() => (forcedColors.value ? "Canvas" : "var(--muted)"));
+
+/** The buffer's laid-out height (wrapped lines and padding included): the
+ *  box grows to it, so the well never scrolls inside the pane (KF-R6C4-03). */
+const contentHeight = ref(0);
 
 /** booting → ready, or booting → failed (Retry re-enters booting). */
 const phase = ref<"booting" | "ready" | "failed">("booting");
@@ -460,27 +455,36 @@ const initEditor = async () => {
         overviewRulerLanes: 0,
         overviewRulerBorder: false,
         hideCursorInOverviewRuler: true,
-        // UIA-KF-174 (X.KF.W13X.keyframes) — code does not wrap. In the
-        // 316–403 px pane Monaco's soft wrap cut inside identifiers and before
-        // `(` / `:` (`rotateY` / `(0turn)`, a selector over three visual lines
-        // at 390); a line longer than the well scrolls inside it, as an
-        // editor's does, and the lines are short now that the buffer shows the
-        // user's name instead of the internal style id.
-        wordWrap: "off",
-        // X-DS pass 7 (KF-C7-12) — and the scroll SAYS so. Monaco's `auto`
-        // horizontal scrollbar is invisible at rest, so a line cut at the
-        // well's edge ("ease-in-ou") gave no cue that it continues. The slim
-        // horizontal slider stays visible whenever a line overflows (Monaco
-        // draws no slider when nothing does), and the scrollbar's edge shadows
-        // are off (flat, X-DS canon).
-        // X-DS r5 pass 4 (KF-C4-05) — the cue stays and steps down: a 4 px
-        // slider in the hairline's tone (the theme's `scrollbarSlider.*`).
-        // It is not auto-hidden: hidden at rest, the clipped line has no cue
-        // again (KF-C7-12).
+        // UIA-KF-174 (X.KF.W13X.keyframes) — code never wraps INSIDE a token.
+        // In the 316–403 px pane Monaco's default soft wrap cut inside
+        // identifiers and before `(` / `:` (`rotateY` / `(0turn)`, a selector
+        // over three visual lines at 390), so the wrap was turned off.
+        // X-DS r6 pass 4 (KF-R6C4-03) — a line wraps AT ITS SPACES ONLY. With
+        // the wrap off, the cube's one-line `transform` list ran out of the
+        // well cut mid-token (`rotateY(0turr`), with a loose slider under it.
+        // The break opportunities are the spaces and nothing else (no break
+        // before `(` or `:`, none after `-` or `.`), so a function call and an
+        // identifier never part: the list breaks between its functions, and a
+        // wrapped line hangs one indent under its declaration.
+        wordWrap: "bounded",
+        wordWrapBreakBeforeCharacters: "",
+        wordWrapBreakAfterCharacters: " ",
+        wrappingIndent: "indent",
+        // X-DS r6 pass 4 (KF-R6C4-03) — the well has NO scrollbars. The
+        // horizontal slider was the clipped line's cue (KF-C7-12, stepped down
+        // to a 4 px hairline tone at KF-C4-05); the buffer wraps now (above),
+        // so no line is wider than the well, and a `visible` bar drew a
+        // full-width slider over nothing. Nor does it scroll vertically: the
+        // box takes the buffer's content height (`contentHeight`, floored at
+        // `height`), so the pane's own scroller, with its fold landing and
+        // glass's end fade, is the ONE scroller, and a wheel over the code
+        // scrolls the pane. Monaco takes the vertical bar's width out of the
+        // wrapping width even when the bar is hidden, so its size is 0.
         scrollbar: {
-            horizontal: "visible",
-            horizontalScrollbarSize: 4,
-            horizontalSliderSize: 4,
+            horizontal: "hidden",
+            vertical: "hidden",
+            verticalScrollbarSize: 0,
+            alwaysConsumeMouseWheel: false,
             useShadows: false,
         },
         scrollBeyondLastLine: false,
@@ -521,6 +525,10 @@ const initEditor = async () => {
         bracketColorizationOptions: { enabled: false, independentColorPoolPerBracketType: false },
     });
     phase.value = "ready";
+    contentHeight.value = editor.getContentHeight();
+    editor.onDidContentSizeChange((e) => {
+        if (e.contentHeightChanged) contentHeight.value = e.contentHeight;
+    });
 
     editor.onDidChangeModelContent(() => {
         if (isSettingValue) return;
