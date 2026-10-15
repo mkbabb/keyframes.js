@@ -176,10 +176,8 @@ function mountCard(targets: 1 | 2, timingFunction?: TimingFunctionNames) {
     const wrapper = mount(ChannelOptions, {
         props: {
             animation: a,
-            isPlaying: false,
             layerConfig: group.getLayerConfig("rotate"),
             blendAvailable: targets === 1,
-            active: false,
         },
         attachTo: document.body,
     });
@@ -465,7 +463,7 @@ describe("X.KF.W13X.esc1 — per-channel state survives a swap (store-held)", ()
         expect(layerEntry(wrapper).attributes("aria-expanded")).toBe("true");
         wrapper.unmount();
         const again = mount(ChannelOptions, {
-            props: { animation: a, isPlaying: false, layerConfig: group.getLayerConfig("rotate"), blendAvailable: true, active: false },
+            props: { animation: a, layerConfig: group.getLayerConfig("rotate"), blendAvailable: true },
             attachTo: document.body,
         });
         try {

@@ -389,7 +389,7 @@ export function useEasingDemo() {
 
     // G3 (H.W10.S2) — mirror the linear sweep onto the preview animation's clock
     // so the STANDARD PlaybackRibbon (the scrubber Slider + the AnimationVisualizer
-    // ball, mounted in the scene's ribbonContent slot) tracks the real progress:
+    // ball, bound by the scene's `ribbonContent`) tracks the real progress:
     // the visualizer reads `effectiveT/duration`, the scrubber reads `currentT`.
     // A watch (not the rAF frame) keeps the twin write off the hot path.
     watch(

@@ -51,9 +51,6 @@
             <template #tabs-content="slotProps">
                 <slot name="tabs-content" v-bind="slotProps"></slot>
             </template>
-            <template #ribbon-content="slotProps">
-                <slot name="ribbon-content" v-bind="slotProps"></slot>
-            </template>
         </ControlsPaneWrapper>
 
         <!-- Animation stage.
@@ -77,17 +74,19 @@
             <slot name="animation-content"></slot>
         </div>
 
-        <!-- Teleport target for expanded timeline (content arrives via Teleport
-             from AnimationControls). Desktop: aligned to the [rail] track
-             (grid-column: rail) + [bottom] row — a vertical extension of the
-             controls rail, inheriting --rail-width, NOT a full-grid-span surface
-             (H.W3.S4 / a-demo-architecture F2). Mobile (H.W7.S1): the expanded
-             timeline is `position: fixed`, anchored ABOVE the bottom menubar band
-             — it folds OUT of grid flow so it NEVER re-introduces a third
-             consuming row that re-starves the fixed full-bleed stage (the
-             single-stage-model invariant). -->
+        <!-- The expanded timeline cell. X.KF.W13X.r4ribbon (A2-KE-L1-23 step
+             2) — its content is rendered HERE, off the seat this host provides
+             (`EXPANDED_TIMELINE_KEY`): the selected channel's host publishes its
+             timeline while the timeline is unfolded. It used to arrive by a
+             Teleport aimed at this cell's DOM id. Desktop: aligned to the
+             [rail] track (grid-column: rail) + [bottom] row — a vertical
+             extension of the controls rail, inheriting --rail-width, NOT a
+             full-grid-span surface (H.W3.S4 / a-demo-architecture F2). Mobile
+             (H.W7.S1): the expanded timeline is `position: fixed`, anchored
+             ABOVE the bottom menubar band — it folds OUT of grid flow so it
+             NEVER re-introduces a third consuming row that re-starves the fixed
+             full-bleed stage (the single-stage-model invariant). -->
         <div
-            id="timeline-expanded-target"
             :class="[
                 'timeline-expanded-cell z-dock overflow-hidden',
                 'transition-[max-height,opacity] duration-slow ease-standard',
@@ -95,7 +94,9 @@
                     ? 'max-h-[var(--panel-max-h)] lg:pt-(--work-band-start) lg:pb-2'
                     : 'max-h-0',
             ]"
-        ></div>
+        >
+            <component :is="expandedTimeline.current.value" v-if="expandedTimeline.current.value" />
+        </div>
 
         <!-- Bottom transport dock — T.C2: the transport MOUNTS iff the scene
              exposes ≥1 painting channel (`transportNames.length > 0`). Home derives
@@ -126,7 +127,12 @@
 
 <script setup lang="ts">
 import { computed, onMounted, provide, useTemplateRef, watchEffect } from "vue";
-import { CHANNEL_COMMANDS_KEY, createChannelCommandSeat } from "./injectionKeys";
+import {
+    CHANNEL_COMMANDS_KEY,
+    EXPANDED_TIMELINE_KEY,
+    createChannelCommandSeat,
+    createExpandedTimelineSeat,
+} from "./injectionKeys";
 
 import { clamp } from "@mkbabb/value.js/math";
 
@@ -209,6 +215,12 @@ const selectedChannel = computed(() =>
 // host's handle).
 const commandSeat = createChannelCommandSeat();
 provide(CHANNEL_COMMANDS_KEY, commandSeat);
+
+// X.KF.W13X.r4ribbon · A2-KE-L1-23 step 2 — the expanded timeline cell's seat:
+// this host owns the cell, so it provides the seat and renders what the
+// selected channel's host publishes into it (the template's cell, above).
+const expandedTimeline = createExpandedTimelineSeat();
+provide(EXPANDED_TIMELINE_KEY, expandedTimeline);
 
 // X.KF.W13X.r4transport · UIA-KF-026 (the scrubber limb) — the group's paints,
 // observable by the channel ribbon's read-back (`GROUP_PAINTS_KEY`'s docblock):

@@ -29,15 +29,9 @@
              `p-3` inset started every transport row 4 px left of the label
              column. -->
         <div class="px-(--configurator-pad-inline) py-3">
-            <!-- Controls tab: filled via Teleport from ChannelOptions -->
-            <div
-                id="controls-ribbon-target"
-                v-show="storedControls.selectedControl === 'controls'"
-            ></div>
-
             <!-- Timeline tab — X-DS pass 2 (KF-C2-04): the timeline's verbs
                  are KeyframeTimeline's own row, teleported here while the
-                 timeline sits in the pane (the Controls tab's idiom above);
+                 timeline sits in the pane;
                  expanded, the row stays with the floating card as its footer.
                  (A2-KE-L3-15 · UIA-KF-179's one-row hierarchy moved with it.) -->
             <div
@@ -159,18 +153,18 @@
                 </Button>
             </div>
 
-            <!-- Other tabs (matrix controls, etc.) via slot -->
+            <!-- X.KF.W13X.r4ribbon · A2-KE-L1-24 — THE ONE TRANSPORT. Every
+                 surface but Keyframes and Timeline shows the same component,
+                 mounted here and nowhere else, bound off the ribbon seat: the
+                 selected channel's transport on Controls, the scene's on a
+                 facet surface (easing's Curve, spring's Physics). A surface
+                 that publishes none (cube's Matrix) leaves the slot empty and
+                 the section undrawn (the `:empty` rule below). -->
             <div
-                v-else-if="
-                    storedControls.selectedControl !== 'controls' &&
-                    storedControls.selectedControl !== 'timeline'
-                "
-                class="ribbon-slot flex items-center justify-center gap-2 flex-wrap"
+                v-else-if="storedControls.selectedControl !== 'timeline'"
+                class="ribbon-slot"
             >
-                <slot
-                    name="ribbon-content"
-                    :selected-control="storedControls.selectedControl"
-                ></slot>
+                <PlaybackRibbon v-if="ribbon" v-bind="ribbon" />
             </div>
         </div>
     </div>
@@ -181,7 +175,8 @@ import { Copy, FileCode, Paintbrush, Sparkles } from "@lucide/vue";
 import { computed, inject, watch } from "vue";
 import { Button, Separator } from "@mkbabb/glass-ui";
 import type { StoredAnimationGroupControlOptions } from "@state";
-import { CHANNEL_COMMANDS_KEY } from "../transport/injectionKeys";
+import PlaybackRibbon from "@components/playback/PlaybackRibbon.vue";
+import { CHANNEL_COMMANDS_KEY, RIBBON_SEAT_KEY } from "../transport/injectionKeys";
 
 // The ribbon's Buttons carry NO class string of their own: `size="sm"` +
 // `emphasis="secondary"` is the whole request, and the producer answers it
@@ -202,6 +197,18 @@ const props = defineProps<{
 // the channel host publishes into (no `any` component ref handed down).
 const commandSeat = inject(CHANNEL_COMMANDS_KEY, null);
 const keyframes = computed(() => commandSeat?.current.value?.keyframes ?? null);
+
+// X.KF.W13X.r4ribbon · A2-KE-L1-24 — the transport's binding for the surface
+// on show, read from the ribbon seat (`RIBBON_SEAT_KEY`; the App provides it).
+// The binding's reactive reads (the playhead, the play state, the eye) are made
+// here, so this component is the one that re-renders with them.
+const ribbonSeat = inject(RIBBON_SEAT_KEY, null);
+const ribbon = computed(() => {
+    const surface = props.storedControls.selectedControl;
+    return surface === "keyframes" || surface === "timeline"
+        ? null
+        : (ribbonSeat?.bindingFor(surface) ?? null);
+});
 
 // RB-6 (X.KF.W12.e) — THE APPLY STATE AND ITS AFFORDANCE GET ONE LIFETIME.
 //
@@ -235,8 +242,8 @@ watch(
 .ribbon-apply--active {
     border-color: transparent;
 }
-/* X.KF.W13X.sections — no empty ribbon card: a scene slot that renders nothing
-   leaves `.ribbon-slot` holding only Vue's comment anchors, which `:empty`
+/* X.KF.W13X.sections — no empty ribbon card: a surface with no transport
+   leaves `.ribbon-slot` holding only Vue's comment anchor, which `:empty`
    ignores, so the card is not drawn. */
 .ribbon-bar:has(.ribbon-slot:empty) {
     display: none;

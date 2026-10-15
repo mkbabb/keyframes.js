@@ -25,7 +25,7 @@
                             <ChannelOptionsForm
                                 v-model:open-select="openSelect"
                                 :animation="animation"
-                                @duration-committed="(ms) => (railDuration = ms)"
+                                @duration-committed="(ms) => emit('durationCommitted', ms)"
                             >
                                 <EasingField
                                     ref="easingFieldEl"
@@ -170,37 +170,6 @@
                 </div>
             </div>
         </div>
-
-        <!-- Playback controls: teleported to the ribbon while this is the
-             active channel. (A2-KE-L1-24 / UIA-KF-051 — the ribbon's single
-             mount from RibbonBar is `.transport`'s one-transport ruling; the
-             teleport retires there, in that motion.) -->
-        <Teleport v-if="active" to="#controls-ribbon-target" defer>
-            <PlaybackRibbon
-                :animation="animation"
-                :duration="railDuration"
-                :current-t="currentT"
-                :is-anim-playing="isAnimPlaying"
-                :user-reversed="userReversed"
-                :preview="sceneControls.ballPreview ?? 'shown'"
-                @update:preview="(next) => (sceneControls.ballPreview = next)"
-                @scrub-start="
-                    () => {
-                        wake();
-                        emit('scrubStart');
-                    }
-                "
-                @scrub-end="emit('scrubEnd')"
-                @scrubbed="wake"
-                @slider-update="
-                    (v) => {
-                        wake();
-                        emit('sliderUpdate', v);
-                    }
-                "
-                @toggle-reverse="toggleReverse"
-            />
-        </Teleport>
     </div>
 </template>
 
@@ -211,7 +180,6 @@ import type { EasingPickerValue } from "@mkbabb/glass-ui/easing";
 
 import { Button, Separator } from "@mkbabb/glass-ui";
 import { ChevronRight } from "@lucide/vue";
-import PlaybackRibbon from "@components/playback/PlaybackRibbon.vue";
 import { EASING_GROUPS } from "@utils/reference-data/easingGroups";
 import { timingFunctionKind } from "@utils/reference-data/animationDescriptions";
 import {
@@ -220,51 +188,38 @@ import {
     getStoredAnimationOptions,
 } from "@state";
 
-import { computed, ref, toRef, useId, useTemplateRef, watch } from "vue";
+import { computed, ref, toRef, useId, useTemplateRef } from "vue";
 
 import ChannelOptionsForm from "./ChannelOptionsForm.vue";
 import EasingField from "./EasingField.vue";
 import LayerConfigPanel from "./LayerConfigPanel.vue";
 import SubPaneHeader from "./SubPaneHeader.vue";
 import TimingFunctionPanel from "./TimingFunctionPanel.vue";
-import { useAnimationSync } from "./composables/useAnimationSync";
 import { usePaneStack } from "./composables/usePaneStack";
-import { usePlaybackToggle } from "./composables/usePlaybackToggle";
 import { useTimingFunctionEditor } from "./composables/useTimingFunctionEditor";
 
 const props = defineProps<{
     animation: KeyframesAnimation<any>;
-    isPlaying?: boolean;
     // `| undefined` explicit — bound, never omitted, by `ChannelControls.vue`.
     layerConfig?: AnimationLayerConfig | undefined;
     blendAvailable: boolean;
-    active?: boolean;
 }>();
 
+// X.KF.W13X.r4ribbon · A2-KE-L1-24 — this card no longer mounts the ribbon or
+// holds its state (the read-back, the reverse intent, the wake, the eye): the
+// channel host publishes the transport into the ribbon seat and RibbonBar
+// mounts it once. What the card still owes the rail is KF-CO-15's edge: the
+// form is the one writer of the duration, and each ACCEPTED value goes up as
+// `durationCommitted` so the rail's scale and its inversion share one read.
 const emit = defineEmits<{
-    (e: "sliderUpdate", val: { t: number; animation: KeyframesAnimation<any> }): void;
     (e: "layerConfigUpdate", val: Partial<AnimationLayerConfig>): void;
-    (e: "scrubStart"): void;
-    (e: "scrubEnd"): void;
+    (e: "durationCommitted", ms: number): void;
 }>();
 
 const storedAnimationOptions = getStoredAnimationOptions(props.animation);
-// OA-61 — the ball preview's eye is the scene's view state (the channel's
-// scene bucket, the animation's superKey).
+// The channel's scene bucket (the animation's superKey): the controls panel's
+// one open fact, raised by a drill-in (A2-KE-X-6).
 const sceneControls = getStoredAnimationGroupControlOptions(props.animation);
-
-// ── KF-CO-15 (the X.KF.W13.b carve, joint with the ribbon's C-2 contract) ────
-// The rail's scale is a REACTIVE read of the engine's duration (`animation` is
-// markRaw). The form is the one writer of the duration and publishes each
-// ACCEPTED value (`durationCommitted`), so the ribbon's rail and its inversion
-// share one scale.
-const railDuration = ref(props.animation.options.duration);
-watch(
-    () => props.animation,
-    (a) => {
-        railDuration.value = a.options.duration;
-    },
-);
 
 const {
     caption,
@@ -373,18 +328,6 @@ const onEasingPick = (name: string): void => {
     if (!opensEditor) return;
     drillIn("detail", easingFieldEl.value?.triggerControl() ?? null);
 };
-
-// rAF-driven reactivity bridge: animation is markRaw, so Vue can't track its
-// property changes; the refs are synced every frame for the ribbon. The
-// isPlaying guard comes from the parent (useAnimationGroupPlayback).
-const isPlayingRef = toRef(() => props.isPlaying ?? false);
-const {
-    currentT,
-    isPlaying: isAnimPlaying,
-    wake,
-} = useAnimationSync(() => props.animation, isPlayingRef);
-
-const { userReversed, toggleReverse } = usePlaybackToggle(() => props.animation);
 
 // KFA-18 (X.KF.W13V.k) — NO mount-time re-apply of the stored easing: the
 // running animation is the truth at mount; the stored easing reaches the

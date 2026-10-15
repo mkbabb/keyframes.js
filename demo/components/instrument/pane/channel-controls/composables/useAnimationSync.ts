@@ -1,4 +1,4 @@
-import { inject, onScopeDispose, ref, watch, type Ref } from "vue";
+import { computed, inject, onScopeDispose, ref, watch, type Ref } from "vue";
 import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 import { useDemoTicker } from "@composables/useDemoTicker";
 import { GROUP_PAINTS_KEY } from "@components/instrument/transport/transportSource";
@@ -30,6 +30,10 @@ const SETTLE_FRAMES = 30; // ~0.5s at 60fps: hold-stable window before idling.
 export function useAnimationSync(
     getAnimation: () => KeyframesAnimation<any>,
     isPlaying: Ref<boolean>,
+    // X.KF.W13X.r4ribbon — whether the read-back has a reader. The channel host
+    // owns this state for its whole life, the ribbon shows it on the Controls
+    // surface only: off that surface the ticker is not subscribed at all.
+    shown: Ref<boolean> = ref(true),
 ) {
     const currentT = ref(getAnimation().effectiveT);
     const isStarted = ref(getAnimation().started);
@@ -74,7 +78,7 @@ export function useAnimationSync(
                 tickerActive.value = false;
             }
         },
-        tickerActive,
+        computed(() => tickerActive.value && shown.value),
     );
 
     const wake = () => {
@@ -96,7 +100,7 @@ export function useAnimationSync(
     // time, and the next tick then moved a paused playhead (~8 ms on the served
     // cube, 6 of 6 — the `[real-cube]` oracle's `rest=false`). Reading here puts
     // the face and the readout in one render.
-    watch(isPlaying, () => {
+    watch([isPlaying, shown], () => {
         read();
         wake();
     });

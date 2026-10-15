@@ -828,20 +828,20 @@ export async function openControlsPanel(page) {
             () =>
                 !!document.querySelector(".controls-pane--open") ||
                 !!document.querySelector(".glass-drawer") ||
-                !!document.querySelector("#controls-ribbon-target"),
+                !!document.querySelector(".ribbon-bar"),
             { timeout: 3000 },
         );
     }
 
     // 3. Confirm the pane MATERIALISED (L.W4 S2). Desktop `.controls-pane--open` OR
-    //    the mobile `.glass-drawer` OR the ribbon target. On expiry the caller
+    //    the mobile `.glass-drawer` OR the ribbon section. On expiry the caller
     //    probes the layout as-is (honest, not a false green).
     await waitForRender(
         page,
         () =>
             !!document.querySelector(".controls-pane--open") ||
             !!document.querySelector(".glass-drawer") ||
-            !!document.querySelector("#controls-ribbon-target"),
+            !!document.querySelector(".ribbon-bar"),
         { timeout: 6000 },
     );
 }

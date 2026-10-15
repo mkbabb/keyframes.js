@@ -91,10 +91,6 @@
                 <slot name="tabs-content"></slot>
             </template>
 
-            <template #ribbon-content="slotProps">
-                <slot name="ribbon-content" v-bind="slotProps"></slot>
-            </template>
-
             <template #animation-content>
                 <slot name="target"></slot>
             </template>

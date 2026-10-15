@@ -101,6 +101,7 @@ afterAll(() => {
 });
 
 const { default: EasingScene } = await import("../../../demo/scenes/easing/EasingScene.vue");
+const { default: PlaybackRibbon } = await import("../../../demo/components/playback/PlaybackRibbon.vue");
 const { TooltipProvider } = await import("@mkbabb/glass-ui/tooltip");
 
 const settle = async () => {
@@ -113,10 +114,12 @@ function mountScene(): VueWrapper {
     const Host = defineComponent({
         setup() {
             return () =>
-                h(TooltipProvider, null, () => [
-                    h(EasingScene, { ref: scene }),
-                    scene.value?.ribbonContent({ selectedControl: "easing" }) ?? null,
-                ]);
+                h(TooltipProvider, null, () => {
+                    // X.KF.W13X.r4ribbon — the scene publishes a BINDING; the
+                    // ribbon is mounted by its one host (here, this harness).
+                    const binding = scene.value?.ribbonContent({ selectedControl: "easing" }) ?? null;
+                    return [h(EasingScene, { ref: scene }), binding ? h(PlaybackRibbon, binding) : null];
+                });
         },
     });
     return mount(Host, { attachTo: document.body });

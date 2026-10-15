@@ -18,7 +18,7 @@
  * stubbed at its own seam because it imports the root barrel.
  */
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
-import { defineComponent, h, nextTick, ref, shallowRef } from "vue";
+import { defineComponent, h, nextTick, provide, ref, shallowRef } from "vue";
 import { mount, type VueWrapper } from "@vue/test-utils";
 import { CSSKeyframesAnimation } from "../../../src/animation/engine";
 import { warmKfEngine } from "../../../demo/kf-engine";
@@ -138,8 +138,12 @@ vi.mock("../../../demo/components/playback/AnimationVisualizer.vue", () => ({
 const { default: PlaybackRibbon } =
     await import("../../../demo/components/playback/PlaybackRibbon.vue");
 type RibbonProps = InstanceType<typeof PlaybackRibbon>["$props"];
-const { default: ChannelOptions } =
-    await import("@components/instrument/pane/channel-controls/ChannelOptions.vue");
+const { default: ChannelControls } =
+    await import("@components/instrument/pane/channel-controls/ChannelControls.vue");
+const { default: RibbonBar } = await import("@components/instrument/pane/RibbonBar.vue");
+const { RIBBON_SEAT_KEY, createRibbonSeat } =
+    await import("@components/instrument/transport/injectionKeys");
+const { getStoredAnimationGroupControlOptions, useSceneMachine } = await import("@state");
 const { TooltipProvider } = await import("@mkbabb/glass-ui/tooltip");
 
 type PointerCaptureSurface = {
@@ -309,32 +313,39 @@ describe("C-2 — the time-space contract: the ribbon receives and displays EFFE
     });
 });
 
-describe("KF-CO-15 — the options card's duration write re-scales the teleported rail (LP-1's edge)", () => {
+// X.KF.W13X.r4ribbon (A2-KE-L1-24) — the rail is no longer teleported out of
+// the card: the card emits each accepted duration, the channel's host
+// (ChannelControls) holds the rail's scale and publishes the transport into
+// the ribbon seat, and RibbonBar mounts the one ribbon. The edge is driven
+// through those REAL components.
+describe("KF-CO-15 — the options card's duration write re-scales the rail the ribbon seat publishes (LP-1's edge)", () => {
     it("typing a new duration into the card re-scales the ribbon's :max and the engine agrees", async () => {
         const anim = makeAnimation();
-        let target = document.getElementById("controls-ribbon-target");
-        if (!target) {
-            target = document.createElement("div");
-            target.id = "controls-ribbon-target";
-            document.body.appendChild(target);
-        }
+        useSceneMachine().setActiveSurfaces(["controls"]);
+        const storedControls = getStoredAnimationGroupControlOptions(SCENE);
+        storedControls.selectedAnimation = "rotate";
+        storedControls.selectedControl = "controls";
         const Host = defineComponent({
             setup() {
+                provide(RIBBON_SEAT_KEY, createRibbonSeat(() => null));
                 return () =>
-                    h(TooltipProvider, null, () =>
-                        h(ChannelOptions, {
+                    h(TooltipProvider, null, () => [
+                        h(ChannelControls, {
                             animation: anim,
                             blendAvailable: false,
                             active: true,
                             isPlaying: false,
                         }),
-                    );
+                        h(RibbonBar, { storedControls }),
+                    ]);
             },
         });
         const wrapper = mount(Host, { attachTo: document.body });
         mounted.push(wrapper);
         await settle();
-        expect(thumbOf(target).getAttribute("aria-valuemax")).toBe(String(DURATION));
+        const bar = wrapper.get(".ribbon-bar").element;
+        expect(wrapper.element.ownerDocument.querySelectorAll('[role="slider"]')).toHaveLength(1);
+        expect(thumbOf(bar).getAttribute("aria-valuemax")).toBe(String(DURATION));
         const durationField = wrapper
             .findAllComponents({ name: "LabeledInput" })
             .find((c) => c.props("label") === "duration");
@@ -342,7 +353,7 @@ describe("KF-CO-15 — the options card's duration write re-scales the teleporte
         durationField!.vm.$emit("update:modelValue", "2s");
         await settle();
         expect(anim.options.duration).toBe(2000);
-        expect(thumbOf(target).getAttribute("aria-valuemax")).toBe("2000");
+        expect(thumbOf(bar).getAttribute("aria-valuemax")).toBe("2000");
     });
 });
 

@@ -59,7 +59,10 @@
 <script setup lang="ts">
 import { h, provide, ref } from "vue";
 
-import PlaybackRibbon from "@components/playback/PlaybackRibbon.vue";
+import type {
+    PlaybackRibbonBinding,
+    RibbonSource,
+} from "@components/instrument/transport/injectionKeys";
 
 import SpringTarget from "./SpringTarget.vue";
 import StartingStyleTarget from "./StartingStyleTarget.vue";
@@ -158,8 +161,9 @@ const onScrubEnd = () => machine.dispatch({ type: "SCRUB_END" });
 
 const storedControls = getStoredAnimationGroupControlOptions(SPRING_SCENE_ID);
 
-const standardRibbon = () =>
-    h(PlaybackRibbon, {
+// X.KF.W13X.r4ribbon (A2-KE-L1-24) — a binding, not a mount: RibbonBar holds
+// the one PlaybackRibbon and reads this through the ribbon seat.
+const standardRibbon = (): PlaybackRibbonBinding => ({
         // T.B1-β/T.B7 — the ribbon binds the Sweep CHANNEL's REAL animation:
         // `springEditAnim`, the Sweep keyframes (edited in the shared Keyframes
         // pane) whose clock is the sweep time-twin.
@@ -209,7 +213,7 @@ const standardRibbon = () =>
 // surface, so the ribbon renders for it unconditionally.
 // X.KF.W13X.spring (A2-KE-L3-8) — the solver view's Re-seat sits on the stage
 // beside the rail it acts on (SpringTarget), never on a ribbon row.
-const ribbonContent = () => standardRibbon();
+const ribbonContent: RibbonSource = () => standardRibbon();
 
 defineExpose({
     // T.B1-β/T.B7 — the SceneFacility descriptor (Sweep + Entry channels, the

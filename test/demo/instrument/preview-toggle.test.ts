@@ -48,13 +48,25 @@ describe("OA-61 · KF-P1-01 — one seated eye toggle for the ball preview", () 
         expect(sites).toEqual([RIBBON]);
     });
 
-    it("(2) every PlaybackRibbon mount binds the preview state", () => {
-        const mounts = walk(DEMO).filter((p) => /h\(PlaybackRibbon|<PlaybackRibbon\b/.test(readFileSync(p, "utf8")));
-        expect(mounts.length).toBeGreaterThanOrEqual(3);
-        for (const p of mounts) {
+    // X.KF.W13X.r4ribbon (A2-KE-L1-24) — the ribbon has ONE mount (RibbonBar,
+    // off the ribbon seat); what used to be three mounts is three publishers of
+    // a binding, and each binding carries the preview state.
+    it("(2) the one PlaybackRibbon mount is bound off the seat, and every published binding carries the preview state", () => {
+        const mounts = walk(DEMO)
+            .filter((p) => /h\(PlaybackRibbon|<PlaybackRibbon\b/.test(readFileSync(p, "utf8")))
+            .map((p) => relative(ROOT, p));
+        expect(mounts).toEqual(["demo/components/instrument/pane/RibbonBar.vue"]);
+        expect(read(mounts[0]!)).toMatch(/<PlaybackRibbon v-if="ribbon" v-bind="ribbon" \/>/);
+        const publishers = walk(DEMO).filter((p) => /"onUpdate:preview"/.test(readFileSync(p, "utf8")));
+        expect(publishers.map((p) => relative(ROOT, p)).sort()).toEqual([
+            "demo/components/instrument/pane/channel-controls/ChannelControls.vue",
+            "demo/components/instrument/transport/injectionKeys.ts",
+            "demo/scenes/easing/EasingScene.vue",
+            "demo/scenes/spring/SpringScene.vue",
+        ]);
+        for (const p of publishers.filter((p) => p.endsWith(".vue"))) {
             const src = readFileSync(p, "utf8");
-            expect([relative(ROOT, p), /\bpreview:|:preview=/.test(src)]).toEqual([relative(ROOT, p), true]);
-            expect(/ballPreview/.test(src)).toBe(true);
+            expect([relative(ROOT, p), /\bpreview:/.test(src), /ballPreview/.test(src)]).toEqual([relative(ROOT, p), true, true]);
         }
         expect(read("demo/components/playback/PlaybackRibbon.vue")).toMatch(/<PreviewToggle\b/);
     });

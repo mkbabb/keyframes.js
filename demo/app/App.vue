@@ -66,14 +66,6 @@
             <component :is="resolvedScene.api?.tabsContent" v-if="resolvedScene.api?.tabsContent" />
         </template>
 
-        <template #ribbon-content="slotProps">
-            <component
-                :is="resolvedScene.api?.ribbonContent"
-                v-bind="slotProps"
-                v-if="resolvedScene.api?.ribbonContent"
-            />
-        </template>
-
         <template #target>
             <!-- Scene host. A keyed <Suspense> resolves the active scene's
                  async chunk and shows #fallback while it loads. NO <KeepAlive>,
@@ -148,6 +140,8 @@ import {
 import {
     ACTIVE_SCENE_KEY,
     CONTROLS_PANE_HOVER_KEY,
+    RIBBON_SEAT_KEY,
+    createRibbonSeat,
 } from "@components/instrument/transport/injectionKeys";
 
 import { EditorShell } from "@components/instrument/shell";
@@ -280,7 +274,7 @@ const sceneBoundToCurrent = computed(
 // the stored-controls key (so the dock's selected surface is the bound scene's
 // own pick against the bound scene's own set), EditorShell's `channels` +
 // `super-key` (its `AnimationControlsGroup` key) + `stage-mode`, and the
-// `#tabs-content` / `#ribbon-content` render fns. While a swap is pending the
+// `#tabs-content` render fn and the ribbon seat's scene source. While a swap is pending the
 // projection HOLDS the source scene whole (its descriptor and its exposed api);
 // the moment `sceneBoundToCurrent` turns true it flips, all reads together, in
 // the resolve flush. Before .d5 the route-keyed reads flipped at the pick while
@@ -305,6 +299,17 @@ const resolvedScene = computed<{
               stageMode: currentScene.value.stageMode,
               api: sceneRef.value,
           },
+);
+
+// X.KF.W13X.r4ribbon · A2-KE-L1-24 — the ribbon seat. The one PlaybackRibbon
+// mount (RibbonBar) reads its binding here: the RESOLVED scene's transport for
+// a facet surface (easing's Curve, spring's Physics), and the selected
+// channel's, which its host publishes, for Controls. The scenes' transport
+// used to arrive as a VNode through a `#ribbon-content` slot four components
+// deep; a scene now hands a typed binding source and mounts nothing.
+provide(
+    RIBBON_SEAT_KEY,
+    createRibbonSeat(() => resolvedScene.value.api?.ribbonContent),
 );
 
 // T.B1-β STAGE 1 — the transport axis comes from the resolved scene's

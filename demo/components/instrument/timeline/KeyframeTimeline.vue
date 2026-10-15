@@ -271,7 +271,7 @@
              CSS paths are named icon commands — A2-KE-L3-15 · UIA-KF-179) is
              THIS component's. In the pane it is teleported to the frame's
              ribbon section, under the pane's one hairline, as the Controls
-             surface's playback row is (ChannelOptions → #controls-ribbon-target).
+             surface's playback row is mounted there (RibbonBar's one transport).
              Expanded, the teleport is off, so the row renders HERE, as the
              floating card's footer: it used to stay behind in the rail as a
              titleless card holding only these four buttons, ~450px from the

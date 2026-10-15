@@ -35,14 +35,10 @@
                 >
                     <ChannelOptions
                         :animation="animation"
-                        :is-playing="isPlayingProp"
                         :layer-config="layerConfig"
                         :blend-available="blendAvailable"
-                        :active="active"
-                        @slider-update="(v) => emit('sliderUpdate', v)"
                         @layer-config-update="(v) => emit('layerConfigUpdate', v)"
-                        @scrub-start="emit('scrubStart')"
-                        @scrub-end="emit('scrubEnd')"
+                        @duration-committed="(ms) => (railDuration = ms)"
                     ></ChannelOptions>
                 </div>
 
@@ -118,34 +114,16 @@
                     <slot name="tabs-content"></slot>
                 </div>
 
-                <!-- Timeline: outside the gated panels but inside the scrollable
-                     area so Teleport lifecycle isn't tied to a panel mount/unmount
-                     (which breaks moveTeleport). When collapsed, renders in-place
-                     here. When expanded, teleports to bottom bar.
+                <!-- The timeline, docked: outside the gated panels, inside the
+                     scrollable area. Unfolded, the SAME render is published
+                     into the expanded cell's seat and AnimationControlsGroup
+                     renders it there (X.KF.W13X.r4ribbon · A2-KE-L1-23 step 2:
+                     the DOM-id Teleport is retired); one of the two places
+                     holds it at a time.
                      KFA-56 / UIA-KF-019 (X.KF.W13X.timeline) — only the ACTIVE
-                     channel mounts its timeline: the inactive hosts are hidden
-                     by v-show, which a Teleport escapes, so expanding stacked
-                     all three channels' timelines in the cell and Tab walked
-                     into the hidden ones. The session survives the unmount
-                     (KFA-58, useTimeline's per-channel owner). -->
-                <Teleport to="#timeline-expanded-target" :disabled="!storedControls.isTimelineExpanded" defer>
-                    <div
-                        v-if="active && isTimelineVisible && KeyframeTimeline"
-                        :key="storedControls.selectedControl"
-                        class="animate-in fade-in slide-in-from-right-2 duration-fast"
-                    >
-                        <component
-                            :is="KeyframeTimeline"
-                            ref="timelineRef"
-                            :targets="animation.targets"
-                            :animation-options="animation.options"
-                            :clock="animation"
-                            :scene="sceneKeyframes"
-                            :expanded="storedControls.isTimelineExpanded"
-                            @toggle-expand="storedControls.isTimelineExpanded = !storedControls.isTimelineExpanded"
-                        />
-                    </div>
-                </Teleport>
+                     channel mounts its timeline. The session survives the
+                     unmount (KFA-58, useTimeline's per-channel owner). -->
+                <component :is="renderTimeline" v-if="timelineShown && !timelineUnfolded" />
             </div>
         </div>
     </div>
@@ -165,16 +143,26 @@ import type { AnimationLayerConfig } from "@mkbabb/keyframes.js";
 import {
     computed,
     defineAsyncComponent,
+    h,
     inject,
     markRaw,
+    ref,
     shallowRef,
-    Teleport,
     toRef,
     useTemplateRef,
     watch,
+    type VNode,
 } from "vue";
 import type KeyframeTimelineComponent from "../../timeline/KeyframeTimeline.vue";
-import { CHANNEL_COMMANDS_KEY, type ChannelCommands } from "../../transport/injectionKeys";
+import {
+    CHANNEL_COMMANDS_KEY,
+    EXPANDED_TIMELINE_KEY,
+    RIBBON_SEAT_KEY,
+    type ChannelCommands,
+    type PlaybackRibbonBinding,
+} from "../../transport/injectionKeys";
+import { useAnimationSync } from "./composables/useAnimationSync";
+import { usePlaybackToggle } from "./composables/usePlaybackToggle";
 import { useKeyframesPaneReveal } from "./composables/useKeyframesPaneReveal";
 import { useSelectedControlSurface } from "./composables/useSelectedControlSurface";
 import {
@@ -283,8 +271,8 @@ const emit = defineEmits<{
 }>();
 
 const keyframesControlsRef = useTemplateRef<InstanceType<typeof KeyframesStringControls>>("keyframesControlsRef");
-const timelineRef =
-    useTemplateRef<InstanceType<typeof KeyframeTimelineComponent>>("timelineRef");
+// The mounted timeline, docked or unfolded (one render, one place at a time).
+const timelineRef = shallowRef<InstanceType<typeof KeyframeTimelineComponent> | null>(null);
 
 // X-DS r4 pass 5 (KF-C24-05) — the channel's own parsed @keyframes (the
 // Keyframes surface's buffer, the store's per-channel record) and its stop
@@ -300,6 +288,106 @@ const sceneKeyframes = computed(() =>
 
 const isTimelineVisible = computed(() =>
     storedControls.selectedControl === "timeline" || storedControls.isTimelineExpanded,
+);
+
+// ── X.KF.W13X.r4ribbon · A2-KE-L1-23 step 2 — THE TIMELINE, ONE RENDER, TWO
+// PLACES ────────────────────────────────────────────────────────────────────
+// The timeline used to be teleported by DOM id from here into the expanded
+// cell AnimationControlsGroup owns. It is now ONE render function: docked, the
+// template above mounts it in the pane; unfolded, it is published into the
+// cell's typed seat (`EXPANDED_TIMELINE_KEY`) and the cell's host renders it.
+// A host with no seat (a standalone mount) keeps it docked.
+const expandedTimeline = inject(EXPANDED_TIMELINE_KEY, null);
+const timelineShown = computed(() => Boolean(active) && isTimelineVisible.value);
+const timelineUnfolded = computed(
+    () => timelineShown.value && storedControls.isTimelineExpanded && expandedTimeline !== null,
+);
+const renderTimeline = (): VNode | null => {
+    const Timeline = KeyframeTimeline.value;
+    if (!Timeline) return null;
+    return h(
+        "div",
+        {
+            key: storedControls.selectedControl,
+            class: "animate-in fade-in slide-in-from-right-2 duration-fast",
+        },
+        h(Timeline, {
+            ref: timelineRef,
+            targets: animation.targets,
+            animationOptions: animation.options,
+            clock: animation,
+            scene: sceneKeyframes.value,
+            expanded: storedControls.isTimelineExpanded,
+            onToggleExpand: () => {
+                storedControls.isTimelineExpanded = !storedControls.isTimelineExpanded;
+            },
+        }),
+    );
+};
+watch(
+    timelineUnfolded,
+    (unfolded, _was, onCleanup) => {
+        if (unfolded && expandedTimeline) onCleanup(expandedTimeline.publish(renderTimeline));
+    },
+    { immediate: true },
+);
+
+// ── X.KF.W13X.r4ribbon · A2-KE-L1-24 — THE CHANNEL'S TRANSPORT, PUBLISHED ────
+// The ribbon's state lived in ChannelOptions, which teleported its own ribbon
+// by DOM id. It lives here, in the channel's one host, and is PUBLISHED as a
+// binding into the ribbon seat while this channel's Controls surface is on
+// show; RibbonBar holds the single mount. The state: the engine read-back
+// (`animation` is markRaw, so its playhead and play state are polled; the
+// `isPlaying` guard is the group's), the user's reverse intent, the wake a
+// scrub owes the idled read-back, the rail's scale and the ball preview's eye.
+const ribbonSeat = inject(RIBBON_SEAT_KEY, null);
+const ribbonShown = computed(
+    () => Boolean(active) && hasSurface("controls") && selectedControlSurface.value === "controls",
+);
+// KF-CO-15 — the rail's scale is a REACTIVE read of the engine's duration: the
+// options form is its one writer and publishes each accepted value.
+const railDuration = ref(animation.options.duration);
+watch(
+    () => animation,
+    (a) => {
+        railDuration.value = a.options.duration;
+    },
+);
+const {
+    currentT,
+    isPlaying: isAnimPlaying,
+    wake,
+} = useAnimationSync(() => animation, toRef(() => isPlayingProp ?? false), ribbonShown);
+const { userReversed, toggleReverse } = usePlaybackToggle(() => animation);
+const ribbonBinding = (): PlaybackRibbonBinding => ({
+    animation,
+    duration: railDuration.value,
+    currentT: currentT.value,
+    isAnimPlaying: isAnimPlaying.value,
+    userReversed: userReversed.value,
+    // OA-61 — the eye is the scene's view state (the channel's scene bucket).
+    preview: storedControls.ballPreview ?? "shown",
+    "onUpdate:preview": (next) => {
+        storedControls.ballPreview = next;
+    },
+    onScrubStart: () => {
+        wake();
+        emit("scrubStart");
+    },
+    onScrubEnd: () => emit("scrubEnd"),
+    onScrubbed: wake,
+    onSliderUpdate: (value) => {
+        wake();
+        emit("sliderUpdate", value);
+    },
+    onToggleReverse: toggleReverse,
+});
+watch(
+    ribbonShown,
+    (shown, _was, onCleanup) => {
+        if (shown && ribbonSeat) onCleanup(ribbonSeat.publishChannel(ribbonBinding));
+    },
+    { immediate: true },
 );
 
 // B-2: the keyframes pane is force-mounted + content-visibility-cached when

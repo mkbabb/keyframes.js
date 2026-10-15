@@ -309,14 +309,6 @@ function mountPane() {
     storedControls.selectedControl = "controls";
     storedControls.isControlsPanelOpen = true;
 
-    // The ribbon's Teleport target the app's shell renders.
-    let ribbonTarget = document.getElementById("controls-ribbon-target");
-    if (!ribbonTarget) {
-        ribbonTarget = document.createElement("div");
-        ribbonTarget.id = "controls-ribbon-target";
-        document.body.appendChild(ribbonTarget);
-    }
-
     const Host = defineComponent({
         name: "GateHost",
         setup() {

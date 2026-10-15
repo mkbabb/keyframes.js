@@ -173,14 +173,7 @@
                     <RibbonBar
                         v-if="storedControls.selectedAnimation && !selectedIsSequence"
                         :stored-controls="storedControls"
-                    >
-                        <template #ribbon-content="{ selectedControl }">
-                            <slot
-                                name="ribbon-content"
-                                :selected-control="selectedControl"
-                            ></slot>
-                        </template>
-                    </RibbonBar>
+                    />
                 </component>
             </div>
         </component>

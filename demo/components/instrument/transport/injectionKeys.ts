@@ -1,5 +1,6 @@
 import { shallowRef } from "vue";
-import type { ComputedRef, InjectionKey, Ref, ShallowRef } from "vue";
+import type { ComputedRef, InjectionKey, Ref, ShallowRef, VNode } from "vue";
+import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 
 export const CONTROLS_PANE_HOVER_KEY: InjectionKey<Ref<boolean>> = Symbol("controlsPaneHover");
 
@@ -53,17 +54,87 @@ export interface ChannelCommandSeat {
 
 export const CHANNEL_COMMANDS_KEY: InjectionKey<ChannelCommandSeat> = Symbol("channelCommands");
 
-export function createChannelCommandSeat(): ChannelCommandSeat {
-    const current = shallowRef<ChannelCommands | null>(null);
+/** One published value and its release: the shape every seat below shares. */
+function createSeat<T>() {
+    const current = shallowRef<T | null>(null);
     return {
         current,
-        publish(commands) {
-            current.value = commands;
+        publish(value: T) {
+            current.value = value;
             return () => {
-                if (current.value === commands) current.value = null;
+                if (current.value === value) current.value = null;
             };
         },
     };
+}
+
+export function createChannelCommandSeat(): ChannelCommandSeat {
+    return createSeat<ChannelCommands>();
+}
+
+/** X.KF.W13X.r4ribbon · A2-KE-L1-24 — what the ONE `PlaybackRibbon` mount
+ *  (RibbonBar) is bound to: the ribbon's props and its listeners, as one
+ *  `v-bind` object. A publisher builds it; nobody else mounts a ribbon. */
+export interface PlaybackRibbonBinding {
+    animation: KeyframesAnimation<any>;
+    /** The rail's scale in ms, where the publisher re-scales it reactively. */
+    duration?: number;
+    /** Effective ms (the ribbon's own time-space contract). */
+    currentT: number;
+    isAnimPlaying: boolean;
+    userReversed: boolean;
+    /** The ball preview's eye: the scene bucket's `ballPreview`. */
+    preview: "shown" | "hidden";
+    "onUpdate:preview": (next: "shown" | "hidden") => void;
+    onToggleReverse: () => void;
+    onSliderUpdate: (value: { t: number; animation: KeyframesAnimation<any> }) => void;
+    onScrubStart: () => void;
+    onScrubEnd: () => void;
+    onScrubbed?: () => void;
+}
+
+/** A transport for the surface on show, or `null` when it carries none. Read
+ *  inside RibbonBar's render, so the reactive reads it makes are tracked there. */
+export type RibbonSource = (surface: { selectedControl: string }) => PlaybackRibbonBinding | null;
+
+/** The one seat the ribbon is mounted off. The App provides it with the bound
+ *  scene's source (a scene facet's transport: easing's Curve, spring's Physics);
+ *  the selected channel's host publishes the Controls surface's transport. */
+export interface RibbonSeat {
+    /** The binding for `selectedControl`: the channel's on Controls, the
+     *  scene's on any other surface. */
+    bindingFor(selectedControl: string): PlaybackRibbonBinding | null;
+    /** Publish the selected channel's transport; returns the release. */
+    publishChannel(source: () => PlaybackRibbonBinding): () => void;
+}
+
+export const RIBBON_SEAT_KEY: InjectionKey<RibbonSeat> = Symbol("ribbonSeat");
+
+export function createRibbonSeat(sceneSource: () => RibbonSource | null | undefined): RibbonSeat {
+    const channel = createSeat<() => PlaybackRibbonBinding>();
+    return {
+        bindingFor(selectedControl) {
+            if (selectedControl === "controls") return channel.current.value?.() ?? null;
+            return sceneSource()?.({ selectedControl }) ?? null;
+        },
+        publishChannel: channel.publish,
+    };
+}
+
+/** X.KF.W13X.r4ribbon · A2-KE-L1-23 step 2 — the expanded timeline cell's
+ *  content. The cell's host (`AnimationControlsGroup`) provides the seat and
+ *  renders what is published; the selected channel's host publishes its
+ *  timeline while the timeline is unfolded. No DOM id is the seam. */
+export interface ExpandedTimelineSeat {
+    readonly current: Readonly<ShallowRef<(() => VNode | null) | null>>;
+    /** Publish the timeline's render; returns the release. */
+    publish(render: () => VNode | null): () => void;
+}
+
+export const EXPANDED_TIMELINE_KEY: InjectionKey<ExpandedTimelineSeat> = Symbol("expandedTimeline");
+
+export function createExpandedTimelineSeat(): ExpandedTimelineSeat {
+    return createSeat<() => VNode | null>();
 }
 
 /**

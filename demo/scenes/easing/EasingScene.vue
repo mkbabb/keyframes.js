@@ -12,7 +12,7 @@ import { h, provide, ref } from "vue";
 import { clamp } from "@mkbabb/value.js/math";
 import { getStoredAnimationGroupControlOptions, useSceneMachine } from "@state";
 
-import PlaybackRibbon from "@components/playback/PlaybackRibbon.vue";
+import type { RibbonSource } from "@components/instrument/transport/injectionKeys";
 
 import EasingTarget from "./EasingTarget.vue";
 import EasingSidebar from "./EasingSidebar.vue";
@@ -70,9 +70,9 @@ const tabsContent = () => h(EasingSidebar, { demo });
 // the live progress; the transport emits route to the demo's machine-backed
 // play/pause + scrub. The former hand-rolled Play/Pause + Reset fork is DELETED
 // (no legacy beside the replacement); the dock owns Reset (it already does for
-// every scene). The `ribbonContent` slot is the standard scene-extension seam
-// (cube uses it for its Matrix domain verbs) — here the easing scene has no extra
-// domain verbs, so the slot mounts the standard ribbon directly (the FLOOR path).
+// every scene). `ribbonContent` is the scene's transport for its facet surface:
+// the binding RibbonBar's one PlaybackRibbon mount shows (the easing scene has
+// no domain verbs of its own on the ribbon).
 const userReversed = ref(false);
 
 // OA-10 (§0ao.1) + ESC-e-1 (§0ar) — the ball preview's hide toggle is this
@@ -105,9 +105,11 @@ const machine = useSceneMachine();
 const onScrubStart = () => machine.dispatch({ type: "SCRUB_START" });
 const onScrubEnd = () => machine.dispatch({ type: "SCRUB_END" });
 
-const ribbonContent = (slotProps: { selectedControl: string }) =>
+// X.KF.W13X.r4ribbon (A2-KE-L1-24) — a binding, not a mount: RibbonBar holds
+// the one PlaybackRibbon and reads this through the ribbon seat.
+const ribbonContent: RibbonSource = (slotProps) =>
     slotProps.selectedControl === "easing"
-        ? h(PlaybackRibbon, {
+        ? {
               // T.B1-β — the ribbon binds the REAL preview channel animation;
               // the decoy is DEAD. Its scrubber and ball are the sweep's TIME
               // playhead (`progress`, linear on every scene): the ribbon never
@@ -125,7 +127,7 @@ const ribbonContent = (slotProps: { selectedControl: string }) =>
               onSliderUpdate: onScrubUpdate,
               onScrubStart,
               onScrubEnd,
-          })
+          }
         : null;
 
 defineExpose({
