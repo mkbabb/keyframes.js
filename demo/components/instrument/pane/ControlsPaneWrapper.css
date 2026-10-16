@@ -170,6 +170,41 @@
            `useFoldLanding` reads this; it is also the room a focused control
            scrolled into view keeps from the fold. */
         scroll-padding-block-end: calc(var(--spacing) * 2);
+        /* X-DS r7 pass 5 (KF-C5-01) — a column, so a surface can take the
+           port (below). */
+        display: flex;
+        flex-direction: column;
+    }
+    /* X-DS r7 pass 5 (KF-C5-01) — THE FIGURE TAKES THE FREE BLOCK. Since
+       KF-C10-10 the pane ends on the stage's foot, but each surface kept its
+       content height, so a short surface left a void between its figure and
+       the ribbon (the Stagger lanes ended 289 px above the foot, the empty
+       Timeline's sentence 360 px, the Monaco well 52 px). A box marked
+       `.rail-fill` on the way from the port to the figure takes at least the
+       free block and is itself a column, so the figure at the end of the
+       chain (the lane grid, the code well, the empty-state notice) grows into
+       the room; content taller than the port still scrolls as before (the
+       floor is `auto`, never a cap). A glass ConfiguratorLayer marked
+       `.rail-fill` passes the room through its open region (layout only:
+       its own grid row and body, no paint). */
+    .controls-surface :deep(.rail-fill) {
+        flex: 1 0 auto;
+        display: flex;
+        flex-direction: column;
+    }
+    .controls-surface :deep(.rail-fill > [role="region"][data-state="open"]) {
+        flex: 1 0 auto;
+    }
+    .controls-surface :deep(.rail-fill > [role="region"] > div) {
+        display: flex;
+        flex-direction: column;
+    }
+    /* X-DS r7 pass 5 (KF-C5-02) — the ribbon keeps the pane's foot (KF-C10-10)
+       when the fold landing caps the scroller on a row's foot: the few px the
+       cap gives back stand above the ribbon's rule, never under the ribbon
+       (since the scroller is the pane's one scroller again, ChannelControls). */
+    .pane-frame > .ribbon-bar {
+        margin-block-start: auto;
     }
     .controls-pane-wrapper.controls-pane--open {
         pointer-events: auto;

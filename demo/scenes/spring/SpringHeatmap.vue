@@ -344,7 +344,7 @@ const FIELD_LABEL =
 </script>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, useId, useTemplateRef, watch } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, useId, useTemplateRef, watch } from "vue";
 import { ChevronRight } from "@lucide/vue";
 import { Button } from "@mkbabb/glass-ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@mkbabb/glass-ui/collapsible";
@@ -365,12 +365,39 @@ const sectionEl = useTemplateRef<{ $el: HTMLElement }>("sectionEl");
 // facet's own overflow, not a restated rem budget); the reader's toggle is
 // theirs after that. Outside the rail (the phone sheet, a test mount) there is
 // no such scroller and the figure stays open. ─────────────────────────────────
+// X-DS r7 pass 5 (KF-C5-02) — THE FIT IS READ ONCE THE RAIL HAS LANDED, not at
+// mount. At mount the scroller had not taken its final box (the work band, the
+// fonts and the rail's own fold landing settle later), so the one read found
+// no overflow, the figure stayed open, and at 1440x900 the pane ended on the
+// open row's legend with the field wholly under the fold. The scroller and the
+// section are now observed: while the reader has not touched the pane, any
+// size at which the facet overflows closes the figure (a closed row is whole
+// at the fold). The decision is the reader's from their first press, key or
+// wheel in the pane, or their own toggle; and it latches once it closes.
 const figureOpen = ref(true);
+let fitWatch: ResizeObserver | undefined;
+let fitBody: HTMLElement | undefined;
+const FIT_SETTLERS = ["pointerdown", "keydown", "wheel"] as const;
+const settleFit = (): void => {
+    fitWatch?.disconnect();
+    fitWatch = undefined;
+    for (const type of FIT_SETTLERS) fitBody?.removeEventListener(type, settleFit, true);
+    fitBody = undefined;
+};
 onMounted(() => {
-    const body = sectionEl.value?.$el?.closest?.(".controls-surface");
-    if (!(body instanceof HTMLElement) || body.clientHeight === 0) return;
-    if (body.scrollHeight - body.clientHeight > 1) figureOpen.value = false;
+    const section = sectionEl.value?.$el;
+    const body = section?.closest?.(".controls-surface");
+    if (!section || !(body instanceof HTMLElement)) return;
+    fitBody = body;
+    fitWatch = new ResizeObserver(() => {
+        if (body.clientHeight === 0) return;
+        if (body.scrollHeight - body.clientHeight > 1) figureOpen.value = false;
+    });
+    fitWatch.observe(body);
+    fitWatch.observe(section);
+    for (const type of FIT_SETTLERS) body.addEventListener(type, settleFit, { capture: true, passive: true });
 });
+onBeforeUnmount(settleFit);
 // X-DS r5 pass 4 (KF-C4-02) — a figure the reader OPENS comes into the rail's
 // view. It opens under the row that discloses it; where that row is the last
 // one above the fold, the figure opened wholly below it and the press showed
@@ -399,6 +426,7 @@ const revealFigure = (): void => {
     });
 };
 watch(figureOpen, (open) => {
+    settleFit();
     const section = sectionEl.value?.$el;
     if (!open || !section) return;
     requestAnimationFrame(() => {

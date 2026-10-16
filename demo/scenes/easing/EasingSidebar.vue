@@ -286,14 +286,22 @@ watch(
    the floor drops 9 → 8rem, because at 1280x760 and 1280x800 the 9rem floor
    bound and the surface scrolled by 5 and 10 px.
    X-DS pass 16 (KF-C20-02) — the plot-frame rule itself is ONE shared rule
-   (layout.css), shared with the cube's drill-in; this route sets its budget. */
+   (layout.css), shared with the cube's drill-in; this route sets its budget.
+   X-DS r7 pass 5 (KF-C5-01) — THE PLOT TAKES THE ROOM THE ONE FOOT GAVE. The
+   27.5rem chrome was measured while the pane was content-sized; since
+   KF-C10-10 the pane stands on the stage's foot, 40 px lower at 1440x900, and
+   that room lay as a ~50 px band between the duration row and the ribbon's
+   rule. The chrome is re-measured on the footed pane, less the scroller's
+   one row gap of air (its `scroll-padding-block-end`, 0.5rem): 25.5rem, and
+   28.5rem where the narrow pane wraps. Served at 1440x900: plot 215 px (was
+   183), the surface's scroll range 0. */
 @media (min-width: 1024px) {
     .easing-sidebar {
-        --picker-cap: max(8rem, calc(var(--rail-block, 100dvh) - 27.5rem));
+        --picker-cap: max(8rem, calc(var(--rail-block, 100dvh) - 25.5rem));
     }
     @container (inline-size < 24rem) {
         .easing-sidebar > .panel-content {
-            --picker-cap: max(8rem, calc(var(--rail-block, 100dvh) - 30.5rem));
+            --picker-cap: max(8rem, calc(var(--rail-block, 100dvh) - 28.5rem));
         }
     }
     .easing-sidebar :deep([data-slot="easing-controls"] > button:has(> code)) {

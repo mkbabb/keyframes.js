@@ -127,16 +127,16 @@
              phone column can stack it BELOW the cube (the headline sits
              above); on desktop the block flows exactly as the two lines did. -->
         <div class="hero-sub">
+            <!-- X-DS r7 pass 5 (KF-C5-04) — THE SENTENCE NAMES WHERE THINGS
+                 ARE. "from the list ☰ below" was ORIGIN's copy, when the scene
+                 list sat in the bottom toolbar beside Play; the list now lives
+                 in the glass dock at the top, and no list glyph is drawn
+                 anywhere, so the inline glyph named nothing (the canon's
+                 "every glyph has a home"). The deck now points at the dock
+                 above and the Play below, in words; the glyph and its rule
+                 are deleted. -->
             <h2 class="start-screen-prose hero-deck">
-                    from the list
-                    <!-- KF-EST-10 — the glyph is voiced as a WORD in a deck whose law is
-                         "no weight above 400": Lucide's default stroke scales with the
-                         box (2 units of a 24-unit viewBox → ≈2.19px at this 0.8em box)
-                         and out-weighed the serif's ≈1.8px stems. `absolute-stroke-width`
-                         is the icon's own one-attribute contract for a stroke that does
-                         not scale with size. -->
-                    <List class="hero-deck-icon inline" aria-hidden="true" absolute-stroke-width />
-                    below, then press Play.
+                    from the dock above, then press Play below.
             </h2>
             <h2 v-if="hint" class="start-screen-prose hero-hint">
                 {{ hint }}
@@ -170,7 +170,7 @@
 
 <script setup lang="ts">
 import { Button } from "@mkbabb/glass-ui/button";
-import { List, Pause } from "@lucide/vue";
+import { Pause } from "@lucide/vue";
 import { ref } from "vue";
 import AnimatedText from "./AnimatedText.vue";
 import TypingDots from "./TypingDots.vue";
@@ -353,23 +353,6 @@ h1.hero-display {
 .hero-dots {
     display: inline-block;
     white-space: nowrap;
-}
-
-/* KF-EST-12 — THE MECHANISM, STATED TRUTHFULLY. This declaration does not
-   "omit a fix"; it OVERRIDES one. Tailwind's preflight sets `vertical-align:
-   middle` on every replaced element inside `@layer base`, and an unlayered
-   scoped rule outranks any layer, so writing `baseline` here silently reverts
-   the glyph to the text baseline and rides it ≈0.145em HIGH against the serif's
-   own optical centre — the opposite of what an unexplained `baseline` reads as.
-   It is kept deliberately (a glyph voiced as a WORD sits on the word baseline),
-   and the earlier comment described neither the override nor the offset. The
-   icon is Lucide `List` — a bulleted list — and not the `☰` the prose used to
-   name (KF-EST-21's first site; `index.html`'s own stale `text-display-4`
-   citation is outside this wave's bounds and is DECLARED). ~0.8em cap height. */
-.hero-deck-icon {
-    width: 0.8em;
-    height: 0.8em;
-    vertical-align: baseline;
 }
 
 /* F.W13.S1 (kept) — orphan-avoiding rag on the running prose. */

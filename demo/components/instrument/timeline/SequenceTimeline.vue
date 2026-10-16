@@ -14,15 +14,18 @@
          caption in the body (it was an uppercase mono header competing with the
          lanes), then the lanes. -->
     <!-- X-DS pass 1, C1 (KF-C1-07) — no card of its own: the pane host draws the one frame (ControlsPaneWrapper), so this surface is flat inside it. -->
-    <div class="w-full">
-        <div class="panel-content p-0">
+    <!-- X-DS r7 pass 5 (KF-C5-01) — the lanes take the pane's free block:
+         the chain to them is `.rail-fill` (ControlsPaneWrapper.css), and the
+         lane grid grows, so its rows spread over the pane (SequenceLanes). -->
+    <div class="rail-fill w-full">
+        <div class="rail-fill panel-content p-0">
             <!-- X-DS pass 2 · KF-C2-08 — the pane is named for what it
                  controls (the items' stagger, the word its reset already uses);
                  the stage keeps the subject's name, so "Sequence" is said once. -->
             <!-- X-DS pass 16 (KF-C16-06) — the body's block end matches its inline
                  inset (glass's body is px-5 · py-2), so the lanes and the playhead
                  seat 20 px above the pane's edge instead of ~8 px. -->
-            <ConfiguratorLayer label="Stagger" default-open body-class="flex flex-col gap-3 pb-5">
+            <ConfiguratorLayer class="rail-fill" label="Stagger" default-open body-class="flex grow flex-col gap-3 pb-5">
                 <template #actions>
                     <!-- X.KF.W13X.dh2 (UIA-KF-098) — THE REEL, homed off the
                          stage: a verb on the items, so it sits with their other

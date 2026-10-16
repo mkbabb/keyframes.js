@@ -1,5 +1,5 @@
 <template>
-    <div class="flex flex-col gap-3">
+    <div class="rail-fill flex flex-col gap-3">
     <!-- UIA-KF-085 → X-DS pass 1 (KF-C1-07) → r6 pass 5 (KF-C5-01) → r6
          pass 6 (KF-C6-01) — ONE SURFACE PER PLACE, and the timeline has one
          place at every width: the pane (the desktop rail's frame, the 390
@@ -8,7 +8,12 @@
          taller track in place. The 390 expanded cell, the last place it drew
          a Card (stacked on the sheet, over the cube), is deleted, and the
          `sheet` prop with it. -->
-    <div class="w-full overflow-visible">
+    <!-- X-DS r7 pass 5 (KF-C5-01) — in the desktop rail the Timeline takes
+         the pane's free block (`.rail-fill`, ControlsPaneWrapper.css), and an
+         empty track's notice takes what the track leaves, its sentence
+         centred in it: the empty state stands in the pane's body, not under
+         its header over a 360 px void. -->
+    <div class="rail-fill w-full overflow-visible">
         <!-- X-DS pass 9 (KF-C9-07) — the pane's ONE inset and ONE title rung:
              the inline inset is glass's `--configurator-pad-inline` and the
              title wears glass's configurator section label, as every scene
@@ -25,8 +30,8 @@
              ConfiguratorLayer, the header the Easing, Physics and Stagger
              facets wear: one header row, one baseline, one trailing slot. The
              layer owns the inline inset (`--configurator-pad-inline`). -->
-        <CardContent class="relative p-0">
-        <ConfiguratorLayer label="Timeline" default-open body-class="flex flex-col gap-3 space-y-0 pb-4">
+        <CardContent class="rail-fill relative p-0">
+        <ConfiguratorLayer class="rail-fill" label="Timeline" default-open body-class="flex grow flex-col gap-3 space-y-0 pb-4">
         <!-- Pane action buttons.
              D-6 + the wave's ONE min-block-size policy (D-8), both spent by
              deleting the same class attribute rather than by writing a second
@@ -178,7 +183,7 @@
              agree. -->
         <p
             v-if="state.keyframes.length === 0 && sceneSummary"
-            class="text-body text-muted-foreground text-center text-balance pb-2"
+            class="text-body text-muted-foreground text-center text-balance pb-2 grow content-center"
         >
             <!-- X-DS r6 pass 9 (KF-C9-09) — the channel's name in the
                  sentence's own face (a mono `code` run broke the line). -->
@@ -188,7 +193,7 @@
         </p>
         <p
             v-else-if="state.keyframes.length === 0"
-            class="text-body text-muted-foreground text-center text-balance pb-2"
+            class="text-body text-muted-foreground text-center text-balance pb-2 grow content-center"
         >
             No keyframes yet — <strong>Snapshot</strong> the target's current
             pose, or <strong>Import</strong> CSS <code>@keyframes</code>.

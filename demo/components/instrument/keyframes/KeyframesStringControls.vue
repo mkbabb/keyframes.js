@@ -12,11 +12,14 @@
          C1 (KF-C1-07) — the well is unframed (`border` false): the pane host
          draws the one frame (ControlsPaneWrapper), so a framed well here was a
          card in a card. -->
-    <section class="min-w-0" :aria-labelledby="headingId">
+    <!-- X-DS r7 pass 5 (KF-C5-01) — in the desktop rail the well fills the
+         pane down to the ribbon: the chain to it is `.rail-fill`
+         (ControlsPaneWrapper.css) and CSSCodeEditor grows its box. -->
+    <section class="rail-fill min-w-0" :aria-labelledby="headingId">
         <!-- D-4 (X.KF.W12.e) — the editor WELL is the parse-error shake's
              target: the element whose buffer failed to parse is the element
              that moves. The preset used to be constructed target-less. -->
-        <div ref="editorWellRef" class="relative" @keydown="onKeyDown">
+        <div ref="editorWellRef" class="rail-fill relative" @keydown="onKeyDown">
             <CSSCodeEditor
                 ref="editorRef"
                 :model-value="cssKeyframesString"

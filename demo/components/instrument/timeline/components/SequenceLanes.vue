@@ -204,6 +204,22 @@ const onLaneKeydown = (index: number, e: KeyboardEvent) => {
 .lane-track {
     row-gap: 0.25rem;
 }
+/* X-DS r7 pass 5 (KF-C5-01) — THE LANES SPREAD OVER THE PANE, as the
+   Sequence stage's do (KF-C3-01). In the desktop rail the Stagger body is a
+   column that takes the pane's free block (`.rail-fill`), and the lane grid
+   grows into it: its auto rows stretch alike (the grid's `normal` content
+   alignment), so the clock and the five lanes keep one pitch from the ruler to
+   the pane's foot, and the playhead and the gridlines run the whole height.
+   Each row's rail sits on its row's centre line, where its label already
+   sits. Outside the rail (the phone sheet) the body is content-sized and the
+   rows keep their own heights. */
+.lane-track {
+    flex-grow: 1;
+}
+.lane-track :deep(.lane-track-row) {
+    display: grid;
+    align-content: center;
+}
 
 .seq-lane-label {
     white-space: nowrap;

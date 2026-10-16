@@ -1,11 +1,26 @@
 <template>
     <div
-        class="flex flex-col h-full w-full overflow-hidden z-content relative isolate"
+        class="flex flex-col shrink-0 min-h-full w-full overflow-hidden z-content relative isolate"
     >
+        <!-- X-DS r7 pass 5 (KF-C5-02) — THE PANE HAS ONE SCROLLER, the rail's
+             `.controls-surface` (glass FadingScroll: the end fade, the fold
+             landing, the spring figure's fit). This host was `h-full` with an
+             `overflow-y-auto` column inside it, a second scroller left from before
+             the rail had one. While the pane was content-sized the `h-full` never
+             resolved, so the column grew and the rail's scroller scrolled; since
+             KF-C10-10 the pane stands on the stage's foot, the `h-full` resolved,
+             and the facets overflowed inside this column instead, where the fade,
+             the fold landing and the spring figure's overflow test could not see
+             it (at 1440x900 the Physics pane ended on the open figure row with its
+             field under the fold). The host now takes AT LEAST the port
+             (`min-h-full`), so a short surface still fills it (KF-C5-01), and
+             never shrinks below its content (`shrink-0`: its overflow clip
+             would otherwise cut the facet at the port), so a tall one grows
+             the rail's scroller. -->
         <div
-            class="w-full flex-1 min-h-0 flex flex-col justify-start"
+            class="w-full flex-1 flex flex-col justify-start"
         >
-            <div class="flex-1 min-h-0 overflow-y-auto flex flex-col">
+            <div class="flex-1 flex flex-col">
                 <!-- THE CONTROL SURFACES. Each is a plain div gated on the active
                      surface (`selectedControlSurface`) under the SAME DFA gate (a
                      scene whose valid set omits a surface mounts NO pane — the
@@ -53,7 +68,10 @@
                      the tab order — the aria-hidden-focus a11y defect) takes the
                      cached pane out of BOTH the tab order and the AT tree while
                      inactive; the focus-move on reveal restores it. `data-state`
-                     mirrors the active flag for the panel-slide seam. -->
+                     mirrors the active flag for the panel-slide seam.
+                     X-DS r7 pass 5 (KF-C5-01) — the ACTIVE pane takes the
+                     rail's free block (`.rail-fill`) so the code well fills
+                     down to the ribbon; a cached pane takes none. -->
                 <div
                     v-if="hasSurface('keyframes') && keyframesWarmed"
                     role="tabpanel"
@@ -62,7 +80,7 @@
                     :data-state="keyframesActive ? 'active' : 'inactive'"
                     :tabindex="keyframesActive ? 0 : -1"
                     ref="keyframesPaneEl"
-                    :class="['monaco-pane', keyframesActive ? '' : 'inactive']"
+                    :class="['monaco-pane', keyframesActive ? 'rail-fill' : 'inactive']"
                     :inert="!keyframesActive"
                 >
                     <KeyframesStringControls
@@ -310,7 +328,10 @@ const renderTimeline = (): VNode | null => {
         "div",
         {
             key: storedControls.selectedControl,
-            class: "animate-in fade-in slide-in-from-right-2 duration-fast",
+            // X-DS r7 pass 5 (KF-C5-01) — the Timeline takes the pane's free
+            // block (`.rail-fill`, ControlsPaneWrapper.css): its empty state
+            // centres in it instead of leaving a void above the ribbon.
+            class: "rail-fill animate-in fade-in slide-in-from-right-2 duration-fast",
         },
         h(Timeline, {
             ref: timelineRef,

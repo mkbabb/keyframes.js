@@ -36,8 +36,8 @@
         <div class="code-well__body relative" :style="{ '--code-well-ground': wellGround }">
             <div
                 ref="containerEl"
-                class="w-full"
-                :style="{ height: contentHeight ? `max(${height}, ${contentHeight}px)` : height }"
+                class="code-well__box w-full"
+                :style="{ minBlockSize: contentHeight ? `max(${height}, ${contentHeight}px)` : height }"
                 :aria-busy="phase === 'booting' ? 'true' : undefined"
             ></div>
             <Skeleton
@@ -681,6 +681,30 @@ defineExpose({
    edge (0 px) while the title and footer sit on the 20 px column. The inset is
    padding in the well's own ground, so the gutter stays narrow and the
    numerals land on the column. */
+/* X-DS r7 pass 5 (KF-C5-01) — THE WELL FILLS THE ROOM IT IS GIVEN. The box's
+   height was its floor (`height`, or the buffer's content height above it),
+   so in the desktop rail, where the pane ends on the stage's foot, a 52 px
+   blank band stood between the well's end and the ribbon's rule. The well is
+   now a column whose box takes the floor AND any block a growing parent hands
+   it (`.rail-fill`, ControlsPaneWrapper.css); Monaco lays out at the box's
+   size through the well's own observer. The box is size-contained, so its
+   contribution is the floor, never the editor it last laid out: a pane that
+   shrinks shrinks the well with it. Where no parent grows it (the phone
+   sheet, a test mount) the box is exactly its floor, as before. */
+.code-well {
+    display: flex;
+    flex-direction: column;
+    flex: 1 0 auto;
+}
+.code-well__body {
+    display: flex;
+    flex-direction: column;
+    flex: 1 0 auto;
+}
+.code-well__box {
+    flex: 1 1 0;
+    contain: size;
+}
 .code-well__body {
     padding-inline-start: var(--configurator-pad-inline);
     padding-inline-end: var(--space-body);
