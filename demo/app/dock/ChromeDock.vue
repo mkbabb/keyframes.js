@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, inject, nextTick, ref, watch, useTemplateRef, type Component } from "vue";
 import { CONTROLS_PANE_HOVER_KEY } from "@components/instrument/transport/injectionKeys";
-import { Activity, Atom, SlidersHorizontal, Braces, Clock, Grid3X3 } from "@lucide/vue";
+import { Activity, Atom, SlidersHorizontal, Braces, Clock, Grid3X3, CircleDashed } from "@lucide/vue";
 import {
     GlassDock,
     DockControl,
@@ -16,6 +16,7 @@ import { provideDockPlate, useDockEdgeOffset } from "@composables/dockEdge";
 import {
     BUILT_IN_SURFACES,
     dockSurfaceItems,
+    type ChannelFacet,
     type ControlSurface,
     type ControlSurfaceTab,
     type DockSurfaceItem,
@@ -109,6 +110,7 @@ const TAB_ICONS: Record<string, Component> = {
     Grid3X3,
     Activity,
     Atom,
+    CircleDashed,
 };
 
 const props = defineProps<{
@@ -132,6 +134,10 @@ const props = defineProps<{
      *  full triad when absent (non-App hosts that don't drive the DFA). */
     controlSurfaces?: readonly ControlSurface[];
     extraControlTabs?: readonly ControlSurfaceTab[];
+    /** X-DS KF-C12-01 — the conditional facets the shown scene's channels
+     *  carry (`channelFacetsOf`), so a facet slot with no live facet names the
+     *  one the scene could show (cube → "Matrix: select the Matrix channel"). */
+    channelFacets?: readonly ChannelFacet[];
     /** X-DS r6 pass 10 (KF-C10-04) — whether the shown scene's transport is
      *  PLAYING (the machine's status). The chosen scene's miniature plays only
      *  then: a settled or paused scene's glyph rests, so the dock's chrome
@@ -160,7 +166,9 @@ const derivedSurfaces = computed<ControlSurface[]>(() => [
     ),
     ...(props.extraControlTabs ?? []).map((t) => t.value),
 ]);
-const surfaceItems = computed(() => dockSurfaceItems(derivedSurfaces.value));
+const surfaceItems = computed(() =>
+    dockSurfaceItems(derivedSurfaces.value, props.channelFacets),
+);
 const showSurfaceItems = computed(() => props.currentSceneId !== props.homeScene.id);
 
 function iconFor(icon: string): Component {
@@ -503,8 +511,8 @@ watch(isSelectOpen, (open) => {
                                 data-dock-surface-item
                                 :data-surface="item.surface"
                                 :data-selected="item.enabled && item.surface === selectedControl ? '' : undefined"
-                                :aria-label="item.label"
-                                :title="item.label"
+                                :aria-label="item.title"
+                                :title="item.title"
                                 :disabled="!item.enabled"
                                 :active="isSurfaceShowing(item)"
                                 @pointerenter="warmControlSurfaces"

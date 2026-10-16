@@ -13,6 +13,7 @@ import ChromeDock from "@app/dock/ChromeDock.vue";
 import {
     DOCK_ITEM_KINDS,
     SURFACE_META,
+    channelFacetsOf,
     dockSurfaceItems,
     extraTabsFrom,
     surfacesFor,
@@ -50,7 +51,7 @@ describe("dockSurfaceItems — the ONE dock item descriptor", () => {
             ["Controls", false],
             ["Keyframes", false],
             ["Timeline", true],
-            ["Scene facet", false],
+            ["No facet", false],
         ]);
         const cube = dockSurfaceItems(SCENE_SURFACES.cube!);
         expect(cube.map((i) => i.enabled)).toEqual([true, true, true, false]);
@@ -170,6 +171,31 @@ describe("the one surface registry (X.KF.W13X.esc1)", () => {
         expect(SURFACE_META["matrix-controls"].label).toBe("Matrix");
         const labels = Object.values(SURFACE_META).map((m) => m.label);
         expect(labels.filter((l) => /controls/i.test(l))).toEqual(["Controls"]);
+    });
+    // X-DS KF-C12-01 — the facet slot never shows a generic glyph with an
+    // internal name: a scene whose channel carries a conditional facet names
+    // that facet and the channel that enables it; a scene with none says so.
+    it("a facet slot with no live facet names the facet its channel would show", () => {
+        const channels = [
+            { name: "Matrix", animation: {}, facets: [{ surface: "matrix-controls" as const }] },
+            { name: "Rotations", animation: {} },
+        ];
+        const facets = channelFacetsOf(channels);
+        expect(facets).toEqual([{ surface: "matrix-controls", channel: "Matrix" }]);
+        const atRest = dockSurfaceItems(surfacesFor({ channels, facets: [] }, "Rotations"), facets);
+        expect(atRest[3]).toMatchObject({
+            kind: "facet",
+            surface: "matrix-controls",
+            label: "Matrix",
+            icon: SURFACE_META["matrix-controls"].icon,
+            title: "Matrix: select the Matrix channel",
+            enabled: false,
+        });
+        const selected = dockSurfaceItems(surfacesFor({ channels, facets: [] }, "Matrix"), facets);
+        expect(selected[3]).toMatchObject({ label: "Matrix", title: "Matrix", enabled: true });
+        const none = dockSurfaceItems(SCENE_SURFACES.amiga!);
+        expect(none[3]).toMatchObject({ label: "No facet", title: "No facet for this scene", enabled: false });
+        expect(dockSurfaceItems(SCENE_SURFACES.amiga!).map((i) => i.icon)).not.toContain("Activity");
     });
     it("the dock item for a facet carries the registry's own glyph", () => {
         const spring = dockSurfaceItems(["controls", "keyframes", "timeline", "spring"]);

@@ -59,6 +59,7 @@ export {
     BUILT_IN_SURFACES,
     SURFACE_META,
     surfacesFor,
+    channelFacetsOf,
     extraTabsFrom,
     selectedSurfaceFrom,
 } from "./controlSurfaces";

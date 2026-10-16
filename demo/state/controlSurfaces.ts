@@ -331,25 +331,58 @@ export function dockCardinality(input: {
 export const DOCK_ITEM_KINDS = ["controls", "keyframes", "timeline", "facet"] as const;
 export type DockItemKind = (typeof DOCK_ITEM_KINDS)[number];
 
-/** One rendered dock item. `surface` is undefined only for a disabled facet
- *  slot (the scene has no facet). */
+/** One rendered dock item. `surface` is undefined only for the empty facet
+ *  slot (the scene carries no facet at all). `title` is the item's tooltip and
+ *  accessible name: the label for a live item, the label plus the reason for a
+ *  disabled facet (X-DS KF-C12-01). */
 export interface DockSurfaceItem {
     kind: DockItemKind;
     surface?: ControlSurface;
     label: string;
     icon: string;
+    title: string;
     enabled: boolean;
 }
 
-/** The disabled facet slot's descriptor (a scene with no facet). */
-const FACET_PLACEHOLDER = { label: "Scene facet", icon: "Activity" } as const;
+/** A conditional facet the scene carries on one of its channels, shown only
+ *  while that channel is selected (cube's Matrix channel → matrix-controls). */
+export interface ChannelFacet {
+    surface: ControlSurface;
+    channel: string;
+}
+
+/** Every conditional facet a scene's channels carry, with the channel that
+ *  gates it. Pure over the facility's channels; deduplicated by surface. */
+export function channelFacetsOf(
+    channels: readonly SurfaceChannelLike[] | undefined,
+): ChannelFacet[] {
+    const out: ChannelFacet[] = [];
+    for (const c of channels ?? [])
+        for (const f of c.facets ?? [])
+            if (!out.some((o) => o.surface === f.surface))
+                out.push({ surface: f.surface, channel: c.name });
+    return out;
+}
+
+/** The facet slot of a scene that carries no facet: it says so (X-DS
+ *  KF-C12-01 — the generic pulse glyph and the "Scene facet" jargon are gone). */
+const NO_FACET = {
+    label: "No facet",
+    icon: "CircleDashed",
+    title: "No facet for this scene",
+} as const;
 
 /**
  * Project a scene's derived surface set onto the ONE dock item set. Pure and
  * total: the result always holds the three built-in kinds plus at least one
- * facet item; a surface outside `surfaces` renders disabled.
+ * facet item; a surface outside `surfaces` renders disabled. A facet slot with
+ * no live facet names the scene's conditional facet (its own glyph and label,
+ * and the channel that enables it) or, when the scene carries none, says so.
  */
-export function dockSurfaceItems(surfaces: readonly ControlSurface[]): DockSurfaceItem[] {
+export function dockSurfaceItems(
+    surfaces: readonly ControlSurface[],
+    channelFacets: readonly ChannelFacet[] = [],
+): DockSurfaceItem[] {
     const builtIn: DockSurfaceItem[] = BUILT_IN_SURFACES.map((surface) => {
         const meta = SURFACE_META[surface];
         return {
@@ -357,18 +390,33 @@ export function dockSurfaceItems(surfaces: readonly ControlSurface[]): DockSurfa
             surface,
             label: meta.label,
             icon: meta.icon ?? "SlidersHorizontal",
+            title: meta.label,
             enabled: surfaces.includes(surface),
         };
     });
     const facets = extraTabsFrom(surfaces);
+    const latent = channelFacets.filter((f) => !surfaces.includes(f.surface));
     const facetItems: DockSurfaceItem[] = facets.length
         ? facets.map((tab) => ({
               kind: "facet",
               surface: tab.value,
               label: tab.label,
-              icon: tab.icon ?? FACET_PLACEHOLDER.icon,
+              icon: tab.icon ?? NO_FACET.icon,
+              title: tab.label,
               enabled: true,
           }))
-        : [{ kind: "facet", ...FACET_PLACEHOLDER, enabled: false }];
+        : latent.length
+          ? latent.map(({ surface, channel }) => {
+                const meta = SURFACE_META[surface];
+                return {
+                    kind: "facet",
+                    surface,
+                    label: meta.label,
+                    icon: meta.icon ?? NO_FACET.icon,
+                    title: `${meta.label}: select the ${channel} channel`,
+                    enabled: false,
+                };
+            })
+          : [{ kind: "facet", ...NO_FACET, enabled: false }];
     return [...builtIn, ...facetItems];
 }

@@ -25,6 +25,7 @@
         :selected-control="dockSelectedControl"
         :control-surfaces="controlSurfaces"
         :extra-control-tabs="extraControlTabs"
+        :channel-facets="channelFacets"
         :scene-playing="machine.status.value === 'playing'"
         @switch-scene="runSceneSwitch"
         @warm-scene="warmScene"
@@ -183,6 +184,7 @@ import {
     getStoredAnimationGroupControlOptions,
     HOME_SCENE_ID,
     surfacesFor,
+    channelFacetsOf,
     useSceneMachine,
 } from "@state";
 
@@ -368,6 +370,10 @@ watchEffect(() => {
 // with `setActiveSurfaces` — never a tick-late `sceneRef.extraControlTabs`
 // re-bind gated on the destination's <Suspense> mount.
 const extraControlTabs = computed(() => machine.extraControlTabs());
+// X-DS KF-C12-01 — the resolved scene's conditional facets (cube's Matrix
+// channel → matrix-controls), so the dock's facet slot names the facet a
+// channel would show instead of a generic placeholder.
+const channelFacets = computed(() => channelFacetsOf(currentChannels.value));
 
 // The dock trigger's SELECTED surface — the SAME I.W2 machine projection the
 // in-panel tab host binds (`AnimationControls` `<Tabs> :model-value`), extended
