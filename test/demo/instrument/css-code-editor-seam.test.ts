@@ -382,8 +382,13 @@ describe("G-KFW12-4 — the Monaco seam", () => {
             expect(geometryReads).toBe(0);
             expect(mounted.element.querySelector(".monaco-editor")).toBeNull();
             expect(mounted.element.querySelector("[aria-busy='true']")).not.toBeNull();
+            // X-DS r7 pass 11 (KF-C11-01): the hidden well mounts no Skeleton,
+            // so glass's infinite breathe never runs in a pane never opened.
+            expect(mounted.element.querySelector("[data-stub='Skeleton']")).toBeNull();
             // The pane is shown: the well is laid out and its observer reports the box.
             resizeAll({ width: 480, height: 300 });
+            await nextTick();
+            expect(mounted.element.querySelector("[data-stub='Skeleton']")).not.toBeNull();
             await booted(mounted);
         } finally {
             boxes.held = false;

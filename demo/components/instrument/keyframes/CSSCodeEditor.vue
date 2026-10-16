@@ -38,8 +38,13 @@
                 ref="containerEl"
                 class="code-well__box w-full"
                 :style="{ minBlockSize: contentHeight ? `max(${height}, ${contentHeight}px)` : height }"
-                :aria-busy="phase === 'booting' ? 'true' : undefined"
+                :aria-busy="phase === 'pending' || phase === 'booting' ? 'true' : undefined"
             ></div>
+            <!-- X-DS r7 pass 11 (KF-C11-01): the sheen (glass's infinite
+                 breathe) mounts only once the well has a box and the boot has
+                 begun. A well force-mounted in the hidden Keyframes pane is
+                 `pending`, busy but with no Skeleton, so a pane that is never
+                 opened carries no looping animation. -->
             <Skeleton
                 v-if="phase === 'booting'"
                 class="absolute inset-0"
@@ -301,8 +306,10 @@ const wellGround = computed(() => (forcedColors.value ? "Canvas" : "var(--muted)
  *  box grows to it, so the well never scrolls inside the pane (KF-R6C4-03). */
 const contentHeight = ref(0);
 
-/** booting → ready, or booting → failed (Retry re-enters booting). */
-const phase = ref<"booting" | "ready" | "failed">("booting");
+/** pending → booting → ready, or booting → failed (Retry re-enters booting).
+ *  `pending` holds until the well first has a box (KF-C11-01): a well in the
+ *  hidden pane is busy, but mounts no Skeleton and so runs no breathe loop. */
+const phase = ref<"pending" | "booting" | "ready" | "failed">("pending");
 const bootError = ref<string>();
 
 let editor: Monaco.editor.IStandaloneCodeEditor | undefined;
@@ -649,6 +656,7 @@ useResizeObserver(containerEl, (entries) => {
     }
     if (bootQueued) return;
     bootQueued = true;
+    phase.value = "booting";
     initAfterPaint();
 });
 
