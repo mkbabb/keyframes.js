@@ -265,6 +265,20 @@ export function useEasingDemo() {
     // useSceneVisibilityPause registration with BOUND callbacks (no scene can
     // re-introduce the unbound `playback.stop` that threw `this._gen`). The
     // scene supplies only the per-frame work + the per-arm clock rebase.
+    /**
+     * Rewind the sweep to its born state — the body the machine's RESET effect
+     * drives (KFA-39: `applyEffects` RESET → `ScenePlayback.reset` →
+     * `useSweepScene`'s forward → here). It never dispatches: the machine is
+     * already resetting when it runs.
+     */
+    const rewindSweep = () => {
+        livePhaseValue = 0;
+        progress.value = 0;
+        phase = 0;
+        anchorAt(performance.now());
+        repaintDots();
+    };
+
     const { playback, startLoop, scenePlayback } = useSweepScene({
         frame,
         // Anchor the clock at the LIVE PHASE so the sweep resumes where it
@@ -288,6 +302,8 @@ export function useEasingDemo() {
             repaintDots();
         },
         getPlaying: () => machine.status.value === "playing",
+        // KFA-39 — the machine's RESET effect rewinds the sweep through here.
+        reset: rewindSweep,
     });
 
     // play/pause/togglePlay come from useSceneTransport (above) — they dispatch
@@ -303,14 +319,9 @@ export function useEasingDemo() {
         reversed.value = next;
     };
 
-    const reset = () => {
-        livePhaseValue = 0;
-        progress.value = 0;
-        phase = 0;
-        anchorAt(performance.now());
-        repaintDots();
-        machine.dispatch({ type: "RESET" });
-    };
+    /** The scene's Reset verb: the machine owns it (dock Reset, `R`, `Escape`
+     *  and this all end at the one RESET, whose effect runs `rewindSweep`). */
+    const reset = () => machine.dispatch({ type: "RESET" });
 
     // Mount-time start: the scene is created fresh on each swap-in under the bare
     // keyed <Suspense>. Arm the loop now; the machine's SCENE_READY restore (via
