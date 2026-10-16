@@ -211,8 +211,25 @@ export function useSpringDemo() {
         springLive.sweepU = foldSweepPhase(phase);
         springLive.sampled = samplerAnim.at(springLive.sweepU).x;
     };
+    // X.KF.W13X.r3res2b (§0fj 2, §0er ESC-spring-1) — ONE TIME BASE. The axis
+    // position `sweepU` is the EFFECTIVE time the ribbon displays (its C-2
+    // contract): the thumb reads it, and the ball paints the engine's
+    // `effectiveT`. The demo clock already runs backwards under Reverse
+    // (KFA-44) and the channel carries `springEditAnim.reversed`, so the
+    // engine's RAW `t` is the axis time read through that flag — seating the
+    // axis time as raw `t` inverted it a second time (the ball mirrored the
+    // thumb). The two halves of the conversion live here, side by side.
+    const engineTOf = (u: number): number => {
+        const dur = springEditAnim.options.duration;
+        return springEditAnim.reversed ? dur - u * dur : u * dur;
+    };
+    const axisOf = (rawT: number): number => {
+        const dur = springEditAnim.options.duration;
+        if (!(dur > 0)) return 0;
+        return (springEditAnim.reversed ? dur - rawT : rawT) / dur;
+    };
     const seatSweepClock = (): void => {
-        springEditAnim.t = springLive.sweepU * springEditAnim.options.duration;
+        springEditAnim.t = engineTOf(springLive.sweepU);
     };
 
     // ── Playback intent: DERIVED from the machine, NOT a private shadow ──
@@ -244,6 +261,9 @@ export function useSpringDemo() {
         if (next === reversed) return;
         reversed = next;
         springEditAnim.reversed = next;
+        // r3res2b — the flag re-maps raw ↔ effective; re-seat the raw clock so
+        // the ball holds the thumb's place across the flip (paused too).
+        seatSweepClock();
         rebaseClock(performance.now());
     };
 
@@ -439,6 +459,13 @@ export function useSpringDemo() {
     function scrubTo(u: number): void {
         const at = clamp(u, 0, 1) / 2;
         seatPhase(springLive.phase > 0.5 ? 1 - at : at);
+    }
+
+    /** The ribbon's scrub seam (r3res2b): `sliderUpdate.t` is RAW engine time
+     *  (C-2 — the ribbon inverts over the channel's flag exactly once), read
+     *  back to the axis through the same flag, then seated as any scrub. */
+    function scrubToEngineT(rawT: number): void {
+        scrubTo(axisOf(rawT));
     }
 
     // ── Methods ──────────────────────────────────────────────────────
@@ -782,6 +809,7 @@ export function useSpringDemo() {
         togglePlay,
         // K.W4 S2 + F5 — the transport-scrubber scrub seam (scrub-while-idle).
         scrubTo,
+        scrubToEngineT,
         setReversed,
         // ESC-spring-1 — the one leg length (the horizon the axis labels), for
         // the transport rail's reactive scale.

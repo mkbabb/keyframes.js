@@ -135,15 +135,15 @@ const tabsContent = () => h(SpringPhysicsFacet, { demo });
 const userReversed = ref(false);
 
 const onScrubUpdate = (v: { t: number }) => {
-    // ESC-spring-1 — the rail's ONE scale is the sweep leg (the horizon the
-    // trace labels), the same read the ribbon's `duration` publishes.
-    const dur = demo.sweepLegMs.value;
-    // K.W4 S2 + F5 — route the scrub through `scrubTo` (the ONE continuous seam):
-    // it moves the thumb + the visualizer + the live ball together AND works
-    // while idle (scrub-while-idle — the playhead is set without play first). The
+    // K.W4 S2 + F5 — route the scrub through the demo's ONE continuous seam: it
+    // moves the thumb + the visualizer + the live ball together AND works while
+    // idle (scrub-while-idle — the playhead is set without play first). The
     // former `demo.progress.value = …` wrote only the 6 Hz text mirror, so an
     // idle scrub repainted nothing.
-    if (dur > 0) demo.scrubTo(v.t / dur);
+    // X.KF.W13X.r3res2b — `v.t` is RAW engine time (the ribbon's C-2 contract);
+    // the demo reads it back to the axis through the channel's direction, so a
+    // scrub under Reverse lands where the user put it, not at its mirror.
+    demo.scrubToEngineT(v.t);
 };
 
 const onToggleReverse = () => {
