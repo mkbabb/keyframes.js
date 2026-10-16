@@ -79,7 +79,9 @@ import {
 //
 // KF.W13U.d2 (OA-32) — the scene icon is the scene's living miniature. The
 // CHOSEN scene's icon (the expanded trigger AND the collapsed face below) is
-// rendered `live` and plays the scene's own animation in miniature; every row
+// rendered `live` while its transport plays (X-DS r6 pass 10, KF-C10-04: a
+// settled or paused scene's glyph rests) and plays the scene's own animation
+// in miniature; every row
 // in the scene menu renders the same component at rest. PRM stills both (the engine's own gate).
 //
 // D-3 — what that binding does NOT do is theme every glyph via currentColor
@@ -130,6 +132,11 @@ const props = defineProps<{
      *  full triad when absent (non-App hosts that don't drive the DFA). */
     controlSurfaces?: readonly ControlSurface[];
     extraControlTabs?: readonly ControlSurfaceTab[];
+    /** X-DS r6 pass 10 (KF-C10-04) — whether the shown scene's transport is
+     *  PLAYING (the machine's status). The chosen scene's miniature plays only
+     *  then: a settled or paused scene's glyph rests, so the dock's chrome
+     *  never animates with no state behind it. */
+    scenePlaying?: boolean;
 }>();
 
 // The shown scene's miniature for the trigger + collapsed pill, read off its
@@ -438,7 +445,7 @@ watch(isSelectOpen, (open) => {
                                  (1lh) inside the producer's own trigger padding, so the two
                                  dock triggers stand one height. -->
                             <DockTrigger ref="sceneTrigger" for="select" aria-label="Scene" class="dock-label max-[399px]:min-h-[calc(1lh_+_2_*_var(--dock-trigger-padding-block))]">
-                                <component :is="currentIcon" live class="dock-glyph" aria-hidden="true" />
+                                <component :is="currentIcon" :live="scenePlaying" class="dock-glyph" aria-hidden="true" />
                                 <!-- X.KF.W13V.s (OA-40): below 400 px the four
                                      surface items leave no room for the
                                      scene's word beside its glyph, so the word
@@ -564,7 +571,7 @@ watch(isSelectOpen, (open) => {
                         aria-label="Scene"
                         @focus="onCollapsedFocus"
                     >
-                        <component :is="currentIcon" live class="dock-glyph" aria-hidden="true" />
+                        <component :is="currentIcon" :live="scenePlaying" class="dock-glyph" aria-hidden="true" />
                     </Button>
                 </template>
             </GlassDock>

@@ -199,7 +199,15 @@ describe("the lanes — UIA-KF-212 · UIA-KF-312 · UIA-KF-214 · KFA-48", () =>
             expect(demo.overshootRoom?.value).toBeCloseTo(expected, 9);
             const stage = m.host.querySelector(".seq-stage") as HTMLElement;
             expect(Number(stage.style.getPropertyValue("--seq-room"))).toBeCloseTo(expected, 6);
-            expect(decl(css, ".seq-track .progress-rail", "width")).toBe("calc(100cqw / (1 + var(--seq-room, 0)))");
+            // X-DS r6 pass 10 (KF-C10-03) — the rail runs gate to the column's
+            // end: it starts at the lane's gate and spans the rest of the time
+            // column, so left + width is still the column, 100cqw / (1 + room).
+            expect(decl(css, ".seq-track .progress-rail", "left")).toBe(
+                "calc(var(--row-start, 0) * 100cqw / (1 + var(--seq-room, 0)))",
+            );
+            expect(decl(css, ".seq-track .progress-rail", "width")).toBe(
+                "calc((1 - var(--row-start, 0)) * 100cqw / (1 + var(--seq-room, 0)))",
+            );
             expect(decl(css, ".seq-ball", "translate")).toContain("(1 + var(--seq-room, 0))");
         } finally {
             m.done();

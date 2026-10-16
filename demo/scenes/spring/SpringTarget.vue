@@ -156,7 +156,7 @@
                      target — the invariant the deleted comment below asserted
                      and the old geometry could not honour. The band either side
                      of the track is the reserved overshoot room. -->
-                <div class="spring-track stage-field-x" :style="trackStyle">
+                <div class="spring-track stage-field-x" :style="[trackStyle, { '--target-v': demo.target.value }]">
                     <div class="progress-rail"></div>
                     <!-- X.KF.W13W.b (OA-56) — the rail keeps only a SUBORDINATE
                          progress cue: the live displacement as a quiet fill from
@@ -722,6 +722,9 @@ const onKeydown = (e: KeyboardEvent) => {
        rectangle that matches no drawn shape. */
     container-type: inline-size;
     border-radius: var(--radius-field);
+    /* X-DS r6 pass 10 (KF-C10-07) — the dashed target ring's diameter, named
+       once: the marker is drawn at it and the groove keeps clear of it. */
+    --target-ring: 2.5rem;
 }
 
 /* ── D-7/C-8 · D-16 — THE VALUE TRACK ──
@@ -750,8 +753,23 @@ const onKeydown = (e: KeyboardEvent) => {
         var(--border) calc(100% / 4 - 1px) calc(100% / 4)
     );
 }
+/* X-DS r6 pass 10 (KF-C10-07) — THE RING IS EMPTY. The groove ran through
+   the dashed target ring (from its centre, at rest on value 0), so the ring
+   read as struck through. The groove now stops one ring radius either side
+   of wherever the target is (`--target-v`, the value the marker is drawn at,
+   on the track's own value axis): at rest it starts at the ring's edge, at
+   every width, and a target moved along the rail keeps its ring empty too.
+   The axis (the quarter gridlines, the fill and the marks) is unchanged. */
 .spring-track .progress-rail {
     background: var(--border);
+    --ring-at: calc(var(--target-v, 0) * 100%);
+    --ring-r: calc(var(--target-ring) / 2);
+    mask-image: linear-gradient(
+        to right,
+        #000 calc(var(--ring-at) - var(--ring-r)),
+        transparent calc(var(--ring-at) - var(--ring-r)) calc(var(--ring-at) + var(--ring-r)),
+        #000 calc(var(--ring-at) + var(--ring-r))
+    );
 }
 
 /* The rail + ball geometry now come from the shared .progress-rail /
@@ -774,10 +792,10 @@ const onKeydown = (e: KeyboardEvent) => {
        against exactly that — and the projector then read `getBoundingClientRect()`
        on the next sample, a forced read-after-write reflow pair per pointer event. */
     left: 0;
-    width: 2.5rem;
-    height: 2.5rem;
-    margin-left: -1.25rem;
-    margin-top: -1.25rem;
+    width: var(--target-ring);
+    height: var(--target-ring);
+    margin-left: calc(var(--target-ring) / -2);
+    margin-top: calc(var(--target-ring) / -2);
     border-radius: var(--radius-pill);
     /* J.W7a S3 (D11) — the ghost marker reads the tone seam (a no-op for
        spring, whose tone IS the canonical green; the rule stays seam-coherent). */

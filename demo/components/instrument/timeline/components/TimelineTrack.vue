@@ -135,6 +135,7 @@
             ref="laneTrack"
             :id="railId"
             :data-expanded="expanded ? 'true' : undefined"
+            :data-empty="sortedKeyframes.length === 0 ? 'true' : undefined"
             :class="[
                 'kf-focus-ring timeline-track relative rounded-[var(--radius-field)] border border-border bg-muted cursor-pointer select-none overflow-x-clip overflow-y-visible touch-pan-y',
                 expanded && sortedKeyframes.length > 0 ? 'h-32' : 'h-12',
@@ -541,6 +542,12 @@ const onMarkerKeydown = (event: KeyboardEvent, stop: TimelineStop) => {
     --timeline-diamond: 1rem;
 
     margin-bottom: 1.5rem;
+}
+
+/* X-DS r6 pass 10 (KF-C10-05) — the caret row is room for the stops'
+   readouts, so an empty track keeps none: its notice sits one gap under it. */
+:deep(.timeline-track[data-empty]) {
+    margin-bottom: 0;
 }
 
 :deep(.timeline-track[data-expanded]) {

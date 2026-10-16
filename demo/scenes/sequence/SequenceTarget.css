@@ -113,8 +113,15 @@
    Spring rail established for a visible lane, not the idiom's near-invisible
    8%. X-DS pass 14 (KF-C14-02): that tint is the root `--rail-tint-lane`
    (design-idioms.css), theme-aware; the dashed tail below reads it too. */
+/* X-DS r6 pass 10 (KF-C10-03) — THE LANE IS GATE TO END, as the Stagger
+   pane's bar is. The solid rail began at 0 on every lane, so a ball resting on
+   a later gate sat part-way along a rail it never travels and read as already
+   in progress. The rail now starts at the lane's gate (`--row-start`, where
+   the traveller rests) and runs to the column's end; the room keeps its
+   dashed "past the scale" mark. */
 .seq-track .progress-rail {
-    width: calc(100cqw / (1 + var(--seq-room, 0)));
+    left: calc(var(--row-start, 0) * 100cqw / (1 + var(--seq-room, 0)));
+    width: calc((1 - var(--row-start, 0)) * 100cqw / (1 + var(--seq-room, 0)));
     --rail-tint: var(--rail-tint-lane);
 }
 /* X-DS pass 5 (KF-C5-05) — THE OVERSHOOT ROOM IS DRAWN, quietly. The lane

@@ -25,6 +25,7 @@
         :selected-control="dockSelectedControl"
         :control-surfaces="controlSurfaces"
         :extra-control-tabs="extraControlTabs"
+        :scene-playing="machine.status.value === 'playing'"
         @switch-scene="runSceneSwitch"
         @warm-scene="warmScene"
         @toggle-controls-panel="storedControls.isControlsPanelOpen = !storedControls.isControlsPanelOpen"

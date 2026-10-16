@@ -4,7 +4,8 @@
  * (1) The descriptor's `icon` is the ONE binding, and it is the scene's own
  *     miniature (exported from the scene's directory) — no dock-local registry.
  * (2) The dock renders the CHOSEN scene's icon `live` at both of its sites (the
- *     collapsed face and the expanded trigger).
+ *     collapsed face and the expanded trigger) while its transport plays, and
+ *     at rest otherwise (X-DS r6 pass 10, KF-C10-04).
  * (3) Each miniature plays ITS scene's animation through the keyframes.js
  *     engine only while `live`, and stops it on unmount; at rest nothing plays.
  *
@@ -99,6 +100,7 @@ describe("OA-32 — the dock renders the chosen scene's icon live", () => {
                         scenes: [{ id: "cube", label: "Cube", icon: Probe }],
                         homeScene: { id: "home", label: "Home", icon: HomeMini },
                         isControlsPanelOpen: false,
+                        scenePlaying: true,
                     }),
                 ),
             ),
@@ -106,6 +108,36 @@ describe("OA-32 — the dock renders the chosen scene's icon live", () => {
         );
         expect(seen.length).toBeGreaterThanOrEqual(1);
         expect(seen.every((live) => live === true)).toBe(true);
+        wrapper.unmount();
+    });
+});
+
+describe("X-DS r6 pass 10 (KF-C10-04) — the chosen icon rests while its scene does not play", () => {
+    it("(2b) a settled or paused transport renders both chosen-icon sites at rest", () => {
+        const seen: (boolean | undefined)[] = [];
+        const Probe = defineComponent({
+            props: { live: { type: Boolean, default: undefined } },
+            setup(props) {
+                seen.push(props.live);
+                return () => h("span", { "data-probe": "" });
+            },
+        });
+        const wrapper = mount(
+            defineComponent(() => () =>
+                h(TooltipProvider, null, () =>
+                    h(ChromeDock, {
+                        currentSceneId: "cube",
+                        scenes: [{ id: "cube", label: "Cube", icon: Probe }],
+                        homeScene: { id: "home", label: "Home", icon: HomeMini },
+                        isControlsPanelOpen: false,
+                        scenePlaying: false,
+                    }),
+                ),
+            ),
+            { attachTo: document.body },
+        );
+        expect(seen.length).toBeGreaterThanOrEqual(1);
+        expect(seen.every((live) => live === false)).toBe(true);
         wrapper.unmount();
     });
 });
@@ -137,7 +169,7 @@ describe("OA-32 — each miniature plays its scene's animation through the engin
         amiga: { kind: "group", count: 1 }, // Spin + Bouncing X + Bouncing Y
         square: { kind: "keyframes", count: 1 }, // the diamond tour
         easing: { kind: "keyframes", count: 1 }, // the preview sweep
-        spring: { kind: "keyframes", count: 4 }, // the four preset lanes
+        spring: { kind: "keyframes", count: 1 }, // the ball chasing its ring (X-DS KF-C10-04)
         sequence: { kind: "sequence", count: 1 }, // the staggered storyboard
         home: { kind: "keyframes", count: 3 }, // the hero's three ellipsis dots
     };
@@ -181,6 +213,7 @@ describe("ESC-dock-3 — on home the dock reads the home descriptor's miniature"
                         scenes: [{ id: "cube", label: "Cube", icon: CubeMini }],
                         homeScene: { id: "home", label: "Home", icon: Probe },
                         isControlsPanelOpen: false,
+                        scenePlaying: true,
                     }),
                 ),
             ),

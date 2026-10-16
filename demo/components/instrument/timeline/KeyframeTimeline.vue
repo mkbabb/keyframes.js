@@ -168,6 +168,9 @@
         <!-- X-DS pass 3 · KF-C3-12 — both captions take ONE alignment,
              centred and balanced: at 0 keyframes the long line filled the
              card and read start-aligned, at 1 it read centred. -->
+        <!-- X-DS r6 pass 10 (KF-C10-05) — the notice stands one gap (the
+             column's) under the track: no top padding of its own, and an
+             empty track reserves no caret row (TimelineTrack). -->
         <!-- X-DS r4 pass 5 (KF-C24-05) — the timeline's buffer is its own,
              but it never denies the scene's: while the channel runs a parsed
              @keyframes, the empty state names it, and the toolbar's Import
@@ -175,7 +178,7 @@
              agree. -->
         <p
             v-if="state.keyframes.length === 0 && sceneSummary"
-            class="text-body text-muted-foreground text-center text-balance py-2"
+            class="text-body text-muted-foreground text-center text-balance pb-2"
         >
             <!-- X-DS r6 pass 9 (KF-C9-09) — the channel's name in the
                  sentence's own face (a mono `code` run broke the line). -->
@@ -185,14 +188,14 @@
         </p>
         <p
             v-else-if="state.keyframes.length === 0"
-            class="text-body text-muted-foreground text-center text-balance py-2"
+            class="text-body text-muted-foreground text-center text-balance pb-2"
         >
             No keyframes yet — <strong>Snapshot</strong> the target's current
             pose, or <strong>Import</strong> CSS <code>@keyframes</code>.
         </p>
         <p
             v-else-if="state.keyframes.length === 1"
-            class="text-body text-muted-foreground text-center text-balance py-2"
+            class="text-body text-muted-foreground text-center text-balance pb-2"
         >
             One keyframe — one more builds the animation.
         </p>

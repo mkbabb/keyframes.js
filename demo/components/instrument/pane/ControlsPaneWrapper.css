@@ -147,6 +147,17 @@
     .pane-frame {
         margin: 0 1.75rem 0 1rem;
     }
+    /* X-DS r6 pass 10 (KF-C10-10) — ONE FOOT. The pane was content-sized
+       under the stage plate's height, so it ended a few px short of it
+       (spring 741 against 750): a near-miss that read as an error. The pane
+       and its column take the rail's whole work band, so pane and stage end
+       on one line in every scene; the surface scroller takes the room and
+       the ribbon stands at the pane's foot. */
+    .controls-pane,
+    .controls-content,
+    .pane-frame {
+        flex: 1 1 auto;
+    }
     /* The surface scroller is glass `FadingScroll` (its `overflow-y` and its
        edge fade are the producer's; X.KF.W13X.r4pane, A2-KE-L1-4). */
     .controls-surface {

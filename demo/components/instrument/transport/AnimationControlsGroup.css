@@ -241,6 +241,10 @@
     .controls-layout > :deep(.controls-pane-wrapper) {
         grid-column: rail;
         grid-row: stage;
+        /* X-DS r6 pass 10 (KF-C10-10) — the rail stands the stage row's full
+           height, as the stage cell does, so the pane plate can end on the
+           stage plate's foot (ControlsPaneWrapper.css). */
+        align-self: stretch;
     }
 
     /* The subject gets its OWN [stage] track (the former full-grid stage span

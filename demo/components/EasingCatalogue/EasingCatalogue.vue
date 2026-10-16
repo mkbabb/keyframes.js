@@ -592,6 +592,19 @@ watch(
        family still scrolls freely), at the same 1rem `landTop` lands on. */
     scroll-snap-type: y proximity;
 }
+/* X-DS r6 pass 10 (KF-C10-08) — BELOW lg A RESTING DRAWER SHOWS WHAT IS
+   ABOVE IT. At 390 a heading rest put 1rem of blank plate under the filter
+   rule (glass's start fade paints the clipped rows to nothing there), so the
+   list seemed to begin at the rested family. The rest keeps the previous
+   family's last row in view by the same peek the fold keeps at the end
+   (0.75rem, `scroll-padding-block-end`): the fade's 1rem, then that peek,
+   then the section gap (1.25rem) above the heading. The 1440 rest already
+   shows a clipped row under the tabs (KF-C9-03). */
+@media (max-width: 1023px) {
+    .specimen-drawer {
+        scroll-padding-block-start: calc(1rem + 0.75rem + 1.25rem);
+    }
+}
 
 /* ── 2 · the divider (glass Separator owns its hairline) ── */
 .catalogue-divider {
@@ -676,6 +689,12 @@ watch(
     content-visibility: auto;
     contain-intrinsic-size: auto 132px;
     align-items: stretch;
+    /* X-DS r6 pass 10 (KF-C10-02) — ONE ROW BASELINE. The producer item
+       centres its contents on the block axis, so the one tile that carries a
+       note (KF-C9-07) rode its stage and name ~14 px above its siblings. The
+       contents start at the tile's top: stage and name sit on the same lines
+       in every tile, and a note hangs into the row's spare height. */
+    justify-content: flex-start;
     height: auto;
 }
 /* X-DS pass 3 · KF-C3-03 — the stage keeps a 2:1 aspect, not a fixed 3.25rem
