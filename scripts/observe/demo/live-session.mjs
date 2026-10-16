@@ -1065,16 +1065,32 @@ async function runBattery() {
                     // So the storyboard interaction is actuated by the same rainbow
                     // play the other group scenes use; the `.seq-track` rows
                     // responding (engine-painted `--ball-p`) IS the interaction.
-                    // The reel button (a cascading-wave REPLAY twin) is the
-                    // fallback actuation if the dock play is momentarily occluded.
+                    // The Reel (a cascading-wave REPLAY twin, in the Timeline
+                    // pane since .dh2 97417fa9, named "Reel — play a cascading
+                    // wave replay") is the actuation ONLY when the dock play did
+                    // not start the stage. KF.W13X Repair r2c1 (C1r2-1): the former
+                    // unconditional `aria-label^="Play the reel"` click matched
+                    // nothing after that rename and waited its whole 2 s timeout,
+                    // so the 1940 ms run had ended before the sampling began.
                     // The ≥3-distinct-states oracle below is UNCHANGED — the bar
                     // is not lowered, only the (evolved) actuation that reaches it.
-                    await clickRainbowPlay(page);
-                    await page
-                        .locator('button[aria-label^="Play the reel"]')
-                        .first()
-                        .click({ timeout: 2000 })
-                        .catch(() => {});
+                    const pressed = await clickRainbowPlay(page);
+                    const playing =
+                        pressed || (await page.locator('button[aria-label^="Pause animation"]').first().isVisible());
+                    if (!playing) {
+                        const reeled = await page
+                            .getByRole("button", { name: /^Reel/ })
+                            .first()
+                            .click({ timeout: 2000 })
+                            .then(
+                                () => true,
+                                () => false,
+                            );
+                        if (!reeled) {
+                            sceneFails.push(`${key}: PLAY red — neither the dock Play nor the Reel actuated the sequence`);
+                            return;
+                        }
+                    }
                     const n = await page.evaluate(async () => {
                         const sleep = (m) => new Promise((r) => setTimeout(r, m));
                         const els = [...document.querySelectorAll(".seq-track, .seq-track *")].slice(0, 120);
