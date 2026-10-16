@@ -136,10 +136,12 @@
             </div>
             <!-- The time axis (N-1's cure). The horizon is the one figure `response`
                  moves; it is an axis label on the caption register like the origin
-                 (X.KF.W13V.y N-5 — one violet readout per stage). -->
+                 (X.KF.W13V.y N-5 — one violet readout per stage).
+                 X-DS pass 10 (KF-C10r-01) — one unit per axis: the end tick
+                 carries `ms`, so the legend names the axis without restating it. -->
             <div class="flex items-baseline justify-between mt-1" aria-hidden="true">
                 <span class="plot-tick code-token tabular-nums text-muted-foreground">0</span>
-                <span class="text-caption text-muted-foreground">time (ms) · {{ points.length }} stops</span>
+                <span class="text-caption text-muted-foreground">time · {{ points.length }} stops</span>
                 <span class="plot-tick code-token tabular-nums text-muted-foreground">{{ horizonMs }} ms</span>
             </div>
         </div>
