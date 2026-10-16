@@ -178,6 +178,14 @@ export function landFold(scroller: HTMLElement): "cue" | "foot" | "none" {
         if (!texts.some((s) => s.top < fold && s.bottom > fold - fade)) return "cue";
         // The innermost box across the fold: the row, when it is a boxed one.
         const boxes = spans.filter((s) => !s.text && s.top < fold && s.bottom > line);
+        // X-DS r7 pass 7 — text INSIDE a figure is the figure's own content
+        // (the Keyframes code well's lines): the fold crossing it is the
+        // figure running under the fold, the cue. Only the innermost box was
+        // asked, a line-height overlay inside Monaco, so the scroller landed
+        // on the foot above the well and the 71 px port hid the editor whole.
+        const cut = texts.filter((s) => s.top < fold && s.bottom > fold - fade);
+        const figures = boxes.filter((s) => s.bottom - s.top > ROW_MAX_FADES * fade);
+        if (cut.every((t) => figures.some((f) => f.top <= t.top && f.bottom >= t.bottom))) return "cue";
         if (boxes.length > 0) {
             const box = boxes.reduce((a, b) => (b.top > a.top ? b : a));
             const inside = texts.filter((s) => s.top >= box.top && s.bottom <= box.bottom);

@@ -17,7 +17,12 @@
                  header's block start, as every facet pane's does; the two
                  sub-pane rows keep the column inset themselves
                  (`.panel-row--sub`). -->
-            <div class="flex flex-col pb-3">
+            <!-- X-DS r7 pass 7 (KF-C7-02) — no `pb-3` foot: the open row ends
+                 on its own block-end inset (glass ConfiguratorLayer's body, or
+                 the sub-pane's below), the column's 0.5rem rhythm, and the
+                 ribbon's rule follows it (ControlsPaneWrapper.css). The 12 px
+                 foot stacked on that inset. -->
+            <div class="flex flex-col">
                 <!-- Each pane in its own collapsible row. KF-CO-5 ≡ KF-TFP-7 +
                      KF-CO-46 — a COLLAPSED row is `inert` (out of the Tab order,
                      the pointer and the accessibility tree in one stroke). -->
@@ -394,10 +399,21 @@ const onEasingPick = (name: string): void => {
 }
 /* X-DS r6 pass 9 (KF-C9-05) — the sub-panes keep the column's inset (the
    inline pad and the 0.75rem block start the column used to give every row);
-   the main row's inset is its ConfiguratorLayer's. */
+   the main row's inset is its ConfiguratorLayer's.
+   X-DS r7 pass 7 (KF-C7-02) — ONLY WHILE OPEN, and it ends on the column's
+   rhythm. A collapsed row's grid track is 0fr, but its content box cannot go
+   below its own padding, so each closed sub-pane still stood 12 px tall (the
+   0.75rem start less the ring reach the margins give back): 24 px of nothing
+   under the layer row, which pushed the Controls column past its scroller
+   and put the fold cap and the ribbon's free margin under the row (8 px
+   above it, 22 px below at 1440x900). The block inset now collapses with
+   the row, and an open sub-pane ends 0.5rem above the ribbon's rule, the
+   inset glass's body gives the main row. */
 .panel-row--sub > .panel-content {
     padding-inline: calc(var(--configurator-pad-inline) + var(--panel-ring-reach));
-    padding-block-start: calc(0.75rem + var(--panel-ring-reach));
+}
+.panel-row--sub.panel-row--active > .panel-content {
+    padding-block: calc(0.75rem + var(--panel-ring-reach)) calc(0.5rem + var(--panel-ring-reach));
 }
 /* X.KF.W13X.controls · KFA-209 — a cross-fade, not a double exposure: the
    leaving pane's fade finishes in the first 40 % of the row window, and the

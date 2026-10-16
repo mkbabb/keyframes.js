@@ -109,12 +109,16 @@
    then the free row); the square arena (KF-C7-08's aspect) is centred in the
    free row, so the dead plate KF-C7-08 removed does not come back as a
    top-heavy band: the room above the field and under its caption match. */
-@media (max-width: 1023px) {
-    .square-arena {
-        aspect-ratio: 1;
-        align-self: center;
-    }
-}
+/* X-DS r7 pass 7 (KF-C7-05) — AND THE ARENA TAKES THE FREE ROW. The square
+   arena (KF-C7-08's `aspect-ratio: 1`, centred) charged the field's BLOCK term
+   with the arena's inline side: at 390x844 the block term ((50cqb - 1.5rem) /
+   1.56 = 91 px) bound under the inline one (100 px), so the field stood 182 px
+   in a 332 px plate with an empty band above and below it. The arena now
+   takes the plate's free row (less the caption block, as before), so the
+   inline term binds on a phone: the subject's full reach (field plus box,
+   3 x size) is the plate's measure less its pad, the largest the plate's
+   inline axis admits. The field and its caption stay centred as one block
+   (KF-C5-08), and nothing changes at lg. */
 
 /* X-DS r6 pass 8 (KF-C8-04) — AT lg THE ENVELOPE IS THE PLATE'S WHOLE BODY.
    The arena ended one caption block (4rem) above the plate's foot, and the

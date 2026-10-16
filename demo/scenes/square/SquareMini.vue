@@ -20,14 +20,19 @@ import { SQUARE_TOUR_OPTIONS, TOUR_CORNER, squareTourKeyframes } from "./squareM
 
 const { live = false } = defineProps<{ live?: boolean }>();
 
-const SIDE = 120; // the authored subject, px
 // X-DS pass 2 · KF-C2-11 — a SUBJECT-FIRST crop. The frame used to be the
 // tour's whole reach (corners + the turning subject, 360 px), so the box at
-// rest shrank to a ~3 px speck in the 16-20 px glyph. The frame is now two
-// subject-widths: at rest the box fills half the glyph, at the icons' common
-// weight, and the tour's corners carry it to the glyph's edge (clipped by the
-// root), so the motion and its data are unchanged (OA-32).
-const REGION = 2 * SIDE;
+// rest shrank to a ~3 px speck in the 16-20 px glyph.
+// X-DS r7 pass 7 (KF-C7-01) — THE PATH IS LEGIBLE AT REST. Two subject-widths
+// of frame (a 120 px box in 240) put the resting box over the dart's whole
+// middle, so only the two top-corner stubs and the bottom tip showed: a cat's
+// head, not a tour. The frame is now the path's own reach (the corners plus a
+// margin for the stroke), and the box is drawn at two fifths of the corner
+// offset's span, so at rest it sits at the dart's heart and every one of the
+// path's four segments runs visibly out from under it to its corner. The tour
+// data and motion are unchanged (OA-32); only the drawn size is.
+const REGION = 2 * TOUR_CORNER + 20;
+const SIDE = 0.8 * TOUR_CORNER; // the drawn subject, px (72 of the 200 px frame)
 const SCALE = 20 / REGION;
 
 interface TourVars extends Vars {
@@ -62,11 +67,10 @@ const tour = markRaw(
 useLiveMini(tour, () => live);
 
 const REST_FILL = squareTourKeyframes()["0%"].backgroundColor;
-// X-DS r7 pass 6 (KF-C6-02) — the field is a HAIRLINE path. Under the
-// subject-first crop (KF-C2-11) the box hides the dart's middle, so a 14-unit
-// stroke (about 1.2 px, round joins at acute angles) showed only its three
-// tips, as solid grey wedges: a horned head, not a tour. At 6 units (about
-// 0.5 px) the tips read as the ends of a drawn path. The motion is unchanged.
+// X-DS r7 pass 6 (KF-C6-02) — the field is a HAIRLINE path: a 14-unit stroke
+// (about 1.2 px, round joins at acute angles) read as solid grey wedges. At 5
+// units in the 200 px frame (0.5 px, the KF-C6-02 weight) and 0.35 opacity it
+// reads as a drawn path. The motion is unchanged.
 const FIELD = `M0 0L${TOUR_CORNER} ${-TOUR_CORNER}L0 ${TOUR_CORNER}L${-TOUR_CORNER} ${-TOUR_CORNER}Z`;
 </script>
 
@@ -80,7 +84,7 @@ const FIELD = `M0 0L${TOUR_CORNER} ${-TOUR_CORNER}L0 ${TOUR_CORNER}L${-TOUR_CORN
                 :style="{ width: `${REGION}px`, height: `${REGION}px` }"
                 aria-hidden="true"
             >
-                <path :d="FIELD" fill="none" stroke="currentColor" stroke-opacity="0.35" stroke-width="6" stroke-linejoin="round" />
+                <path :d="FIELD" fill="none" stroke="currentColor" stroke-opacity="0.35" stroke-width="5" stroke-linejoin="round" />
             </svg>
             <span
                 ref="boxEl"
@@ -116,6 +120,6 @@ const FIELD = `M0 0L${TOUR_CORNER} ${-TOUR_CORNER}L0 ${TOUR_CORNER}L${-TOUR_CORN
     position: absolute;
     left: 0;
     top: 0;
-    border-radius: 24px;
+    border-radius: 20%; /* the authored 24 px of a 120 px subject, at any drawn size */
 }
 </style>

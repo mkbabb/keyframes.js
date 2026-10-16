@@ -713,9 +713,14 @@ watch(
     height: 100%;
     overflow: visible;
 }
+/* X-DS r7 pass 7 (KF-C7-04) — THE CURVE IS THE TILE'S CONTENT. An off tile
+   drew it at 22 % foreground, a hairline fainter than its own mono caption and
+   the violet start ball, so the content read below its label. It takes the
+   label's ink (`--muted-foreground`, the `.tile-name` colour) at full
+   strength; the selected tile keeps the stronger ink curve and outline (§5). */
 .tile-sparkline path {
     fill: none;
-    stroke: color-mix(in srgb, var(--foreground) 22%, transparent);
+    stroke: var(--muted-foreground);
     stroke-width: 1.25;
     stroke-linecap: round;
     stroke-linejoin: round;

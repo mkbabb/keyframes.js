@@ -159,9 +159,21 @@
         flex: 1 1 auto;
     }
     /* The surface scroller is glass `FadingScroll` (its `overflow-y` and its
-       edge fade are the producer's; X.KF.W13X.r4pane, A2-KE-L1-4). */
+       edge fade are the producer's; X.KF.W13X.r4pane, A2-KE-L1-4).
+       X-DS r7 pass 7 (KF-C7-02) — THE RULE FOLLOWS THE LAST ROW. The scroller
+       took the pane's whole free block, so the ribbon's rule stood at the
+       pane's foot and every px the content left over landed between the last
+       row and that rule (Controls' `layer` row: 8 px above, 22 px below at
+       1440x900; Spring's `Peak overshoot`: 12 and 19). The scroller is now as
+       tall as its content (and shrinks to scroll, as before), so the rule
+       follows the last row by that row's own 0.5rem inset, the column's
+       rhythm; the left-over block stands under the transport rows, inside
+       the one frame, which still ends on the stage's foot (KF-C10-10). A
+       surface with a figure that takes the free block (`.rail-fill`, below)
+       still grows the scroller into it; a cached Keyframes pane's well does
+       not count (`.inactive`). */
     .controls-surface {
-        flex: 1 1 auto;
+        flex: 0 1 auto;
         min-block-size: 0;
         overscroll-behavior: contain;
         /* X-DS r5 pass 3 (KF-C3R-01) — the air the scroller keeps under the
@@ -187,6 +199,9 @@
        floor is `auto`, never a cap). A glass ConfiguratorLayer marked
        `.rail-fill` passes the room through its open region (layout only:
        its own grid row and body, no paint). */
+    .controls-surface:has(.rail-fill:not(.inactive .rail-fill)) {
+        flex-grow: 1;
+    }
     .controls-surface :deep(.rail-fill) {
         flex: 1 0 auto;
         display: flex;
@@ -199,13 +214,11 @@
         display: flex;
         flex-direction: column;
     }
-    /* X-DS r7 pass 5 (KF-C5-02) — the ribbon keeps the pane's foot (KF-C10-10)
-       when the fold landing caps the scroller on a row's foot: the few px the
-       cap gives back stand above the ribbon's rule, never under the ribbon
-       (since the scroller is the pane's one scroller again, ChannelControls). */
-    .pane-frame > .ribbon-bar {
-        margin-block-start: auto;
-    }
+    /* X-DS r7 pass 5 (KF-C5-02)'s `margin-block-start: auto` on the ribbon is
+       DELETED (r7 pass 7, KF-C7-02): it put the px a fold cap gives back
+       between the landed row's foot and the rule, the very band C7 measured
+       bottom-heavy. A capped scroller now ends one row gap under the foot
+       (useFoldLanding) and the rule follows it directly. */
     .controls-pane-wrapper.controls-pane--open {
         pointer-events: auto;
         /* The desktop open/close axis is the [rail]-track collapse; the F9
