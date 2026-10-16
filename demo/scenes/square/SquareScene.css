@@ -178,9 +178,14 @@
     color: var(--foreground);
     opacity: 0.92;
 }
+/* X-DS r7 pass 8 (KF-C8r-02) — ONE PAIR RUNG. Inside a pair the label sits
+   0.5rem from its value (`.stage-readout`); between pairs the gap was only
+   0.75rem, so `y` sat almost as close to x's value as to its own and the row
+   read as one string. The pairs now stand Spring's pair rung apart (1.5rem,
+   its `gap-x-6`, KF-C3-04), so each pair reads as a unit. */
 .square-telemetry-axes {
     display: flex;
-    column-gap: 0.75rem;
+    column-gap: 1.5rem;
     align-items: baseline;
 }
 

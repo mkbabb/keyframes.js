@@ -200,6 +200,14 @@ function defineGroundedTheme(m: typeof Monaco, dark: boolean): void {
     const fg = ink(CODE_INK.structure);
     const muted = ink(CODE_INK.value);
     const accent = ink(CODE_INK.number);
+    // X-DS r7 pass 8 (KF-C8r-01) — THE GUTTER AND THE GUIDES ARE THE APP'S.
+    // The ground and the ink were re-derived, but the line numbers and indent
+    // guides were still stock (vs teal numerals and a navy active number over
+    // #D3D3D3 guides; vs-dark's cool #858585 / #404040): the only teal or cool
+    // grey marks on a warm page, in the column the eye scans down. They take
+    // the muted ink, the structure ink and the border, resolved as above.
+    const numeral = resolveTokenHex("var(--muted-foreground)");
+    const rule = resolveTokenHex("var(--border)");
     m.editor.defineTheme(dark ? "dark-theme" : "light-theme", {
         base: base.base,
         // The base's rules stay underneath (its default ground and ink keep
@@ -230,6 +238,10 @@ function defineGroundedTheme(m: typeof Monaco, dark: boolean): void {
             "editorGutter.background": ground,
             "editor.lineHighlightBackground": highlight,
             "editor.lineHighlightBorder": highlight,
+            "editorLineNumber.foreground": numeral,
+            "editorLineNumber.activeForeground": `#${fg}`,
+            "editorIndentGuide.background1": rule,
+            "editorIndentGuide.activeBackground1": rule,
             // X-DS r6 pass 4 (KF-R6C4-03) — no `scrollbarSlider.*` re-ink: the
             // well draws no scrollbar (the editor options below).
         },
