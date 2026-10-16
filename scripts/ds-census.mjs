@@ -9,8 +9,9 @@
  *              text-shadow, filter / backdrop-filter drop-shadow and blur,
  *              gradient fills, @keyframes and looping (`infinite`) animations.
  *   computed — the served pages (default http://localhost:5173, the dev
- *              server) in HEADLESS real Chrome (§0ei: channel "chrome",
- *              headless true; never a visible window), every route at light
+ *              server) in Playwright's headless shell (§0ei: headless, never
+ *              a visible window; the installed Chrome — channel "chrome",
+ *              ANGLE Metal — only under --gpu), every route at light
  *              and dark: the same families read off getComputedStyle, split
  *              into a `chrome` bucket (UI) and a `subject` bucket (the demo's
  *              own animated object: the cube, a [data-subject] figure, canvas),
@@ -32,6 +33,10 @@
  *                                              (<route>-<width>-<scheme>.png)
  *   node scripts/ds-census.mjs --settle 6000   per-page settle in ms (default
  *                                              2200; raise it on a loaded host)
+ *   node scripts/ds-census.mjs --gpu           drive the installed Chrome
+ *                                              (channel "chrome", new headless)
+ *                                              for a GPU-composited read; the
+ *                                              default is the headless shell
  *   KF_PLAYWRIGHT_DIR=/path                    where to resolve playwright from
  */
 import fs from "node:fs";
@@ -55,6 +60,11 @@ const FRAMES = opt("--frames", null);
 // under load a route transition can still be cross-fading at 2.2 s, which
 // double-counts two routes in one page.
 const SETTLE = Number(opt("--settle", "2200"));
+// The census reads computed styles and DOM, not GPU output, so the default is
+// Playwright's headless shell. --gpu opts into the installed Chrome (channel
+// "chrome", new headless, ANGLE Metal) when a GPU-composited read is wanted;
+// the full Chrome binary costs far more memory and a GPU helper per launch.
+const GPU = flag("--gpu");
 const ROUTES = opt("--routes", "home,cube,amiga,square,easing,spring,sequence")
     .split(",")
     .map((r) => (r === "home" ? "" : r));
@@ -395,8 +405,11 @@ function pageCensus() {
 async function computedCensus() {
     const chromium = resolveChromium();
     if (!chromium) throw new Error("playwright not resolvable (set KF_PLAYWRIGHT_DIR)");
-    // §0ei: the real Chrome binary, new-headless, never a visible window.
-    const browser = await chromium.launch({ channel: "chrome", headless: true });
+    // §0ei: headless, never a visible window. One browser for the run, one
+    // context per (width, scheme) cell, each closed in a finally.
+    const browser = await chromium.launch(
+        GPU ? { channel: "chrome", headless: true } : { headless: true },
+    );
     const pages = [];
     try {
         for (const width of WIDTHS)
@@ -405,21 +418,24 @@ async function computedCensus() {
                     viewport: { width, height: width < 600 ? 844 : 900 },
                     colorScheme: scheme,
                 });
-                const page = await ctx.newPage();
-                for (const route of ROUTES) {
-                    const url = new URL(`#/${route}`, BASE).toString();
-                    await page.goto(url, { waitUntil: "load" });
-                    await page.waitForTimeout(SETTLE);
-                    const r = await page.evaluate(pageCensus);
-                    if (FRAMES) {
-                        fs.mkdirSync(FRAMES, { recursive: true });
-                        await page.screenshot({
-                            path: path.join(FRAMES, `${route || "home"}-${width}-${scheme}.png`),
-                        });
+                try {
+                    const page = await ctx.newPage();
+                    for (const route of ROUTES) {
+                        const url = new URL(`#/${route}`, BASE).toString();
+                        await page.goto(url, { waitUntil: "load" });
+                        await page.waitForTimeout(SETTLE);
+                        const r = await page.evaluate(pageCensus);
+                        if (FRAMES) {
+                            fs.mkdirSync(FRAMES, { recursive: true });
+                            await page.screenshot({
+                                path: path.join(FRAMES, `${route || "home"}-${width}-${scheme}.png`),
+                            });
+                        }
+                        pages.push({ route: route || "home", scheme, width, ...r });
                     }
-                    pages.push({ route: route || "home", scheme, width, ...r });
+                } finally {
+                    await ctx.close().catch(() => {});
                 }
-                await ctx.close();
             }
     } finally {
         await browser.close();

@@ -492,15 +492,19 @@ function harnessUnavailable(reason, label) {
  */
 /**
  * value.js COHESION §0ei (owner law, 2026-10-06) — no driven browser ever opens
- * a window. Every launch is headless; a caller's `headless: false` (the old
- * real-GPU ask) becomes the installed Google Chrome (`channel: "chrome"`) in new
- * headless mode, which runs WebGL on ANGLE Metal (measured on the owner's Mac:
- * "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)").
+ * a window. Every launch is headless; a caller's `headless: false` is rewritten
+ * to `headless: true` and stays on Playwright's headless shell. The installed
+ * Google Chrome (`channel: "chrome"`, new headless, WebGL on ANGLE Metal —
+ * measured on the owner's Mac: "ANGLE (Apple, ANGLE Metal Renderer: Apple M5
+ * Max, Unspecified Version)") is selected only when the caller asks for it with
+ * `gpu: true`: the full Chrome binary and its GPU helper cost far more memory
+ * per launch, so a gate that does not measure the GPU never pays for it.
  */
 export function backgroundLaunch(launch = {}) {
-    return launch.headless === false
-        ? { channel: "chrome", ...launch, headless: true }
-        : { ...launch, headless: true };
+    const { gpu, ...rest } = launch;
+    return gpu === true
+        ? { channel: "chrome", ...rest, headless: true }
+        : { ...rest, headless: true };
 }
 
 export async function withBrowser(fn, { launch = {}, label } = {}) {
