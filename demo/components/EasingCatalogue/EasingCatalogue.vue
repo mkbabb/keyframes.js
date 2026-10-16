@@ -662,6 +662,24 @@ watch(
 [data-density="menu"] .specimen-grid {
     --tile-min: 6.75rem;
 }
+/* X-DS r7 pass 14 (KF-C14-03) — the stage seats a FAMILY per row. Its track
+   count came from the container alone (auto-fill: 4 at the 1440 stage), so the
+   in / out / in-out triads each left an empty fourth slot and Standard stranded
+   ease-in-out alone on a row. The track floor is now never less than a third of
+   the row (less two gaps), so the stage holds at most three columns: every
+   triad fills one row with in | out | in-out in the same columns, and a
+   family's extra curve (Standard's 3+2, Cubic's smooth-step, Back's bounce)
+   follows on the next. The two-column floor at 390 (KF-C4-06) is unchanged:
+   half the row is wider than a third. */
+[data-density="stage"] .specimen-grid {
+    grid-template-columns: repeat(
+        auto-fill,
+        minmax(
+            max(min(var(--tile-min, 9.5rem), calc(50% - 0.25rem)), calc((100% - 1rem) / 3)),
+            1fr
+        )
+    );
+}
 /* A tile holds two lines (the curve + the name): the multi-line field rung,
    never the producer item's stadium. content-visibility gates off-screen work.
    X-DS r3 pass 2 (KF-C21-01) — KF-C9-02's tile reset, at the root of every

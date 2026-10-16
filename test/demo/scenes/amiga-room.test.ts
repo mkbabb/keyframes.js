@@ -54,7 +54,7 @@ vi.mock("@mkbabb/glass-ui", () => ({
 }));
 
 import * as THREE from "three";
-import { useAmigaThree, WALL_HEIGHT, WALL_TOP } from "../../../demo/scenes/amiga/useAmigaThree";
+import { FLOOR_FRONT, useAmigaThree, WALL_HEIGHT, WALL_TOP } from "../../../demo/scenes/amiga/useAmigaThree";
 import { APEX_Y, BOX_SIZE, CONTACT_FLOOR, SPHERE_RADIUS, WALL_X } from "../../../demo/scenes/amiga/useAmigaDemo";
 
 function fake2d(): CanvasRenderingContext2D {
@@ -126,6 +126,26 @@ describe("X.KF.W13X.amiga — the room", () => {
         // Above the bounce (apex + radius), and whole ruled rows.
         expect(WALL_TOP).toBeGreaterThan(APEX_Y + SPHERE_RADIUS);
         expect(Number.isInteger(WALL_HEIGHT)).toBe(true);
+        wrapper.unmount();
+    });
+
+    it("KF-C14-02 — the floor's front rule closes inside the closest framing (a wide stage)", async () => {
+        const { handle, grids, box, wrapper } = await build("light");
+        // The floor: the one ruled plane with no height.
+        const floor = grids.map((g) => box(g)).find((b) => b.max.y - b.min.y < 0.01)!;
+        expect(floor).toBeTruthy();
+        expect(floor.min.z).toBeCloseTo(-BOX_SIZE / 2, 3);
+        expect(floor.max.z).toBeCloseTo(FLOOR_FRONT, 3);
+        expect(Number.isInteger(FLOOR_FRONT)).toBe(true);
+        // At the 878x646 stage (aspect 1.36, the envelope-fit camera: the
+        // closest framing) the front rule projects inside the canvas, above
+        // its bottom edge; the old full-depth floor's front (z = +6) did not.
+        const camera = handle.getCamera()!;
+        camera.updateMatrixWorld();
+        const front = new THREE.Vector3(0, CONTACT_FLOOR, FLOOR_FRONT).project(camera);
+        expect(front.y).toBeGreaterThan(-1);
+        const old = new THREE.Vector3(0, CONTACT_FLOOR, BOX_SIZE / 2).project(camera);
+        expect(old.y < -1 || old.z > 1).toBe(true);
         wrapper.unmount();
     });
 

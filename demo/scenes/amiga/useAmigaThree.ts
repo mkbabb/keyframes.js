@@ -103,6 +103,25 @@ const CLOSEST_FRAMING =
     FRAME_MARGIN * Math.max(ENVELOPE_BELOW / FLOOR_REACH, ENVELOPE_ABOVE / CEILING_REACH);
 export const WALL_TOP = Math.floor(SPHERE_HOME + CLOSEST_FRAMING * CEILING_REACH);
 export const WALL_HEIGHT = WALL_TOP - CONTACT_FLOOR;
+/**
+ * X-DS r7 pass 14 (KF-C14-02) — THE FLOOR CLOSES INSIDE THE FRAME TOO. The
+ * walls' tops were fitted to the closest framing (above); the floor stayed a
+ * full BOX_SIZE deep, to z = +BOX_SIZE/2, while that frustum's lower edge meets
+ * the floor plane only ~0.3 u in front of the ball's plane. On a wide stage the
+ * floor's radials ran off the canvas bottom with no near edge (a cropped room);
+ * a portrait stage, dollied out, closed it. Same rule as the walls, not a
+ * dolly (that would undo 196): the floor's front rule is the last whole ruled
+ * row behind where the closest framing's lower edge meets the floor (less a
+ * small inset), so the front rule is drawn at every aspect. It lands on the
+ * ball's plane, where the side walls' front verticals already stand.
+ */
+const FLOOR_CUT_Z =
+    CLOSEST_FRAMING * Math.cos(ELEVATION) -
+    (SPHERE_HOME + CLOSEST_FRAMING * Math.sin(ELEVATION) - CONTACT_FLOOR) /
+        Math.tan(ELEVATION + HALF_FOV_RAD);
+/** The floor's front edge (z) and depth, from the back wall (−BOX_SIZE/2). */
+export const FLOOR_FRONT = Math.floor(FLOOR_CUT_Z - 0.1);
+export const FLOOR_DEPTH = FLOOR_FRONT + BOX_SIZE / 2;
 /** UIA-KF-197 — the authored viewing direction (the lift over the room). */
 const HOME_DIRECTION = new THREE.Vector3(0, CAMERA_LIFT, CAMERA_Z).normalize();
 /** UIA-KF-197 — how long the camera takes to arc back to the home view. */
@@ -414,9 +433,9 @@ export function useAmigaThree(
             scene!.add(lines);
             return lines;
         };
-        const floor = panel("floor", BOX_SIZE, BOX_SIZE);
+        const floor = panel("floor", BOX_SIZE, FLOOR_DEPTH);
         floor.rotation.x = -Math.PI / 2;
-        floor.position.y = CONTACT_FLOOR;
+        floor.position.set(0, CONTACT_FLOOR, FLOOR_FRONT - FLOOR_DEPTH / 2);
         // KFA-64 — the back wall STANDS on the floor: its bottom edge is the
         // floor line (it used to be centred on home and hang a unit below it,
         // showing through the translucent floor).
