@@ -1148,7 +1148,13 @@ async function runAppearanceBand() {
                     // tall narrow-ish empty side column. We detect the desktop ghost
                     // shape: an element wider than 200px AND taller than 300px that
                     // is the rail track (its width is the rail width, not full vw).
-                    const ghostCol = [...document.querySelectorAll("[class*=rail], .controls-pane-wrapper")].some((e) => {
+                    // X.KF.W13X.a3o (COHESION §0fm): the rail track is named by the
+                    // ONE class the rail layout emits for it — `.controls-pane-wrapper`
+                    // (ControlsPaneWrapper.vue:252, the `railEl` element, seated in the
+                    // [rail] track by AnimationControlsGroup.css:241-242). The former
+                    // `[class*=rail]` substring also caught non-track tokens (the
+                    // KF-C5-01 `rail-fill` pane-body marker, slider `*-rail` bars).
+                    const ghostCol = [...document.querySelectorAll(".controls-pane-wrapper")].some((e) => {
                         const b = e.getBoundingClientRect();
                         const isFullWidthSheet = b.width >= vw - 8; // the bottom sheet, not a rail
                         return !isFullWidthSheet && b.width > 200 && b.height > 300;
