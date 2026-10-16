@@ -62,6 +62,11 @@ const tour = markRaw(
 useLiveMini(tour, () => live);
 
 const REST_FILL = squareTourKeyframes()["0%"].backgroundColor;
+// X-DS r7 pass 6 (KF-C6-02) — the field is a HAIRLINE path. Under the
+// subject-first crop (KF-C2-11) the box hides the dart's middle, so a 14-unit
+// stroke (about 1.2 px, round joins at acute angles) showed only its three
+// tips, as solid grey wedges: a horned head, not a tour. At 6 units (about
+// 0.5 px) the tips read as the ends of a drawn path. The motion is unchanged.
 const FIELD = `M0 0L${TOUR_CORNER} ${-TOUR_CORNER}L0 ${TOUR_CORNER}L${-TOUR_CORNER} ${-TOUR_CORNER}Z`;
 </script>
 
@@ -75,7 +80,7 @@ const FIELD = `M0 0L${TOUR_CORNER} ${-TOUR_CORNER}L0 ${TOUR_CORNER}L${-TOUR_CORN
                 :style="{ width: `${REGION}px`, height: `${REGION}px` }"
                 aria-hidden="true"
             >
-                <path :d="FIELD" fill="none" stroke="currentColor" stroke-opacity="0.35" stroke-width="14" stroke-linejoin="round" />
+                <path :d="FIELD" fill="none" stroke="currentColor" stroke-opacity="0.35" stroke-width="6" stroke-linejoin="round" />
             </svg>
             <span
                 ref="boxEl"

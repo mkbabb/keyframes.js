@@ -1089,10 +1089,19 @@ const onKeydown = (e: KeyboardEvent) => {
    plot and Re-seat ended on the band's end (1230): two right edges and a dead
    strip down the card. The same end-side band now ends every row that is not
    the axis itself, in this one rule, so the figure has one right edge. */
+/* X-DS r7 pass 6 (KF-C6-04 c) — Re-seat's BOX ended on the band's end, but a
+   quiet Button paints no box: its label ended its own inline padding and 1px
+   edge short (1214 against the rail's 1228 at 1440). It hangs them past the
+   band's end, the end-side twin of `button-text-flush`, so its glyph run ends
+   on the figure's right edge. */
 @media (min-width: 1024px) {
-    .spring-reseat,
     .spring-figure :deep(.trace-title-row) {
         margin-inline-end: var(--plot-inset-end, 0);
+    }
+    .spring-reseat {
+        margin-inline-end: calc(
+            var(--plot-inset-end, 0px) - (var(--button-size) / 2 - var(--space-residue)) - 1px
+        );
     }
 }
 /* X-DS pass 9 (KF-C9-09) — the caption claims a 20 rem basis, so the wrapping

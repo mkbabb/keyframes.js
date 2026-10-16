@@ -154,14 +154,34 @@
             @touchend.passive="onTouchEnd"
         >
             <template #scrub="{ beginDrag }">
-                    <span
+                    <!-- X-DS r7 pass 6 (KF-C6-01) — the ghost is DRAWN, not
+                         bordered: a 2 px CSS dash on a 16 px rotated, rounded
+                         box lost its corners and broke into loose fragments (a
+                         "refresh" glyph). The diamond is now a polygon on the
+                         resting marker's footprint (its 22.6 px diagonal) whose
+                         dash period divides its perimeter: pathLength 16, a
+                         1-on 1-off dash offset by half, so every vertex and
+                         every side's midpoint carries one dash (two per side).
+                         Same ink (foreground/40). -->
+                    <svg
                         v-for="(at, i) in ghostStops ?? []"
                         :key="'ghost-' + i"
-                        class="keyframe-ghost absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-4 h-4 rotate-45 rounded-sm border-2 border-dashed border-foreground/40 pointer-events-none"
+                        class="keyframe-ghost absolute top-1/2 -translate-y-1/2 -translate-x-1/2 size-6 overflow-visible text-foreground/40 pointer-events-none"
+                        viewBox="0 0 24 24"
                         data-keyframe-ghost
                         aria-hidden="true"
                         :style="{ left: `${percentToPosition(at)}%` }"
-                    ></span>
+                    >
+                        <polygon
+                            points="12,1.75 22.25,12 12,22.25 1.75,12"
+                            pathLength="16"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="1.5"
+                            stroke-dasharray="1 1"
+                            stroke-dashoffset="0.5"
+                        />
+                    </svg>
                     <Tooltip v-for="stop in stops" :key="stop.keyframes[0].id">
                         <!-- D-10 (KeyframeTimeline) — ONE CAPTURE SEAM, BOTH
                              MODALITIES. The capture was armed on the marker's

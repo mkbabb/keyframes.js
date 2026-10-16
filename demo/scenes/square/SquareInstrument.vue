@@ -265,16 +265,22 @@ const tetherPath = computed(() => {
 .square-legend {
     position: absolute;
     top: calc(50% + var(--square-travel, 110px) + 0.75rem);
-    left: calc(50% - var(--square-travel, 110px));
     /* X-DS KF-C22-03 — the measure is the field the reader sees: the centre's
        2 × travel plus the box's own size (the box at x = ±1 overhangs the
        envelope by half its size each side). Sized to the travel alone, the
        caption broke onto two balanced lines under a 312 px field at 1440;
-       it now sets on one line there, starting on the field's left edge. */
+       it now sets on one line there.
+       X-DS r7 pass 6 (KF-C6-04 b) — and that measure is CENTRED on the field,
+       as the box's reach is: started on the field's left edge, the one-line
+       caption ran ~34 px past its right edge (1147 against 1113 at 1440), a
+       caption hanging off one side of its figure. Centred, it overhangs both
+       edges by the box's half-size, the reach the subject itself takes. */
+    left: calc(50% - var(--square-travel, 110px) - var(--square-size, 0px) / 2);
     width: calc(2 * var(--square-travel, 110px) + var(--square-size, 0px));
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
+    align-items: center;
+    text-align: center;
     /* D-15 — `0.15rem`/`0.45rem` are on NO published step, in a file consuming
        the Tailwind scale one line away. Both routed to the 0.25rem grid. (The
        row's other limb — a 1.67x "vertical rhythm" ratio — was killed at
