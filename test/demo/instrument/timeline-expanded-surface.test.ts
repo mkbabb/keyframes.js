@@ -44,10 +44,15 @@ describe("UIA-KF-085 → KF-C6-01 — the timeline draws no card of its own, fol
     it("folded (in the pane): no card of its own, the content keeps its inset", () => {
         const w = mountTimeline(false);
         expect(w.find(".card").exists()).toBe(false);
-        const content = w.get(".relative.flex.flex-col");
         // X-DS pass 9 (KF-C9-07): the inline inset is the pane's one token.
         // X-DS pass 11 (KF-C11-04): the block start is the pane header line's.
-        expect(content.classes()).toEqual(expect.arrayContaining(["px-(--configurator-pad-inline)", "pt-2", "pb-4"]));
+        // X-DS r6 pass 9 (KF-C9-05): both are now the pane header's own — the
+        // timeline wears glass's ConfiguratorLayer (the facets' header), which
+        // insets its trigger and body by `--configurator-pad-inline`; the body
+        // keeps the pb-4 foot.
+        const layer = w.get("[data-slot=configurator-layer]");
+        expect(layer.get(".configurator-section-label").text()).toBe("Timeline");
+        expect(layer.get(".configurator-layer-body").classes()).toContain("pb-4");
         w.unmount();
     });
 
@@ -57,8 +62,8 @@ describe("UIA-KF-085 → KF-C6-01 — the timeline draws no card of its own, fol
         const w = mountTimeline(true);
         expect(w.find(".card").exists()).toBe(false);
         expect(w.find(".cartoon-surface").exists()).toBe(false);
-        const content = w.get(".relative.flex.flex-col");
-        expect(content.classes()).toEqual(expect.arrayContaining(["px-(--configurator-pad-inline)", "pt-2", "pb-4"]));
+        const layer = w.get("[data-slot=configurator-layer]");
+        expect(layer.get(".configurator-layer-body").classes()).toContain("pb-4");
         w.unmount();
     });
 

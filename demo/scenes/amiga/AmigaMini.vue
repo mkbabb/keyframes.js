@@ -19,8 +19,13 @@ import { FLOOR_Y, useAmigaDemo, type AmigaPose } from "./useAmigaDemo";
 const { live = false } = defineProps<{ live?: boolean }>();
 
 const VIEW = 20;
-const UNIT = 0.9; // px per world unit — the miniature's amplitude
-const R = 4.5; // the ball's drawn radius
+// X-DS r6 pass 9 (KF-C9-11) — the SUBJECT takes the glyph, as the other
+// scenes' miniatures do: the ball (the scene's subject) was 9 of the box's 20
+// units, a ~9 px disc in a 20 px glyph that read as illegible beside the cube,
+// square and sequence marks. It is 12 units now, and its travel is scaled down
+// so it still never leaves the room (|x| ≤ 2 units, lift ≤ 2.4).
+const UNIT = 0.4; // px per world unit — the miniature's amplitude
+const R = 6; // the ball's drawn radius
 const FLOOR = 17.5; // the floor line (svg y)
 const TILT_DEG = 16; // the Boing-Ball's 0.28-rad axis tilt, in the checker
 

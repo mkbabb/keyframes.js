@@ -153,6 +153,14 @@
             @touchend.passive="onTouchEnd"
         >
             <template #scrub="{ beginDrag }">
+                    <span
+                        v-for="(at, i) in ghostStops ?? []"
+                        :key="'ghost-' + i"
+                        class="keyframe-ghost absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-4 h-4 rotate-45 rounded-sm border-2 border-dashed border-foreground/40 pointer-events-none"
+                        data-keyframe-ghost
+                        aria-hidden="true"
+                        :style="{ left: `${percentToPosition(at)}%` }"
+                    ></span>
                     <Tooltip v-for="stop in stops" :key="stop.keyframes[0].id">
                         <!-- D-10 (KeyframeTimeline) — ONE CAPTURE SEAM, BOTH
                              MODALITIES. The capture was armed on the marker's
@@ -275,6 +283,13 @@ const props = defineProps<{
      * without one the panel draws the ghost, which is what `describeStop` says.
      */
     previewSource?: HTMLElement | null;
+    /**
+     * X-DS r6 pass 9 (KF-C9-09) — the scene's own CSS stops (percent) while the
+     * timeline holds none: drawn as muted, inert ghost marks, so the empty
+     * track shows what Import would bring in rather than contradicting the
+     * caption that counts them.
+     */
+    ghostStops?: number[];
 }>();
 
 const emit = defineEmits<{

@@ -12,7 +12,12 @@
             <!-- X-DS pass 9 (KF-C9-07) — ONE pane inset: the column reads glass's
                  `--configurator-pad-inline`, the inset the scene facets'
                  ConfiguratorLayers set (it was `px-4`, a 4 px seam beside them). -->
-            <div class="flex flex-col px-(--configurator-pad-inline) py-3">
+            <!-- X-DS r6 pass 9 (KF-C9-05) — the main row is glass's
+                 ConfiguratorLayer (below), which owns the inline inset and the
+                 header's block start, as every facet pane's does; the two
+                 sub-pane rows keep the column inset themselves
+                 (`.panel-row--sub`). -->
+            <div class="flex flex-col pb-3">
                 <!-- Each pane in its own collapsible row. KF-CO-5 ≡ KF-TFP-7 +
                      KF-CO-46 — a COLLAPSED row is `inert` (out of the Tab order,
                      the pointer and the accessibility tree in one stroke). -->
@@ -21,7 +26,7 @@
                         :class="['panel-row', stack.isOpen('main') ? 'panel-row--active' : 'panel-row--inactive']"
                         :inert="!stack.isOpen('main')"
                     >
-                        <div class="panel-content flex flex-col gap-2">
+                        <div class="panel-content">
                             <!-- X-DS r6 pass 4 (KF-R6C4-02) — the Controls surface
                                  names its channel, as every other pane names what
                                  it edits (the Keyframes well's `Rotations`, the
@@ -32,9 +37,11 @@
                                  phone sheet's peek shows a title in every scene.
                                  It leaves with its row on a drill-in, where the
                                  sub-pane header titles the pane. -->
-                            <h3 data-pane-title class="configurator-section-label min-w-0 truncate">
-                                {{ channelName }}
-                            </h3>
+                            <!-- X-DS r6 pass 9 (KF-C9-05) — and in the facets'
+                                 header (glass ConfiguratorLayer: the title, its
+                                 baseline and the trailing chevron), not a bare h3
+                                 a few px off their title line. -->
+                            <ConfiguratorLayer :label="channelName" default-open>
                             <ChannelOptionsForm
                                 v-model:open-select="openSelect"
                                 :animation="animation"
@@ -108,13 +115,14 @@
                                 }}</span>
                                 <ChevronRight class="icon-sm" />
                             </Button>
+                            </ConfiguratorLayer>
                         </div>
                     </div>
 
                     <!-- The timing-function editor (cubic-bezier / steps). -->
                     <div
                         ref="detailRowEl"
-                        :class="['panel-row panel-row--detail', stack.isOpen('detail') ? 'panel-row--active' : 'panel-row--inactive']"
+                        :class="['panel-row panel-row--sub panel-row--detail', stack.isOpen('detail') ? 'panel-row--active' : 'panel-row--inactive']"
                         :inert="!stack.isOpen('detail')"
                         @transitionend="(e) => stack.onRowTransitionEnd('detail', e)"
                     >
@@ -146,7 +154,7 @@
                         :id="layerPaneId"
                         ref="layerRowEl"
                         @transitionend="(e) => stack.onRowTransitionEnd('layer', e)"
-                        :class="['panel-row', stack.isOpen('layer') ? 'panel-row--active' : 'panel-row--inactive']"
+                        :class="['panel-row panel-row--sub', stack.isOpen('layer') ? 'panel-row--active' : 'panel-row--inactive']"
                         :inert="!stack.isOpen('layer')"
                     >
                         <div class="panel-content flex flex-col gap-2">
@@ -192,6 +200,7 @@ import type { AnimationLayerConfig } from "@mkbabb/keyframes.js";
 import type { EasingPickerValue } from "@mkbabb/glass-ui/easing";
 
 import { Button, Separator } from "@mkbabb/glass-ui";
+import { ConfiguratorLayer } from "@mkbabb/glass-ui/configurator";
 import { ChevronRight } from "@lucide/vue";
 import { EASING_GROUPS } from "@utils/reference-data/easingGroups";
 import { timingFunctionKind } from "@utils/reference-data/animationDescriptions";
@@ -382,6 +391,13 @@ const onEasingPick = (name: string): void => {
     --panel-ring-reach: calc(2 * var(--focus-ring-width, 2px));
     padding: var(--panel-ring-reach);
     margin: calc(-1 * var(--panel-ring-reach));
+}
+/* X-DS r6 pass 9 (KF-C9-05) — the sub-panes keep the column's inset (the
+   inline pad and the 0.75rem block start the column used to give every row);
+   the main row's inset is its ConfiguratorLayer's. */
+.panel-row--sub > .panel-content {
+    padding-inline: calc(var(--configurator-pad-inline) + var(--panel-ring-reach));
+    padding-block-start: calc(0.75rem + var(--panel-ring-reach));
 }
 /* X.KF.W13X.controls · KFA-209 — a cross-fade, not a double exposure: the
    leaving pane's fade finishes in the first 40 % of the row window, and the

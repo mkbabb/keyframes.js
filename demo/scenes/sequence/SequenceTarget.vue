@@ -57,7 +57,7 @@
                 title="Sequence"
                 class="seq-header flex flex-nowrap items-center justify-between gap-3 px-(--stage-plate-pad-inline) py-(--stage-plate-pad-block) shrink-0"
                 title-class="whitespace-nowrap m-0"
-                id-class="flex flex-nowrap items-baseline gap-3 min-w-0"
+                id-class="flex flex-col gap-1 min-w-0"
             >
                 <template #readouts>
                     <!-- X-DS pass 7 (KF-C7-07) — the one stage readout anatomy
@@ -67,10 +67,14 @@
                          uppercase label and parked the unit in a fixed slot ("0
                          ms" read as broken at rest). The clock stays the one
                          readout, and it trails the title, so a growing value
-                         moves nothing before it. -->
+                         moves nothing before it.
+                         X-DS r6 pass 9 (KF-C9-06) — on the row UNDER the title,
+                         at the shared primary rung, as Square's x/y and
+                         Spring's position are: one place and one size for a
+                         stage's live readout in every scene. -->
                     <div class="stage-readout shrink-0" data-readout="primary">
                         <span>clock</span>
-                        <span class="readout-accent text-mono-small">{{ clockMs }} ms</span>
+                        <span>{{ clockMs }} ms</span>
                     </div>
                 </template>
             </SceneStageHeader>

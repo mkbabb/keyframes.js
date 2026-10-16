@@ -85,9 +85,9 @@
                      apart at 1440, so the partner read as an orphan. The row
                      may wrap at a narrow card; it never spreads. -->
                 <div class="flex flex-wrap items-baseline gap-x-6 gap-y-1">
-                    <div class="stage-readout">
+                    <div class="stage-readout" data-readout="primary">
                         <span>{{ sweepLeads ? "sweep" : "position" }}</span>
-                        <span class="spring-readout-primary" data-readout="primary">{{
+                        <span>{{
                             (sweepLeads ? demo.sampled.value : demo.liveValue.value).toFixed(3)
                         }}</span>
                     </div>
@@ -99,11 +99,11 @@
                          never renders as "V". -->
                     <div v-if="sweepLeads" class="stage-readout">
                         <span>position</span>
-                        <span class="spring-readout-secondary">{{ demo.liveValue.value.toFixed(3) }}</span>
+                        <span>{{ demo.liveValue.value.toFixed(3) }}</span>
                     </div>
                     <div v-else class="stage-readout">
                         <span>velocity</span>
-                        <span class="spring-readout-secondary">{{ demo.liveVelocity.value.toFixed(3) }}</span>
+                        <span>{{ demo.liveVelocity.value.toFixed(3) }}</span>
                     </div>
                 </div>
             </template>
@@ -694,14 +694,8 @@ const onKeydown = (e: KeyboardEvent) => {
    re-tier, superseded by the canon: display numerals belong to the display
    face, values to Fira Code). The header's query container existed only for
    that clamp and goes with it. */
-.spring-readout-primary {
-    font-family: var(--font-mono);
-    font-size: var(--type-subheading);
-    font-weight: var(--font-weight-medium, 500);
-    line-height: 1;
-    color: var(--ball-tone, var(--color-progress));
-    font-variant-numeric: tabular-nums;
-}
+/* X-DS r6 pass 9 (KF-C9-06) — the primary's rung and ink are the shared
+   `.stage-readout[data-readout="primary"]` rule now (design-idioms.css). */
 
 /* X-DS r6 pass 8 (KF-C8-08) — PARTNER READOUTS, ONE VALUE INK AND ONE
    PRECISION. Velocity (or position, while the sweep leads) is live state as
@@ -710,14 +704,7 @@ const onKeydown = (e: KeyboardEvent) => {
    the scene's value ink (`--ball-tone`, as Square's x and y do) at three
    decimals, tabular; the labels keep the muted ink, and the partner keeps its
    one rung below the primary (KF-C3-04, KF-C4-08). */
-.spring-readout-secondary {
-    font-family: var(--font-mono);
-    font-size: var(--type-body);
-    font-weight: var(--font-weight-medium, 500);
-    line-height: 1;
-    color: var(--ball-tone, var(--color-progress));
-    font-variant-numeric: tabular-nums;
-}
+/* X-DS r6 pass 9 (KF-C9-06) — and the partner's are `.stage-readout`'s value rung. */
 
 .spring-rail {
     /* T.G4 — the balls ride `translateX(<cqw>)`; `cqw` resolves against the nearest
@@ -1079,8 +1066,14 @@ const onKeydown = (e: KeyboardEvent) => {
    text's: the caption keeps the header's gutter, and only Re-seat takes the
    band's END side as its own margin, so it still ends under the rail's right
    end (below lg KF-C9-09 drops it under the caption, on the text edge). */
+/* X-DS r6 pass 9 (KF-C9-02) — ONE RIGHT EDGE. The legend row ("sweep · ζ ·
+   peak") ran to the figure's full measure (1342 at 1440) while the rail, the
+   plot and Re-seat ended on the band's end (1230): two right edges and a dead
+   strip down the card. The same end-side band now ends every row that is not
+   the axis itself, in this one rule, so the figure has one right edge. */
 @media (min-width: 1024px) {
-    .spring-reseat {
+    .spring-reseat,
+    .spring-figure :deep(.trace-title-row) {
         margin-inline-end: var(--plot-inset-end, 0);
     }
 }

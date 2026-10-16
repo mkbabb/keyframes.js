@@ -10,6 +10,10 @@ interface CurveGroupItem {
     description: string;
     isBezier: boolean;
     isDetail: boolean;
+    /** X-DS r6 pass 9 (KF-C9-07) — the description is SHOWN, as a muted second
+     *  line under the name, on a tile whose engine name misdescribes the shape
+     *  it draws. Everywhere else it stays the tile's accessible description only. */
+    noteShown: boolean;
 }
 
 interface CurveGroup {
@@ -17,12 +21,13 @@ interface CurveGroup {
     items: CurveGroupItem[];
 }
 
-function item(name: EasingName, description: string): CurveGroupItem {
+function item(name: EasingName, description: string, noteShown = false): CurveGroupItem {
     return {
         name,
         description,
         isBezier: name in NAMED_EASING_BEZIER,
         isDetail: DETAIL_TIMING_FUNCTIONS.has(name),
+        noteShown,
     };
 }
 
@@ -91,7 +96,11 @@ export const EASING_GROUPS: CurveGroup[] = [
             // "bouncing ramp up", contradicting its own thumbnail; it sits in
             // the overshoot family it belongs to. The engine name is value.js's
             // public contract and is kept (a true bounce is a value.js ruling).
-            item("ease-in-bounce", "fast rise, overshoots"),
+            // X-DS r6 pass 9 (KF-C9-07) — and SHOWS it: a sighted reader saw a
+            // tile named "bounce" drawing an overshoot dome, the caption only
+            // in the accessibility tree. This one tile carries its shape as a
+            // visible second line; the engine name is unchanged.
+            item("ease-in-bounce", "fast rise, overshoots", true),
         ],
     },
     {

@@ -201,8 +201,11 @@ const endRowTransition = async (row: Element) => {
 
 const pencil = (w: ReturnType<typeof mount>) =>
     w.get('button[aria-label="Edit easing curve"]');
+// X-DS r6 pass 9 (KF-C9-05) — the main row is now a glass ConfiguratorLayer,
+// whose header trigger is also an `aria-controls` + `aria-expanded` button; the
+// drill row is the one that is not the layer's trigger.
 const layerEntry = (w: ReturnType<typeof mount>) =>
-    w.get("button[aria-controls][aria-expanded]");
+    w.get("button[aria-controls][aria-expanded]:not([data-slot=configurator-layer-trigger])");
 
 describe("X.KF.W13X.controls — one drill-in owner, one sub-pane header (A2-KE-L1-7 · UIA-KF-079 · 080 · 269 · 273 · 036)", () => {
     it("(1) both sub-panes wear the SAME header: Back first, the title on the subheading rung, no size overrides on any Back", async () => {

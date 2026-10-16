@@ -118,10 +118,14 @@
                             >
                             <!-- The row's DESCRIPTION is its accessible
                                  description, never part of its name (OA-31):
-                                 visually hidden, wired by aria-describedby. -->
+                                 visually hidden, wired by aria-describedby.
+                                 X-DS r6 pass 9 (KF-C9-07) — shown as a muted
+                                 second line where the engine name misdescribes
+                                 the drawn shape (`noteShown`); still the
+                                 description, never the name. -->
                             <span
                                 :id="descriptionId(item.name)"
-                                class="sr-only"
+                                :class="item.noteShown ? 'tile-note text-caption' : 'sr-only'"
                                 aria-hidden="true"
                                 >{{ item.description }}</span
                             >
@@ -159,6 +163,8 @@ export interface CatalogueGroup {
     readonly items: readonly {
         readonly name: string;
         readonly description: string;
+        /** KF-C9-07 — the description shows as a second line (a misdescribing engine name). */
+        readonly noteShown?: boolean;
     }[];
 }
 
@@ -335,12 +341,27 @@ const landTop = () => {
     // row cut through its curves under the family tabs), the drawer gains the
     // missing scroll as end room under its last row (in glass's end fade), and
     // rests on that heading. The room goes when a rest no longer needs it.
+    // X-DS r6 pass 9 (KF-C9-03) — THE ROOM IS AT MOST ONE GAP. End room is
+    // painted plate: after 'steps' at 1440 it was 71 px, and with the end
+    // padding it left ~115 px of empty card under the last row exactly when
+    // the last family is picked. A heading rest that needs more than the
+    // catalogue's own section gap is not taken; the drawer rests at its end
+    // (the last row whole, the plate ending one gap under it) and the top
+    // fold runs under glass's start fade.
+    const group = drawer.querySelector<HTMLElement>(".specimen-grid-group");
+    const gap = group ? Number.parseFloat(getComputedStyle(group).rowGap) || 0 : 0;
     let need = 0;
     if (rests.length === 0 && headings.length > 0 && tile) {
         const beyond = restsUnder(tile.top - padStart);
         if (beyond.length > 0) {
-            rests = [nearest(beyond)];
-            need = Math.max(0, Math.ceil(rests[0]! - max));
+            const rest = nearest(beyond);
+            const extra = Math.max(0, Math.ceil(rest - max));
+            if (extra <= gap) {
+                rests = [rest];
+                need = extra;
+            } else {
+                rests = [max];
+            }
         }
     }
     if (need !== room) drawer.style.setProperty("--drawer-end-room", `${need}px`);
@@ -710,6 +731,12 @@ watch(
     text-wrap: balance;
     line-height: 1.35;
     padding-bottom: 0.125rem;
+    color: var(--muted-foreground);
+}
+.tile-note {
+    text-align: center;
+    line-height: 1.2;
+    padding-bottom: 0.25rem;
     color: var(--muted-foreground);
 }
 .specimen-tile:hover .tile-name {

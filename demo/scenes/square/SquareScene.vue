@@ -56,8 +56,8 @@
                      (`.stage-readout`, design-idioms.css): a sans muted label, then
                      the violet tabular value. -->
                 <div class="square-telemetry-axes">
-                    <span class="stage-readout"><span>x</span><span class="readout-accent text-mono-small">{{ readoutX }}</span></span>
-                    <span class="stage-readout"><span>y</span><span class="readout-accent text-mono-small">{{ readoutY }}</span></span>
+                    <span class="stage-readout" data-readout="primary"><span>x</span><span>{{ readoutX }}</span></span>
+                    <span class="stage-readout" data-readout="primary"><span>y</span><span>{{ readoutY }}</span></span>
                 </div>
             </template>
         </SceneStageHeader>

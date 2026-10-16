@@ -281,7 +281,15 @@ const timelineRef = shallowRef<InstanceType<typeof KeyframeTimelineComponent> | 
 const channelState = getChannelControlsState(animation);
 const sceneKeyframes = computed(() =>
     channelState.parseState === "parsed" && channelState.keyframesText
-        ? { css: channelState.keyframesText, count: animation.templateFrames.length }
+        ? {
+              css: channelState.keyframesText,
+              count: animation.templateFrames.length,
+              // X-DS r6 pass 9 (KF-C9-09) — where those stops sit (percent
+              // selectors only), so the empty track can draw them as ghosts.
+              stops: animation.templateFrames.flatMap((frame) =>
+                  frame.start.kind === "percent" ? [frame.start.value * 100] : [],
+              ),
+          }
         : null,
 );
 

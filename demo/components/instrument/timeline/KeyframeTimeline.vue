@@ -18,9 +18,15 @@
              title takes the header line every sibling facet's title sits on
              (the configurator header's and the Keyframes header's 0.5rem), so
              it no longer drops 8 px when the dock switches facets. -->
-        <CardContent
-            class="relative flex flex-col gap-3 px-(--configurator-pad-inline) pt-2 pb-4"
-        >
+        <!-- X-DS r6 pass 9 (KF-C9-05) — ONE PANE HEADER. The title was a bare
+             h3 (no chevron, 1 px off the facets' title line), so switching to
+             the Timeline surface moved the title and dropped the trailing
+             affordance every facet pane carries. The pane is now glass's
+             ConfiguratorLayer, the header the Easing, Physics and Stagger
+             facets wear: one header row, one baseline, one trailing slot. The
+             layer owns the inline inset (`--configurator-pad-inline`). -->
+        <CardContent class="relative p-0">
+        <ConfiguratorLayer label="Timeline" default-open body-class="flex flex-col gap-3 space-y-0 pb-4">
         <!-- Pane action buttons.
              D-6 + the wave's ONE min-block-size policy (D-8), both spent by
              deleting the same class attribute rather than by writing a second
@@ -116,7 +122,6 @@
              / D-5 / D-14) is unchanged: the tools are the producer's menu items
              now, at its own geometry, with Clear all disabled on an empty
              timeline and destructive by tone. -->
-        <h3 class="configurator-section-label min-w-0 truncate">Timeline</h3>
 
         <!-- Preview stage — the ONE subject this instrument's engine paints
              (KF.W7 G2 / C-6): an inert clone of the instrumented element, driven
@@ -147,6 +152,7 @@
             :expanded="props.expanded"
             :selected-keyframe-id="selectedKeyframeId"
             :preview-source="props.targets[0] ?? null"
+            :ghost-stops="state.keyframes.length === 0 ? (props.scene?.stops ?? []) : []"
             @update:scrub-t="scrub"
             @move-keyframe="moveKeyframe"
             @select="(id) => (selectedKeyframeId = id)"
@@ -171,7 +177,9 @@
             v-if="state.keyframes.length === 0 && sceneSummary"
             class="text-body text-muted-foreground text-center text-balance py-2"
         >
-            <code>{{ sceneSummary.name }}</code>
+            <!-- X-DS r6 pass 9 (KF-C9-09) — the channel's name in the
+                 sentence's own face (a mono `code` run broke the line). -->
+            <span class="text-foreground">{{ sceneSummary.name }}</span>
             has {{ sceneSummary.count }} {{ sceneSummary.count === 1 ? "keyframe" : "keyframes" }} in CSS —
             <strong>Import</strong> {{ sceneSummary.count === 1 ? "it" : "them" }} to edit here.
         </p>
@@ -374,6 +382,7 @@
             </div>
         </Teleport>
 
+        </ConfiguratorLayer>
         </CardContent>
     </div>
 
@@ -411,6 +420,7 @@ import {
     Upload,
 } from "@lucide/vue";
 import CSSPasteDialog from "./CSSPasteDialog.vue";
+import { ConfiguratorLayer } from "@mkbabb/glass-ui/configurator";
 import { Alert, AlertDescription, AlertTitle, Button, CardContent, Separator } from "@mkbabb/glass-ui";
 import { toast, ToastAction } from "@mkbabb/glass-ui/toast";
 import { Input } from "@mkbabb/glass-ui/input";
@@ -437,7 +447,7 @@ const props = defineProps<{
     /** The channel's playing animation — the transport's clock (KFA-55). */
     clock?: TransportClock;
     /** The channel's parsed @keyframes and its stop count (KF-C24-05), or null. */
-    scene?: { css: string; count: number } | null;
+    scene?: { css: string; count: number; stops?: number[] } | null;
     expanded?: boolean;
 }>();
 

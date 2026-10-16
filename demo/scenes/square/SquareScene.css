@@ -102,14 +102,17 @@
    hangs from the stage's top and ends one caption block under the field.
    At lg the plate keeps the stage cap, as every sibling stage does (KF-C7-03:
    one stage frame height across scenes). */
+/* X-DS r6 pass 9 (KF-C9-04) — BUT THE PLATE STANDS AT THE STAGE'S HEIGHT, as
+   Easing's, Spring's and Sequence's do at every width. The content-sized plate
+   ended ~150 px above the sheet on a bare band of grid, the one scene at 390
+   that did not meet it. The plate keeps the sibling rule (`h-full`, header row
+   then the free row); the square arena (KF-C7-08's aspect) is centred in the
+   free row, so the dead plate KF-C7-08 removed does not come back as a
+   top-heavy band: the room above the field and under its caption match. */
 @media (max-width: 1023px) {
-    .square-stage {
-        block-size: auto;
-        align-self: start;
-        grid-template-rows: auto auto;
-    }
     .square-arena {
         aspect-ratio: 1;
+        align-self: center;
     }
 }
 

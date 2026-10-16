@@ -281,6 +281,20 @@
     font-family: var(--font-mono);
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
+    /* X-DS r6 pass 9 (KF-C9-06) — ONE VALUE RUNG AND ONE VALUE INK for every
+       stage readout. Each scene had cured its own (Sequence's clock and
+       Square's x/y at the mono-small rung, Spring's position at subheading and
+       velocity at body), so the eye met a different size per scene. The value
+       is the scene's live state in its value ink; a scene's PRIMARY readout
+       (`data-readout="primary"`) takes the subheading rung, a partner the body
+       rung. Each scene keeps its own precision. */
+    font-size: var(--type-body);
+    font-weight: var(--font-weight-medium, 500);
+    line-height: 1;
+    color: var(--ball-tone, var(--color-progress));
+}
+.stage-readout[data-readout="primary"] > :last-child {
+    font-size: var(--type-subheading);
 }
 
 /* .subject-axes-hidden — the accessible subtree of a keyboard-operable two-axis subject
