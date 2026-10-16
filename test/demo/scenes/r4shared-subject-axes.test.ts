@@ -18,7 +18,7 @@
  */
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { beforeAll, describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it, vi } from "vitest";
 import { nextTick } from "vue";
 import { mount } from "@vue/test-utils";
 
@@ -112,14 +112,23 @@ describe("A2-KE-L1-18 — the Square's per-axis values are read-outs, never an i
             const right = key("ArrowRight");
             box.dispatchEvent(right);
             expect(right.defaultPrevented).toBe(true);
-            await nextTick();
-            expect(texts()).toEqual(["x 0.25", "y 0.00"]);
+            // X.KF.W13X.r3res2c (§0fj 3) — the read-outs read the box's painted
+            // deflection, so they arrive with the chase, not ahead of it: read
+            // them once the springs report rest.
+            const badge = () => wrapper.find(".square-telemetry [class*=badge]").text();
+            await vi.waitFor(
+                () => {
+                    expect(badge()).toBe("settled");
+                    expect(texts()).toEqual(["x 0.25", "y 0.00"]);
+                },
+                { timeout: 4000, interval: 20 },
+            );
 
             // a command chord is the app's, not a nudge
             const chord = key("ArrowRight", { metaKey: true });
             box.dispatchEvent(chord);
             expect(chord.defaultPrevented).toBe(false);
-            await nextTick();
+            await new Promise((r) => setTimeout(r, 200)); // a nudge would have moved the box by now
             expect(texts()).toEqual(["x 0.25", "y 0.00"]);
         } finally {
             (wrapper.vm as unknown as { facility: { group: { stop(): void } } }).facility.group.stop();

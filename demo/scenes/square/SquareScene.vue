@@ -92,8 +92,8 @@
                  misrepresentation of a 2D drag (a 1D control reporting a blended
                  scalar). The box is the `role="group"` container (the 2D
                  instrument) and the one keyboard target; it holds one
-                 visually-hidden read-out per axis, tracking
-                 `springX.target`/`springY.target` (the SubjectAxes seat below).
+                 visually-hidden read-out per axis, tracking the box's
+                 painted deflection (the SubjectAxes seat below; r3res2c).
 
                  §B.1 row 5 — the ring idiom is `kf-focus-ring`, not the bare
                  `focus-ring`. glass-ui 7.0.0 ships a REALIZED `.focus-ring:focus-visible`
@@ -125,7 +125,7 @@
             >
                 <!-- A2-KE-L1-18 — the description and the two read-outs are the
                      shared SubjectAxes seat (Amiga's canvas holds the same one):
-                     `role="status"` read-outs of each axis's commanded target,
+                     `role="status"` read-outs of each axis's live deflection,
                      where two `role="slider"` spans stood with no tabindex and
                      no keys (UIA-KF-291). The box is the keyboard target. -->
                 <SubjectAxes
@@ -153,7 +153,6 @@ import {
     onBeforeUnmount,
     onMounted,
     onScopeDispose,
-    reactive,
     ref,
     useId,
     useTemplateRef,
@@ -231,8 +230,8 @@ const deflY = ref(0);
  * spring's VALUE — commanded and actual, side by side, under bare `x`/`y`, with
  * nothing saying which was which. They are derived from the SAME live deflection
  * the tether uses now, so the strip and the line can no longer disagree; the
- * per-axis read-outs in the box's accessible subtree stay the COMMANDED target,
- * which is what a keyboard nudge sets.
+ * per-axis read-outs in the box's accessible subtree read that deflection too
+ * (`springReadout` below, X.KF.W13X.r3res2c).
  *
  * C-3/L-D3 + L-4/C-12 — and the feed itself is no longer spring-only: the
  * renderer pumps these reads whichever writer is painting, so the strip tells
@@ -374,19 +373,24 @@ const takeOverFromPlayback = () => {
     mode.value = "idle";
 };
 
-// The per-axis read-out the box's accessible subtree announces: each spring's
-// COMMANDED target. Written at the few-Hz cadence the drag/keyboard events fire
-// (NOT the 60 Hz paint loop), so assistive tech reads the live target without
-// any hot-path Vue work; read on demand from the markRaw springs.
-const springReadout = reactive({ x: "0.00", y: "0.00" });
-
-// L-15 — ONE readout sync, ONE rounding rule (2 dp, so a screen reader
-// announces a stable value, not float noise). A2-KE-L1-18 retired the numeric
-// twin (`axisNow`) with the two inert slider spans that read it.
-const syncReadouts = () => {
-    springReadout.x = (Math.round(springX.target * 100) / 100).toFixed(2);
-    springReadout.y = (Math.round(springY.target * 100) / 100).toFixed(2);
-};
+// X.KF.W13X.r3res2c · COHESION §0fj 3 — THE READ-OUT IS THE LIVE TRANSFORM.
+// The per-axis read-out the box's accessible subtree announces was a second
+// store: each spring's commanded target, copied in by `syncReadouts()` from a
+// drag's `onScrub`/`onEnd` and the keyboard's `onTarget` and from nothing else.
+// A pose the transport authored (Reset's rewind, which the renderer seats the
+// springs on) never reached it, so after a takeover drag + Escape the box rested
+// at identity while the read-out kept the drag's values. It is now a computed
+// over the deflection the renderer reports for the pose it paints (`deflX`/
+// `deflY`, fed by `onTick` whichever writer paints: the spring loop, the tour,
+// a transport pose), so the read-out, the stage header and the box are one
+// source and no gesture has to remember to sync it.
+// L-15 — one rounding rule (2 dp, so a screen reader announces a stable value,
+// not float noise): the string changes only when the 2 dp value does.
+const axisReadout = (v: number) => (Math.round(v * 100) / 100).toFixed(2);
+const springReadout = computed(() => ({
+    x: axisReadout(deflX.value),
+    y: axisReadout(deflY.value),
+}));
 
 // T.A13 — the FSM tracks the machine's play state. Play (rising edge) enters
 // `playback`: the group plays the honest four-corner tour — NO tumble. Pause
@@ -522,8 +526,8 @@ const captureFrame = (e: PointerEvent) => {
 
 // The shared drag-scrub seam (I8). Square is 2-axis, so `T = {nx,ny}`; `project`
 // is the former `reseatFromEvent` math, `onScrub` re-seats the springs, `onStart`
-// carries the per-gesture home capture, and `onEnd` syncs the aria read-out to
-// the settled target (NO recenter — persist).
+// carries the per-gesture home capture, and `onEnd` lets the chase settle where
+// released (NO recenter — persist).
 const { dragging, onPointerDown } = useDragScrub<{ nx: number; ny: number }>({
     el: box,
     releasePolicy: "persist",
@@ -548,7 +552,6 @@ const { dragging, onPointerDown } = useDragScrub<{ nx: number; ny: number }>({
     },
     onScrub: ({ nx, ny }) => {
         reseat(nx, ny);
-        syncReadouts();
     },
     // Persist on release — leave the springs at their dragged target and let them
     // chase-to-rest THERE (the box stays where released). `settle()` re-arms the
@@ -562,7 +565,6 @@ const { dragging, onPointerDown } = useDragScrub<{ nx: number; ny: number }>({
         // the pointer lifted). The loop's settle sets `idle`. The group stays
         // paused, and Play resumes the tour FROM HERE: the rising edge seats the
         // group's clock at the authored pose nearest this one (ARB-1).
-        syncReadouts();
     },
 });
 
@@ -579,8 +581,8 @@ useDoubleTap({
 // The arrow/Home nudge (slider posture parity with Spring/MotionPath) and the
 // keyboard `c` envelope-tour egg live in the colocated useSquareKeyboard
 // sub-unit. Both re-seat the SAME springs the drag uses (no second authority,
-// no new rAF) and report each new target through `onTarget`, which mirrors it
-// into the live spring readout + the per-axis aria-valuenow.
+// no new rAF) and report each new target through `onTarget` (the disclosure's
+// arming; the read-outs follow the painted pose on their own, r3res2c).
 const { onKeydown, tourEnvelope, notifySettled, cancelTour } = useSquareKeyboard({
     springX,
     springY,
@@ -598,7 +600,6 @@ const { onKeydown, tourEnvelope, notifySettled, cancelTour } = useSquareKeyboard
         // be reachable only through a pointerdown.
         hasInteracted = true;
         interactedByKeyboard = true;
-        syncReadouts();
     },
 });
 
