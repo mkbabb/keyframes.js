@@ -58,4 +58,15 @@ describe("UIA-KF-319 — the Keyframes ribbon hierarchy", () => {
             expect(b.getAttribute("aria-label")!.toLowerCase()).toContain(b.textContent!.trim().toLowerCase());
         }
     });
+
+    // X-DS r7 pass 16 (KF-C16-02) — the three quiet verbs yield under ONE
+    // rule: each label span carries the same container-query class, so the
+    // row is either all words or all glyphs, never alternating.
+    it("Copy, Format and Compiled yield their words under one container rule", () => {
+        const buttons = mountKeyframesRibbon().slice(1);
+        const classes = buttons.map((b) => b.querySelector("span")?.className);
+        expect(classes.every(Boolean)).toBe(true);
+        expect(new Set(classes).size).toBe(1);
+        expect(classes[0]).toMatch(/:sr-only/);
+    });
 });

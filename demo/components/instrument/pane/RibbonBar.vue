@@ -69,7 +69,16 @@
                  four labels' one-row width), "Format" second (below 25rem:
                  Apply + Copy's glyph + two words), "Compiled" last (below
                  22rem: Apply + two glyphs + "Compiled", measured 344 px in the
-                 367 px row). -->
+                 367 px row).
+                 X-DS r7 pass 16 (KF-C16-02) — ONE yield rule for the three
+                 quiet verbs: the staggered thresholds left the served rail
+                 (between 22 and 29rem) reading [Apply CSS] [glyph] [glyph]
+                 [Compiled], a rhythm that alternated for no reason the user
+                 could see. Below 29rem (the four labels' one-row width) all
+                 three go to their glyph together, each still naming itself
+                 (aria-label) and tooltipping its word (title); at or above it
+                 all three keep their words. Apply CSS keeps its label and its
+                 rainbow brush (identity, §0dm). -->
             <div
                 v-if="storedControls.selectedControl === 'keyframes'"
                 class="@container flex items-center justify-center gap-2"
@@ -138,7 +147,7 @@
                          Sparkles says "magic", which Format is not, and it
                          stood alone once the word yielded. -->
                     <AlignLeft class="icon-sm" />
-                    <span class="@max-[25rem]:sr-only">Format</span>
+                    <span class="@max-[29rem]:sr-only">Format</span>
                 </Button>
                 <!-- K.W10 CC-4 — Export CSS: compile the orchestration graph
                      to a zero-runtime CSS artifact via the gated compileToCSS
@@ -153,7 +162,7 @@
                     @click="keyframes?.copyCompiledCSS()"
                 >
                     <FileCode class="icon-sm" />
-                    <span class="@max-[22rem]:sr-only">Compiled</span>
+                    <span class="@max-[29rem]:sr-only">Compiled</span>
                 </Button>
             </div>
 
