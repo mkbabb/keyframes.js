@@ -1083,7 +1083,12 @@ async function runBattery() {
                         while (performance.now() - t0 < 2500) {
                             els.forEach((el, i) => {
                                 const cs = getComputedStyle(el);
-                                seen.add(i + "|" + cs.transform + "|" + cs.opacity);
+                                // The traveller rides the INDIVIDUAL `translate` + `scale`
+                                // properties (KFA-3, 28e97ec3) and rests at opacity 1
+                                // (X-DS KF-C1-17, 8bbbc33c), so `transform | opacity`
+                                // alone is blind to the run. The tuple reads every
+                                // property the engine writes onto the ball.
+                                seen.add(i + "|" + cs.translate + "|" + cs.scale + "|" + cs.transform + "|" + cs.opacity);
                             });
                             await sleep(50);
                         }
