@@ -126,13 +126,30 @@ async function browserHalf() {
     const result = await withPage(
         { distDir: DIST, label: "the mount/console/heavy-chunk assertions" },
         async (page, { url }) => {
+        // 6 (record). Every heavy request is stamped with its wall-clock
+        // issue time, and the assertion reads only the ones issued at or
+        // before first paint (KF.W13X.smk, COHESION §0fn). The window used to
+        // run until after the hero poll (up to 9 s), so KFA-76's idle warm
+        // (`warmScenesAtIdle`, after first paint by design) tripped it
+        // whenever idle arrived before the poll ended.
         const heavyRequests = [];
         const consoleErrors = [];
         const pageErrors = [];
         page.on("request", (req) => {
             if (/vendor-monaco|vendor-three|\.worker/.test(req.url())) {
-                heavyRequests.push(req.url());
+                heavyRequests.push({ url: req.url(), at: Date.now() });
             }
+        });
+        // The first-paint fallback: where no `first-contentful-paint` entry
+        // exists, the `#app` mount (first child attached) is the boundary.
+        await page.addInitScript(() => {
+            new MutationObserver((_, observer) => {
+                const app = document.querySelector("#app");
+                if (app && app.children.length > 0) {
+                    window.__kfSmokeAppMountAt = performance.timeOrigin + performance.now();
+                    observer.disconnect();
+                }
+            }).observe(document, { childList: true, subtree: true });
         });
         page.on("console", (msg) => {
             if (msg.type() === "error") consoleErrors.push(msg.text());
@@ -187,11 +204,30 @@ async function browserHalf() {
             );
         }
 
-        // 6. Heavy chunks off the critical path.
-        if (heavyRequests.length === 0) {
-            ok("no vendor-monaco / vendor-three / worker request at first paint");
+        // 6. Heavy chunks off the critical path — asserted on the snapshot at
+        //    first paint: the page's own `first-contentful-paint` entry (wall
+        //    clock = timeOrigin + startTime), else the `#app` mount.
+        const firstPaint = await page
+            .evaluate(() => {
+                const fcp = performance.getEntriesByName("first-contentful-paint")[0];
+                if (fcp) return { at: performance.timeOrigin + fcp.startTime, by: "first-contentful-paint" };
+                const mount = window.__kfSmokeAppMountAt;
+                return typeof mount === "number" ? { at: mount, by: "#app mount" } : null;
+            })
+            .catch(() => null);
+        if (!firstPaint) {
+            fail("first paint readable (no first-contentful-paint entry and no #app mount)");
         } else {
-            fail(`heavy chunks requested at first paint: ${heavyRequests.slice(0, 3).join(", ")}`);
+            const atFirstPaint = heavyRequests.filter((r) => r.at <= firstPaint.at).map((r) => r.url);
+            if (atFirstPaint.length === 0) {
+                ok(
+                    `no vendor-monaco / vendor-three / worker request at first paint (${firstPaint.by}; ${heavyRequests.length} after it)`,
+                );
+            } else {
+                fail(
+                    `heavy chunks requested at first paint (${firstPaint.by}): ${atFirstPaint.slice(0, 3).join(", ")}`,
+                );
+            }
         }
 
         // 7. Console clean.
