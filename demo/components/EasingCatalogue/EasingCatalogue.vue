@@ -612,11 +612,6 @@ watch(
 }
 
 /* ── 3 · the sections: one type-scale header per family on "All" ── */
-/* KF-ET-10 — INTERIM, demo-side (the KF-KC-10 + MM-4 shape): at the installed
-   glass `.toggle-group[data-type="single"]` paints a quiet blurred TRACK for a
-   segmented control; this group is a ToggleGroup only for its selection model
-   and roving focus, never for that plate. The producer ask (a track opt-out)
-   rides the wave's mail. */
 .specimen-grid-group {
     display: flex;
     flex-direction: column;
@@ -628,11 +623,6 @@ watch(
     /* KF-C8-05 — the end room `landTop` writes when a family heading could
        not otherwise reach the top (0 at every other rest). */
     padding-block-end: calc(1rem + var(--drawer-end-room, 0px));
-    border-radius: 0;
-    background: none;
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-    box-shadow: none;
 }
 .catalogue-section {
     display: flex;
