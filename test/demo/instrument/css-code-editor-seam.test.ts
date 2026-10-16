@@ -16,9 +16,10 @@
  * composables (`@kf-engine`, `useKeyframesEditor`, `useKeyframeBrushApply`,
  * `@composables/copyWithToast`) — none of which is a subject of this gate. jsdom gaps
  * are polyfilled as SYMBOLS only (`CSS.escape`, `matchMedia`, a 2d canvas
- * context that measures nothing, `ResizeObserver`, a non-zero `offsetWidth`
- * so the component takes its immediate-init branch); none alters a component
- * under test. Nothing is skipped, allow-listed or guarded around a defect.
+ * context that measures nothing, a `ResizeObserver` that reports the box jsdom
+ * cannot lay out — once per observed element, as a browser's first observation
+ * does — and a non-zero `offsetWidth` for the format width); none alters a
+ * component under test. Nothing is skipped, allow-listed or guarded around a defect.
  *
  * The four runtime clauses, each a behaviour and each born RED at the bytes
  * this wave opened on (the RED run is pasted in the wave record):
@@ -72,15 +73,41 @@ Object.defineProperty(HTMLCanvasElement.prototype, "getContext", {
             set: () => true,
         }),
 });
-if (typeof (globalThis as { ResizeObserver?: unknown }).ResizeObserver === "undefined") {
-    (globalThis as { ResizeObserver?: unknown }).ResizeObserver = class {
-        observe() {}
-        unobserve() {}
-        disconnect() {}
-    };
-}
-// jsdom lays nothing out: give every element a box so the component takes its
-// immediate-init branch instead of waiting on a ResizeObserver that never fires.
+// jsdom lays nothing out and ships no ResizeObserver. The polyfill reports a
+// 480×300 box for each element it starts observing (a browser's first
+// observation), unless `boxes.held` — a well in a skipped
+// (`content-visibility: hidden`) subtree, which a browser never lays out and
+// never reports. `resizeAll` delivers a later box change to every live observer.
+type Box = { width: number; height: number };
+const boxes = { held: false };
+const liveObservers = new Set<{ cb: (entries: unknown[]) => void; targets: Set<Element> }>();
+const report = (o: { cb: (entries: unknown[]) => void }, target: Element, box: Box) =>
+    o.cb([{ target, contentRect: { ...box, x: 0, y: 0, top: 0, left: 0, right: box.width, bottom: box.height } }]);
+(globalThis as { ResizeObserver?: unknown }).ResizeObserver = class {
+    private o: { cb: (entries: unknown[]) => void; targets: Set<Element> };
+    constructor(cb: (entries: unknown[]) => void) {
+        this.o = { cb, targets: new Set() };
+        liveObservers.add(this.o);
+    }
+    observe(target: Element) {
+        this.o.targets.add(target);
+        if (boxes.held) return;
+        queueMicrotask(() => {
+            if (this.o.targets.has(target)) report(this.o, target, { width: 480, height: 300 });
+        });
+    }
+    unobserve(target: Element) {
+        this.o.targets.delete(target);
+    }
+    disconnect() {
+        this.o.targets.clear();
+        liveObservers.delete(this.o);
+    }
+};
+const resizeAll = (box: Box) => {
+    for (const o of [...liveObservers]) for (const t of [...o.targets]) report(o, t, box);
+};
+// jsdom lays nothing out: every element answers a box (the format width reads it).
 Object.defineProperty(HTMLElement.prototype, "offsetWidth", {
     configurable: true,
     get: () => 480,
@@ -333,6 +360,64 @@ describe("G-KFW12-4 — the Monaco seam", () => {
             expect(monaco.editor.getEditors().length).toBe(live);
             idle.splice(0).forEach((run) => run());
             expect(monaco.editor.getEditors().length).toBe(live - 1);
+        } finally {
+            delete w.requestIdleCallback;
+        }
+    });
+
+    it("(7) KF.W13X C1r2-2: a well in a skipped subtree reads no geometry and boots nothing until it is laid out", async () => {
+        let geometryReads = 0;
+        const width = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth")!;
+        const height = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight")!;
+        Object.defineProperty(HTMLElement.prototype, "offsetWidth", { configurable: true, get: () => (geometryReads++, 480) });
+        Object.defineProperty(HTMLElement.prototype, "offsetHeight", { configurable: true, get: () => (geometryReads++, 300) });
+        boxes.held = true;
+        try {
+            mounted = mount(CSSCodeEditor, {
+                props: { modelValue: "a { color: red }" },
+                attachTo: document.body,
+            });
+            // Longer than a boot takes when the well has a box (cases 1–4).
+            await sleep(600);
+            expect(geometryReads).toBe(0);
+            expect(mounted.element.querySelector(".monaco-editor")).toBeNull();
+            expect(mounted.element.querySelector("[aria-busy='true']")).not.toBeNull();
+            // The pane is shown: the well is laid out and its observer reports the box.
+            resizeAll({ width: 480, height: 300 });
+            await booted(mounted);
+        } finally {
+            boxes.held = false;
+            Object.defineProperty(HTMLElement.prototype, "offsetWidth", width);
+            Object.defineProperty(HTMLElement.prototype, "offsetHeight", height);
+        }
+    });
+
+    it("(8) KF.W13X C1r2-3: the well's observer lays the live editor out and stops at unmount, so the outgoing editor never re-lays itself in a swap frame", async () => {
+        const before = new Set(monaco.editor.getEditors());
+        mounted = mount(CSSCodeEditor, {
+            props: { modelValue: "a { color: red }" },
+            attachTo: document.body,
+        });
+        await booted(mounted);
+        const editor = monaco.editor.getEditors().find((e) => !before.has(e))!;
+        expect(editor.getRawOptions().automaticLayout).toBe(false);
+        const layout = vi.spyOn(editor, "layout");
+        resizeAll({ width: 400, height: 200 });
+        expect(layout).toHaveBeenCalledWith({ width: 400, height: 200 });
+        const idle: Array<() => void> = [];
+        const w = window as unknown as { requestIdleCallback?: (cb: () => void) => number };
+        w.requestIdleCallback = (cb) => idle.push(cb);
+        try {
+            mounted.unmount();
+            mounted = undefined;
+            layout.mockClear();
+            // The detached well shrinks to nothing while the outgoing editor waits for idle.
+            resizeAll({ width: 0, height: 0 });
+            resizeAll({ width: 300, height: 120 });
+            expect(layout).not.toHaveBeenCalled();
+            expect(monaco.editor.getEditors()).toContain(editor);
+            idle.splice(0).forEach((run) => run());
+            expect(monaco.editor.getEditors()).not.toContain(editor);
         } finally {
             delete w.requestIdleCallback;
         }

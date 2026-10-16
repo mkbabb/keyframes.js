@@ -61,7 +61,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref, useTemplateRef, watch } from "vue";
+import { computed, onUnmounted, ref, useTemplateRef, watch } from "vue";
 import { useMediaQuery, useResizeObserver } from "@vueuse/core";
 // Monaco is the demo's single largest module (`vendor-monaco`, ~2.5 MB
 // minified at the `editor.api` surface this boot loads). A static
@@ -488,7 +488,14 @@ const initEditor = async () => {
             useShadows: false,
         },
         scrollBeyondLastLine: false,
-        automaticLayout: true,
+        // KF.W13X Repair (C1r2-3) — the WELL's observer lays the editor out
+        // (`useResizeObserver` below), not Monaco's own `automaticLayout`.
+        // Monaco's observer outlived the component: the outgoing editor, kept
+        // until idle so its teardown is no part of a swap's first frame, saw
+        // its detached well shrink to 0 and re-wrapped every line inside the
+        // destination's frame, before its paint. The component's observer is
+        // bound to its scope, so it stops at unmount.
+        automaticLayout: false,
         lineNumbers: props.lineNumbers ? "on" : "off",
         // X-DS pass 8 (KF-C8-03) — a snippet gutter, not a file gutter.
         // Monaco's defaults (a five-character number column, a fold margin,
@@ -611,23 +618,26 @@ const initAfterPaint = () =>
         if (!disposed) void initEditor();
     });
 
-onMounted(() => {
-    const el = containerEl.value!;
-    if (el.offsetWidth > 0 && el.offsetHeight > 0) {
-        initAfterPaint();
+// KF.W13X Repair (C1r2-2 · C1r2-3) — ONE observer on the well, bound to this
+// component's scope: it boots the editor once the well first has a box, and
+// lays a live editor out on every later box change. It never reads geometry
+// itself. The former synchronous `offsetWidth` read at mount forced a layout
+// of a well force-mounted under the Keyframes pane's `content-visibility:
+// hidden` cache (Chrome: "Rendering was performed in a subtree hidden by
+// content-visibility"), and then booted Monaco into that hidden well. A
+// skipped subtree is not laid out, so its observer stays silent until the
+// pane is shown, and the boot waits for it.
+let bootQueued = false;
+useResizeObserver(containerEl, (entries) => {
+    const box = entries[0]?.contentRect;
+    if (!box || box.width <= 0 || box.height <= 0) return;
+    if (editor) {
+        editor.layout({ width: box.width, height: box.height });
         return;
     }
-    // Deferred init: wait for the container to gain non-zero size, then
-    // initialise once and self-stop — the one-shot lifecycle vueuse's
-    // `useResizeObserver` expresses via its returned `stop()` handle (and
-    // auto-cleans on scope dispose if we unmount before the size resolves).
-    const { stop } = useResizeObserver(el, (entries) => {
-        const entry = entries[0];
-        if (entry && entry.contentRect.width > 0 && entry.contentRect.height > 0) {
-            stop();
-            initAfterPaint();
-        }
-    });
+    if (bootQueued) return;
+    bootQueued = true;
+    initAfterPaint();
 });
 
 onUnmounted(() => {
