@@ -269,12 +269,19 @@ const onPresetSelect = (
    an OFF tile kept the producer item's plate (its control-surface fill and
    edge insets) and out-weighed the selected one. Every tile now carries no
    plate of its own: transparent on the card, a hairline `--border`. The
-   selected tile's weight is the violet authority (wash plus dashed outline,
-   U-K17). This resets the item's paint on this element; it touches no glass
-   lighting token (the tile axis is O-59, the plate's lighting O-87). */
+   selected tile's weight is the violet authority (wash plus outline). This resets the item's paint on this element; it touches no glass
+   lighting token (the tile axis is O-59, the plate's lighting O-87).
+   X-DS r7 pass 15 (KF-C15-01) — the outline is SOLID. In this app the dashed
+   stroke means one thing, the final-state or target ghost (U-K17: the
+   playback rows' end-state disc, Spring's target ring, Sequence's lane tails,
+   SpringMini's ring; KF-C13-01 took it off the empty dock seat for the same
+   reason). Selection is a different meaning: the selected preset now speaks
+   the selected specimen's grammar (EasingCatalogue §5, a solid ring), in the
+   violet authority over the 8 % wash; hover is the 6 % wash and a faint solid
+   ring. */
 .preset-cell {
     border-radius: var(--radius-field);
-    outline: 1px dashed transparent;
+    outline: 1px solid transparent;
     outline-offset: -1px;
     border: 1px solid var(--border);
     background: transparent;

@@ -523,4 +523,13 @@ describe("X.KF.W11.f (5b) — the facet: trackless preset tiles; the presets are
         expect(style).toMatch(/\.preset-cell\[data-state="on"\]\s*\{[^}]*var\(--color-progress\) 8%/);
         expect(src).not.toContain("spring-pane");
     });
+
+    it("KF-C15-01 — selection is a solid ring; the dashed stroke stays the final-state / target ghost's alone", async () => {
+        const { readFileSync } = await import("node:fs");
+        const { resolve } = await import("node:path");
+        const src = readFileSync(resolve(process.cwd(), "demo/scenes/spring/SpringPhysicsFacet.vue"), "utf8");
+        const style = src.slice(src.indexOf("<style scoped>")).replace(/\/\*[\s\S]*?\*\//g, "");
+        expect(style).toMatch(/\.preset-cell\s*\{[^}]*outline:\s*1px solid transparent/);
+        expect(style).not.toMatch(/dashed/);
+    });
 });
