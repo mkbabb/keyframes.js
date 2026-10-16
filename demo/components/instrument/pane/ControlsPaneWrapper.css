@@ -291,3 +291,30 @@
    scroll-timeline mask that stood in for it here, and `useScrollFade`'s
    `.scroll-fade-*` classes before it, are deleted (glass README: FadingScroll
    supersedes the static utilities, a clean break). */
+
+/* X.KF.W13X.r3res2d (§0fj 4 · the §0fh item 6 idiom · UIA-KF-267 pane side) —
+   A BOUNDED FACET OWNS THE ONE SCROLL PORT UNDER ITS TITLE. The pane's port
+   (the sheet's `.controls-pane`, the rail's `.controls-surface`) scrolls a
+   surface taller than it, title and all: at 844×390 the sheet's window is
+   326 px, the Matrix surface 602 px, and "Transform matrix" left the view at
+   the scroll's end (at 390×844 too). A glass ConfiguratorLayer marked
+   `.pane-bounded` instead takes the port's block: the boxes on the way shrink
+   to it (here the surface column; ChannelControls' host, columns and panel;
+   the facet's own wrappers), the layer is a column whose header keeps its
+   height, and its open region shrinks, so its body (the facet's `FadingScroll`)
+   is the one port that scrolls. The header keeps its one row and never
+   leaves. A surface that fits its port is laid out exactly as before; every
+   unmarked surface is untouched (the `:has()` keys on the marker). */
+.controls-surface:has(.pane-bounded) {
+    display: flex;
+    flex-direction: column;
+    min-block-size: 0;
+}
+.controls-surface :deep(.pane-bounded) {
+    display: flex;
+    flex-direction: column;
+    min-block-size: 0;
+}
+.controls-surface :deep(.pane-bounded > [role="region"]) {
+    min-block-size: 0;
+}

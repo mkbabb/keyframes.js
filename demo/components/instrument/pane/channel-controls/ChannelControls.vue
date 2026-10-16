@@ -1,6 +1,6 @@
 <template>
     <div
-        class="flex flex-col shrink-0 min-h-full w-full overflow-hidden z-content relative isolate"
+        class="channel-controls flex flex-col shrink-0 min-h-full w-full overflow-hidden z-content relative isolate"
     >
         <!-- X-DS r7 pass 5 (KF-C5-02) — THE PANE HAS ONE SCROLLER, the rail's
              `.controls-surface` (glass FadingScroll: the end fade, the fold
@@ -474,6 +474,28 @@ watch(
 </script>
 
 <style scoped>
+/* X.KF.W13X.r3res2d (§0fj 4 · the §0fh item 6 idiom) — A BOUNDED FACET. A
+   facet that marks its layer `.pane-bounded` (the cube Matrix editor) keeps
+   its title in view by owning the one scroll port under it. For that, every
+   box from the pane's port down to the layer must SHRINK to the port instead
+   of growing it: this host gives up its `shrink-0 min-h-full` floor (it still
+   never grows past its content), its two columns and the facet panel take
+   `min-block-size: 0`, and the panel is a column. Every other surface keeps
+   the floor and grows the rail's scroller as before. */
+.channel-controls:has(.pane-bounded) {
+    flex-shrink: 1;
+    min-block-size: 0;
+}
+.channel-controls:has(.pane-bounded) > div,
+.channel-controls:has(.pane-bounded) > div > div {
+    min-block-size: 0;
+}
+[data-surface-panel]:has(.pane-bounded) {
+    display: flex;
+    flex-direction: column;
+    min-block-size: 0;
+}
+
 /* B-2: cache the inactive force-mounted Monaco pane. content-visibility:hidden
    keeps the rendered Monaco subtree in memory but skips its layout/paint while
    inactive — a switch-back restores the cached pane instead of re-instantiating

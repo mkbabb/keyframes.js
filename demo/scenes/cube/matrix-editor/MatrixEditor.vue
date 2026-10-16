@@ -1,15 +1,31 @@
 <template>
     <!-- X-DS pass 1, C1 (KF-C1-07) — no card of its own: the pane host draws the one frame (ControlsPaneWrapper), so this surface is flat inside it. -->
-    <div class="w-full">
+    <!-- X.KF.W13X.r3res2d (§0fj 4 · the §0fh item 6 idiom · UIA-KF-267 pane
+         side) — the title never leaves the short rail. At 844×390 the sheet's
+         window is 326 px and this surface 602 px, so the pane's port scrolled
+         the "Transform matrix" heading out above it (and at 390×844 too). The
+         surface is now a BOUNDED column down to its layer (`flex-col
+         min-h-0` on each box, `.pane-bounded` on the layer — the pane's
+         idiom, ControlsPaneWrapper.css): the layer's header stays above, and
+         the layer's body is the one scroll port (a glass `FadingScroll`, the
+         pane's own port kind), so the grid and the slider scroll under a
+         title that stays in view. Where the surface fits (1440×900) nothing
+         scrolls and nothing moves. -->
+    <div class="w-full flex flex-col min-h-0">
         <!-- X-DS pass 9 (KF-C9-07) — the pane's one inset (`--configurator-pad-inline`). -->
-        <div class="panel-content px-(--configurator-pad-inline) py-3">
+        <div class="panel-content px-(--configurator-pad-inline) py-3 flex flex-col min-h-0">
             <!-- X.KF.W13X.matrix (UIA-KF-161 · UIA-KF-267) — the surface is ONE
                  titled glass section, the Spring facet's anatomy: the title names
                  what the panel edits (the facet had no heading and an unnamed
                  panel, so once the dock idled to its glyph nothing on screen said
                  "matrix"), and one caption line is the legend for the S/K/P/T/w
                  role letters the cells wear. -->
-            <ConfiguratorLayer label="Transform matrix" default-open body-class="flex flex-col gap-3">
+            <ConfiguratorLayer
+                label="Transform matrix"
+                default-open
+                class="pane-bounded"
+                body-class="flex flex-col max-h-full min-h-0"
+            >
                 <!-- X.KF.W13X.sections (KF-W13 addendum (c), glass 10.1.0 O-68) — the
                      section's one action rides its header: Reset sat ALONE in a
                      second ribbon card under the editor, a body row away from the
@@ -33,70 +49,74 @@
                         <TooltipContent>Reset matrix: return every entry to the identity</TooltipContent>
                     </Tooltip>
                 </template>
-                <p class="text-caption text-muted-foreground">
-                    S&nbsp;scale · K&nbsp;shear · P&nbsp;perspective · T&nbsp;translate&nbsp;(px) · w&nbsp;divisor
-                </p>
-                <!-- UIA-KF-063 · UIA-KF-047 · UIA-KF-263/266 — each cell is a
-                     field-radius TILE holding its name ABOVE a single-line value
-                     field: the name sat under the value as a larger bold
-                     watermark (both illegible, worse in dark), and the text input
-                     stretched to a 56 px square became a disc (the pill radius
-                     clamps to half the block). The grid fills the card instead of
-                     shrink-wrapping to a centred island. The field keeps glass's
-                     own single-line shape; the card-like single-value FIELD kind
-                     is glass's row (O-59, relay-only). -->
-                <div class="matrix-grid grid w-full grid-cols-4 gap-1" role="group" aria-label="Matrix entries">
-                    <div
-                        v-for="(value, i) in matrix3dEnd.args"
-                        :key="i"
-                        class="matrix-cell"
-                        :class="{ 'is-active': selectedCell === i }"
-                        @focusin="editingCell = i"
-                        @focusout="editingCell = null"
-                    >
-                        <label
-                            :for="`${uid}-${i}`"
-                            :class="['matrix-axis-label', matrixCellMeta[i]!.axis.toLowerCase()]"
-                            >{{ matrixCellMeta[i]!.symbol }}<sub v-if="matrixCellMeta[i]!.sub">{{ matrixCellMeta[i]!.sub }}</sub></label
+                <!-- The rows keep their 20 px rhythm: the body's former `gap-3`
+                     plus glass's `space-y-2` on each body child (12 + 8 px). -->
+                <FadingScroll axis="y" class="flex flex-col gap-5 min-h-0">
+                    <p class="text-caption text-muted-foreground">
+                        S&nbsp;scale · K&nbsp;shear · P&nbsp;perspective · T&nbsp;translate&nbsp;(px) · w&nbsp;divisor
+                    </p>
+                    <!-- UIA-KF-063 · UIA-KF-047 · UIA-KF-263/266 — each cell is a
+                         field-radius TILE holding its name ABOVE a single-line value
+                         field: the name sat under the value as a larger bold
+                         watermark (both illegible, worse in dark), and the text input
+                         stretched to a 56 px square became a disc (the pill radius
+                         clamps to half the block). The grid fills the card instead of
+                         shrink-wrapping to a centred island. The field keeps glass's
+                         own single-line shape; the card-like single-value FIELD kind
+                         is glass's row (O-59, relay-only). -->
+                    <div class="matrix-grid grid w-full grid-cols-4 gap-1" role="group" aria-label="Matrix entries">
+                        <div
+                            v-for="(value, i) in matrix3dEnd.args"
+                            :key="i"
+                            class="matrix-cell"
+                            :class="{ 'is-active': selectedCell === i }"
+                            @focusin="editingCell = i"
+                            @focusout="editingCell = null"
                         >
-                        <!-- UIA-KF-264 — the cell the slider drives is marked for AT
-                             (`aria-current`) and, at rest, by the tile's selected
-                             tint (glass DESIGN.md's component-scoped `.is-active`:
-                             10 % foreground ground, 25 % foreground edge). A cell
-                             is selected by focus as well as by pointer, so the
-                             keyboard reaches the slider's cell too. -->
-                        <Input
-                            :id="`${uid}-${i}`"
-                            class="matrix-cell-field text-small text-center font-mono tabular-nums px-1"
-                            inputmode="decimal"
-                            :aria-current="selectedCell === i ? 'true' : undefined"
-                            :title="matrixCellEditText((value as MatrixScalar).payload.value)"
-                            :model-value="cellText(value as MatrixScalar, i)"
-                            @update:model-value="(v) => updateMatrixCell(v, i)"
-                            @focus="selectedCell = i"
-                            @click="selectedCell = i"
-                        />
+                            <label
+                                :for="`${uid}-${i}`"
+                                :class="['matrix-axis-label', matrixCellMeta[i]!.axis.toLowerCase()]"
+                                >{{ matrixCellMeta[i]!.symbol }}<sub v-if="matrixCellMeta[i]!.sub">{{ matrixCellMeta[i]!.sub }}</sub></label
+                            >
+                            <!-- UIA-KF-264 — the cell the slider drives is marked for AT
+                                 (`aria-current`) and, at rest, by the tile's selected
+                                 tint (glass DESIGN.md's component-scoped `.is-active`:
+                                 10 % foreground ground, 25 % foreground edge). A cell
+                                 is selected by focus as well as by pointer, so the
+                                 keyboard reaches the slider's cell too. -->
+                            <Input
+                                :id="`${uid}-${i}`"
+                                class="matrix-cell-field text-small text-center font-mono tabular-nums px-1"
+                                inputmode="decimal"
+                                :aria-current="selectedCell === i ? 'true' : undefined"
+                                :title="matrixCellEditText((value as MatrixScalar).payload.value)"
+                                :model-value="cellText(value as MatrixScalar, i)"
+                                @update:model-value="(v) => updateMatrixCell(v, i)"
+                                @focus="selectedCell = i"
+                                @click="selectedCell = i"
+                            />
+                        </div>
                     </div>
-                </div>
 
-                <!-- UIA-KF-260 · UIA-KF-106 (consumer half) — the ONE control
-                     idiom (OA-45/47, the param row): the slider is named by the
-                     cell it drives and the value reads on the label's line; the
-                     humane string reaches AT through the producer's `valueText`.
-                     The value/unit readout PROP and the extreme-edge mark are
-                     glass's half (O-59). -->
-                <div class="param-row">
-                    <LabeledSlider
-                        :model-value="matrixCellValue(selectedCell)"
-                        :label="selectedMeta.name"
-                        :min="selectedMeta.sliderOptions.bounds[0]"
-                        :max="selectedMeta.sliderOptions.bounds[1]"
-                        :step="selectedMeta.sliderOptions.step"
-                        :value-text="(v: number) => `${selectedMeta.name} ${readout(v)}`"
-                        @update:model-value="(v: number) => updateMatrixCell(v, selectedCell)"
-                    />
-                    <output class="param-value" aria-hidden="true">{{ readout(matrixCellValue(selectedCell)) }}</output>
-                </div>
+                    <!-- UIA-KF-260 · UIA-KF-106 (consumer half) — the ONE control
+                         idiom (OA-45/47, the param row): the slider is named by the
+                         cell it drives and the value reads on the label's line; the
+                         humane string reaches AT through the producer's `valueText`.
+                         The value/unit readout PROP and the extreme-edge mark are
+                         glass's half (O-59). -->
+                    <div class="param-row">
+                        <LabeledSlider
+                            :model-value="matrixCellValue(selectedCell)"
+                            :label="selectedMeta.name"
+                            :min="selectedMeta.sliderOptions.bounds[0]"
+                            :max="selectedMeta.sliderOptions.bounds[1]"
+                            :step="selectedMeta.sliderOptions.step"
+                            :value-text="(v: number) => `${selectedMeta.name} ${readout(v)}`"
+                            @update:model-value="(v: number) => updateMatrixCell(v, selectedCell)"
+                        />
+                        <output class="param-value" aria-hidden="true">{{ readout(matrixCellValue(selectedCell)) }}</output>
+                    </div>
+                </FadingScroll>
             </ConfiguratorLayer>
         </div>
     </div>
@@ -109,6 +129,7 @@ import { Button } from "@mkbabb/glass-ui";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@mkbabb/glass-ui/tooltip";
 import { LabeledSlider } from "@mkbabb/glass-ui/labeled-field";
 import { ConfiguratorLayer } from "@mkbabb/glass-ui/configurator";
+import { FadingScroll } from "@mkbabb/glass-ui/fading-scroll";
 import { Input } from "@mkbabb/glass-ui/input";
 import {
     matrixCellDisplayText,
