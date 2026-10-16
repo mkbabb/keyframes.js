@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, inject, nextTick, ref, watch, useTemplateRef, type Component } from "vue";
 import { CONTROLS_PANE_HOVER_KEY } from "@components/instrument/transport/injectionKeys";
-import { Activity, Atom, SlidersHorizontal, Braces, Clock, Grid3X3, CircleDashed } from "@lucide/vue";
+import { Activity, Atom, SlidersHorizontal, Braces, Clock, Grid3X3 } from "@lucide/vue";
 import {
     GlassDock,
     DockControl,
@@ -110,7 +110,6 @@ const TAB_ICONS: Record<string, Component> = {
     Grid3X3,
     Activity,
     Atom,
-    CircleDashed,
 };
 
 const props = defineProps<{
@@ -511,15 +510,18 @@ watch(isSelectOpen, (open) => {
                                 data-dock-surface-item
                                 :data-surface="item.surface"
                                 :data-selected="item.enabled && item.surface === selectedControl ? '' : undefined"
-                                :aria-label="item.title"
-                                :title="item.title"
+                                :aria-label="item.title || undefined"
+                                :aria-hidden="item.icon ? undefined : 'true'"
+                                :title="item.title || undefined"
                                 :disabled="!item.enabled"
                                 :active="isSurfaceShowing(item)"
                                 @pointerenter="warmControlSurfaces"
                                 @focusin="warmControlSurfaces"
                                 @click="onSurfaceItem(item)"
                             >
-                                <component :is="iconFor(item.icon)" aria-hidden="true" />
+                                <!-- X-DS KF-C13-01: the empty facet slot is a
+                                     blank seat; it wears no glyph. -->
+                                <component v-if="item.icon" :is="iconFor(item.icon)" aria-hidden="true" />
                             </DockControl>
                         </template>
 

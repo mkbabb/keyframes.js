@@ -332,9 +332,11 @@ export const DOCK_ITEM_KINDS = ["controls", "keyframes", "timeline", "facet"] as
 export type DockItemKind = (typeof DOCK_ITEM_KINDS)[number];
 
 /** One rendered dock item. `surface` is undefined only for the empty facet
- *  slot (the scene carries no facet at all). `title` is the item's tooltip and
- *  accessible name: the label for a live item, the label plus the reason for a
- *  disabled facet (X-DS KF-C12-01). */
+ *  slot (the scene carries no facet at all): that slot is a blank seat with no
+ *  glyph, label or title, kept only so the item set is identical on every
+ *  scene (X-DS KF-C13-01). `title` is the item's tooltip and accessible name:
+ *  the label for a live item, the label plus the reason for a disabled facet
+ *  (X-DS KF-C12-01). */
 export interface DockSurfaceItem {
     kind: DockItemKind;
     surface?: ControlSurface;
@@ -364,20 +366,25 @@ export function channelFacetsOf(
     return out;
 }
 
-/** The facet slot of a scene that carries no facet: it says so (X-DS
- *  KF-C12-01 — the generic pulse glyph and the "Scene facet" jargon are gone). */
-const NO_FACET = {
-    label: "No facet",
-    icon: "CircleDashed",
-    title: "No facet for this scene",
-} as const;
+/** The facet slot of a scene that carries no facet: a blank seat (X-DS
+ *  KF-C13-01). It keeps the item set identical on every scene (OA-37/46/51)
+ *  but carries no glyph, so it labels nothing and borrows no meaning (the
+ *  dashed ring is this app's sign for a target or end-state ghost). */
+const EMPTY_FACET_SLOT: DockSurfaceItem = {
+    kind: "facet",
+    label: "",
+    icon: "",
+    title: "",
+    enabled: false,
+};
 
 /**
  * Project a scene's derived surface set onto the ONE dock item set. Pure and
  * total: the result always holds the three built-in kinds plus at least one
  * facet item; a surface outside `surfaces` renders disabled. A facet slot with
  * no live facet names the scene's conditional facet (its own glyph and label,
- * and the channel that enables it) or, when the scene carries none, says so.
+ * and the channel that enables it) or, when the scene carries none, is the
+ * blank seat (`EMPTY_FACET_SLOT`).
  */
 export function dockSurfaceItems(
     surfaces: readonly ControlSurface[],
@@ -401,7 +408,7 @@ export function dockSurfaceItems(
               kind: "facet",
               surface: tab.value,
               label: tab.label,
-              icon: tab.icon ?? NO_FACET.icon,
+              icon: tab.icon ?? "SlidersHorizontal",
               title: tab.label,
               enabled: true,
           }))
@@ -412,11 +419,11 @@ export function dockSurfaceItems(
                     kind: "facet",
                     surface,
                     label: meta.label,
-                    icon: meta.icon ?? NO_FACET.icon,
+                    icon: meta.icon ?? "SlidersHorizontal",
                     title: `${meta.label}: select the ${channel} channel`,
                     enabled: false,
                 };
             })
-          : [{ kind: "facet", ...NO_FACET, enabled: false }];
+          : [{ ...EMPTY_FACET_SLOT }];
     return [...builtIn, ...facetItems];
 }

@@ -51,7 +51,7 @@ describe("dockSurfaceItems — the ONE dock item descriptor", () => {
             ["Controls", false],
             ["Keyframes", false],
             ["Timeline", true],
-            ["No facet", false],
+            ["", false], // the blank facet seat (X-DS KF-C13-01)
         ]);
         const cube = dockSurfaceItems(SCENE_SURFACES.cube!);
         expect(cube.map((i) => i.enabled)).toEqual([true, true, true, false]);
@@ -174,7 +174,7 @@ describe("the one surface registry (X.KF.W13X.esc1)", () => {
     });
     // X-DS KF-C12-01 — the facet slot never shows a generic glyph with an
     // internal name: a scene whose channel carries a conditional facet names
-    // that facet and the channel that enables it; a scene with none says so.
+    // that facet and the channel that enables it; a scene with none keeps a blank seat.
     it("a facet slot with no live facet names the facet its channel would show", () => {
         const channels = [
             { name: "Matrix", animation: {}, facets: [{ surface: "matrix-controls" as const }] },
@@ -193,9 +193,12 @@ describe("the one surface registry (X.KF.W13X.esc1)", () => {
         });
         const selected = dockSurfaceItems(surfacesFor({ channels, facets: [] }, "Matrix"), facets);
         expect(selected[3]).toMatchObject({ label: "Matrix", title: "Matrix", enabled: true });
+        // X-DS KF-C13-01 — a scene with no facet keeps the seat (the set is
+        // identical on every scene) but the seat is blank: no glyph, no name.
         const none = dockSurfaceItems(SCENE_SURFACES.amiga!);
-        expect(none[3]).toMatchObject({ label: "No facet", title: "No facet for this scene", enabled: false });
-        expect(dockSurfaceItems(SCENE_SURFACES.amiga!).map((i) => i.icon)).not.toContain("Activity");
+        expect(none[3]).toEqual({ kind: "facet", label: "", icon: "", title: "", enabled: false });
+        expect(none.map((i) => i.icon)).not.toContain("Activity");
+        expect(none.map((i) => i.icon)).not.toContain("CircleDashed");
     });
     it("the dock item for a facet carries the registry's own glyph", () => {
         const spring = dockSurfaceItems(["controls", "keyframes", "timeline", "spring"]);
