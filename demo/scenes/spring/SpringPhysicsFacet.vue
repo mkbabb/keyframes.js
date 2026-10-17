@@ -89,7 +89,8 @@
                 <FadingScroll
                     axis="y"
                     data-fold-key="spring-physics"
-                    :fade-end="!rail?.has('spring-physics')"
+                    :fade-end="!rail?.footed.has('spring-physics')"
+                    :fade-start="!rail?.headed.has('spring-physics')"
                     class="flex min-h-0 scroll-pb-2 flex-col gap-3"
                 >
                 <div class="flex flex-col gap-3">
@@ -204,17 +205,17 @@ import { ToggleGroup, ToggleGroupItem } from "@mkbabb/glass-ui/toggle-group";
 
 import SpringHeatmap, { DAMPING_AXIS, PARAM_STEP, RESPONSE_AXIS } from "./SpringHeatmap.vue";
 
-import { FOLD_FOOTED_KEY } from "@components/instrument/pane/composables/useFoldLanding";
+import { FOLD_EDGES_KEY } from "@components/instrument/pane/composables/useFoldLanding";
 import type { SpringDemoContext } from "./springKeys";
 import type { SpringPreset, SpringTrack } from "./useSpringDemo";
 
 const props = defineProps<{ demo: SpringDemoContext }>();
 const demo = props.demo;
 
-/** The desktop rail's footed ports: on the rail the facet bounds its body
- *  under its title (KF-C7-01); null on the phone sheet, whose one port scrolls
- *  the pane whole. */
-const rail = inject(FOLD_FOOTED_KEY, null);
+/** The desktop rail's landed port edges: on the rail the facet bounds its body
+ *  under its title (KF-C7-01) and its port's fades follow the landing (KF-C25-01,
+ *  KF-C8-01); null on the phone sheet, whose one port scrolls the pane whole. */
+const rail = inject(FOLD_EDGES_KEY, null);
 
 const isActivePreset = (t: SpringTrack) =>
     Math.abs(demo.response.value - t.preset.response) < 1e-6 &&

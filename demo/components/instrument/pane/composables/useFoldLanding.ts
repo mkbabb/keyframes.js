@@ -226,49 +226,102 @@ export function landFold(scroller: HTMLElement): "cue" | "foot" | "none" {
  * X-DS r8 pass 7 (KF-C7-01) — THE TOP EDGE IS PLACED TOO. A port pinned at
  * its END (a figure the reader opened, revealed whole above the fold) stopped
  * wherever `scrollHeight - clientHeight` fell: through a title row's letters at
- * 1440x1080, through the preset tiles' names at 1280x800. The mirror of the
- * fold's rule (KF-C4-03): no line of text crosses the port's top edge or lies
- * under its start fade. The port's block is lowered until its top edge falls
- * under the last such line; a boxed row's lower edge left under the fade is
- * the cue that content continues above. The port stays at its end. It never
- * gives up more than half its block (the figure the pin revealed stays whole).
+ * 1440x1080, through the preset tiles' names at 1280x800.
+ *
+ * X-DS r8 pass 8 (KF-C8-01) — THE TOP EDGE CUTS NO ROW. Placed by text alone,
+ * the edge still crossed what paints without text: at 1440x1080 the response
+ * slider's violet fill showed as a bare bar under the 'Physics' title, its
+ * label and readout scrolled away; at 1440x900 and 1280x800 the Smooth/Snappy
+ * tiles' lower borders. A row is the label and the control together, so the
+ * edge is placed by ROWS: every box at most a row tall (a field, a tile, a
+ * label-and-slider pair) that the edge would cross goes above it whole, and a
+ * separator left at the edge goes with the row it closes. The edge then sits
+ * in the gap between two rows, so the port's START fade is off there (the
+ * mirror of KF-C25-01's foot, returned as `true`): no fade lies on the first
+ * whole row, and the moment the reader scrolls up the fade is back as the cue.
+ * The cap is first cleared, so the port takes the frame's free block before
+ * any row is given up (the free plate under the ribbon was the old cap's).
+ * The port stays at its end, and never gives up more than half its block (the
+ * figure the pin revealed stays whole).
  */
-export function landStart(scroller: HTMLElement): void {
-    const fold = scroller.clientHeight;
-    const reach = scroller.scrollHeight - fold;
-    if (fold === 0 || reach <= 1 || reach - scroller.scrollTop > 1) return;
-    const fade = fadePx(scroller);
-    const texts = contentSpans(scroller).filter((s) => s.text);
-    let top = scroller.scrollTop;
-    for (;;) {
-        const cut = texts.filter((s) => s.top < top + fade && s.bottom > top);
-        if (cut.length === 0) break;
-        top = Math.ceil(Math.max(...cut.map((s) => s.bottom)));
-    }
-    const block = scroller.scrollHeight - top;
-    if (top === scroller.scrollTop || block < fold / 2) return;
-    scroller.style.maxBlockSize = `${block + scroller.offsetHeight - fold}px`;
-    scroller.scrollTop = scroller.scrollHeight;
+export function landStart(scroller: HTMLElement): boolean {
+    const headed = placeStart(scroller);
+    // The rail host reads the mark on its next scroll or landing (FOLD_EDGES_KEY).
+    scroller.toggleAttribute("data-fold-headed", headed);
+    return headed;
 }
 
-/** The desktop rail's footed ports (their fold rests on a row's foot at their
- *  top, so their end fade is off, KF-C25-01), provided by the rail host for a
- *  facet that bounds its own port under its title; null on the phone sheet. */
-export const FOLD_FOOTED_KEY: InjectionKey<Readonly<Ref<ReadonlySet<string> | null>>> =
-    Symbol("fold-footed");
+function placeStart(scroller: HTMLElement): boolean {
+    if (scroller.clientHeight === 0) return false;
+    if (scroller.scrollHeight - scroller.clientHeight - scroller.scrollTop > 1) return false;
+    scroller.style.maxBlockSize = "";
+    const fold = scroller.clientHeight;
+    const reach = scroller.scrollHeight - fold;
+    scroller.scrollTop = scroller.scrollHeight;
+    if (reach <= 1) return false;
+    const fade = fadePx(scroller);
+    const origin = scroller.getBoundingClientRect().top + scroller.clientTop - scroller.scrollTop;
+    const boxes: { top: number; bottom: number; figure: boolean }[] = [];
+    for (const el of scroller.querySelectorAll("*")) {
+        if (el instanceof SVGElement && el.tagName !== "svg") continue;
+        if (el.matches(SEPARATOR)) continue;
+        const r = el.getBoundingClientRect();
+        if (r.width <= 1 || r.height <= 1) continue;
+        if (!el.checkVisibility({ contentVisibilityAuto: true, visibilityProperty: true })) continue;
+        const tall = r.height > ROW_MAX_FADES * fade;
+        // A figure paints (a plot, a well, a canvas); a tall layout box is a group of rows.
+        const figure = tall && (REPLACED.has(el.tagName) || paints(getComputedStyle(el)));
+        boxes.push({ top: r.top - origin, bottom: r.bottom - origin, figure });
+    }
+    const rows = boxes.filter((b) => b.bottom - b.top <= ROW_MAX_FADES * fade);
+    const crosses = (b: { top: number; bottom: number }, at: number) => b.top < at - 0.5 && b.bottom > at + 0.5;
+    let top = reach;
+    for (;;) {
+        const cut = rows.filter((b) => crosses(b, top));
+        if (cut.length === 0) break;
+        top = Math.ceil(Math.max(...cut.map((b) => b.bottom)));
+    }
+    // A separator between the edge and the next row closes the row above it.
+    const next = Math.min(Infinity, ...rows.filter((b) => b.top >= top - 0.5).map((b) => b.top));
+    const rules = ruleTops(scroller).filter((t) => t >= top - 0.5 && t < next);
+    if (rules.length > 0) top = Math.min(next, Math.ceil(Math.max(...rules) + 1));
+    const block = scroller.scrollHeight - top;
+    if (block < fold / 2) return false;
+    if (top > reach) scroller.style.maxBlockSize = `${block + scroller.offsetHeight - fold}px`;
+    scroller.scrollTop = scroller.scrollHeight;
+    // A figure (taller than a row) the edge crosses keeps the fade as its cue.
+    return !boxes.some((b) => b.figure && crosses(b, top));
+}
+
+/** The desktop rail's landed port edges, by `data-fold-key`: `footed` ports
+ *  rest at their top with the fold on a row's foot (end fade off, KF-C25-01);
+ *  `headed` ports rest at their end with the top edge in a gap between rows
+ *  (start fade off, KF-C8-01). */
+export interface FoldEdges {
+    footed: ReadonlySet<string>;
+    headed: ReadonlySet<string>;
+}
+
+/** The rail's landed edges, provided by the rail host for a facet that bounds
+ *  its own port under its title; null on the phone sheet. */
+export const FOLD_EDGES_KEY: InjectionKey<Readonly<Ref<FoldEdges | null>>> = Symbol("fold-edges");
 
 /**
  * Keep every desktop rail scroller's fold on content while `rail` is mounted.
- * Returns the `data-fold-key`s of the scrollers whose fold sits on a row's foot
- * while they rest at the top; the host binds `fadeEnd` off for those (KF-C25-01).
+ * Returns the landed edges by `data-fold-key`: `footed`, the scrollers whose
+ * fold sits on a row's foot while they rest at the top (the host binds
+ * `fadeEnd` off, KF-C25-01); `headed`, those resting at their end with the top
+ * edge between rows (the host binds `fadeStart` off, KF-C8-01).
  */
 export function useFoldLanding(
     rail: Ref<HTMLElement | null | undefined>,
-): Readonly<ShallowRef<ReadonlySet<string>>> {
-    const footed = shallowRef<ReadonlySet<string>>(new Set());
-    const setFooted = (next: Set<string>) => {
-        const prev = footed.value;
-        if (next.size !== prev.size || [...next].some((k) => !prev.has(k))) footed.value = next;
+): Readonly<ShallowRef<FoldEdges>> {
+    const edges = shallowRef<FoldEdges>({ footed: new Set(), headed: new Set() });
+    const same = (a: ReadonlySet<string>, b: ReadonlySet<string>) =>
+        a.size === b.size && [...a].every((k) => b.has(k));
+    const setEdges = (footed: ReadonlySet<string>, headed: ReadonlySet<string>) => {
+        const prev = edges.value;
+        if (!same(footed, prev.footed) || !same(headed, prev.headed)) edges.value = { footed, headed };
     };
     let frame = 0;
     const observed = new Set<Element>();
@@ -281,7 +334,8 @@ export function useFoldLanding(
         const contents = new Set(scrollers.flatMap((s) => [...s.children]));
         for (const el of observed) if (!contents.has(el)) { resize.unobserve(el); observed.delete(el); }
         for (const el of contents) if (!observed.has(el)) { resize.observe(el); observed.add(el); }
-        const next = new Set<string>();
+        const footed = new Set<string>();
+        const headed = new Set<string>();
         for (const s of scrollers) {
             if (!s.offsetParent) continue;
             const key = s.dataset.foldKey;
@@ -295,20 +349,29 @@ export function useFoldLanding(
             const landed = landFold(s);
             if (atEnd) {
                 s.scrollTop = s.scrollHeight;
-                landStart(s);
-            }
-            if (landed === "foot" && key && s.scrollTop === 0) next.add(key);
+                if (landStart(s) && key) headed.add(key);
+            } else s.removeAttribute("data-fold-headed");
+            if (landed === "foot" && key && s.scrollTop === 0) footed.add(key);
         }
-        setFooted(next);
+        setEdges(footed, headed);
     };
-    // Scrolled off the top, the end fade is the cue again; back at the top, re-land.
+    // Scrolled off the top, the end fade is the cue again; back at the top,
+    // re-land. Scrolled off the end, the start fade is the cue again; back at a
+    // landed end (`landStart`'s mark), it is off.
     const onScroll = (event: Event) => {
         const s = event.target;
         if (!(s instanceof HTMLElement) || !s.matches(PORT)) return;
         const key = s.dataset.foldKey;
-        if (s.scrollTop > 0) {
-            if (key && footed.value.has(key)) setFooted(new Set([...footed.value].filter((k) => k !== key)));
-        } else schedule();
+        if (!key) return;
+        const { footed, headed } = edges.value;
+        const atEnd = s.scrollTop > 0 && s.scrollHeight - s.clientHeight - s.scrollTop <= 1;
+        const nextHeaded = new Set([...headed].filter((k) => k !== key));
+        if (atEnd && s.hasAttribute("data-fold-headed")) nextHeaded.add(key);
+        if (s.scrollTop > 0) setEdges(new Set([...footed].filter((k) => k !== key)), nextHeaded);
+        else {
+            setEdges(footed, nextHeaded);
+            schedule();
+        }
     };
     function schedule() {
         frame ||= requestAnimationFrame(land);
@@ -353,5 +416,5 @@ export function useFoldLanding(
         rail.value?.removeEventListener("scroll", onScroll, true);
         if (frame) cancelAnimationFrame(frame);
     });
-    return footed;
+    return edges;
 }

@@ -155,6 +155,18 @@
         var(--face-step-ink, black) var(--face-step, 0%)
     );
 }
+/* X-DS r8 pass 8 (KF-C8-02) — THE FACES MEET WITHOUT A SEAM. The crayon fill
+   and the face's opaque ground (KFA-142, above) ended on the same edge, so both
+   anti-aliased there and the ground's light fringe leaked through the crayon's:
+   a hairline ran where the magenta top met the yellow left face (390, light).
+   The fill now overscans its ground by 0.5 px each side (the face centres it),
+   so the ground's edge is wholly under crayon and the only fringe left is
+   crayon against the next face. Flat faces; the depth is unchanged. */
+.cube-side > .face-fill {
+    flex: none;
+    inline-size: calc(100% + 1px);
+    block-size: calc(100% + 1px);
+}
 .cube-side.top {
     --face-step: 8%;
     --face-step-ink: white;

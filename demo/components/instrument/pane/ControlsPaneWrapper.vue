@@ -105,7 +105,11 @@
                             v-bind="
                                 isMobileLayout
                                     ? {}
-                                    : { axis: 'y', fadeEnd: !footed.has(String(host.animation.id)) }
+                                    : {
+                                          axis: 'y',
+                                          fadeEnd: !edges.footed.has(String(host.animation.id)),
+                                          fadeStart: !edges.headed.has(String(host.animation.id)),
+                                      }
                             "
                             :data-fold-key="host.animation.id"
                             class="controls-surface"
@@ -159,7 +163,11 @@
                         v-for="host in sequenceHosts"
                         :key="host.name"
                         v-show="storedControls.selectedAnimation == host.name"
-                        v-bind="isMobileLayout ? {} : { axis: 'y', fadeEnd: !footed.has(host.name) }"
+                        v-bind="
+                            isMobileLayout
+                                ? {}
+                                : { axis: 'y', fadeEnd: !edges.footed.has(host.name), fadeStart: !edges.headed.has(host.name) }
+                        "
                         :data-fold-key="host.name"
                         class="controls-surface"
                     >
@@ -281,7 +289,7 @@ import ChannelControls from "./channel-controls/ChannelControls.vue";
 import RibbonBar from "./RibbonBar.vue";
 import SequenceTimeline from "../timeline/SequenceTimeline.vue";
 import { useControlsLayout } from "./composables/useControlsLayout";
-import { FOLD_FOOTED_KEY, useFoldLanding } from "./composables/useFoldLanding";
+import { FOLD_EDGES_KEY, useFoldLanding } from "./composables/useFoldLanding";
 // The sheet's bottom lift above the menubar is the `bottom` style set on
 // `<SheetContent>` in the template (D-B1; glass 10's sheet pins `bottom: 0` at
 // zero specificity, and its 7.0.0 `--drawer-inset-block-end` lever is gone).
@@ -293,7 +301,9 @@ const [DefinePaneBody, ReusePaneBody] = createReusableTemplate();
 // X-DS r4 pass 5 (KF-C24-01) — the desktop rail (null on the phone sheet).
 // r4 pass 6 (KF-C25-01) — a scroller whose fold sits on a row's foot (and rests
 // at the top) drops its end fade, so the whole row is not faded.
-const footed = useFoldLanding(useTemplateRef<HTMLElement>("railEl"));
+// r8 pass 8 (KF-C8-01) — and one resting at its end with its top edge between
+// rows drops its start fade.
+const edges = useFoldLanding(useTemplateRef<HTMLElement>("railEl"));
 
 const props = defineProps<{
     animationGroup: AnimationGroup<any>;
@@ -460,12 +470,12 @@ const {
     onPaneMouseLeave: paneMouseLeave,
 } = useControlsLayout(props.storedControls);
 
-// X-DS r8 pass 7 (KF-C7-01) — the desktop rail's footed ports, for a facet that
-// bounds its own port under its title (null on the phone sheet, where the
+// X-DS r8 pass 7 (KF-C7-01) — the desktop rail's landed port edges, for a facet
+// that bounds its own port under its title (null on the phone sheet, where the
 // sheet's one port scrolls the pane whole and no facet bounds itself).
 provide(
-    FOLD_FOOTED_KEY,
-    computed(() => (isMobileLayout.value ? null : footed.value)),
+    FOLD_EDGES_KEY,
+    computed(() => (isMobileLayout.value ? null : edges.value)),
 );
 
 // ── T.H3-ADOPT — the mobile Sheet open/detent state (was useSheetState) ──────
