@@ -317,7 +317,18 @@ const landDrawer = () => {
     // fold with nothing under it (390x844: a lone 'Sine'). Where no tile of
     // the heading's family stands whole above the fold, the heading goes
     // under it with its row.
-    if (tile) {
+    // X-DS r8 pass 10 (KF-C10x-02) — BUT ON THE STAGE, A HEADING WITH ITS
+    // ROW'S PEEK STAYS: the peek is the cue. Sending 'Sine' under the fold
+    // with its row whenever no Sine tile stood whole left ~115 px of bare
+    // plate under Standard at 1440 (the dead plate KF-C9-03 ranked the
+    // defect), with nothing saying six families follow. Where the block
+    // holds the heading and its first row's designed peek, both stay (the
+    // KF-C24-01 rule: a row crossing the fold is the cue); only where it
+    // cannot (390x844: 4 px of tile under 'Sine', the lone heading KF-C7-03
+    // was cured for) does the heading go under with its row. The menu keeps
+    // the C7-03 rule: it is content-sized, so a landing there leaves no plate.
+    const peeked = props.density === "stage" && shown > designed;
+    if (tile && !peeked) {
         const heading = rowsOf(drawer, ".catalogue-family")
             .filter((h) => h.bottom <= cut.top)
             .reduce<ReturnType<typeof rowsOf>[number] | null>(

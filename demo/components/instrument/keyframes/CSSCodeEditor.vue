@@ -725,9 +725,16 @@ defineExpose({
     flex: 1 1 0;
     contain: size;
 }
+/* X-DS r8 pass 10 (KF-C10x-03) — THE WELL GIVES BACK THE LAYER'S EDGE. Since
+   KF-C9x-02 the well sits in glass's ConfiguratorLayer, whose 1 px border
+   (transparent here) on each side took 2 px from Monaco's box, and the
+   default buffer's line 4 soft-wrapped ('ease-in-out;' alone). The well's own
+   gutters each give 1 px back, so the box is the width it was and the
+   numerals stay on the 20 px column (the layer's edge plus this inset).
+   Glass's border is not touched. */
 .code-well__body {
-    padding-inline-start: var(--configurator-pad-inline);
-    padding-inline-end: var(--space-body);
+    padding-inline-start: calc(var(--configurator-pad-inline) - 1px);
+    padding-inline-end: calc(var(--space-body) - 1px);
     background: var(--code-well-ground);
 }
 

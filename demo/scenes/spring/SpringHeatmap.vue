@@ -59,12 +59,18 @@
                  row is a flex-wrap line, SubPaneHeader's caption rule). At
                  1280x800 the nowrap sentence ran 27 px past its own box and
                  the rail cut it mid-word. -->
-            <span v-else-if="figureOpen" class="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 min-w-0 text-caption text-muted-foreground" data-figure-legend>
+            <!-- X-DS r8 pass 10 (KF-C10x-04) — THE SWATCH NEVER STANDS ALONE.
+                 As two flex items the break fell between the swatch and the
+                 sentence, so at 1280x800 a bare 48 px ramp bar held the first
+                 line. The legend is now one text run: the swatch rides the
+                 sentence's first phrase in one unbreakable run, and the line
+                 breaks only after '·'. -->
+            <span v-else-if="figureOpen" class="min-w-0 whitespace-normal text-caption text-muted-foreground tabular-nums" title="Peak overshoot varies with damping ζ only; response sets the tempo, not the peak" data-figure-legend>
                 <!-- X-DS pass 16 (KF-C16-04) — the swatch keys the field's ramp.
                      r4 pass 5 (KF-C24-01) — so does the sentence: both show only
                      while the field does. -->
-                <span class="spring-heatmap-swatch shrink-0" aria-hidden="true"></span>
-                <span class="tabular-nums" title="Peak overshoot varies with damping ζ only; response sets the tempo, not the peak">{{ LEGEND }}</span>
+                <span class="whitespace-nowrap"><span class="spring-heatmap-swatch" aria-hidden="true"></span>{{ LEGEND_HEAD }}</span>
+                {{ " " }}<span class="whitespace-nowrap">{{ LEGEND_TAIL }}</span>
             </span>
             <span :id="readoutId" class="sr-only">
                 {{ response.toFixed(2) }} s / ζ {{ dampingFraction.toFixed(2) }}
@@ -335,7 +341,9 @@ const ZETA_TICKS = [
 ];
 
 /** The field's legend: the ramp's range and what alone sets it. */
-const LEGEND = `0 → ${OVERSHOOT_MAX_PERCENT} % overshoot · set by damping alone`;
+const LEGEND_HEAD = `0 → ${OVERSHOOT_MAX_PERCENT} % overshoot ·`;
+const LEGEND_TAIL = "set by damping alone";
+const LEGEND = `${LEGEND_HEAD} ${LEGEND_TAIL}`;
 
 const FIELD_LABEL =
     `Spring parameter field — response ${RESPONSE_AXIS.min} to ${RESPONSE_AXIS.max} s across, ` +
@@ -897,6 +905,10 @@ function onKeydown(e: KeyboardEvent): void {
    the exact continuous form of the banded field. ── */
 .spring-heatmap-swatch {
     display: inline-block;
+    /* KF-C10x-04 — inline at the head of the legend's first run: centred on
+       the text's x-height, the old flex gap (0.375rem) as its own margin. */
+    vertical-align: middle;
+    margin-inline-end: 0.375rem;
     inline-size: 3rem;
     block-size: 0.5rem;
     border-radius: var(--radius-pill, 9999px);
