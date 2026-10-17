@@ -15,41 +15,53 @@
     <!-- X-DS r7 pass 5 (KF-C5-01) — in the desktop rail the well fills the
          pane down to the ribbon: the chain to it is `.rail-fill`
          (ControlsPaneWrapper.css) and CSSCodeEditor grows its box. -->
-    <section class="rail-fill min-w-0" :aria-labelledby="headingId">
-        <!-- D-4 (X.KF.W12.e) — the editor WELL is the parse-error shake's
-             target: the element whose buffer failed to parse is the element
-             that moves. The preset used to be constructed target-less. -->
-        <div ref="editorWellRef" class="rail-fill relative" @keydown="onKeyDown">
-            <CSSCodeEditor
-                ref="editorRef"
-                :model-value="cssKeyframesString"
-                aria-label="Keyframes CSS"
-                height="450px"
-                :font-size="14"
-                :line-numbers="true"
-                :border="false"
-                @update:model-value="onEditorChange"
-            >
-                <template #header>
-                    <!-- X-DS pass 9 (KF-C9-07) — the pane's one inset
-                         (`--configurator-pad-inline`) and one title rung (glass's
-                         configurator section label), as the scene facets. -->
-                    <header class="flex items-center justify-between gap-2 border-b border-border px-(--configurator-pad-inline) py-2">
-                        <h3 :id="headingId" class="configurator-section-label min-w-0 truncate">
-                            {{ animationName }}
-                        </h3>
-                        <span
-                            role="status"
-                            aria-live="polite"
-                            class="text-caption text-muted-foreground flex shrink-0 items-center gap-1.5"
-                        >
-                            <StatusDot :state="paneStatus.dot" size="sm" motion="off" />
-                            {{ paneStatus.text }}
-                        </span>
-                    </header>
-                </template>
-            </CSSCodeEditor>
-        </div>
+    <!-- X-DS r8 pass 9 (KF-C9x-02) — ONE header anatomy across the surfaces:
+         the pane is glass's ConfiguratorLayer, as the Controls, Timeline,
+         Physics, Stagger and Easing headers are (the title, a status in
+         `#actions`, the disclosure chevron with `aria-expanded`). The header
+         had lived in the code editor's `#header` slot as a bare h3 and status,
+         so it was the one pane header with no collapse trigger, at 390 too
+         (the sheet's peek). The layer's label is the animation's name, and
+         the region carries the same name. The well is flush in the layer's
+         body (no inset of the layer's own): the well's body already starts
+         its code on the pane's one inset (CSSCodeEditor, KF-C11-01). The
+         section is `.panel-content` (design-idioms.css), as the Timeline's
+         host is: the pane frame is the one frame, so the layer's own section
+         hairline and tint read transparent (no card in a card). -->
+    <section class="panel-content rail-fill min-w-0" :aria-label="animationName">
+        <ConfiguratorLayer
+            class="rail-fill"
+            :label="animationName"
+            default-open
+            actions-when="always"
+            body-class="flex grow flex-col space-y-0 p-0"
+        >
+            <template #actions>
+                <span
+                    role="status"
+                    aria-live="polite"
+                    class="text-caption text-muted-foreground flex shrink-0 items-center gap-1.5"
+                >
+                    <StatusDot :state="paneStatus.dot" size="sm" motion="off" />
+                    {{ paneStatus.text }}
+                </span>
+            </template>
+            <!-- D-4 (X.KF.W12.e) — the editor WELL is the parse-error shake's
+                 target: the element whose buffer failed to parse is the element
+                 that moves. The preset used to be constructed target-less. -->
+            <div ref="editorWellRef" class="rail-fill relative" @keydown="onKeyDown">
+                <CSSCodeEditor
+                    ref="editorRef"
+                    :model-value="cssKeyframesString"
+                    aria-label="Keyframes CSS"
+                    height="450px"
+                    :font-size="14"
+                    :line-numbers="true"
+                    :border="false"
+                    @update:model-value="onEditorChange"
+                />
+            </div>
+        </ConfiguratorLayer>
     </section>
 </template>
 <script setup lang="ts">
@@ -66,12 +78,13 @@
 import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 import { kfEngine } from "@kf-engine";
 
-import { computed, h, onMounted, useId, useTemplateRef } from "vue";
+import { computed, h, onMounted, useTemplateRef } from "vue";
 import { useKeyframeBrushApply } from "./composables/useKeyframeBrushApply";
 import { useKeyframesEditor } from "./composables/useKeyframesEditor";
 
 import { toast, ToastAction, type ToastHandle } from "@mkbabb/glass-ui/toast";
 import { StatusDot } from "@mkbabb/glass-ui/status-dot";
+import { ConfiguratorLayer } from "@mkbabb/glass-ui/configurator";
 import { copyWithToast } from "@composables/copyWithToast";
 
 // HEAVY surface from the warmed engine (kfEngine(), L.W8 S1 dogfood inversion) —
@@ -236,8 +249,6 @@ const { applyCSSStyles, clearApplied, cssApplied } = useKeyframeBrushApply({
     styleId: keyframesStyleId,
     getCSSString: () => sheetCSSString.value,
 });
-
-const headingId = useId();
 
 // Applied outranks the parse state: an applied sheet is what the target shows.
 const paneStatus = computed(() => {

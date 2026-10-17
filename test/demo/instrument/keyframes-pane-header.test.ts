@@ -5,7 +5,8 @@
  * name, no parse or apply state beside the source, and the tabpanel had no
  * accessible name. The pane is now a region named by a heading that carries the
  * animation's name, with one polite status line — Parsed · Parse error ·
- * Applied — beside the buffer it describes.
+ * Applied — beside the buffer it describes. Since X-DS r8 pass 9 (KF-C9x-02)
+ * the header is glass's ConfiguratorLayer (title, status, chevron).
  *
  * RED at the parent bytes (no region, no heading, no status), GREEN after.
  */
@@ -103,11 +104,15 @@ describe("UIA-KF-275 — the pane's heading and status", () => {
         await nextTick();
         await vi.waitFor(() => expect(buffer()).toContain("@keyframes"), { timeout: 20_000 });
 
-        const region = wrapper.find("section[aria-labelledby]");
+        // X-DS r8 pass 9 (KF-C9x-02) — the header is glass's ConfiguratorLayer,
+        // the anatomy every sibling pane header wears: the region is named by
+        // the animation, the layer's title carries the same name, and the title
+        // is the disclosure trigger (aria-expanded, open at rest).
+        const region = wrapper.find('section[aria-label="Rotations"]');
         expect(region.exists()).toBe(true);
-        const heading = document.getElementById(region.attributes("aria-labelledby")!);
-        expect(heading?.tagName).toBe("H3");
-        expect(heading?.textContent?.trim()).toBe("Rotations");
+        const trigger = region.find('[data-slot="configurator-layer-trigger"]');
+        expect(trigger.attributes("aria-expanded")).toBe("true");
+        expect(trigger.find(".configurator-section-label").text()).toBe("Rotations");
 
         const status = () => region.find('[role="status"]');
         expect(status().text()).toBe("Parsed");
@@ -136,10 +141,16 @@ describe("UIA-KF-275 — the pane's heading and status", () => {
         await nextTick();
         await vi.waitFor(() => expect(buffer()).toContain("@keyframes"), { timeout: 20_000 });
 
-        const region = wrapper.find("section[aria-labelledby]");
-        const heading = document.getElementById(region.attributes("aria-labelledby")!);
-        expect(heading?.textContent?.trim()).toBe("Spring Keyframes");
+        const region = wrapper.find('section[aria-label="Spring Keyframes"]');
+        expect(region.exists()).toBe(true);
+        expect(region.find(".configurator-section-label").text()).toBe("Spring Keyframes");
         expect(buffer()).toContain("@keyframes Spring-Keyframes");
+        // The header folds the well, as the sibling panes' headers do; the
+        // status stays in the folded header (`actions-when="always"`).
+        const trigger = region.find('[data-slot="configurator-layer-trigger"]');
+        await trigger.trigger("click");
+        expect(trigger.attributes("aria-expanded")).toBe("false");
+        expect(region.find('[role="status"]').text()).toBe("Parsed");
         wrapper.unmount();
     });
 });
