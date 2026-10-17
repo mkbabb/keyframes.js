@@ -271,9 +271,22 @@ const rowsOf = (drawer: HTMLElement, selector: string) => {
  *  the menu, which is content-sized under its max-height. The stage drawer
  *  keeps the stage's free block: shrinking it shortened the plate below its
  *  siblings' (1440) and left the stage's free block under a cut last tile
- *  (390). It lands its rows by scroll (`landTop`). */
+ *  (390). It lands its rows by scroll (`landTop`).
+ *  X-DS r8 pass 5 (KF-C5p-06) — AND ITS FOLD LANDS AT REST, within one row.
+ *  The plate now stands at the stage cap whatever the drawer's height
+ *  (KF-C7-03), so a landed fold no longer shortens it. Unlanded, the stage
+ *  fold fell anywhere: at 1440x900 it showed 28 px of the Sine tiles' tops,
+ *  12 px of them solid above glass's 16 px end fade (a row of sliced
+ *  borders); at 1280x800 it ran through the Sine heading; at 390x844 a 4 px
+ *  sliver of tile tops read as a hairline under 'Sine'. One rule for both
+ *  densities: a heading the fold would cut goes under it whole; a tile it
+ *  would cut shows its designed peek (`scroll-padding-block-end`, inside the
+ *  fade) or, where less than that peek shows, nothing. The stage leaves a
+ *  tile showing half of itself or more as it stands, so the bare plate a
+ *  landing leaves under the fold stays under half a row. Never on the
+ *  user's own scroll: the rest is landed on mount, resize, filter and
+ *  `landTop`. */
 const landDrawer = () => {
-    if (props.density !== "menu") return;
     const drawer = drawerEl.value?.$el;
     if (!(drawer instanceof HTMLElement)) return;
     drawer.style.maxBlockSize = "";
@@ -287,10 +300,18 @@ const landDrawer = () => {
             null,
         );
     if (!cut) return;
-    const peek = cut.el.classList.contains("specimen-tile")
+    const tile = cut.el.classList.contains("specimen-tile");
+    const shown = fold - (cut.top - at);
+    if (props.density === "stage" && tile && shown >= (cut.bottom - cut.top) / 2) return;
+    const designed = tile
         ? Number.parseFloat(getComputedStyle(drawer).scrollPaddingBlockEnd) || 0
         : 0;
-    const end = Math.floor(cut.top - at + peek);
+    // The peek rounds up to whole px (never under the designed peek); no
+    // peek rounds down (never a sub-px sliver of the tile's edge).
+    const end =
+        shown > designed
+            ? Math.ceil(cut.top - at + designed)
+            : Math.floor(cut.top - at);
     // A port too short to hold a row whole is left as it stands.
     if (end < fold / 2) return;
     drawer.style.maxBlockSize = `${end + drawer.offsetHeight - fold}px`;
@@ -384,6 +405,8 @@ const landTop = () => {
     if (need === 0 && max - at < row && max <= high + padStart && clearAt(max)) at = max;
     if (Math.abs(at - now) <= 1) return;
     drawer.scrollTop = at;
+    // KF-C5p-06 — the rest moved the fold: land it again.
+    landDrawer();
 };
 // The tiles are `content-visibility: auto` (a 132 px placeholder until first
 // rendered): a tile a pick or a focus scroll brings on screen renders at its
