@@ -112,6 +112,14 @@
              plus the Button's 1px edge into the frame's gutter (`-ms`), so the
              first word lands on the column and the plate still clears the
              frame. Block size and hit height are glass's (min-block-size).
+             X-DS r9 pass 10 (KF-C10-01) — the GLYPH LEADS THE WORD in both
+             verbs, the instrument's one labelled-verb anatomy (the ribbon's
+             Snapshot / Import / Add / Export, the paste dialog's Import,
+             Re-seat, Apply CSS): the transport row predated that rule, so the
+             same pane slot flipped anatomy between Controls and Timeline. The
+             state stays on the glyph (the arrow flips, the eye becomes
+             eye-off). The gutter offset is unchanged in value and now lands
+             the leading GLYPH on the label column, as Snapshot's does.
              X-DS r5 pass 4 (KF-C4-07) — both verbs take glass's `sm` size:
              its type is the label rung the fields above wear (the default
              Button rung set these two secondary toggles louder than "time",
@@ -124,13 +132,13 @@
                 :aria-pressed="userReversed"
                 @click="onReverse"
             >
-                <span>Reverse</span>
                 <ArrowLeftRight
                     :class="[
                         'transition-transform duration-fast',
                         userReversed ? 'scale-x-[-1]' : '',
                     ]"
                 />
+                <span>Reverse</span>
             </Button>
             <!-- UIA-KF-300 (X.KF.W13X.transport) — ONE stable name with
                  `aria-pressed`; the tooltip states the action the next press
@@ -155,11 +163,11 @@
                         :style="{ '--preview-ease': PREVIEW_EASE }"
                         @click="emit('update:preview', preview === 'hidden' ? 'shown' : 'hidden')"
                     >
-                        <span>Preview</span>
                         <span class="preview-eye__glyphs" aria-hidden="true">
                             <Eye class="preview-eye__glyph" data-glyph="eye" />
                             <EyeOff class="preview-eye__glyph" data-glyph="eye-off" />
                         </span>
+                        <span>Preview</span>
                     </Button>
                 </TooltipTrigger>
                 <TooltipContent>{{ preview === "hidden" ? "Show ball preview" : "Hide ball preview" }}</TooltipContent>
