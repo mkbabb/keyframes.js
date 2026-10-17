@@ -188,6 +188,18 @@ Cube exposes the active channel plus a live matrix cell or Euler triple with
 the same `.stage-legend` behavior from §7. No stage plate is required; the
 full-bleed canvas is the immersive genre's deliberate surface.
 
+**Design note (X-DS r9 pass 6, KF-C6-02): amiga stays untitled, as the cube
+does.** The whisper above is unbuilt (U.B8 never landed), and amiga is the
+cube's register, not a plated instrument scene: a full-bleed canvas with no DOM
+layer on the stage (T.A10). It therefore does not wear the plated scenes'
+`SceneStageHeader` (title rung over a readout row). Its name is carried by the
+pane title ("Spin") at 1440 and by the sheet title at 390, and its spin readouts
+are the canvas's fallback content (`SubjectAxes`). At 390 the room is centred in
+the viewport as the cube is, not top-aligned under a header it does not have.
+Giving both 3D scenes a visible title is the §8 whisper, and it is the owner's
+call. Until then, critics should not flag the missing title or the 390 room
+placement as a defect.
+
 The register is a spec, not a self-blessed screenshot. U.B8 supplies the
 module-shaped implementation. Candidate renders belong under
 `docs/tranches/T/goldens/candidates/` with `PENDING-OWNER` status; the owner

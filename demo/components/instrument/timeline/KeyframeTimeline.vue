@@ -176,8 +176,8 @@
              X-DS r8 pass 7 (KF-C7-02) — that alignment is the column's start
              edge, at caption ink, the line sitting under the track it
              describes (centred in the free block it floated). The verbs are
-             not bold: the footer's buttons are the one place to act, so the
-             sentence names them without a second emphasis. -->
+             not bold: the sentence names them without a second emphasis
+             (the one verb it asks for sits beside it, KF-C6-01 below). -->
         <!-- X-DS r6 pass 10 (KF-C10-05) — the notice stands one gap (the
              column's) under the track: no top padding of its own, and an
              empty track reserves no caret row (TimelineTrack). -->
@@ -186,16 +186,25 @@
              @keyframes, the empty state names it, and the toolbar's Import
              opens already holding that CSS, so the two surfaces of one pane
              agree. -->
-        <p
+        <!-- X-DS r9 pass 6 (KF-C6-01) — the sentence that asks for Import
+             holds it: the hint and its verb are one unit under the track, the
+             verb wearing the ribbon's leading emphasis. The ribbon's Import
+             stays the persistent one; this one leaves with the empty state. -->
+        <div
             v-if="state.keyframes.length === 0 && sceneSummary"
-            class="text-caption text-muted-foreground text-pretty"
+            class="flex flex-col items-start gap-2"
         >
-            <!-- X-DS r6 pass 9 (KF-C9-09) — the channel's name in the
-                 sentence's own face (a mono `code` run broke the line). -->
-            <span class="text-foreground">{{ sceneSummary.name }}</span>
-            has {{ sceneSummary.count }} {{ sceneSummary.count === 1 ? "keyframe" : "keyframes" }} in CSS —
-            import {{ sceneSummary.count === 1 ? "it" : "them" }} to edit here.
-        </p>
+            <p class="text-caption text-muted-foreground text-pretty">
+                <!-- X-DS r6 pass 9 (KF-C9-09) — the channel's name in the
+                     sentence's own face (a mono `code` run broke the line). -->
+                <span class="text-foreground">{{ sceneSummary.name }}</span>
+                has {{ sceneSummary.count }} {{ sceneSummary.count === 1 ? "keyframe" : "keyframes" }} in CSS —
+                import {{ sceneSummary.count === 1 ? "it" : "them" }} to edit here.
+            </p>
+            <Button size="sm" emphasis="secondary" @click="openImportDialog()">
+                <Download class="icon-sm" /> Import {{ sceneSummary.name }}
+            </Button>
+        </div>
         <p
             v-else-if="state.keyframes.length === 0"
             class="text-caption text-muted-foreground text-pretty"
