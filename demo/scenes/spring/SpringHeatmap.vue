@@ -410,8 +410,9 @@ onBeforeUnmount(settleFit);
 // is the facet's last row: where the scroller can hold it whole, the scroller
 // rests at its END (the axis row whole above the fold, the producer's end fade
 // off at the limit); where it cannot, the figure starts at the scroller's top.
-// One frame after the reveal, so the rail's own landing (useFoldLanding, which
-// re-caps the scroller when its content resizes) has run first.
+// X-DS r8 pass 6 (KF-C6c-01) — the rail's own landing (useFoldLanding, which
+// re-caps the scroller when its content resizes) runs after this and keeps an
+// end-pinned scroller at its end, so the pin holds whichever runs first.
 const revealFigure = (): void => {
     const section = sectionEl.value?.$el;
     if (!section) return;
@@ -420,10 +421,8 @@ const revealFigure = (): void => {
         section.scrollIntoView?.({ block: "nearest" });
         return;
     }
-    requestAnimationFrame(() => {
-        if (section.offsetHeight <= scroller.clientHeight) scroller.scrollTop = scroller.scrollHeight;
-        else section.scrollIntoView?.({ block: "start" });
-    });
+    if (section.offsetHeight <= scroller.clientHeight) scroller.scrollTop = scroller.scrollHeight;
+    else section.scrollIntoView?.({ block: "start" });
 };
 watch(figureOpen, (open) => {
     settleFit();

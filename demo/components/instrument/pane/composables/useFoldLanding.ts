@@ -243,7 +243,16 @@ export function useFoldLanding(
         for (const s of scrollers) {
             if (!s.offsetParent) continue;
             const key = s.dataset.foldKey;
-            if (landFold(s) === "foot" && key && s.scrollTop === 0) next.add(key);
+            // X-DS r8 pass 6 (KF-C6c-01) — a scroller resting at its END stays
+            // there. Re-capping clears the cap first (the browser clamps
+            // scrollTop to the taller port) and then lowers it, which grows the
+            // scroll range back under a scrollTop that no longer reaches it: the
+            // spring figure the reader opened came to rest 10-22 px short of its
+            // end, the fold through its response-axis caption.
+            const atEnd = s.scrollTop > 0 && s.scrollHeight - s.clientHeight - s.scrollTop <= 1;
+            const landed = landFold(s);
+            if (atEnd) s.scrollTop = s.scrollHeight;
+            if (landed === "foot" && key && s.scrollTop === 0) next.add(key);
         }
         setFooted(next);
     };
