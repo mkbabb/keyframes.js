@@ -308,10 +308,27 @@ const landDrawer = () => {
         : 0;
     // The peek rounds up to whole px (never under the designed peek); no
     // peek rounds down (never a sub-px sliver of the tile's edge).
-    const end =
+    let end =
         shown > designed
             ? Math.ceil(cut.top - at + designed)
             : Math.floor(cut.top - at);
+    // X-DS r8 pass 7 (KF-C7-03) — A HEADING AND ITS FIRST ROW ARE ONE UNIT.
+    // A tile cut in its family's first row left the heading resting on the
+    // fold with nothing under it (390x844: a lone 'Sine'). Where no tile of
+    // the heading's family stands whole above the fold, the heading goes
+    // under it with its row.
+    if (tile) {
+        const heading = rowsOf(drawer, ".catalogue-family")
+            .filter((h) => h.bottom <= cut.top)
+            .reduce<ReturnType<typeof rowsOf>[number] | null>(
+                (last, h) => (last && last.top >= h.top ? last : h),
+                null,
+            );
+        const whole = (row: { top: number; bottom: number }) =>
+            heading !== null && row.top >= heading.bottom && row.bottom - at <= end;
+        if (heading && heading.top - at > 0 && !rowsOf(drawer, ".specimen-tile").some(whole))
+            end = Math.floor(heading.top - at);
+    }
     // A port too short to hold a row whole is left as it stands.
     if (end < fold / 2) return;
     drawer.style.maxBlockSize = `${end + drawer.offsetHeight - fold}px`;

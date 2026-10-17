@@ -13,8 +13,8 @@
          SPF-27 (KF.W6): this header was a tranche changelog naming files that
          no longer exist at any path; it now describes what mounts. -->
     <!-- X-DS pass 1, C1 (KF-C1-07) — no card of its own: the pane host draws the one frame (ControlsPaneWrapper), so this surface is flat inside it. -->
-    <div class="w-full">
-        <div class="panel-content p-0">
+    <div class="w-full flex flex-col min-h-0">
+        <div class="panel-content p-0 flex flex-col min-h-0">
             <!-- X.KF.W13X.spring (A2-KE-L3-9; KF-W13 addendum (c), glass 10.1.0
                  O-68) — the facet is ONE glass section, and its one action rides
                  the section's `#actions` header slot, on the label's row: the
@@ -31,7 +31,25 @@
                  `space-y-3` is the layer's own spacing family one step up
                  (it follows `space-y-2` in the sheet, so it is the one that
                  applies), and equals the param rows' own gap. -->
-            <ConfiguratorLayer label="Physics" default-open body-class="space-y-3">
+            <!-- X-DS r8 pass 7 (KF-C7-01) — THE PANE KEEPS ITS NAME. With
+                 'Peak overshoot' open the facet is taller than the rail, and
+                 the rail's one port scrolled the title row away with the rest
+                 (at 1440x1080 it cut 'Physics · To keyframes' through its
+                 letters; at 1440x900 no heading said what the card controls).
+                 The facet is now BOUNDED (the cube Matrix editor's idiom,
+                 `.pane-bounded`, ControlsPaneWrapper.css): the layer's header
+                 stays above, and the body is the one port (a glass
+                 `FadingScroll` the rail lands like its own, `data-fold-key`),
+                 so the rows scroll under a title that never leaves. No fill,
+                 no blur: the header is simply outside the port. On the
+                 desktop rail only: the phone sheet's port scrolls the pane
+                 whole, and its peek is the facet's title. -->
+            <ConfiguratorLayer
+                label="Physics"
+                default-open
+                :class="{ 'pane-bounded': rail }"
+                body-class="flex flex-col max-h-full min-h-0"
+            >
                 <template #actions>
                     <!-- X.KF.W13V.s (OA-37/46/51) — NO inline keyframes editor. The
                          Sweep channel's keyframes are edited in the SHARED Keyframes
@@ -68,6 +86,12 @@
                      design-idioms.css). The value is the readout — the slider
                      carries no second one; the humane string reaches AT through
                      the producer's `valueText`. -->
+                <FadingScroll
+                    axis="y"
+                    data-fold-key="spring-physics"
+                    :fade-end="!rail?.has('spring-physics')"
+                    class="flex min-h-0 scroll-pb-2 flex-col gap-3"
+                >
                 <div class="flex flex-col gap-3">
                     <div class="param-row">
                         <LabeledSlider
@@ -162,27 +186,35 @@
                     v-model:response="demo.response.value"
                     v-model:damping-fraction="demo.dampingFraction.value"
                 />
+                </FadingScroll>
             </ConfiguratorLayer>
         </div>
     </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, inject } from "vue";
 import { Separator } from "@mkbabb/glass-ui";
 import { Button } from "@mkbabb/glass-ui/button";
 import { ConfiguratorLayer } from "@mkbabb/glass-ui/configurator";
+import { FadingScroll } from "@mkbabb/glass-ui/fading-scroll";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@mkbabb/glass-ui/tooltip";
 import { LabeledSlider } from "@mkbabb/glass-ui/labeled-field";
 import { ToggleGroup, ToggleGroupItem } from "@mkbabb/glass-ui/toggle-group";
 
 import SpringHeatmap, { DAMPING_AXIS, PARAM_STEP, RESPONSE_AXIS } from "./SpringHeatmap.vue";
 
+import { FOLD_FOOTED_KEY } from "@components/instrument/pane/composables/useFoldLanding";
 import type { SpringDemoContext } from "./springKeys";
 import type { SpringPreset, SpringTrack } from "./useSpringDemo";
 
 const props = defineProps<{ demo: SpringDemoContext }>();
 const demo = props.demo;
+
+/** The desktop rail's footed ports: on the rail the facet bounds its body
+ *  under its title (KF-C7-01); null on the phone sheet, whose one port scrolls
+ *  the pane whole. */
+const rail = inject(FOLD_FOOTED_KEY, null);
 
 const isActivePreset = (t: SpringTrack) =>
     Math.abs(demo.response.value - t.preset.response) < 1e-6 &&

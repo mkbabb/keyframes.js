@@ -348,6 +348,7 @@ import { computed, onBeforeUnmount, onMounted, ref, useId, useTemplateRef, watch
 import { ChevronRight } from "@lucide/vue";
 import { Button } from "@mkbabb/glass-ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@mkbabb/glass-ui/collapsible";
+import { landStart } from "@components/instrument/pane/composables/useFoldLanding";
 
 // ── The contract — two models, the same two refs the facet's sliders write
 // through their own declared `@update:model-value`. Instantiable with two
@@ -386,7 +387,9 @@ const settleFit = (): void => {
 };
 onMounted(() => {
     const section = sectionEl.value?.$el;
-    const body = section?.closest?.(".controls-surface");
+    // r8 pass 7 (KF-C7-01) — the facet's own port (`data-fold-key`), the
+    // bounded body under its title, or the pane's surface scroller.
+    const body = section?.closest?.("[data-fold-key]");
     if (!section || !(body instanceof HTMLElement)) return;
     fitBody = body;
     fitWatch = new ResizeObserver(() => {
@@ -413,16 +416,20 @@ onBeforeUnmount(settleFit);
 // X-DS r8 pass 6 (KF-C6c-01) — the rail's own landing (useFoldLanding, which
 // re-caps the scroller when its content resizes) runs after this and keeps an
 // end-pinned scroller at its end, so the pin holds whichever runs first.
+// X-DS r8 pass 7 (KF-C7-01) — and the port's TOP edge is placed too
+// (`landStart`): the pin no longer stops through a line of text at the top.
 const revealFigure = (): void => {
     const section = sectionEl.value?.$el;
     if (!section) return;
-    const scroller = section.closest?.(".controls-surface");
+    const scroller = section.closest?.("[data-fold-key]");
     if (!(scroller instanceof HTMLElement)) {
         section.scrollIntoView?.({ block: "nearest" });
         return;
     }
-    if (section.offsetHeight <= scroller.clientHeight) scroller.scrollTop = scroller.scrollHeight;
-    else section.scrollIntoView?.({ block: "start" });
+    if (section.offsetHeight <= scroller.clientHeight) {
+        scroller.scrollTop = scroller.scrollHeight;
+        landStart(scroller);
+    } else section.scrollIntoView?.({ block: "start" });
 };
 watch(figureOpen, (open) => {
     settleFit();

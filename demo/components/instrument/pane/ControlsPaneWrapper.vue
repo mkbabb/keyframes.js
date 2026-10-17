@@ -275,13 +275,13 @@ import { Dialog, DialogTitle } from "@mkbabb/glass-ui/dialog";
 import { FadingScroll } from "@mkbabb/glass-ui/fading-scroll";
 import { SheetContent } from "@mkbabb/glass-ui/sheet";
 import { createReusableTemplate, useMediaQuery } from "@vueuse/core";
-import { computed, shallowRef, useTemplateRef, watch } from "vue";
+import { computed, provide, shallowRef, useTemplateRef, watch } from "vue";
 import type { TransportChannel } from "../transport/transportSource";
 import ChannelControls from "./channel-controls/ChannelControls.vue";
 import RibbonBar from "./RibbonBar.vue";
 import SequenceTimeline from "../timeline/SequenceTimeline.vue";
 import { useControlsLayout } from "./composables/useControlsLayout";
-import { useFoldLanding } from "./composables/useFoldLanding";
+import { FOLD_FOOTED_KEY, useFoldLanding } from "./composables/useFoldLanding";
 // The sheet's bottom lift above the menubar is the `bottom` style set on
 // `<SheetContent>` in the template (D-B1; glass 10's sheet pins `bottom: 0` at
 // zero specificity, and its 7.0.0 `--drawer-inset-block-end` lever is gone).
@@ -459,6 +459,14 @@ const {
     onPaneMouseEnter: paneMouseEnter,
     onPaneMouseLeave: paneMouseLeave,
 } = useControlsLayout(props.storedControls);
+
+// X-DS r8 pass 7 (KF-C7-01) — the desktop rail's footed ports, for a facet that
+// bounds its own port under its title (null on the phone sheet, where the
+// sheet's one port scrolls the pane whole and no facet bounds itself).
+provide(
+    FOLD_FOOTED_KEY,
+    computed(() => (isMobileLayout.value ? null : footed.value)),
+);
 
 // ── T.H3-ADOPT — the mobile Sheet open/detent state (was useSheetState) ──────
 // The 1023px mobile boundary (the SAME the sheet CSS + the mount-reset use).

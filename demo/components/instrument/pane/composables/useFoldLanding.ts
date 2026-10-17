@@ -1,5 +1,5 @@
 import { onBeforeUnmount, shallowRef, watch } from "vue";
-import type { Ref, ShallowRef } from "vue";
+import type { InjectionKey, Ref, ShallowRef } from "vue";
 
 /**
  * X-DS r4 pass 5 (KF-C24-01) — THE FOLD NEVER LANDS IN A GAP.
@@ -59,7 +59,14 @@ import type { Ref, ShallowRef } from "vue";
  * are not content. It runs only when the scroller's content or the viewport
  * resizes, never per frame, and it writes one `max-block-size` per scroller.
  */
-const SURFACE = ".controls-surface";
+/**
+ * X-DS r8 pass 7 (KF-C7-01) — the rail's scroll PORTS: every surface scroller
+ * (`.controls-surface`) and a bounded facet's own body port (the `.pane-bounded`
+ * idiom, ControlsPaneWrapper.css), each marked with its `data-fold-key`. A
+ * bounded facet keeps its title row above its port, so the pane never scrolls
+ * its own name away; the port under the title lands like any other.
+ */
+const PORT = "[data-fold-key]";
 const SEPARATOR = "[data-slot=separator],[role=separator],hr";
 /** The tallest box that is still a row (a field, a tile), in fade widths: 96 px
  *  at glass's 16 px fade. The rail's figures (the plot, the heatmap, the code
@@ -216,6 +223,41 @@ export function landFold(scroller: HTMLElement): "cue" | "foot" | "none" {
 }
 
 /**
+ * X-DS r8 pass 7 (KF-C7-01) — THE TOP EDGE IS PLACED TOO. A port pinned at
+ * its END (a figure the reader opened, revealed whole above the fold) stopped
+ * wherever `scrollHeight - clientHeight` fell: through a title row's letters at
+ * 1440x1080, through the preset tiles' names at 1280x800. The mirror of the
+ * fold's rule (KF-C4-03): no line of text crosses the port's top edge or lies
+ * under its start fade. The port's block is lowered until its top edge falls
+ * under the last such line; a boxed row's lower edge left under the fade is
+ * the cue that content continues above. The port stays at its end. It never
+ * gives up more than half its block (the figure the pin revealed stays whole).
+ */
+export function landStart(scroller: HTMLElement): void {
+    const fold = scroller.clientHeight;
+    const reach = scroller.scrollHeight - fold;
+    if (fold === 0 || reach <= 1 || reach - scroller.scrollTop > 1) return;
+    const fade = fadePx(scroller);
+    const texts = contentSpans(scroller).filter((s) => s.text);
+    let top = scroller.scrollTop;
+    for (;;) {
+        const cut = texts.filter((s) => s.top < top + fade && s.bottom > top);
+        if (cut.length === 0) break;
+        top = Math.ceil(Math.max(...cut.map((s) => s.bottom)));
+    }
+    const block = scroller.scrollHeight - top;
+    if (top === scroller.scrollTop || block < fold / 2) return;
+    scroller.style.maxBlockSize = `${block + scroller.offsetHeight - fold}px`;
+    scroller.scrollTop = scroller.scrollHeight;
+}
+
+/** The desktop rail's footed ports (their fold rests on a row's foot at their
+ *  top, so their end fade is off, KF-C25-01), provided by the rail host for a
+ *  facet that bounds its own port under its title; null on the phone sheet. */
+export const FOLD_FOOTED_KEY: InjectionKey<Readonly<Ref<ReadonlySet<string> | null>>> =
+    Symbol("fold-footed");
+
+/**
  * Keep every desktop rail scroller's fold on content while `rail` is mounted.
  * Returns the `data-fold-key`s of the scrollers whose fold sits on a row's foot
  * while they rest at the top; the host binds `fadeEnd` off for those (KF-C25-01).
@@ -235,7 +277,7 @@ export function useFoldLanding(
         frame = 0;
         const root = rail.value;
         if (!root) return;
-        const scrollers = [...root.querySelectorAll<HTMLElement>(SURFACE)];
+        const scrollers = [...root.querySelectorAll<HTMLElement>(PORT)];
         const contents = new Set(scrollers.flatMap((s) => [...s.children]));
         for (const el of observed) if (!contents.has(el)) { resize.unobserve(el); observed.delete(el); }
         for (const el of contents) if (!observed.has(el)) { resize.observe(el); observed.add(el); }
@@ -251,7 +293,10 @@ export function useFoldLanding(
             // end, the fold through its response-axis caption.
             const atEnd = s.scrollTop > 0 && s.scrollHeight - s.clientHeight - s.scrollTop <= 1;
             const landed = landFold(s);
-            if (atEnd) s.scrollTop = s.scrollHeight;
+            if (atEnd) {
+                s.scrollTop = s.scrollHeight;
+                landStart(s);
+            }
             if (landed === "foot" && key && s.scrollTop === 0) next.add(key);
         }
         setFooted(next);
@@ -259,7 +304,7 @@ export function useFoldLanding(
     // Scrolled off the top, the end fade is the cue again; back at the top, re-land.
     const onScroll = (event: Event) => {
         const s = event.target;
-        if (!(s instanceof HTMLElement) || !s.matches(SURFACE)) return;
+        if (!(s instanceof HTMLElement) || !s.matches(PORT)) return;
         const key = s.dataset.foldKey;
         if (s.scrollTop > 0) {
             if (key && footed.value.has(key)) setFooted(new Set([...footed.value].filter((k) => k !== key)));
@@ -272,7 +317,7 @@ export function useFoldLanding(
     const mutations = new MutationObserver(() => {
         const root = rail.value;
         if (!root) return;
-        const children = new Set([...root.querySelectorAll(SURFACE)].flatMap((s) => [...s.children]));
+        const children = new Set([...root.querySelectorAll(PORT)].flatMap((s) => [...s.children]));
         if (children.size !== observed.size || [...children].some((c) => !observed.has(c))) schedule();
     });
     // The rail's own box moves when the work band settles (its bound is the

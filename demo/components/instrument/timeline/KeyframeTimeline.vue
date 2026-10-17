@@ -9,10 +9,12 @@
          a Card (stacked on the sheet, over the cube), is deleted, and the
          `sheet` prop with it. -->
     <!-- X-DS r7 pass 5 (KF-C5-01) — in the desktop rail the Timeline takes
-         the pane's free block (`.rail-fill`, ControlsPaneWrapper.css), and an
-         empty track's notice takes what the track leaves, its sentence
-         centred in it: the empty state stands in the pane's body, not under
-         its header over a 360 px void. -->
+         the pane's free block (`.rail-fill`, ControlsPaneWrapper.css).
+         X-DS r8 pass 7 (KF-C7-02) — an empty track's notice no longer takes
+         what the track leaves: centred in it, the sentence floated ~200 px
+         under the ribbon it describes. It follows the track in flow, one
+         column gap down, and the free block falls below it (the Sequence
+         lanes' rule, KF-C3-01). -->
     <div class="rail-fill w-full overflow-visible">
         <!-- X-DS pass 9 (KF-C9-07) — the pane's ONE inset and ONE title rung:
              the inline inset is glass's `--configurator-pad-inline` and the
@@ -170,9 +172,12 @@
              one that never said anything. A failed rebuild is rendered here
              beside the track, with the message and the same Retry the house
              channel offers. -->
-        <!-- X-DS pass 3 · KF-C3-12 — both captions take ONE alignment,
-             centred and balanced: at 0 keyframes the long line filled the
-             card and read start-aligned, at 1 it read centred. -->
+        <!-- X-DS pass 3 · KF-C3-12 — both captions take ONE alignment.
+             X-DS r8 pass 7 (KF-C7-02) — that alignment is the column's start
+             edge, at caption ink, the line sitting under the track it
+             describes (centred in the free block it floated). The verbs are
+             not bold: the footer's buttons are the one place to act, so the
+             sentence names them without a second emphasis. -->
         <!-- X-DS r6 pass 10 (KF-C10-05) — the notice stands one gap (the
              column's) under the track: no top padding of its own, and an
              empty track reserves no caret row (TimelineTrack). -->
@@ -183,24 +188,24 @@
              agree. -->
         <p
             v-if="state.keyframes.length === 0 && sceneSummary"
-            class="text-body text-muted-foreground text-center text-balance pb-2 grow content-center"
+            class="text-caption text-muted-foreground text-pretty"
         >
             <!-- X-DS r6 pass 9 (KF-C9-09) — the channel's name in the
                  sentence's own face (a mono `code` run broke the line). -->
             <span class="text-foreground">{{ sceneSummary.name }}</span>
             has {{ sceneSummary.count }} {{ sceneSummary.count === 1 ? "keyframe" : "keyframes" }} in CSS —
-            <strong>Import</strong> {{ sceneSummary.count === 1 ? "it" : "them" }} to edit here.
+            import {{ sceneSummary.count === 1 ? "it" : "them" }} to edit here.
         </p>
         <p
             v-else-if="state.keyframes.length === 0"
-            class="text-body text-muted-foreground text-center text-balance pb-2 grow content-center"
+            class="text-caption text-muted-foreground text-pretty"
         >
-            No keyframes yet — <strong>Snapshot</strong> the target's current
-            pose, or <strong>Import</strong> CSS <code>@keyframes</code>.
+            No keyframes yet — snapshot the target's current pose, or import
+            CSS <code>@keyframes</code>.
         </p>
         <p
             v-else-if="state.keyframes.length === 1"
-            class="text-body text-muted-foreground text-center text-balance pb-2"
+            class="text-caption text-muted-foreground text-pretty"
         >
             One keyframe — one more builds the animation.
         </p>
