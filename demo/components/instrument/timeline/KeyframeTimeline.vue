@@ -308,6 +308,15 @@
                      the scene's @keyframes, Import leads and Snapshot is
                      quiet; otherwise Snapshot leads. Export, like Clear, has
                      nothing to say at zero keyframes. -->
+                <!-- X-DS r9 pass 7 (KF-C7-03) — ONE LEAD. Since KF-C6-01 the
+                     empty timeline's hint holds its own "Import <name>" at
+                     the leading emphasis, so the ribbon's Import raised to
+                     secondary in the same state made two equal leads 376 px
+                     apart. The ribbon's Import is quiet in every state: it
+                     stays labelled and persistent (KF-C6-01 is not reversed),
+                     and the one lead is the verb beside the sentence that
+                     asks for it. Snapshot still steps down while Import is
+                     what the hint names. -->
                 <!-- UIA-KF-179 — the ONE toolbar: the four verbs, then the
                      overflow that carries the four tools. The labels yield to
                      their glyphs by the row's own width (KF-C5-02's idiom:
@@ -324,7 +333,7 @@
                          accessible name. -->
                     <Button
                         size="sm"
-                        :emphasis="importLeads ? 'secondary' : 'quiet'"
+                        emphasis="quiet"
                         aria-label="Import CSS, replacing the timeline"
                         title="Import CSS (replaces the timeline)"
                         @click="openImportDialog()"

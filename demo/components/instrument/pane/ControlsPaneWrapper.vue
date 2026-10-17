@@ -237,6 +237,7 @@
             scroll
             class="controls-drawer-content"
             :style="sheetStyle"
+            @click.capture="onParkedHeaderPress"
             @open-auto-focus.prevent
         >
             <!-- reka DialogContent wants a labelling title; keep it off-screen
@@ -558,6 +559,33 @@ const activeSnap = computed<number | null>({
         emit("setControlsPanelOpen", nearest !== PEEK_SNAP.value);
     },
 });
+
+// X-DS r9 pass 7 (KF-C7-01) — A PARKED PEEK'S TITLE ROW RAISES THE SHEET.
+// The peek shows one row of the pane: the surface's ConfiguratorLayer header
+// (its title and the up-chevron). Live in a parked sheet, that header folded
+// the layer's body hidden under the peek's clip (403 -> 57 px at 390x844)
+// while the sheet stayed at PEEK, so the one obvious control in the peek did
+// nothing the user could see, and a second tap unfolded it again. While the
+// bottom sheet is parked, a press on a layer header (pointer or key: both
+// arrive as `click`) is taken here, in the capture phase before the layer's
+// own toggle, and raises the sheet to OPEN: the same open fact the drag and
+// the grip key write. The up-chevron then says what the press does. Once the
+// sheet is OPEN or FULL the header is the layer's own collapse again. The
+// side sheet (a short landscape phone) rests as the rail, its body in view,
+// so its headers keep their own toggle. (The sheet's visible rise still waits
+// on glass: `.glass-floating`'s `position: relative` outranks the sheet's own
+// `fixed`, the SHEET-POSITION row held on O-87/O-88; not overridden here.)
+const onParkedHeaderPress = (e: MouseEvent) => {
+    if (props.storedControls.isControlsPanelOpen || sheetSide.value !== "bottom") return;
+    const sheet = e.currentTarget;
+    const target = e.target;
+    if (!(sheet instanceof Element) || !(target instanceof Element)) return;
+    const header = target.closest("[data-slot=configurator-layer-trigger]");
+    if (!header || !sheet.contains(header)) return;
+    e.preventDefault();
+    e.stopPropagation();
+    emit("setControlsPanelOpen", true);
+};
 
 // The mobile sheet body scrolls when EXPANDED (glass-ui's Sheet owns the sheet
 // motion + rest; the body just needs `overflow-y-auto` at the open detent). The

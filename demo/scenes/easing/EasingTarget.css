@@ -93,6 +93,19 @@
 .easing-target :deep(.specimen-drawer) {
     margin-block-end: var(--space-body);
 }
+/* X-DS r9 pass 7 (KF-C7-02) — BELOW lg THE DRAWER TAKES THE PLATE'S WHOLE
+   FREE BLOCK. The plate's own block padding already holds the clip line a
+   full 1rem inside its rim at 390, and the extra --space-body under the
+   drawer was the 8 px that kept the next family's heading from its row's
+   peek: the fold landed on 'Sine' at the family boundary (654 at 390x844)
+   and left ~44 px of empty plate under it. With the band given back, the
+   drawer ends at the plate's inner bottom and lands 'Sine' with its first
+   row's designed peek, as the 1440 stage does. */
+@media (max-width: 1023px) {
+    .easing-target :deep(.specimen-drawer) {
+        margin-block-end: 0;
+    }
+}
 
 /* X-DS r4 pass 4 (KF-C23-04) — below lg the literal takes its own line under
    the name, at a size that fits the plate's measure (a Fira Code advance is

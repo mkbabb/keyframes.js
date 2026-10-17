@@ -261,7 +261,8 @@ function placeStart(scroller: HTMLElement): boolean {
     if (reach <= 1) return false;
     const fade = fadePx(scroller);
     const origin = scroller.getBoundingClientRect().top + scroller.clientTop - scroller.scrollTop;
-    const boxes: { top: number; bottom: number; figure: boolean }[] = [];
+    const boxes: { el: Element; top: number; bottom: number; figure: boolean }[] = [];
+    const texts: { top: number; bottom: number }[] = [];
     for (const el of scroller.querySelectorAll("*")) {
         if (el instanceof SVGElement && el.tagName !== "svg") continue;
         if (el.matches(SEPARATOR)) continue;
@@ -271,7 +272,8 @@ function placeStart(scroller: HTMLElement): boolean {
         const tall = r.height > ROW_MAX_FADES * fade;
         // A figure paints (a plot, a well, a canvas); a tall layout box is a group of rows.
         const figure = tall && (REPLACED.has(el.tagName) || paints(getComputedStyle(el)));
-        boxes.push({ top: r.top - origin, bottom: r.bottom - origin, figure });
+        boxes.push({ el, top: r.top - origin, bottom: r.bottom - origin, figure });
+        if (!REPLACED.has(el.tagName) && ownText(el)) texts.push({ top: r.top - origin, bottom: r.bottom - origin });
     }
     const rows = boxes.filter((b) => b.bottom - b.top <= ROW_MAX_FADES * fade);
     const crosses = (b: { top: number; bottom: number }, at: number) => b.top < at - 0.5 && b.bottom > at + 0.5;
@@ -285,12 +287,38 @@ function placeStart(scroller: HTMLElement): boolean {
     const next = Math.min(Infinity, ...rows.filter((b) => b.top >= top - 0.5).map((b) => b.top));
     const rules = ruleTops(scroller).filter((t) => t >= top - 0.5 && t < next);
     if (rules.length > 0) top = Math.min(next, Math.ceil(Math.max(...rules) + 1));
+    // X-DS r9 pass 7 (KF-C7-04) — THE ROWS ABOVE KEEP A PEEK. Opened at
+    // 1440x900, 'Peak overshoot' pinned the Physics port at its end with the
+    // edge in the gap over Bouncy/Gentle and the start fade off: response,
+    // damping and Smooth/Snappy (the scene's primaries) left the view with no
+    // cue that anything stood above. The mirror of `landFold`'s boxed-row cue
+    // (KF-C4-03): where the row just above the edge is a box (a tile), the
+    // edge rises to the foot of the box's own text, so its bottom padding and
+    // border sit under the START fade, which stays on (the cue), and no line
+    // of text is cut or faded (KF-C8-01 still holds). Taken only where the
+    // shown edge is half a fade to a fade deep and the port can hold the
+    // rows from there to its end; otherwise the whole-row edge stands.
+    const upper = rows.filter((b) => b.bottom <= top + 0.5);
+    const foot = Math.max(-Infinity, ...upper.map((b) => b.bottom));
+    const box = upper.find((b) => b.bottom >= foot - 0.5 && paints(getComputedStyle(b.el)));
+    let cue = false;
+    if (box) {
+        const inside = texts.filter((t) => t.top >= box.top - 0.5 && t.bottom <= box.bottom + 0.5);
+        const edge = Math.ceil(Math.max(-Infinity, ...inside.map((t) => t.bottom)));
+        const shown = box.bottom - edge;
+        const clear = !texts.some((t) => t.top < edge + fade && t.bottom > edge);
+        if (inside.length > 0 && shown >= fade / 2 && shown <= fade && clear && scroller.scrollHeight - edge <= fold) {
+            top = edge;
+            cue = true;
+        }
+    }
     const block = scroller.scrollHeight - top;
     if (block < fold / 2) return false;
     if (top > reach) scroller.style.maxBlockSize = `${block + scroller.offsetHeight - fold}px`;
     scroller.scrollTop = scroller.scrollHeight;
-    // A figure (taller than a row) the edge crosses keeps the fade as its cue.
-    return !boxes.some((b) => b.figure && crosses(b, top));
+    // A figure (taller than a row) the edge crosses keeps the fade as its cue,
+    // as does a box's peek (KF-C7-04).
+    return !cue && !boxes.some((b) => b.figure && crosses(b, top));
 }
 
 /** The desktop rail's landed port edges, by `data-fold-key`: `footed` ports

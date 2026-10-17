@@ -256,7 +256,14 @@ const drawerEl = useTemplateRef<{ $el: HTMLElement }>("drawerEl");
  *  (r6 pass 6, KF-C6-05: the menu's fold was landed 15 px short that way). */
 const rowsOf = (drawer: HTMLElement, selector: string) => {
     const box = drawer.getBoundingClientRect();
-    const scale = drawer.offsetHeight > 0 ? box.height / drawer.offsetHeight : 1;
+    // X-DS r9 pass 7 (KF-C7-02) — a rect within a px of the layout height is
+    // unscaled: `offsetHeight` is rounded, so a 435.5 px drawer read as a
+    // 0.1 % scale (435.5 / 436) and every row 0.5 px lower (at 390x844 the
+    // Sine row's 12 px peek read as 11.25 px, and the heading was sent under).
+    const scale =
+        drawer.offsetHeight > 0 && Math.abs(box.height - drawer.offsetHeight) > 1
+            ? box.height / drawer.offsetHeight
+            : 1;
     const origin = box.top + drawer.clientTop * scale;
     return [...drawer.querySelectorAll<HTMLElement>(selector)].map((el) => {
         const rect = el.getBoundingClientRect();
@@ -308,8 +315,13 @@ const landDrawer = () => {
         : 0;
     // The peek rounds up to whole px (never under the designed peek); no
     // peek rounds down (never a sub-px sliver of the tile's edge).
+    // X-DS r9 pass 7 (KF-C7-02) — a block that holds the designed peek to
+    // the half px HOLDS it: at 390x844 the drawer, given its whole block,
+    // showed the Sine row's top 12 px against a 12 px peek, and the strict
+    // test sent the heading under the fold with 44 px of bare plate.
+    const holds = shown >= designed - 0.5;
     let end =
-        shown > designed
+        holds
             ? Math.ceil(cut.top - at + designed)
             : Math.floor(cut.top - at);
     // X-DS r8 pass 7 (KF-C7-03) — A HEADING AND ITS FIRST ROW ARE ONE UNIT.
@@ -327,7 +339,7 @@ const landDrawer = () => {
     // cannot (390x844: 4 px of tile under 'Sine', the lone heading KF-C7-03
     // was cured for) does the heading go under with its row. The menu keeps
     // the C7-03 rule: it is content-sized, so a landing there leaves no plate.
-    const peeked = props.density === "stage" && shown > designed;
+    const peeked = props.density === "stage" && holds;
     if (tile && !peeked) {
         const heading = rowsOf(drawer, ".catalogue-family")
             .filter((h) => h.bottom <= cut.top)
@@ -478,6 +490,27 @@ onMounted(() => {
         measureStrip();
         landDrawerEdges();
     });
+    // X-DS r9 pass 7 (KF-C7-02) — and once the scene's entrance has run. The
+    // stage arrives in motion (a transform the engine writes per frame), which
+    // moves no box the observers see, so a fold landed on mount stood on rows
+    // still travelling: at 390x844 the Sine row's 12 px peek read as 11 px
+    // mid-entrance and the heading was sent under the fold with 44 px of bare
+    // plate. Once the drawer's rendered box has held for three frames (at
+    // most two seconds), a drawer still resting at its top is landed again.
+    let last = "";
+    let held = 0;
+    let frames = 0;
+    const settle = () => {
+        const drawer = drawerEl.value?.$el;
+        if (!(drawer instanceof HTMLElement) || !drawer.isConnected) return;
+        const box = drawer.getBoundingClientRect();
+        const now = `${box.top} ${box.height}`;
+        held = now === last ? held + 1 : 0;
+        last = now;
+        if (held < 3 && ++frames < 120) requestAnimationFrame(settle);
+        else if (drawer.scrollTop === 0) landDrawer();
+    };
+    requestAnimationFrame(settle);
 });
 const onFamilyChange = (v: string) => {
     family.value = v;
