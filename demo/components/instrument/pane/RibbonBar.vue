@@ -23,7 +23,18 @@
              used to shorten; `.panel-content` now keeps the column whole, so
              the fields, their separators, this hairline, the time readout and
              the track all end on one inline-end edge. -->
-        <div class="px-(--configurator-pad-inline)"><Separator /></div>
+        <!-- X-DS r9 pass 8 (KF-C8x-01) — ONE edge over the ribbon. The
+             Keyframes surface ends in the full-bleed code well, whose own tone
+             step already parts it from the ribbon; the inset hairline drew a
+             second, misaligned rule 8 px under it. That surface opts out, and
+             the well's tone step is the one edge; every other surface keeps
+             the hairline. -->
+        <div
+            v-if="storedControls.selectedControl !== 'keyframes'"
+            class="px-(--configurator-pad-inline)"
+        >
+            <Separator />
+        </div>
         <!-- X-DS pass 6 (KF-C6-01) — the ribbon's rows sit on the SAME content
              column as its hairline and the fields above (`ps-4 pe-5`); a
              `p-3` inset started every transport row 4 px left of the label
