@@ -328,10 +328,14 @@ const renderTimeline = (): VNode | null => {
         "div",
         {
             key: storedControls.selectedControl,
-            // X-DS r7 pass 5 (KF-C5-01) — the Timeline takes the pane's free
-            // block (`.rail-fill`, ControlsPaneWrapper.css): its empty state
-            // centres in it instead of leaving a void above the ribbon.
-            class: "rail-fill animate-in fade-in slide-in-from-right-2 duration-fast",
+            // X-DS r9 pass 11 (KF-C11-04) — the Timeline sizes to its content
+            // and takes no free block: since KF-C7-02 its notice follows the
+            // track in flow, so `.rail-fill` (KF-C5-01) only grew a blank
+            // band between the lane and the ribbon's rule (~330 px empty,
+            // ~220 px imported, at 1440). The ribbon now follows the last row,
+            // as on the Controls surface; the pane still ends on the stage's
+            // foot (KF-C10-10), with the left-over block under the transport.
+            class: "animate-in fade-in slide-in-from-right-2 duration-fast",
         },
         h(Timeline, {
             ref: timelineRef,

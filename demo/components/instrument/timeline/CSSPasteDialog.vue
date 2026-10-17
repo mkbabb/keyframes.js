@@ -22,7 +22,13 @@
                 }
             "
         >
-            <DialogTitle class="text-subheading">{{ title }}</DialogTitle>
+            <!-- X-DS r9 pass 11 (KF-C11-03) — the title wears the pane-title
+                 rung the surface that opened it wears ('Timeline', 'Rotations':
+                 glass's `--type-heading` at the configurator section label's
+                 600), so it reads one clear step over its gloss;
+                 `text-subheading` sat one rung over the body-register
+                 description and the two read as near-equal lines. -->
+            <DialogTitle class="text-heading font-semibold">{{ title }}</DialogTitle>
             <!-- A2-KE-X-5 — the description reads in glass's own register
                  (`--type-body`, `--foreground`); the demo's muted override was
                  what vanished into the translucent dialog over a vivid scene. -->

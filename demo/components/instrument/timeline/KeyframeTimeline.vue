@@ -1,5 +1,5 @@
 <template>
-    <div class="rail-fill flex flex-col gap-3">
+    <div class="flex flex-col gap-3">
     <!-- UIA-KF-085 → X-DS pass 1 (KF-C1-07) → r6 pass 5 (KF-C5-01) → r6
          pass 6 (KF-C6-01) — ONE SURFACE PER PLACE, and the timeline has one
          place at every width: the pane (the desktop rail's frame, the 390
@@ -14,8 +14,13 @@
          what the track leaves: centred in it, the sentence floated ~200 px
          under the ribbon it describes. It follows the track in flow, one
          column gap down, and the free block falls below it (the Sequence
-         lanes' rule, KF-C3-01). -->
-    <div class="rail-fill w-full overflow-visible">
+         lanes' rule, KF-C3-01).
+         X-DS r9 pass 11 (KF-C11-04) — and with the notice in flow, the free
+         block had nothing left to hold: the Timeline no longer takes it (no
+         `.rail-fill` on its chain, ChannelControls.vue), so the ribbon's rule
+         follows the last row instead of standing under a third of a card of
+         blank paper. -->
+    <div class="w-full overflow-visible">
         <!-- X-DS pass 9 (KF-C9-07) — the pane's ONE inset and ONE title rung:
              the inline inset is glass's `--configurator-pad-inline` and the
              title wears glass's configurator section label, as every scene
@@ -32,8 +37,8 @@
              ConfiguratorLayer, the header the Easing, Physics and Stagger
              facets wear: one header row, one baseline, one trailing slot. The
              layer owns the inline inset (`--configurator-pad-inline`). -->
-        <CardContent class="rail-fill relative p-0">
-        <ConfiguratorLayer class="rail-fill" label="Timeline" default-open body-class="flex grow flex-col gap-3 space-y-0 pb-4">
+        <CardContent class="relative p-0">
+        <ConfiguratorLayer label="Timeline" default-open body-class="flex grow flex-col gap-3 space-y-0 pb-4">
         <!-- Pane action buttons.
              D-6 + the wave's ONE min-block-size policy (D-8), both spent by
              deleting the same class attribute rather than by writing a second
