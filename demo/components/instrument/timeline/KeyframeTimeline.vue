@@ -330,8 +330,22 @@
                      their glyphs by the row's own width (KF-C5-02's idiom:
                      each accessible name and title is unchanged), so the row
                      stays one line in the 18rem pane at 1024. -->
+                <!-- X-DS r9 pass 12 (KF-C12-01) — the Keyframes ribbon's idiom
+                     (KF-C16-02): the labels yield at their MEASURED one-row
+                     width (28rem, read on the served row), not at 20rem, which
+                     sat far under the rail's ~364px measure, so flex crushed
+                     every verb below its content and the lead capsule's glyph
+                     and word touched its ends. Import, Add and Export go to
+                     their glyphs together (each accessible name and title is
+                     unchanged); Snapshot, the lead, keeps its word, as Apply
+                     CSS does. -->
                 <div class="@container flex items-center justify-center gap-2">
-                    <Button size="sm" :emphasis="importLeads ? 'quiet' : 'secondary'" @click="snapshot()">
+                    <Button
+                        size="sm"
+                        :emphasis="importLeads ? 'quiet' : 'secondary'"
+                        class="shrink-0 whitespace-nowrap"
+                        @click="snapshot()"
+                    >
                         <Camera class="icon-sm" /> Snapshot
                     </Button>
                     <!-- X-DS pass 4 (KF-C4-12) — the three CSS paths are QUIET
@@ -346,7 +360,7 @@
                         title="Import CSS (replaces the timeline)"
                         @click="openImportDialog()"
                     >
-                        <Download class="icon-sm" /> <span class="@max-[20rem]:sr-only">Import</span>
+                        <Download class="icon-sm" /> <span class="@max-[28rem]:sr-only">Import</span>
                     </Button>
                     <Button
                         size="sm"
@@ -355,7 +369,7 @@
                         title="Add CSS (merges into the timeline)"
                         @click="openAddCSSDialog()"
                     >
-                        <FilePlus2 class="icon-sm" /> <span class="@max-[20rem]:sr-only">Add</span>
+                        <FilePlus2 class="icon-sm" /> <span class="@max-[28rem]:sr-only">Add</span>
                     </Button>
                     <Button
                         size="sm"
@@ -365,7 +379,7 @@
                         :disabled="state.keyframes.length === 0"
                         @click="exportCSS()"
                     >
-                        <Upload class="icon-sm" /> <span class="@max-[20rem]:sr-only">Export</span>
+                        <Upload class="icon-sm" /> <span class="@max-[28rem]:sr-only">Export</span>
                     </Button>
                     <DropdownMenu>
                         <DropdownMenuTrigger as-child>

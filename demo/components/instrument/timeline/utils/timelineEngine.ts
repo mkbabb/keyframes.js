@@ -65,8 +65,9 @@ export function createPreviewSubject(source: HTMLElement): HTMLElement {
  * at scene size (a 225 px cube in a 96 px stage), so the stage showed a
  * centre-cropped shard of one or two faces. The clone is framed at the
  * SOURCE's layout size (so a percentage-sized subject keeps its proportions)
- * and that frame is scaled by `min(boxW, boxH) / diagonal`, so any rotation of
- * the subject stays inside the box. Re-run it when the box resizes.
+ * and that frame is scaled by `min(boxW, boxH) / reach` (the face diagonal, or
+ * the space diagonal for a `preserve-3d` subject), so any rotation of the
+ * subject stays inside the box. Re-run it when the box resizes.
  */
 export function fitPreviewSubject(
     box: HTMLElement,
@@ -87,8 +88,16 @@ export function fitPreviewSubject(
     if (frame.parentElement !== box) box.replaceChildren(frame);
     const w = source.offsetWidth;
     const h = source.offsetHeight;
+    // X-DS r9 pass 12 (KF-C12-02) — fit the subject by its ROTATIONAL REACH,
+    // not its face. A `preserve-3d` subject (the cube: faces pushed out by half
+    // a side) turns through its bounding sphere, whose diameter is the space
+    // diagonal (side x √3), so the face diagonal let a corner-on pose shear
+    // ~9 px off the 96 px well's top and bottom. A flat subject has no depth
+    // and keeps its face diagonal. The well paints with no perspective, so
+    // the projection is orthographic and the sphere is the whole reach.
+    const d = getComputedStyle(source).transformStyle === "preserve-3d" ? Math.min(w, h) : 0;
     const scale =
-        w > 0 && h > 0 ? Math.min(box.clientWidth, box.clientHeight) / Math.hypot(w, h) : 0;
+        w > 0 && h > 0 ? Math.min(box.clientWidth, box.clientHeight) / Math.hypot(w, h, d) : 0;
     frame.style.width = `${w}px`;
     frame.style.height = `${h}px`;
     frame.style.transform = `translate(-50%, -50%) scale(${scale})`;
