@@ -98,7 +98,8 @@
                     :loading="busy"
                     :disabled="text.trim() === ''"
                     @click="onSubmit"
-                >{{ buttonLabel }}<component v-if="buttonIcon" :is="buttonIcon" class="icon-md" /></Button>
+                ><!-- X-DS r9 pass 9 (KF-C9-03) — the glyph leads the word, the
+                     surface's one idiom (the ribbon's Import, the empty lead). --><component v-if="buttonIcon" :is="buttonIcon" class="icon-md" />{{ buttonLabel }}</Button>
             </DialogFooter>
         </DialogContent>
     </Dialog>

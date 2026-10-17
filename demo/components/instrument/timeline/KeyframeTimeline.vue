@@ -201,7 +201,10 @@
                 has {{ sceneSummary.count }} {{ sceneSummary.count === 1 ? "keyframe" : "keyframes" }} in CSS —
                 import {{ sceneSummary.count === 1 ? "it" : "them" }} to edit here.
             </p>
-            <Button size="sm" emphasis="secondary" @click="openImportDialog()">
+            <!-- X-DS r9 pass 9 (KF-C9-04) — the lead IS the act: it imports
+                 the scene's own @keyframes in one press. The ribbon's Import
+                 keeps the paste editor. -->
+            <Button size="sm" emphasis="secondary" @click="importScene()">
                 <Download class="icon-sm" /> Import {{ sceneSummary.name }}
             </Button>
         </div>
@@ -647,6 +650,24 @@ const openImportDialog = () => {
         importText.value = props.scene.css;
     }
     importDialogOpen.value = true;
+};
+
+/**
+ * X-DS r9 pass 9 (KF-C9-04) — the empty state's lead imports the scene's own
+ * CSS directly; the hint already names what it holds, so a paste editor over a
+ * scrim asking for a second "Import" was a detour. The import is awaited; if it
+ * rejects, the paste editor opens on the scene's draft with the message in the
+ * house toast, so nothing is lost.
+ */
+const importScene = async () => {
+    const scene = props.scene;
+    if (!scene) return;
+    try {
+        await importCSS(scene.css);
+    } catch (e) {
+        toast({ title: "Couldn't import the animation", description: (e as Error).message });
+        openImportDialog();
+    }
 };
 
 /** KF-C24-05 — the scene's own animation, named as its CSS names it. */
