@@ -14,9 +14,10 @@
          caption in the body (it was an uppercase mono header competing with the
          lanes), then the lanes. -->
     <!-- X-DS pass 1, C1 (KF-C1-07) — no card of its own: the pane host draws the one frame (ControlsPaneWrapper), so this surface is flat inside it. -->
-    <!-- X-DS r7 pass 5 (KF-C5-01) — the lanes take the pane's free block:
-         the chain to them is `.rail-fill` (ControlsPaneWrapper.css), and the
-         lane grid grows, so its rows spread over the pane (SequenceLanes). -->
+    <!-- X-DS r7 pass 5 (KF-C5-01) → pass 20 (KF-C20-01) — the pane takes the
+         rail's free block (`.rail-fill`, ControlsPaneWrapper.css) so its foot
+         meets the stage plate's, but the lanes keep their own rung
+         (SequenceLanes): the remainder stands under the chart. -->
     <div class="rail-fill w-full">
         <div class="rail-fill panel-content p-0">
             <!-- X-DS pass 2 · KF-C2-08 — the pane is named for what it

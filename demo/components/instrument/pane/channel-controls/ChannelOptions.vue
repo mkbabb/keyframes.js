@@ -169,7 +169,12 @@
                                  (`renderMultiTarget` reads no `entry.layer`), so
                                  every row below is disabled and this line says
                                  why. -->
-                            <SubPaneHeader ref="layerHeaderEl" title="layer" @back="closePane">
+                            <!-- X-DS pass 20 (KF-C20-02) — the sub-pane is named in
+                                 the pane-title register (Title Case, as Rotations,
+                                 Timeline, Stagger); "layer" is not a CSS term, so it
+                                 does not keep the row label's lower-case echo the
+                                 way "cubic-bézier" does. -->
+                            <SubPaneHeader ref="layerHeaderEl" title="Layer" @back="closePane">
                                 <!-- X-DS r9 pass 17 (KF-C17-03) — the caption's
                                      closing phrase is one unbreakable run, so the
                                      line never breaks at the compound's hyphen

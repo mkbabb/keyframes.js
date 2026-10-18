@@ -230,13 +230,13 @@ describe("X.KF.W13X.controls — one drill-in owner, one sub-pane header (A2-KE-
             const layer = wrapper.get(`[id="${layerEntry(wrapper).attributes("aria-controls")}"]`);
             const lh = layer.get("[data-subpane-header]");
             expect(lh.element.firstElementChild?.tagName).toBe("BUTTON");
-            expect(lh.get("[data-subpane-title]").text()).toBe("layer");
+            expect(lh.get("[data-subpane-title]").text()).toBe("Layer");
             expect(lh.get("[data-subpane-title]").classes()).toContain("text-subheading");
             expect(shape(lh.element)).toEqual(shape(dh.element));
             // E2E-USAB-1 — both headers are in the DOM at once (the closed
             // pane is inert, not unmounted): each Back names its own pane, and
             // no two labelled buttons in the card share an accessible name.
-            expect(lh.element.querySelector("button")?.getAttribute("aria-label")).toBe("Back from layer to controls");
+            expect(lh.element.querySelector("button")?.getAttribute("aria-label")).toBe("Back from Layer to controls");
             const names = wrapper
                 .findAll("button[aria-label]")
                 .map((b) => b.attributes("aria-label"));
