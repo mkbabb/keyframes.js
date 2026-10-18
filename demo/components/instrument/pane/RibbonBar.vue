@@ -8,7 +8,17 @@
          (ControlsPaneWrapper), under a hairline, at ORIGIN's proportion (one
          card, the transport rows inside it). An empty slot still hides the
          whole section, rule and all. -->
-    <div class="ribbon-bar flex-shrink-0">
+    <!-- X-DS r9 pass 14 (KF-C14-04) — ONE ANATOMY per facet: content,
+         then the verbs at the card's foot. The Keyframes well takes the free
+         block and the Controls rows fill the card, so both rows close it; the
+         Timeline sizes to its content (KF-C11-04), so its verbs stood
+         mid-card over 200-330 px of blank paper. On that surface the ribbon
+         section takes the free block above itself (`mt-auto` in the frame's
+         column), so its verbs close the card as the other two do. -->
+    <div
+        class="ribbon-bar flex-shrink-0"
+        :class="storedControls.selectedControl === 'timeline' ? 'mt-auto' : ''"
+    >
         <!-- X-DS pass 2 · KF-C2-09 — ONE rule width per card: the ribbon's
              hairline is inset to the content column (the surfaces' `px-4`), as
              the field separators above it are; it ran full-bleed, edge to edge.
@@ -92,10 +102,18 @@
                  rainbow brush (identity, §0dm).
                  X-DS r9 pass 13 (KF-C13-01) — the row sits ON the content
                  column (`justify-start`), as the transport row does: centred,
-                 Apply CSS's plate floated 39 px in from the title's edge. -->
+                 Apply CSS's plate floated 39 px in from the title's edge.
+                 X-DS r9 pass 14 (KF-C14-02) — the quiet verbs keep their
+                 WORDS and drop their glyphs: 29rem was the row's one-line
+                 width and the rail never reaches it, so Copy, Format and
+                 Compiled were three bare glyphs at every served width (the
+                 KF-C8-06 defect, row-wide). Words alone, at the transport's
+                 slim `px-2` (KF-C6-01), fit beside Apply CSS at 1440 and 390.
+                 Apply CSS is filled, so its plate stays on the column
+                 (KF-C14-01's one edge rule). -->
             <div
                 v-if="storedControls.selectedControl === 'keyframes'"
-                class="@container flex items-center justify-start gap-2"
+                class="flex items-center justify-start gap-2"
             >
                 <!-- UIA-KF-175 (X.KF.W13X.sections) — Apply CSS is a toggle,
                      so it says so: `aria-pressed` reads the pane's own
@@ -129,18 +147,12 @@
                 <Button
                     size="sm"
                     emphasis="quiet"
-                    class="whitespace-nowrap"
+                    class="whitespace-nowrap px-2"
                     aria-label="Copy keyframes"
                     title="Copy keyframes"
                     @click="keyframes?.copyKeyframes()"
                 >
-                    <!-- X-DS pass 1, C1 (KF-C1-14) — the three icon
-                         commands share one neutral ink (currentColor): the
-                         gold Format and emerald Export tints carried no
-                         state and no identity. The rainbow brush on Apply
-                         CSS stays, the app's identity CTA. -->
-                    <Copy class="icon-sm" />
-                    <span class="@max-[29rem]:sr-only">Copy</span>
+                    Copy
                 </Button>
                 <!-- The PRIMARY format path (M-3/C-8 ≡ KF-CE-37): this
                      call is un-awaited BY DESIGN — `formatCSS` is the
@@ -151,17 +163,12 @@
                 <Button
                     size="sm"
                     emphasis="quiet"
-                    class="whitespace-nowrap"
+                    class="whitespace-nowrap px-2"
                     aria-label="Format"
                     title="Format"
                     @click="keyframes?.format()"
                 >
-                    <!-- X-DS r5 pass 5 (KF-C5-05) — a glyph that says
-                         formatting (set lines), in the row's neutral ink.
-                         Sparkles says "magic", which Format is not, and it
-                         stood alone once the word yielded. -->
-                    <AlignLeft class="icon-sm" />
-                    <span class="@max-[29rem]:sr-only">Format</span>
+                    Format
                 </Button>
                 <!-- K.W10 CC-4 — Export CSS: compile the orchestration graph
                      to a zero-runtime CSS artifact via the gated compileToCSS
@@ -170,13 +177,12 @@
                 <Button
                     size="sm"
                     emphasis="quiet"
-                    class="whitespace-nowrap"
+                    class="whitespace-nowrap px-2"
                     aria-label="Copy compiled CSS"
                     title="Copy compiled CSS"
                     @click="keyframes?.copyCompiledCSS()"
                 >
-                    <FileCode class="icon-sm" />
-                    <span class="@max-[29rem]:sr-only">Compiled</span>
+                    Compiled
                 </Button>
             </div>
 
@@ -198,7 +204,7 @@
 </template>
 
 <script setup lang="ts">
-import { AlignLeft, Copy, FileCode, Paintbrush } from "@lucide/vue";
+import { Paintbrush } from "@lucide/vue";
 import { computed, inject, watch } from "vue";
 import { Button, Separator } from "@mkbabb/glass-ui";
 import type { StoredAnimationGroupControlOptions } from "@state";

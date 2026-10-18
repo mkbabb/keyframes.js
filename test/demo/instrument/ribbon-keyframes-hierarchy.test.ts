@@ -59,14 +59,17 @@ describe("UIA-KF-319 — the Keyframes ribbon hierarchy", () => {
         }
     });
 
-    // X-DS r7 pass 16 (KF-C16-02) — the three quiet verbs yield under ONE
-    // rule: each label span carries the same container-query class, so the
-    // row is either all words or all glyphs, never alternating.
-    it("Copy, Format and Compiled yield their words under one container rule", () => {
+    // X-DS r7 pass 16 (KF-C16-02) → r9 pass 14 (KF-C14-02) — the three quiet
+    // verbs follow ONE rule, and it is now "always words": the 29rem yield was
+    // the row's one-line width, which the rail never reaches, so all three
+    // were bare glyphs at every served width. Each shows its word, wears no
+    // glyph, and hides nothing behind a container query.
+    it("Copy, Format and Compiled keep their words at every width, glyph-free", () => {
         const buttons = mountKeyframesRibbon().slice(1);
-        const classes = buttons.map((b) => b.querySelector("span")?.className);
-        expect(classes.every(Boolean)).toBe(true);
-        expect(new Set(classes).size).toBe(1);
-        expect(classes[0]).toMatch(/:sr-only/);
+        for (const b of buttons) {
+            expect(b.querySelector("svg")).toBeNull();
+            expect(b.querySelector("[class*='sr-only']")).toBeNull();
+            expect(b.textContent?.trim().length).toBeGreaterThan(0);
+        }
     });
 });

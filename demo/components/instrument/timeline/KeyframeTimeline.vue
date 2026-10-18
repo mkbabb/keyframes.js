@@ -342,12 +342,32 @@
                      X-DS r9 pass 13 (KF-C13-01) — the row sits ON the pane's
                      content column (`justify-start`), as the transport row
                      has since KF-C6-01: centred, the lead floated 36 px in
-                     from the title's edge. The overflow pins to the row end. -->
-                <div class="@container flex items-center justify-start gap-2">
+                     from the title's edge. The overflow pins to the row end.
+                     X-DS r9 pass 14 (KF-C14-01) — ONE EDGE RULE in the three
+                     ribbon rows, the transport's (KF-C6-01): a filled lead's
+                     plate sits on the column; a quiet lead takes the slim
+                     `px-2` and the row hangs that padding plus its 1px edge
+                     into the gutter, so its GLYPH sits on the column. While
+                     the hint's Import leads (`importLeads`), Snapshot is
+                     quiet, and its camera stood 15 px inside the title's edge
+                     (and 15 px off the Controls row's arrow).
+                     X-DS r9 pass 14 (KF-C14-02) — the quiet verbs keep their
+                     WORDS and drop their glyphs: the 28rem yield was the
+                     row's one-line width, which the rail never reaches, so
+                     Import / Add / Export showed three bare glyphs at every
+                     served width (KF-C4-12's "download / file-plus / upload
+                     never said which was import and which export", again).
+                     Words alone, at the transport's slim `px-2`, fit the row
+                     beside the lead and the overflow at 1440 and 390. -->
+                <div
+                    class="flex items-center justify-start gap-2"
+                    :class="importLeads ? '-ms-[calc(0.5rem_+_1px)]' : ''"
+                >
                     <Button
                         size="sm"
                         :emphasis="importLeads ? 'quiet' : 'secondary'"
                         class="shrink-0 whitespace-nowrap"
+                        :class="importLeads ? 'px-2' : ''"
                         @click="snapshot()"
                     >
                         <Camera class="icon-sm" /> Snapshot
@@ -360,30 +380,33 @@
                     <Button
                         size="sm"
                         emphasis="quiet"
+                        class="whitespace-nowrap px-2"
                         aria-label="Import CSS, replacing the timeline"
                         title="Import CSS (replaces the timeline)"
                         @click="openImportDialog()"
                     >
-                        <Download class="icon-sm" /> <span class="@max-[28rem]:sr-only">Import</span>
+                        Import
                     </Button>
                     <Button
                         size="sm"
                         emphasis="quiet"
+                        class="whitespace-nowrap px-2"
                         aria-label="Add CSS, merging into the timeline"
                         title="Add CSS (merges into the timeline)"
                         @click="openAddCSSDialog()"
                     >
-                        <FilePlus2 class="icon-sm" /> <span class="@max-[28rem]:sr-only">Add</span>
+                        Add
                     </Button>
                     <Button
                         size="sm"
                         emphasis="quiet"
+                        class="whitespace-nowrap px-2"
                         aria-label="Export CSS"
                         title="Export CSS"
                         :disabled="state.keyframes.length === 0"
                         @click="exportCSS()"
                     >
-                        <Upload class="icon-sm" /> <span class="@max-[28rem]:sr-only">Export</span>
+                        Export
                     </Button>
                     <DropdownMenu>
                         <DropdownMenuTrigger as-child>
@@ -475,7 +498,6 @@ import {
     Trash2,
     Undo2,
     Redo2,
-    Upload,
 } from "@lucide/vue";
 import CSSPasteDialog from "./CSSPasteDialog.vue";
 import { ConfiguratorLayer } from "@mkbabb/glass-ui/configurator";
