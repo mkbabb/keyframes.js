@@ -89,10 +89,13 @@
                  three go to their glyph together, each still naming itself
                  (aria-label) and tooltipping its word (title); at or above it
                  all three keep their words. Apply CSS keeps its label and its
-                 rainbow brush (identity, §0dm). -->
+                 rainbow brush (identity, §0dm).
+                 X-DS r9 pass 13 (KF-C13-01) — the row sits ON the content
+                 column (`justify-start`), as the transport row does: centred,
+                 Apply CSS's plate floated 39 px in from the title's edge. -->
             <div
                 v-if="storedControls.selectedControl === 'keyframes'"
-                class="@container flex items-center justify-center gap-2"
+                class="@container flex items-center justify-start gap-2"
             >
                 <!-- UIA-KF-175 (X.KF.W13X.sections) — Apply CSS is a toggle,
                      so it says so: `aria-pressed` reads the pane's own

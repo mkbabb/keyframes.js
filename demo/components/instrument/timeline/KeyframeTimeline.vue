@@ -338,8 +338,12 @@
                      and word touched its ends. Import, Add and Export go to
                      their glyphs together (each accessible name and title is
                      unchanged); Snapshot, the lead, keeps its word, as Apply
-                     CSS does. -->
-                <div class="@container flex items-center justify-center gap-2">
+                     CSS does.
+                     X-DS r9 pass 13 (KF-C13-01) — the row sits ON the pane's
+                     content column (`justify-start`), as the transport row
+                     has since KF-C6-01: centred, the lead floated 36 px in
+                     from the title's edge. The overflow pins to the row end. -->
+                <div class="@container flex items-center justify-start gap-2">
                     <Button
                         size="sm"
                         :emphasis="importLeads ? 'quiet' : 'secondary'"
@@ -387,6 +391,7 @@
                                 size="sm"
                                 emphasis="quiet"
                                 icon-only
+                                class="ms-auto"
                                 aria-label="More timeline actions"
                                 title="More timeline actions"
                             >
