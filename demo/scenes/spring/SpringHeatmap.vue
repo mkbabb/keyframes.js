@@ -38,7 +38,12 @@
                     :title="figureOpen ? undefined : LEGEND"
                 >
                     <ChevronRight class="disclosure-chevron size-4" aria-hidden="true" />
-                    <span class="text-small font-medium text-foreground">Peak overshoot</span>
+                    <!-- X-DS r9 pass 17 (KF-C17-04) — the row-label rung: glass
+                         `.label`'s `--control-label` at 500 in the foreground ink,
+                         as the response, damping and time labels; `text-small`
+                         set it one rung above the parameters it explains. The
+                         chevron carries the disclosure. -->
+                    <span class="text-[length:var(--control-label)] leading-(--type-leading-small) font-medium text-foreground">Peak overshoot</span>
                 </Button>
             </CollapsibleTrigger>
             <!-- X.KF.W13X.spring (UIA-KF-308) — while the pointer hovers the

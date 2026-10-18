@@ -50,10 +50,12 @@
             <h3 data-subpane-title class="text-subheading flex min-h-(--control-h-sm) items-center">
                 {{ title }}
             </h3>
+            <!-- X-DS r9 pass 17 (KF-C17-03) — the caption breaks without a
+                 one-word last line ('groups' stood alone under the title). -->
             <p
                 v-if="$slots.caption"
                 data-subpane-caption
-                class="text-caption text-muted-foreground"
+                class="text-caption text-muted-foreground text-pretty"
             >
                 <slot name="caption" />
             </p>

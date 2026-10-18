@@ -241,9 +241,21 @@
     .controls-layout > :deep(.controls-pane-wrapper) {
         grid-column: rail;
         grid-row: stage;
-        /* X-DS r6 pass 10 (KF-C10-10) — the rail stands the stage row's full
-           height, as the stage cell does, so the pane plate can end on the
-           stage plate's foot (ControlsPaneWrapper.css). */
+        /* X-DS r9 pass 17 (KF-C17-01) — THE PANE HUGS ITS SURFACE. KF-C10-10
+           stretched the rail over the stage row, so every surface was as tall
+           as the stage whatever its content: the empty Timeline card stood
+           ~323 px of blank plate under its ribbon, the layer region ~200 px.
+           The rail now hangs from the stage row's top (`start`) and is capped
+           at it (the wrapper's `max-block-size: 100%`), the easing plate's
+           idiom (KF-R6C4-01): a short surface ends at its ribbon, a tall one
+           meets the cap and scrolls in `.controls-surface`. The stretch is
+           kept only where a surface's figure takes the free block
+           (`.rail-fill`: the Keyframes code well, the Stagger lanes). A short
+           pane no longer ends on the stage's foot; that is ORIGIN's
+           proportion (its cards hugged their controls). */
+        align-self: start;
+    }
+    .controls-layout > :deep(.controls-pane-wrapper:has(.rail-fill:not(.inactive .rail-fill))) {
         align-self: stretch;
     }
 

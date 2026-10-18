@@ -152,7 +152,12 @@
        (spring 741 against 750): a near-miss that read as an error. The pane
        and its column take the rail's whole work band, so pane and stage end
        on one line in every scene; the surface scroller takes the room and
-       the ribbon stands at the pane's foot. */
+       the ribbon stands at the pane's foot.
+       X-DS r9 pass 17 (KF-C17-01) — the rail now hangs from the stage row's
+       top, capped at it (AnimationControlsGroup.css), so these grow only where
+       the rail is stretched (a `.rail-fill` surface). Elsewhere the pane hugs
+       its surface and the ribbon closes the card; a tall surface meets the
+       cap and scrolls. */
     .controls-pane,
     .controls-content,
     .pane-frame {

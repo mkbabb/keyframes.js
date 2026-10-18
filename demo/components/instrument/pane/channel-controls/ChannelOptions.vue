@@ -170,11 +170,16 @@
                                  every row below is disabled and this line says
                                  why. -->
                             <SubPaneHeader ref="layerHeaderEl" title="layer" @back="closePane">
-                                <template #caption>{{
-                                    blendAvailable
-                                        ? "How this channel blends with the others"
-                                        : "Layer compositing applies to single-target groups"
-                                }}</template>
+                                <!-- X-DS r9 pass 17 (KF-C17-03) — the caption's
+                                     closing phrase is one unbreakable run, so the
+                                     line never breaks at the compound's hyphen
+                                     ('single-' / 'target groups'); with the
+                                     caption's `text-pretty` the break falls before
+                                     it. The copy is unchanged. -->
+                                <template #caption>
+                                    <template v-if="blendAvailable">How this channel blends with the others</template>
+                                    <template v-else>Layer compositing applies to <span class="whitespace-nowrap">single-target groups</span></template>
+                                </template>
                             </SubPaneHeader>
                             <!-- H.W11.I1 — LayerConfigPanel's rows join the SAME
                                  label-column subgrid idiom (one DRY source,
