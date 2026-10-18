@@ -8,17 +8,13 @@
          (ControlsPaneWrapper), under a hairline, at ORIGIN's proportion (one
          card, the transport rows inside it). An empty slot still hides the
          whole section, rule and all. -->
-    <!-- X-DS r9 pass 14 (KF-C14-04) — ONE ANATOMY per facet: content,
-         then the verbs at the card's foot. The Keyframes well takes the free
-         block and the Controls rows fill the card, so both rows close it; the
-         Timeline sizes to its content (KF-C11-04), so its verbs stood
-         mid-card over 200-330 px of blank paper. On that surface the ribbon
-         section takes the free block above itself (`mt-auto` in the frame's
-         column), so its verbs close the card as the other two do. -->
-    <div
-        class="ribbon-bar flex-shrink-0"
-        :class="storedControls.selectedControl === 'timeline' ? 'mt-auto' : ''"
-    >
+    <!-- X-DS r9 pass 16 (KF-C16-01) — ONE RHYTHM per facet: the rule
+         follows the last row (KF-C7-02 / KF-C11-04), and any free block the
+         one-foot frame (KF-C10-10) leaves stands UNDER the ribbon, as the
+         Controls, Spring and Easing facets serve it. Pass 14's timeline-only
+         `mt-auto` (KF-C14-04) put that block above the rule instead, a
+         216-327 px blank band in the Timeline card; it is deleted. -->
+    <div class="ribbon-bar flex-shrink-0">
         <!-- X-DS pass 2 · KF-C2-09 — ONE rule width per card: the ribbon's
              hairline is inset to the content column (the surfaces' `px-4`), as
              the field separators above it are; it ran full-bleed, edge to edge.
