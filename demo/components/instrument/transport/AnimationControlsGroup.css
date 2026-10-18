@@ -255,7 +255,18 @@
            proportion (its cards hugged their controls). */
         align-self: start;
     }
-    .controls-layout > :deep(.controls-pane-wrapper:has(.rail-fill:not(.inactive .rail-fill))) {
+    /* X-DS r9 pass 18 (KF-C18-01) — THE HANG IS THE FULL-BLEED STAGES' ONLY.
+       Beside a stage PLATE (square, easing, spring, sequence: the scene's glass
+       Card, `[data-slot=card]`) the pane is the plate's partner card, and a
+       hung Controls / Physics / Easing surface ended 8-13 px short of the
+       plate's foot: a near-miss that reads neither aligned nor hugged.
+       There the rail keeps ONE FOOT with the plate (KF-C10-10), and the
+       left-over block stands under the ribbon inside the frame (the
+       KF-C7-02 / KF-C16 rhythm). The hang stays where the stage is full-bleed
+       (cube, amiga): no partner plate, so the short Timeline and the layer
+       region hug their surfaces (KF-C17-01). */
+    .controls-layout > :deep(.controls-pane-wrapper:has(.rail-fill:not(.inactive .rail-fill))),
+    .controls-layout > :deep(.controls-pane-wrapper:has(~ .stage-cell [data-slot="card"])) {
         align-self: stretch;
     }
 
