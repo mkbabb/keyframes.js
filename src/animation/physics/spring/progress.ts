@@ -320,9 +320,7 @@ export class SpringProgress {
         // construction. The initial velocity `v0` is a physical fact and is NOT
         // scaled. At s = 1 (the default / no active query) `scaledTarget ===
         // targetValue` — the constant path is byte-unchanged.
-        const s = this.amplitudeScale;
-        const scaledTarget =
-            this.originValue + s * (this.targetValue - this.originValue);
+        const scaledTarget = this.scaledTarget();
         const x0 = this.originValue - scaledTarget;
         const v0 = this.originVelocity;
 
@@ -345,13 +343,25 @@ export class SpringProgress {
         this.currentVelocity = vRel;
     }
 
+    /**
+     * The rest the spring travels toward: `origin + s·(target − origin)`.
+     * R-K1-a — at full amplitude (s = 1) that expression is NOT `target` in
+     * floating point for every origin (origin −0.0069, target 1 →
+     * 0.9999999999999999), so a settled spring would rest a float short and a
+     * consumer's `value >= target` never fires. At s = 1 the rest IS the
+     * target, exactly; every other s is the scaled form, unchanged.
+     */
+    private scaledTarget(): number {
+        const s = this.amplitudeScale;
+        if (s === 1) return this.targetValue;
+        return this.originValue + s * (this.targetValue - this.originValue);
+    }
+
     private checkSettled(): void {
         // Settle against the SCALED target — under amplitude scaling the spring
         // rests at `origin + s·(target − origin)`, so converge there (at s = 1
         // this is `targetValue`, unchanged).
-        const s = this.amplitudeScale;
-        const scaledTarget =
-            this.originValue + s * (this.targetValue - this.originValue);
+        const scaledTarget = this.scaledTarget();
         const dx = Math.abs(this.currentValue - scaledTarget);
         const dv = Math.abs(this.currentVelocity);
         if (
