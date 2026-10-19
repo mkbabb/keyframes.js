@@ -70,7 +70,11 @@
                  line. The legend is now one text run: the swatch rides the
                  sentence's first phrase in one unbreakable run, and the line
                  breaks only after '·'. -->
-            <span v-else-if="figureOpen" class="min-w-0 whitespace-normal text-caption text-muted-foreground tabular-nums" title="Peak overshoot varies with damping ζ only; response sets the tempo, not the peak" data-figure-legend>
+            <!-- X-DS r8 pass 11 (KF-C11-02) — a wrap never ends a line on the
+                 separator: '·' opens the tail's nowrap run, so the break falls
+                 before it. A continuation line hangs under the first line's
+                 text, not under the swatch (`.spring-heatmap-legend`). -->
+            <span v-else-if="figureOpen" class="spring-heatmap-legend min-w-0 whitespace-normal text-caption text-muted-foreground tabular-nums" title="Peak overshoot varies with damping ζ only; response sets the tempo, not the peak" data-figure-legend>
                 <!-- X-DS pass 16 (KF-C16-04) — the swatch keys the field's ramp.
                      r4 pass 5 (KF-C24-01) — so does the sentence: both show only
                      while the field does. -->
@@ -346,8 +350,8 @@ const ZETA_TICKS = [
 ];
 
 /** The field's legend: the ramp's range and what alone sets it. */
-const LEGEND_HEAD = `0 → ${OVERSHOOT_MAX_PERCENT} % overshoot ·`;
-const LEGEND_TAIL = "set by damping alone";
+const LEGEND_HEAD = `0 → ${OVERSHOOT_MAX_PERCENT} % overshoot`;
+const LEGEND_TAIL = "· set by damping alone";
 const LEGEND = `${LEGEND_HEAD} ${LEGEND_TAIL}`;
 
 const FIELD_LABEL =
@@ -904,6 +908,14 @@ function onKeydown(e: KeyboardEvent): void {
     .spring-heatmap-marker {
         transition: none;
     }
+}
+
+/* KF-C11-02 — the legend's hanging indent: one swatch run (its 3rem plus its
+   0.375rem margin), so a wrapped tail sits under the first line's text. */
+.spring-heatmap-legend {
+    --legend-hang: calc(3rem + 0.375rem);
+    padding-inline-start: var(--legend-hang);
+    text-indent: calc(-1 * var(--legend-hang));
 }
 
 /* ── The legend swatch — the same two colours, the same interpolation space:
