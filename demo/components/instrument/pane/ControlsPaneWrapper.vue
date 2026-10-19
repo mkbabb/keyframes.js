@@ -51,6 +51,7 @@
              for it) is deleted. -->
         <component
             :is="isMobileLayout ? FadingScroll : 'div'"
+            ref="paneEl"
             v-bind="isMobileLayout ? { axis: 'y' } : {}"
             @mouseenter="paneMouseEnter"
             @mouseleave="paneMouseLeave"
@@ -225,6 +226,10 @@
              edge sat ≈49 px INSIDE the transport and the collapsed pill
              covered its last control row (the owner's "fill mode"). The
              sheet now rests on top of the transport, never under it. -->
+        <!-- X-DS r8 pass 11 (KF-C11-01) — focus never lands in a parked
+             peek's clipped body: a control focused outside the peek's port
+             opens the sheet (where the body scrolls), and a parked port always
+             rests at its top, so the peek re-shows its title row. -->
         <!-- X-DS pass 13 (KF-C17-02) — the peek is a
              RESTING state, not a dialog the user opened: reka's open auto-focus
              would move focus into the ✕ on page load (script focus matches
@@ -239,6 +244,8 @@
             :style="sheetStyle"
             @click.capture="onParkedHeaderPress"
             @open-auto-focus.prevent
+            @focusin="onSheetFocusIn"
+            @focusout="onSheetFocusOut"
         >
             <!-- reka DialogContent wants a labelling title; keep it off-screen
                  (the visible facet panels carry their own headings). -->
@@ -284,7 +291,15 @@ import { Dialog, DialogTitle } from "@mkbabb/glass-ui/dialog";
 import { FadingScroll } from "@mkbabb/glass-ui/fading-scroll";
 import { SheetContent } from "@mkbabb/glass-ui/sheet";
 import { createReusableTemplate, useMediaQuery } from "@vueuse/core";
-import { computed, provide, shallowRef, useTemplateRef, watch } from "vue";
+import {
+    type ComponentPublicInstance,
+    computed,
+    nextTick,
+    provide,
+    shallowRef,
+    useTemplateRef,
+    watch,
+} from "vue";
 import type { TransportChannel } from "../transport/transportSource";
 import ChannelControls from "./channel-controls/ChannelControls.vue";
 import RibbonBar from "./RibbonBar.vue";
@@ -595,6 +610,57 @@ const paneScrollable = computed(() =>
     isMobileLayout.value
         ? props.storedControls.isControlsPanelOpen
         : isPanelTransitionDone.value && props.storedControls.isControlsPanelOpen,
+);
+
+// X-DS r8 pass 11 (KF-C11-01) — a parked peek clips its body (`overflow-hidden`),
+// but clipping does not stop a focus or scroll-into-view scroll: Tab (or a tap on
+// a row under the fold) scrolled the clipped port to a mid-form fragment that
+// could not scroll back, with the title row gone. Two rules, both on the one
+// port, both mobile-only:
+// (a) focus entering the parked body on a control the peek does not wholly
+//     show opens the sheet, so the control is shown where the body scrolls.
+//     The browser's focus scroll has already run at `focusin`, so "not wholly
+//     shown" reads as: the port (or the page root, which this app never
+//     scrolls) has moved, or the control lies outside the port's box. A
+//     control the peek shows (its title row) focuses without moving the sheet;
+// (b) whenever the sheet parks (the open fact goes false, or focus leaves the
+//     sheet while parked), the port and the page root return to their tops.
+const paneEl = useTemplateRef<HTMLElement | ComponentPublicInstance>("paneEl");
+const panePort = (): HTMLElement | null => {
+    const el = paneEl.value;
+    if (!el) return null;
+    return el instanceof HTMLElement ? el : (el.$el as HTMLElement);
+};
+const rootScroller = () => document.scrollingElement;
+const restPort = () => {
+    const port = panePort();
+    if (port && port.scrollTop !== 0) port.scrollTop = 0;
+    const root = rootScroller();
+    if (root && root.scrollTop !== 0) root.scrollTop = 0;
+};
+const onSheetFocusIn = (e: FocusEvent) => {
+    if (props.storedControls.isControlsPanelOpen) return;
+    const port = panePort();
+    const target = e.target;
+    if (!port || !(target instanceof Element) || !port.contains(target)) return;
+    const box = port.getBoundingClientRect();
+    const rect = target.getBoundingClientRect();
+    const moved = port.scrollTop !== 0 || (rootScroller()?.scrollTop ?? 0) !== 0;
+    if (moved || rect.top < box.top || rect.bottom > box.bottom) {
+        emit("setControlsPanelOpen", true);
+    }
+};
+const onSheetFocusOut = (e: FocusEvent) => {
+    const next = e.relatedTarget;
+    const sheet = e.currentTarget;
+    if (next instanceof Node && sheet instanceof Element && sheet.contains(next)) return;
+    if (!props.storedControls.isControlsPanelOpen) restPort();
+};
+watch(
+    () => props.storedControls.isControlsPanelOpen,
+    (open) => {
+        if (!open && isMobileLayout.value) void nextTick(restPort);
+    },
 );
 
 </script>
