@@ -8,8 +8,9 @@
  *     transition starts, and the transition's update callback does not finish
  *     until the scene's commit point (`whenSceneReady`), so neither capture is
  *     the <Suspense> fallback.
- *   - KFA-26 / KFA-201: an overlay mid-exit (the picked Select) finishes
- *     leaving before the transition captures the old state.
+ *   - KFA-26 / KFA-201: an overlay mid-exit (the picked Select) is taken out
+ *     of the old-state capture in ONE frame: its exit animation is finished,
+ *     never awaited (OD19 KF-P4: awaiting it held the swap ~300 ms).
  *   - A2-KE-L1-13 / L1-14: the dead contract members are gone, the cube has one
  *     load path, and scene identity is spelled once.
  */
@@ -79,6 +80,8 @@ describe("KFA-25 / KFA-26 / KFA-201 — the switch prepares, then captures the r
     let startVT: ReturnType<typeof vi.fn>;
     let callbackDone: Promise<unknown> | null;
     let exitFinished: { resolve: () => void; promise: Promise<void> };
+    let exitFinish: ReturnType<typeof vi.fn>;
+    let loopFinish: ReturnType<typeof vi.fn>;
 
     beforeEach(() => {
         callbackDone = null;
@@ -97,11 +100,20 @@ describe("KFA-25 / KFA-26 / KFA-201 — the switch prepares, then captures the r
         const closing = document.createElement("div");
         closing.setAttribute("data-state", "closed");
         document.body.append(closing);
+        exitFinish = vi.fn();
+        loopFinish = vi.fn();
         const exit = {
             effect: { target: closing, getComputedTiming: () => ({ endTime: 150 }) },
             finished: exitFinished.promise,
+            finish: exitFinish,
         };
-        (document as unknown as { getAnimations: unknown }).getAnimations = () => [exit];
+        // An infinite animation inside closed content is not an exit.
+        const loop = {
+            effect: { target: closing, getComputedTiming: () => ({ endTime: Infinity }) },
+            finished: new Promise<void>(() => {}),
+            finish: loopFinish,
+        };
+        (document as unknown as { getAnimations: unknown }).getAnimations = () => [exit, loop];
     });
     afterEach(() => {
         delete (document as unknown as { startViewTransition?: unknown }).startViewTransition;
@@ -109,7 +121,7 @@ describe("KFA-25 / KFA-26 / KFA-201 — the switch prepares, then captures the r
         document.body.replaceChildren();
     });
 
-    it("waits for the closing overlay, then holds the update callback until the scene is ready", async () => {
+    it("finishes the closing overlay's exit before the capture, without awaiting it, then holds the update callback until the scene is ready", async () => {
         const mutate = vi.fn();
         let resolveReady!: () => void;
         const whenSceneReady = vi.fn(() => new Promise<void>((r) => (resolveReady = r)));
@@ -126,12 +138,18 @@ describe("KFA-25 / KFA-26 / KFA-201 — the switch prepares, then captures the r
         });
         wrapper = mount(Host);
         run(HOME_SCENE_ID);
+        // The cure gates on ONE frame (reka marks the content closed a frame
+        // after the pick), then starts the transition.
+        await new Promise<void>((r) => requestAnimationFrame(() => r()));
         await flush();
-        // The overlay is still leaving: no capture yet (KFA-26 / KFA-201).
-        expect(startVT).not.toHaveBeenCalled();
-        exitFinished.resolve();
-        await flush();
+        // The exit's own `finished` never settles here: the capture must not
+        // wait on it (KF-P4), and the closing content must be out of the old
+        // capture first (KFA-26 / KFA-201): its exit is finished BEFORE the
+        // transition starts, and an infinite animation is left alone.
         expect(startVT).toHaveBeenCalledTimes(1);
+        expect(exitFinish).toHaveBeenCalledTimes(1);
+        expect(exitFinish.mock.invocationCallOrder[0]).toBeLessThan(startVT.mock.invocationCallOrder[0]!);
+        expect(loopFinish).not.toHaveBeenCalled();
         expect(mutate).toHaveBeenCalledWith(HOME_SCENE_ID);
         expect(whenSceneReady).toHaveBeenCalledWith(HOME_SCENE_ID);
         // The update callback is still open: the new capture waits for the commit point (KFA-25).

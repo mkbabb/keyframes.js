@@ -31,8 +31,8 @@ import { loadScene, warmScenesAtIdle } from "../scene/scenes";
  * cross-dissolve from the source scene to the destination scene, whole:
  *   1. BEFORE the transition starts, the destination chunk is resolved
  *      (`loadScene`; every chunk is also warmed at idle after first paint) and
- *      any overlay mid-exit (the Scene Select the pick just closed) finishes
- *      leaving — so the old-state capture carries no open popover, and no
+ *      any overlay mid-exit (the Scene Select the pick just closed) is taken
+ *      out in one frame — so the old-state capture carries no popover, and no
  *      ghost rows linger over the new scene.
  *   2. The update callback mutates the scene id and then AWAITS the scene's
  *      commit point (`whenSceneReady`: the new scene bound, the chrome flipped
@@ -77,18 +77,23 @@ export function useSceneTransition(opts: {
 
     async function runSceneSwitch(id: string) {
         const gen = ++generation;
+        const start = performance.mark("scene-swap:start").startTime;
         // A rejected chunk is not handled here: the mount below surfaces it
         // through <Suspense>, exactly as an un-preloaded switch would.
         await Promise.allSettled([loadScene(id), settleClosingOverlays()]);
         if (gen !== generation) return;
+        performance.measure("scene-swap:prepare", { start });
         const { finished, backend } = viewTransition(async () => {
+            const commit = performance.now();
             const ready = whenSceneReady(id);
             mutate(id);
             await ready;
             await nextTick();
+            performance.measure("scene-swap:commit", { start: commit });
         });
         lastSwapBackend.value = backend;
         finished.finally(() => {
+            performance.measure("scene-swap:total", { start });
             sceneHost.value?.focus();
         });
     }
@@ -97,21 +102,27 @@ export function useSceneTransition(opts: {
 }
 
 /**
- * KFA-26 / KFA-201 — let every overlay that is mid-exit finish leaving. A
- * pick closes its Select in the same event that asks for the switch; one frame
- * later the closing content carries reka's `data-state="closed"` and runs its
- * exit animation. Those finite animations are awaited (an infinite one never
- * ends, so it is not an exit and is not awaited).
+ * KFA-26 / KFA-201 — take every overlay that is mid-exit out of the old-state
+ * capture in ONE frame. A pick closes its Select in the same event that asks
+ * for the switch; one frame later the closing content carries reka's
+ * `data-state="closed"` and starts its exit animation. The cross-dissolve
+ * about to start IS that content's exit, so its own exit animation is
+ * finished at once (not awaited: awaiting it held the swap ~300 ms,
+ * OD19 KF-P4): `finish()` fires `animationend`, the presence unmounts the
+ * content, and the capture carries no popover, so no ghost rows dissolve over
+ * the new scene. An infinite animation is not an exit and is left alone.
  */
 async function settleClosingOverlays(): Promise<void> {
     await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
-    const exits = document.getAnimations().filter((a) => {
+    for (const a of document.getAnimations()) {
         const target = (a.effect as KeyframeEffect | null)?.target;
-        return (
+        if (
             target instanceof Element &&
             target.closest('[data-state="closed"]') !== null &&
             a.effect?.getComputedTiming().endTime !== Infinity
-        );
-    });
-    await Promise.allSettled(exits.map((a) => a.finished));
+        ) {
+            a.finish();
+        }
+    }
+    await nextTick();
 }
