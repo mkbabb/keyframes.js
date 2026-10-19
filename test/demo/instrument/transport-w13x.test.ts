@@ -103,8 +103,9 @@ vi.mock("@mkbabb/glass-ui/dock", async () => {
 vi.mock("../../../demo/components/playback/AnimationVisualizer.vue", () => ({
     default: defineComponent({
         name: "AnimationVisualizerStub",
-        setup() {
-            return () => h("div", { "data-stub": "AnimationVisualizer" });
+        // OD19-K4 — the track seats the ribbon's Reverse / Preview discs.
+        setup(_props, { slots }) {
+            return () => h("div", { "data-stub": "AnimationVisualizer" }, [slots.start?.(), slots.end?.()]);
         },
     }),
 }));

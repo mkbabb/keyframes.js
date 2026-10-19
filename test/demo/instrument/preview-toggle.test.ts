@@ -7,8 +7,9 @@
  * (1) census: the eye / eye-off glyph pair is imported by exactly one demo
  *     component, PlaybackRibbon — no duplicate toggle survives;
  * (2) every PlaybackRibbon mount binds the preview state (every view offers it);
- * (3) the eye has a home: it is a labelled Button beside Reverse in the
- *     ribbon's transport row, in flow — no out-of-flow eye remains on the
+ * (3) the eye has a home: it is a labelled Button, the ball track's dashed
+ *     end disc (OD19-K4; it sat beside Reverse in a transport row), in
+ *     flow — no out-of-flow eye remains on the
  *     preview; hidden keeps the preview's box (visibility, never display / v-if);
  * (4) the hide/show is a cross-fade + scale on the engine's own spring
  *     (`springTimingFunction(...).css`), and reduced motion drops the
@@ -68,10 +69,11 @@ describe("OA-61 · KF-P1-01 — one seated eye toggle for the ball preview", () 
             const src = readFileSync(p, "utf8");
             expect([relative(ROOT, p), /\bpreview:/.test(src), /ballPreview/.test(src)]).toEqual([relative(ROOT, p), true, true]);
         }
-        expect(read("demo/components/playback/PlaybackRibbon.vue")).toMatch(/<PreviewToggle\b/);
+        // OD19-K4 — the toggle wraps the visualizer's stage (the discs stay).
+        expect(read("demo/components/playback/AnimationVisualizer.vue")).toMatch(/<PreviewToggle\b/);
     });
 
-    it("(3) the eye is seated in the ribbon's transport row, in flow; hidden collapses its row", () => {
+    it("(3) the eye is seated as the ball track's end disc, in flow; hidden collapses its row", () => {
         const src = read(TOGGLE);
         // No control, and nothing out of flow, is left on the preview itself.
         expect(src).not.toMatch(/<Button\b|preview-toggle__eye/);
@@ -86,24 +88,24 @@ describe("OA-61 · KF-P1-01 — one seated eye toggle for the ball preview", () 
         expect(root).toMatch(/grid-template-rows:\s*0fr/);
         expect(src).toMatch(/grid-template-rows var\(--preview-toggle-ms\) var\(--preview-ease\)/);
 
-        // The ribbon: Reverse and the eye are siblings of ONE row, and the eye
-        // is labelled. X-DS pass 1, C1 (KF-C1-03): the eye is glass's quiet
-        // Button, subordinate to Reverse, and does not wear Reverse's skin.
+        // The ribbon: Reverse and the eye are labelled glass `quiet` Buttons.
+        // X-DS pass 1, C1 (KF-C1-03): the eye is subordinate to Reverse and
+        // does not wear Reverse's skin. OD19-K4 (the owner, 2026-10-19) — the
+        // verb row is folded into the ball track: Reverse is the start disc
+        // (the visualizer's `start` slot), the eye the dashed ghost disc (its
+        // `end` slot); no separate row of verbs remains.
         const ribbon = read(RIBBON);
         const template = ribbon.slice(0, ribbon.indexOf("<script"));
-        // X-DS pass 5 (KF-C5-10): the two are PEERS at content width — a flex
-        // row (no `1fr` track stretching Reverse), both glass `quiet`.
-        // X-DS pass 6 (KF-C6-01): the row hangs its Buttons' slim inline
-        // padding into the gutter so the first word sits on the label column.
-        const row = template.match(/<div\s+class="flex flex-wrap items-center gap-2 -ms-\[calc\(0\.5rem_\+_1px\)\]"[\s\S]*?<\/Tooltip>\s*<\/div>/)![0];
-        expect(row).toMatch(/<span>Reverse<\/span>/);
-        expect(row).toMatch(/aria-label="Ball preview"/);
-        expect(row).toMatch(/:aria-pressed="preview !== 'hidden'"/);
-        expect(row).toMatch(/<span>Preview<\/span>/);
-        expect(row.match(/emphasis="quiet"/g)).toHaveLength(2);
-        expect(row).not.toMatch(/1fr/);
-        expect(row.match(/class="btn-playback rounded-full gap-2 px-2"/g)).toHaveLength(1);
-        expect(row).toMatch(/class="gap-2 px-2"\s+aria-label="Ball preview"/);
+        expect(template).not.toMatch(/-ms-\[calc\(0\.5rem_\+_1px\)\]/);
+        const start = template.match(/<template #start>[\s\S]*?<\/template>/)![0];
+        const end = template.match(/<template v-if="showEye" #end>[\s\S]*?<\/template>/)![0];
+        expect(start).toMatch(/<span class="sr-only">Reverse<\/span>/);
+        expect(start.match(/class="btn-playback [^"]*"/g)).toHaveLength(1);
+        expect(end).toMatch(/aria-label="Ball preview"/);
+        expect(end).toMatch(/:aria-pressed="preview !== 'hidden'"/);
+        expect(end).not.toMatch(/btn-playback/);
+        expect(end).toMatch(/border-dashed/);
+        expect([start, end].map((t) => t.match(/emphasis="quiet"/g)?.length)).toEqual([1, 1]);
         expect(ribbon).not.toMatch(/position:\s*absolute/);
     });
 

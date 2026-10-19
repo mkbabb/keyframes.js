@@ -76,120 +76,81 @@
         </div>
 
         <!-- UIA-KF-051 · UIA-KF-155 (X.KF.W13X.transport) — ONE TRANSPORT. The
-             ribbon's own Play/Pause cell is DELETED: it drove the very state
-             the dock's persistent Play drives (served ×2 on easing, spring and
-             cube — pressing either flips both), so every scene carried two
-             controls for one verb (demo/DESIGN.md §3), and its pastel accent
-             fill was the low-contrast pill of 155. The dock owns play, reset
+             ribbon's own Play/Pause cell is DELETED: the dock owns play, reset
              and the channel select; the ribbon keeps what is its own — the
              scrub rail, Reverse and the ball preview.
-             The cell wears the shared `.btn-playback` skin (playback-idiom.css,
-             via design-idioms.css). Height: the producer Button's
-             `min-block-size` (D-16). Glyph size: the producer's `--ui-glyph`
-             rung (D-17/N-4). `emphasis="secondary"` is the Button's own
-             default (N-6). D-15 / D-8 / N-1 — ONE pressed authority: the
-             skin's `.btn-playback[aria-pressed="true"]` rule. -->
-        <!-- X-DS pass 1 (KF-P1-01) — the transport row: Reverse and the ball
-             preview's eye, two labelled siblings (C1: the eye one rung
-             quieter, below). The
-             eye floated over the ghost dot's corner (OA-61, out of flow, no
-             frame, no label: the owner's "floating meaninglessly",
-             2026-10-06); it is seated here, in the row of verbs it belongs
-             to, and the ghost dot carries nothing.
-             X-DS pass 5 (KF-C5-10) — the two are PEERS. Reverse was a filled
-             capsule stretched over ~60% of the pane (the `1fr` track), the
-             heaviest mass on the card for a modifier verb, while Preview beside
-             it was bare text; ORIGIN set this row's verbs as equal quiet peers.
-             Reverse now sits at its content width and one rung lower (glass's
-             `quiet`, like Preview); its pressed state is still the skin's one
-             pressed authority. The dock's Play is the only loud verb.
-             X-DS pass 6 (KF-C6-01) — the row's first WORD sits on the pane's
-             label column (the layer row's KF-C1-15 fix, adapted). The ribbon
-             itself now starts on that column (RibbonBar.vue). The two quiet
-             Buttons keep a SLIM inline padding (`px-2`), since Reverse's
-             pressed plate and both hover washes need room around the word (a
-             px-0 plate would hug it), and the row hangs exactly that padding
-             plus the Button's 1px edge into the frame's gutter (`-ms`), so the
-             first word lands on the column and the plate still clears the
-             frame. Block size and hit height are glass's (min-block-size).
-             X-DS r9 pass 10 (KF-C10-01) — the GLYPH LEADS THE WORD in both
-             verbs, the instrument's one labelled-verb anatomy (the ribbon's
-             Snapshot / Import / Add / Export, the paste dialog's Import,
-             Re-seat, Apply CSS): the transport row predated that rule, so the
-             same pane slot flipped anatomy between Controls and Timeline. The
-             state stays on the glyph (the arrow flips, the eye becomes
-             eye-off). The gutter offset is unchanged in value and now lands
-             the leading GLYPH on the label column, as Snapshot's does.
-             X-DS r5 pass 4 (KF-C4-07) — both verbs take glass's `sm` size:
-             its type is the label rung the fields above wear (the default
-             Button rung set these two secondary toggles louder than "time",
-             the label of the row they modify). -->
-        <div class="flex flex-wrap items-center gap-2 -ms-[calc(0.5rem_+_1px)]">
-            <Button
-                emphasis="quiet"
-                size="sm"
-                class="btn-playback rounded-full gap-2 px-2"
-                :aria-pressed="userReversed"
-                @click="onReverse"
-            >
-                <ArrowLeftRight
-                    :class="[
-                        'transition-transform duration-fast',
-                        userReversed ? 'scale-x-[-1]' : '',
-                    ]"
-                />
-                <span>Reverse</span>
-            </Button>
-            <!-- UIA-KF-300 (X.KF.W13X.transport) — ONE stable name with
-                 `aria-pressed`; the tooltip states the action the next press
-                 takes.
-                 X-DS pass 1, C1 (KF-C1-03) — the pressed state follows the
-                 visible label: "Ball preview", pressed while the preview is
-                 SHOWN (it was "Hide ball preview", pressed while hidden, so
-                 the accent skin lit the button exactly when the preview was
-                 off). The eye is subordinate to Reverse, the card's verb: it
-                 is glass's own `quiet` Button (no plate, no shadow) and it
-                 does not wear the `.btn-playback` skin, whose pressed accent
-                 is Reverse's. The eye / eye-off glyph is the state. -->
-            <Tooltip v-if="showEye">
-                <TooltipTrigger as-child>
-                    <Button
-                        emphasis="quiet"
-                        size="sm"
-                        class="gap-2 px-2"
-                        aria-label="Ball preview"
-                        :aria-pressed="preview !== 'hidden'"
-                        :data-preview="preview"
-                        :style="{ '--preview-ease': PREVIEW_EASE }"
-                        @click="emit('update:preview', preview === 'hidden' ? 'shown' : 'hidden')"
-                    >
-                        <span class="preview-eye__glyphs" aria-hidden="true">
-                            <Eye class="preview-eye__glyph" data-glyph="eye" />
-                            <EyeOff class="preview-eye__glyph" data-glyph="eye-off" />
-                        </span>
-                        <span>Preview</span>
-                    </Button>
-                </TooltipTrigger>
-                <TooltipContent>{{ preview === "hidden" ? "Show ball preview" : "Hide ball preview" }}</TooltipContent>
-            </Tooltip>
-        </div>
-
-        <!-- OA-10 (§0ao.1) → OA-61 (X.KF.W13W.e) — the ball preview; its
-             body fades in PreviewToggle (hidden stays mounted; its row collapses, C1). The mount owns
-             the state and its persistence; every mount binds it. -->
-        <!-- X-DS r5 pass 5 (KF-C5-03) — the track YIELDS on a short rail
-             (`showTrack`, the script): the time rail above already shows the
-             playhead, and the pinned ribbon was taking the scroller's rows. -->
-        <PreviewToggle v-if="animation && showTrack" :state="preview">
-            <AnimationVisualizer
-                :animation="animation"
-                :is-playing="isAnimPlaying"
-                :current-t="currentT"
-                @scrub="scrubTo"
-                @drag-start="emit('scrubStart')"
-                @drag-end="emit('scrubEnd')"
-            ></AnimationVisualizer>
-        </PreviewToggle>
+             OD19-K4 (the owner, 2026-10-19: "Reverse / Preview and the three
+             dots integrated more deftly, using the ball") — there is no verb
+             row. The ball track's two end discs ARE the two verbs: the start
+             disc is Reverse (the run's origin; its arrow points the way the
+             ball runs and flips under Reverse, `aria-pressed`), the dashed
+             ghost disc is the ball Preview (the run's destination; eye /
+             eye-off is the state, `aria-pressed` while SHOWN). Both are named
+             glass Buttons with Tooltips, authored here and seated by the
+             visualizer's `start` / `end` slots (no wrapper). Reverse keeps the
+             `.btn-playback` skin, the one pressed authority (D-15 / N-1); the
+             eye stays glass's plain `quiet` Button (KF-C1-03). On the short
+             desktop rail (KF-C5-03) the ball is not drawn and the eye is not
+             offered; the row seats Reverse alone at the control height. -->
+        <AnimationVisualizer
+            v-if="animation"
+            :animation="animation"
+            :is-playing="isAnimPlaying"
+            :current-t="currentT"
+            :preview="railShort ? 'hidden' : (preview ?? 'shown')"
+            :compact="railShort"
+            @scrub="scrubTo"
+            @drag-start="emit('scrubStart')"
+            @drag-end="emit('scrubEnd')"
+        >
+            <template #start>
+                <Tooltip>
+                    <TooltipTrigger as-child>
+                        <Button
+                            emphasis="quiet"
+                            icon-only
+                            class="btn-playback size-(--ball-size) shrink-0 rounded-full bg-accent-kf/30"
+                            :aria-pressed="userReversed"
+                            @click="onReverse"
+                        >
+                            <ArrowRight
+                                :class="[
+                                    'transition-transform duration-fast',
+                                    userReversed ? 'scale-x-[-1]' : '',
+                                ]"
+                                aria-hidden="true"
+                            />
+                            <span class="sr-only">Reverse</span>
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>{{ userReversed ? "Play forwards" : "Play in reverse" }}</TooltipContent>
+                </Tooltip>
+            </template>
+            <!-- UIA-KF-300 — ONE stable name with `aria-pressed`; the tooltip
+                 states the action the next press takes. -->
+            <template v-if="showEye" #end>
+                <Tooltip>
+                    <TooltipTrigger as-child>
+                        <Button
+                            emphasis="quiet"
+                            icon-only
+                            class="size-(--ball-size) shrink-0 rounded-full border-2 border-dashed border-accent-kf/40 bg-accent-kf/15"
+                            aria-label="Ball preview"
+                            :aria-pressed="preview !== 'hidden'"
+                            :data-preview="preview"
+                            :style="{ '--preview-ease': PREVIEW_EASE }"
+                            @click="emit('update:preview', preview === 'hidden' ? 'shown' : 'hidden')"
+                        >
+                            <span class="preview-eye__glyphs" aria-hidden="true">
+                                <Eye class="preview-eye__glyph" data-glyph="eye" />
+                                <EyeOff class="preview-eye__glyph" data-glyph="eye-off" />
+                            </span>
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>{{ preview === "hidden" ? "Show ball preview" : "Hide ball preview" }}</TooltipContent>
+                </Tooltip>
+            </template>
+        </AnimationVisualizer>
     </div>
 </template>
 
@@ -197,8 +158,9 @@
 // The `.btn-playback` skin the Reverse cell wears is NOT authored here: it lives in
 // demo/styles/playback-idiom.css, pulled in by design-idioms.css, and lands on
 // glass-ui's <Button> DOM shared with the scene play buttons. This file authors
-// no styles: the scrub rail is the producer Slider's own paint (OA-8), and the
-// preview eye's glyph cross-fade (`.preview-eye__*`) rides the same partial.
+// no styles: the scrub rail is the producer Slider's own paint (OA-8), the
+// preview eye's glyph cross-fade (`.preview-eye__*`) rides the same partial,
+// and the two discs' seat (`--ball-size`) is AnimationVisualizer's (OD19-K4).
 
 import { computed, onBeforeUnmount, ref, useId } from "vue";
 import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
@@ -214,9 +176,9 @@ import { useMediaQuery } from "@vueuse/core";
 import { useDragScrub } from "@composables/useDragScrub";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@mkbabb/glass-ui/tooltip";
 import { LabeledField } from "@mkbabb/glass-ui/labeled-field";
-import { ArrowLeftRight, Eye, EyeOff } from "@lucide/vue";
+import { ArrowRight, Eye, EyeOff } from "@lucide/vue";
 import AnimationVisualizer from "./AnimationVisualizer.vue";
-import PreviewToggle, { PREVIEW_EASE } from "./PreviewToggle.vue";
+import { PREVIEW_EASE } from "./PreviewToggle.vue";
 
 /**
  * THE TIME-SPACE CONTRACT (X.KF.W13.b · C-2, one declaration for the ribbon).
@@ -390,16 +352,17 @@ const timeReadout = computed(() => {
  *  Reverse stay pinned. The rail's block budget is the stage plate's (the work
  *  band), which follows the viewport's height: the tallest resting facet
  *  (spring Physics, 406 px) fits beside the track from 890 px of viewport up
- *  (416 px of scroller at 900), so below that the track is not mounted and the
+ *  (416 px of scroller at 900), so below that the ball is not drawn and the
  *  eye that toggles it is not offered. Desktop rail only: the phone sheet
- *  scrolls the ribbon with its pane. Where the track shows, it is unchanged
- *  (the ghost dot included). */
+ *  scrolls the ribbon with its pane. OD19-K4 — the row itself stays, compact:
+ *  it seats Reverse (the start disc) at the control height, the block the
+ *  former verb row took, so the scroller's budget is unchanged. */
 const railShort = useMediaQuery("(min-width: 1024px) and (max-height: 889px)");
-const showTrack = computed(() => animation !== undefined && !railShort.value);
 
 /** KF-P1-01 — the eye is offered where there is a preview to hide AND a mount
- *  that owns its state (an unbound harness mount offers none). */
-const showEye = computed(() => showTrack.value && preview !== undefined);
+ *  that owns its state (an unbound harness mount offers none). OD19-K4 — on
+ *  the short rail the track row stays (it seats Reverse) but draws no ball. */
+const showEye = computed(() => !railShort.value && preview !== undefined);
 
 /** D-5 — the id the sr-only hint carries, forwarded to the thumb by the producer. */
 const scrubHintId = useId();

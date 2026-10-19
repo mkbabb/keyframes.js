@@ -125,12 +125,29 @@ vi.mock("@mkbabb/glass-ui/easing", () => ({
         },
     }),
 }));
+// OD19-K4 — the stub keeps the real seam's shape: the ribbon's two verbs ride
+// its `start` / `end` slots around the aria-hidden stage, and it reflects the
+// `preview` / `compact` it is handed (the real file is driven in "OD19-K4").
 vi.mock("../../../demo/components/playback/AnimationVisualizer.vue", () => ({
     default: defineComponent({
         name: "AnimationVisualizerStub",
-        props: { animation: { type: Object, default: undefined }, isPlaying: Boolean },
-        setup() {
-            return () => h("div", { "data-stub": "AnimationVisualizer", "aria-hidden": "true" });
+        props: {
+            animation: { type: Object, default: undefined },
+            isPlaying: Boolean,
+            preview: { type: String, default: undefined },
+            compact: Boolean,
+        },
+        setup(props, { slots }) {
+            return () =>
+                h(
+                    "div",
+                    {
+                        "data-stub": "AnimationVisualizer",
+                        "data-preview": props.preview,
+                        "data-compact": String(props.compact),
+                    },
+                    [slots.start?.(), h("div", { "data-stage": "", "aria-hidden": "true" }), slots.end?.()],
+                );
         },
     }),
 }));
@@ -620,10 +637,12 @@ describe("G-KFW9-9 / K-5 — the focus affordance survives the two-deletion act"
 describe("OA-10 — the ball preview hides behind an inline pressed toggle", () => {
     const toggleOf = (root: ParentNode) =>
         root.querySelector<HTMLButtonElement>('button[aria-label="Ball preview"]');
-    // OA-61 (X.KF.W13W.e) — hidden keeps the preview's box (PreviewToggle's
-    // data-state), so the SHOWN preview is the one under a `shown` root.
+    // OA-61 (X.KF.W13W.e) — hidden keeps the preview's box. OD19-K4 — the
+    // PreviewToggle moved inside the visualizer (around its stage, the discs
+    // stay), so the ribbon's side of the contract is the `preview` it hands the
+    // visualizer; the real visualizer's forward is driven in "OD19-K4".
     const previewOf = (root: ParentNode) =>
-        root.querySelector('.preview-toggle[data-state="shown"] [data-stub="AnimationVisualizer"]');
+        root.querySelector('[data-stub="AnimationVisualizer"][data-preview="shown"]');
 
     it("an unbound ribbon (every mount but easing) offers no toggle and keeps its preview", async () => {
         const seat = mountRibbon();
@@ -738,5 +757,123 @@ describe("KFA-226 (the release limb, X.KF.W13X.r4transport) — a release near a
         await settle();
         press(paused.root);
         expect(paused.emitted("scrubEnd")).toHaveLength(1);
+    });
+});
+
+/**
+ * OD19-K4 (the owner, 2026-10-19: "Reverse / Preview and the three dots
+ * integrated more deftly, using the ball — be creative") — the verb row is
+ * folded INTO the ball track: the start disc is Reverse, the dashed ghost disc
+ * is the Preview toggle. Born RED at the pre-cure bytes: Reverse and Preview
+ * were a separate flex row ABOVE the track (the ribbon root held three
+ * children), and the visualizer rendered no control.
+ */
+describe("OD19-K4 — Reverse and Preview are the ball track's own discs", () => {
+    const reverseOf = (root: ParentNode) =>
+        [...root.querySelectorAll<HTMLButtonElement>("button")].find(
+            (b) => !b.hasAttribute("aria-label") && b.textContent?.trim() === "Reverse",
+        );
+    const eyeOf = (root: ParentNode) =>
+        root.querySelector<HTMLButtonElement>('button[aria-label="Ball preview"]');
+
+    it("no verb row: the ribbon is the time row and the track; Reverse leads the stage, Preview ends it", async () => {
+        const seat = mountRibbon({ preview: "shown", "onUpdate:preview": () => {} });
+        await settle();
+        const ribbon = seat.root.querySelector(".param-row")!.parentElement!;
+        expect([...ribbon.children].map((c) => c.getAttribute("data-stub") ?? c.className)).toEqual([
+            "param-row",
+            "AnimationVisualizer",
+        ]);
+        const track = ribbon.querySelector('[data-stub="AnimationVisualizer"]')!;
+        const stage = track.querySelector("[data-stage]")!;
+        const reverse = reverseOf(track)!;
+        const eye = eyeOf(track)!;
+        expect(reverse).toBeDefined();
+        expect(eye).not.toBeNull();
+        expect(reverse.compareDocumentPosition(stage) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+        expect(stage.compareDocumentPosition(eye) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+        // the discs are controls: neither sits under the stage's aria-hidden
+        expect(reverse.closest("[aria-hidden]")).toBeNull();
+        expect(eye.closest("[aria-hidden]")).toBeNull();
+    });
+
+    it("Reverse is reachable by role and name, toggles, and its arrow flips with the pressed state", async () => {
+        const seat = mountRibbon();
+        await settle();
+        const reverse = reverseOf(seat.root)!;
+        expect(reverse.getAttribute("aria-pressed")).toBe("false");
+        expect(reverse.querySelector("svg")!.getAttribute("class")).not.toMatch(/scale-x-\[-1\]/);
+        reverse.click();
+        expect(seat.sequence.slice(-2)).toEqual(["toggleReverse", "scrubbed"]);
+        await seat.setProps({ userReversed: true });
+        const pressed = reverseOf(seat.root)!;
+        expect(pressed.getAttribute("aria-pressed")).toBe("true");
+        expect(pressed.querySelector("svg")!.getAttribute("class")).toMatch(/scale-x-\[-1\]/);
+    });
+
+    it("the real visualizer seats the discs around its stage, hides only the stage, and compacts on the short rail", async () => {
+        const { default: RealVisualizer } = await vi.importActual<
+            typeof import("../../../demo/components/playback/AnimationVisualizer.vue")
+        >("../../../demo/components/playback/AnimationVisualizer.vue");
+        const anim = makeAnimation();
+        const state = shallowRef<{ preview: "shown" | "hidden"; compact: boolean }>({ preview: "shown", compact: false });
+        const w = mount(
+            defineComponent({
+                setup: () => () =>
+                    h(
+                        RealVisualizer,
+                        { animation: anim, isPlaying: false, currentT: 0, ...state.value },
+                        {
+                            start: () => h("button", { type: "button", "data-disc": "start" }, "Reverse"),
+                            end: () => h("button", { type: "button", "data-disc": "end", "aria-label": "Ball preview" }),
+                        },
+                    ),
+            }),
+            { attachTo: document.body },
+        );
+        mounted.push(w);
+        await settle();
+        // (the SFC's leading comments make its root a fragment: read the row)
+        const row = document.querySelector<HTMLElement>(".visualizer-row")!;
+        expect([...row.children].map((c) => c.getAttribute("data-disc") ?? c.className.split(" ")[0])).toEqual([
+            "start",
+            "preview-toggle",
+            "end",
+        ]);
+        expect(row.querySelector(".preview-toggle")!.getAttribute("data-state")).toBe("shown");
+        expect(row.querySelector(".preview-toggle [aria-hidden=true] .progress-ball")).not.toBeNull();
+        for (const disc of row.querySelectorAll("[data-disc]")) expect(disc.closest("[aria-hidden]")).toBeNull();
+        expect(row.classList.contains("visualizer-row--compact")).toBe(false);
+
+        state.value = { preview: "hidden", compact: true };
+        await settle();
+        expect(row.querySelector(".preview-toggle")!.getAttribute("data-state")).toBe("hidden");
+        expect(row.querySelectorAll("[data-disc]")).toHaveLength(2);
+        expect(row.classList.contains("visualizer-row--compact")).toBe(true);
+    });
+
+    it("on the short desktop rail the track stays to seat Reverse, draws no ball and offers no eye", async () => {
+        const saved = window.matchMedia;
+        window.matchMedia = ((q: string) => ({
+            matches: /max-height: 889px/.test(q),
+            media: q,
+            onchange: null,
+            addEventListener: () => {},
+            removeEventListener: () => {},
+            addListener: () => {},
+            removeListener: () => {},
+            dispatchEvent: () => false,
+        })) as unknown as typeof window.matchMedia;
+        try {
+            const seat = mountRibbon({ preview: "shown", "onUpdate:preview": () => {} });
+            await settle();
+            const track = seat.root.querySelector('[data-stub="AnimationVisualizer"]')!;
+            expect(track.getAttribute("data-preview")).toBe("hidden");
+            expect(track.getAttribute("data-compact")).toBe("true");
+            expect(reverseOf(track)).toBeDefined();
+            expect(eyeOf(seat.root)).toBeNull();
+        } finally {
+            window.matchMedia = saved;
+        }
     });
 });

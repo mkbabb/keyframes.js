@@ -86,12 +86,29 @@
                 @update:model-value="(v) => commitEnum(field.key, v)"
                 @update:open="(v: boolean) => (openSelect = v ? field.key : null)"
             >
+                <!-- OD19-K3 — the value's glyph LEADS, in the seat and at the
+                     size of the easing trigger's curve glyph (EasingField:
+                     `ps-3`, `gap-1.5`, a 1.5em x 1em box, a 1.5 stroke), in
+                     the trigger and in every item, off ONE value->glyph
+                     table (`OPTION_GLYPHS`). The chevron is the producer's;
+                     the trailing `pe-10` puts it in the easing chevron's
+                     column (the easing field reserves that slot for its
+                     pencil), so the three chevrons stand in one line. -->
                 <SelectTrigger
                     :id="controlId"
+                    class="pe-10"
                     :aria-labelledby="labelledBy"
                     :aria-describedby="describedBy"
                 >
-                    <SelectValue />
+                    <span class="flex min-w-0 flex-1 items-center gap-1.5">
+                        <component
+                            :is="OPTION_GLYPHS[stored.animationOptions[field.key] ?? field.fallback]"
+                            class="option-glyph"
+                            :stroke-width="1.5"
+                            aria-hidden="true"
+                        />
+                        <SelectValue />
+                    </span>
                 </SelectTrigger>
                 <SelectContent>
                     <SelectGroup>
@@ -100,7 +117,14 @@
                             :key="item"
                             :value="item"
                         >
-                            {{ item }}
+                            <span class="inline-flex items-center gap-1.5">
+                                <component
+                                    :is="OPTION_GLYPHS[item]"
+                                    class="option-glyph"
+                                    :stroke-width="1.5"
+                                    aria-hidden="true"
+                                />{{ item }}
+                            </span>
                         </SelectItem>
                     </SelectGroup>
                 </SelectContent>
@@ -124,7 +148,17 @@ import {
     SelectValue,
 } from "@mkbabb/glass-ui";
 import { LabeledField, LabeledInput } from "@mkbabb/glass-ui/labeled-field";
-import { ref } from "vue";
+import { ref, type Component } from "vue";
+import {
+    ArrowLeft,
+    ArrowLeftRight,
+    ArrowLeftToLine,
+    ArrowRight,
+    ArrowRightLeft,
+    ArrowRightToLine,
+    CircleDashed,
+    MoveHorizontal,
+} from "@lucide/vue";
 import { kfEngine } from "@kf-engine";
 
 const props = defineProps<{ animation: KeyframesAnimation<any> }>();
@@ -150,6 +184,23 @@ const ENUM_FIELDS = [
     { key: "direction", label: "direction", items: DIRECTIONS, fallback: "normal" },
     { key: "fillMode", label: "fill mode", items: FILL_MODES, fallback: "forwards" },
 ] as const;
+
+/** OD19-K3 — THE ONE value->glyph table for the two enumerated options. The
+ *  glyph draws what the value does to the run: direction is the arrow of
+ *  travel (one way, the other, there-and-back, back-and-there); fill mode is
+ *  which end the run holds (none, the end it reaches, the start it waits
+ *  at, both). The two key sets are disjoint, so one table serves both. */
+type EnumOption = (typeof DIRECTIONS)[number] | (typeof FILL_MODES)[number];
+const OPTION_GLYPHS: Record<EnumOption, Component> = {
+    normal: ArrowRight,
+    reverse: ArrowLeft,
+    alternate: ArrowRightLeft,
+    "alternate-reverse": ArrowLeftRight,
+    none: CircleDashed,
+    forwards: ArrowRightToLine,
+    backwards: ArrowLeftToLine,
+    both: MoveHorizontal,
+};
 
 // ── KF-CO-3 ≡ L·B-1 / C·B-1 (+ N-1, N-15) — ONE guarded option handler ──────
 // The engine setters are fail-explicit: a malformed PRESENT value throws an
@@ -217,3 +268,14 @@ const commitEnum = (key: "direction" | "fillMode", v: string | number): void => 
     });
 };
 </script>
+
+<style scoped>
+/* OD19-K3 — the option glyph's box is the easing curve glyph's (EasingField
+   `.curve-glyph`: 1.5em x 1em, no flex shrink), so the leading glyph sits in
+   one seat and at one size down the label/field column. */
+.option-glyph {
+    flex: none;
+    width: 1.5em;
+    height: 1em;
+}
+</style>

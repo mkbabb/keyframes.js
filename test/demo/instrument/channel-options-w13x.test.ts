@@ -513,3 +513,67 @@ describe("X.KF.W13X.esc1 — per-channel state survives a swap (store-held)", ()
         }
     });
 });
+
+/**
+ * OD19-K3 (the owner, 2026-10-19: "direction / fill mode selects need icons
+ * (as easing has its curve glyph)") — ONE value->glyph table seats a leading
+ * glyph in the direction and fill-mode triggers and in every item. Born RED at
+ * the pre-cure bytes: each trigger held its SelectValue alone (the producer's
+ * chevron its only svg), each item bare text.
+ */
+describe("OD19-K3 — the direction and fill-mode selects lead with their value's glyph", () => {
+    const GLYPH: Record<string, string> = {
+        normal: "lucide-arrow-right",
+        reverse: "lucide-arrow-left",
+        alternate: "lucide-arrow-right-left",
+        "alternate-reverse": "lucide-arrow-left-right",
+        none: "lucide-circle-dashed",
+        forwards: "lucide-arrow-right-to-line",
+        backwards: "lucide-arrow-left-to-line",
+        both: "lucide-move-horizontal",
+    };
+    const GLYPHS = new Set(Object.values(GLYPH));
+    const glyphOf = (el: Element) => [...(el.querySelector("svg")?.classList ?? [])].find((c) => GLYPHS.has(c)) ?? null;
+
+    it("(15) each trigger leads with the stored value's glyph, ahead of its value, and follows a new value", async () => {
+        const { wrapper, stored } = mountCard(1);
+        try {
+            await settle();
+            const triggers = [...wrapper.element.querySelectorAll('[data-stub="SelectTriggerStub"]')];
+            expect(triggers).toHaveLength(2);
+            const direction = stored.animationOptions.direction ?? "normal";
+            const fill = stored.animationOptions.fillMode ?? "forwards";
+            expect(triggers.map(glyphOf)).toEqual([GLYPH[direction], GLYPH[fill]]);
+            for (const t of triggers) {
+                const svg = t.querySelector("svg")!;
+                const value = t.querySelector('[data-stub="SelectValueStub"]')!;
+                // the glyph LEADS: it precedes the value in document order
+                expect(svg.compareDocumentPosition(value) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+                expect(svg.classList.contains("option-glyph")).toBe(true);
+                expect(svg.getAttribute("aria-hidden")).toBe("true");
+                expect(svg.getAttribute("stroke-width")).toBe("1.5");
+            }
+            stored.animationOptions.direction = "alternate-reverse";
+            stored.animationOptions.fillMode = "both";
+            await settle();
+            const after = [...wrapper.element.querySelectorAll('[data-stub="SelectTriggerStub"]')];
+            expect(after.map(glyphOf)).toEqual([GLYPH["alternate-reverse"], GLYPH.both]);
+        } finally {
+            wrapper.unmount();
+        }
+    });
+
+    it("(16) every item carries its own value's glyph — eight values, eight distinct glyphs, one table", async () => {
+        const { wrapper } = mountCard(1);
+        try {
+            await settle();
+            const items = [...wrapper.element.querySelectorAll('[data-stub="SelectItemStub"]')];
+            const seen = items.map((i) => [i.textContent!.trim(), glyphOf(i)] as const);
+            expect(Object.fromEntries(seen)).toEqual(GLYPH);
+            expect(new Set(seen.map(([, g]) => g)).size).toBe(8);
+            for (const i of items) expect(i.querySelectorAll("svg")).toHaveLength(1);
+        } finally {
+            wrapper.unmount();
+        }
+    });
+});

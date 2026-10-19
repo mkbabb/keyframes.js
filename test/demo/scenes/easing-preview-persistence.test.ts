@@ -43,8 +43,20 @@ vi.mock("@mkbabb/glass-ui", async () => {
         await vi.importActual<typeof import("@mkbabb/glass-ui/slider")>("@mkbabb/glass-ui/slider");
     return { ...slider, Button: buttonHost };
 });
+// OD19-K4 — the track seats the ribbon's two discs (its `start` / `end` slots)
+// and takes the preview state the ribbon hands it.
 vi.mock("../../../demo/components/playback/AnimationVisualizer.vue", () => ({
-    default: empty("AnimationVisualizer"),
+    default: defineComponent({
+        name: "AnimationVisualizer",
+        props: { preview: { type: String, default: undefined } },
+        setup(props, { slots }) {
+            return () =>
+                h("div", { "data-stub": "AnimationVisualizer", "data-preview": props.preview }, [
+                    slots.start?.(),
+                    slots.end?.(),
+                ]);
+        },
+    }),
 }));
 vi.mock("../../../demo/scenes/easing/EasingTarget.vue", () => ({
     default: empty("EasingTarget"),
@@ -130,7 +142,7 @@ const toggleOf = (root: ParentNode) =>
 // OA-61 (X.KF.W13W.e) — hidden keeps the preview's box (PreviewToggle's
 // data-state), so the SHOWN preview is the one under a `shown` toggle root.
 const previewOf = (root: ParentNode) =>
-    root.querySelector('.preview-toggle[data-state="shown"] [data-stub="AnimationVisualizer"]');
+    root.querySelector('[data-stub="AnimationVisualizer"][data-preview="shown"]');
 const persisted = () =>
     (JSON.parse(window.localStorage.getItem(STORE_KEY) ?? "{}") as Record<string, { ballPreview?: string }>)[
         SCENE

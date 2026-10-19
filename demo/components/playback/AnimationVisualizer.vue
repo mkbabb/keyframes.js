@@ -1,64 +1,79 @@
 <template>
-    <!-- aria-hidden: this big ball is a decorative VISUAL twin of the real
-         reka <Slider> in PlaybackRibbon (same scrub value, same range). One
-         AT slider per scrub value — the <Slider> is it; this is sighted-only
-         flair, so it is hidden from the accessibility tree (the spec's
-         "redundant twin → aria-hidden" disposition). -->
-    <!-- X-DS pass 8 (KF-C8-02) — block padding only: the ball track spans the
-         pane's column edge to edge (the rail's own gutter insets the ball
-         centres by their radius), as the scrub rail above it does. -->
-    <div class="py-2 w-full h-full" aria-hidden="true">
-        <div
-            ref="trackEl"
-            class="w-full h-12 relative"
-            :style="{ touchAction: gate.isActive.value || !gate.isTouchDevice ? 'none' : 'pan-y' }"
-        >
-            <!-- The rail + ball ADOPT the demo's promoted `.progress-rail` /
-                 `.progress-ball` idiom (design-idioms.css) instead of
-                 hand-rolling a seventh, divergent authoring of it (KF-AV-10,
-                 against DESIGN.md §5): the 2px rail with its 8% tint, the pill
-                 radius, the tone fill and the 35% glow all come from the one
-                 definition, and this scene retints it the sanctioned way — by
-                 setting `--ball-tone`, exactly as SpringTarget's derby lanes and
-                 SequenceTarget do. Two things are deliberately NOT taken from
-                 the idiom: `transform`, which it leaves unclaimed BY DESIGN
-                 (kf-EasingTarget P-2 — this ball is its own painter, writing
-                 `translateX` every frame), and the rail's INSET, which is this
-                 scene's own geometry (the rail spans the ball's centre travel,
-                 not the container) and is therefore declared where it is true. -->
+    <!-- OD19-K4 — THE BALL TRACK CARRIES ITS OWN VERBS. The separate Reverse /
+         Preview row above the track is folded INTO it: the start disc IS
+         Reverse (the run's origin; its arrow points the way the ball runs)
+         and the dashed ghost disc IS the Preview toggle (the run's
+         destination; its eye shows whether the ball is drawn). The two discs
+         are the ribbon's named glass Buttons, seated through the `start` /
+         `end` slots (the ribbon owns their state and their Tooltips); this
+         file owns only the seat: the row, the disc size (`--ball-size`) and
+         the ball's run BETWEEN the two discs. The discs flank the stage, so
+         the ball never covers a control at either end of its run.
+         The STAGE stays a decorative visual twin of the real reka <Slider>
+         in PlaybackRibbon (same scrub value, same range): one AT slider per
+         scrub value, so the stage alone is aria-hidden; the discs are
+         controls and stay in the tree.
+         The preview hide/show is the stage's (PreviewToggle: fade + scale on
+         the engine spring); the discs stay, so the eye that brings the ball
+         back is always where the ball's run ends. `compact` (the ribbon's
+         short desktop rail, KF-C5-03) seats the discs at the control height
+         with no block padding: the row then costs what the verb row did. -->
+    <!-- X-DS pass 8 (KF-C8-02) — block padding only: the row spans the
+         pane's column edge to edge, as the scrub rail above it does. -->
+    <div
+        :class="[
+            'visualizer-row flex w-full items-center gap-2',
+            compact ? 'visualizer-row--compact' : 'py-2',
+        ]"
+    >
+        <slot name="start" />
+        <PreviewToggle :state="preview" class="min-w-0 flex-1">
             <div
-                ref="containerEl"
-                class="visualizer-stage w-full h-full relative container-inline-size"
+                ref="trackEl"
+                class="w-full h-(--ball-size) relative"
+                aria-hidden="true"
+                :style="{ touchAction: gate.isActive.value || !gate.isTouchDevice ? 'none' : 'pan-y' }"
             >
+                <!-- The rail + ball ADOPT the demo's promoted `.progress-rail` /
+                     `.progress-ball` idiom (design-idioms.css) instead of
+                     hand-rolling a seventh, divergent authoring of it (KF-AV-10,
+                     against DESIGN.md §5): the 2px rail with its 8% tint, the pill
+                     radius, the tone fill and the 35% glow all come from the one
+                     definition, and this scene retints it the sanctioned way — by
+                     setting `--ball-tone`, exactly as SpringTarget's derby lanes and
+                     SequenceTarget do. Two things are deliberately NOT taken from
+                     the idiom: `transform`, which it leaves unclaimed BY DESIGN
+                     (kf-EasingTarget P-2 — this ball is its own painter, writing
+                     `translateX` every frame), and the rail's INSET, which is this
+                     scene's own geometry (the rail spans the ball's centre travel,
+                     not the container) and is therefore declared where it is true. -->
                 <div
-                    class="progress-rail"
-                    :style="{
-                        left: 'calc(var(--visualizer-track-gutter) / 2)',
-                        width: 'calc(100% - var(--visualizer-track-gutter))',
-                    }"
-                ></div>
+                    ref="containerEl"
+                    class="visualizer-stage w-full h-full relative container-inline-size"
+                >
+                    <div
+                        class="progress-rail"
+                        :style="{
+                            left: 'calc(var(--visualizer-track-gutter) / 2)',
+                            width: 'calc(100% - var(--visualizer-track-gutter))',
+                        }"
+                    ></div>
 
-                <div
-                    ref="ball"
-                    :class="[
-                        'progress-ball visualizer-ball z-bar will-change-transform touch-gate-target',
-                        isDragging ? 'cursor-grabbing' : 'cursor-grab',
-                        gate.isActive.value ? 'touch-gate-active' : '',
-                    ]"
-                    @pointerdown="gatedPointerDown"
-                    @touchmove="gate.handleScrollCheck"
-                    @touchend="gate.handleTouchEnd"
-                ></div>
-
-                <div
-                    class="absolute top-0 left-0 rounded-full z-content h-full aspect-square bg-accent-kf/30 pointer-events-none"
-                ></div>
-
-                <div
-                    class="absolute top-0 translate-x-[calc(100cqw_-_100%)] rounded-full z-content h-full aspect-square bg-accent-kf/15 border-2 border-dashed border-accent-kf/40 pointer-events-none"
-                ></div>
+                    <div
+                        ref="ball"
+                        :class="[
+                            'progress-ball visualizer-ball z-bar will-change-transform touch-gate-target',
+                            isDragging ? 'cursor-grabbing' : 'cursor-grab',
+                            gate.isActive.value ? 'touch-gate-active' : '',
+                        ]"
+                        @pointerdown="gatedPointerDown"
+                        @touchmove="gate.handleScrollCheck"
+                        @touchend="gate.handleTouchEnd"
+                    ></div>
+                </div>
             </div>
-        </div>
+        </PreviewToggle>
+        <slot name="end" />
     </div>
 </template>
 
@@ -74,6 +89,7 @@ import { RAFPlayback } from "@mkbabb/keyframes.js";
 import { useDemoTicker } from "@composables/useDemoTicker";
 import { useDragScrub } from "@composables/useDragScrub";
 import { useTouchGate } from "@mkbabb/glass-ui";
+import PreviewToggle from "./PreviewToggle.vue";
 
 const props = defineProps<{
     animation: KeyframesAnimation<any>;
@@ -84,6 +100,10 @@ const props = defineProps<{
      * value is what tells it the clock was seated while its frame loop is idle.
      */
     currentT: number;
+    /** OD19-K4 — whether the ball (the stage) is drawn; the discs always are. */
+    preview?: "shown" | "hidden";
+    /** OD19-K4 — the short desktop rail's row: discs at the control height. */
+    compact?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -97,8 +117,9 @@ const trackEl = useTemplateRef<HTMLElement>("trackEl");
 const containerEl = useTemplateRef<HTMLElement>("containerEl");
 
 // G.W3 — bust the C1 endpoint cache on a CONTAINER resize the auto-
-// `window.resize` listener cannot see. The dashed twin animates to
-// `calc(100cqw - 100%)` resolved against this `container-inline-size` box, and
+// `window.resize` listener cannot see. A `cqw` endpoint resolves against
+// this `container-inline-size` box (the dashed twin that animated to
+// `calc(100cqw - 100%)` is the Preview disc now, OD19-K4), and
 // THIS repo's own `src/animation/resolve/browser.ts` caches the resolved px
 // keyed by a monotonic `layoutEpoch` — it also installs the `window.resize`
 // listener that bumps it. The cache, the epoch and the listener are keyframes'
@@ -346,9 +367,16 @@ onScopeDispose(() => coastPlayback.stop());
    `--ball-size` is the 48px this scene's hit target and its projection math
    already assume (`ballEl.clientWidth`), stated once here instead of as an
    `h-12 w-12` pair 40 lines from the ball's own geometry. */
-.visualizer-stage {
+.visualizer-row {
     --ball-tone: var(--color-accent-kf);
     --ball-size: 3rem;
+}
+
+/* OD19-K4 — the short desktop rail (KF-C5-03): the ball is not drawn there,
+   so the row is the two discs at the control height, the block size the
+   verb row it replaced took. */
+.visualizer-row--compact {
+    --ball-size: var(--control-h-md);
 }
 
 /* The idiom leaves `transform` unclaimed BY DESIGN and this ball is its own
