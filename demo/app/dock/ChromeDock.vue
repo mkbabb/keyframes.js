@@ -4,11 +4,11 @@ import { CONTROLS_PANE_HOVER_KEY } from "@components/instrument/transport/inject
 import { Activity, Atom, SlidersHorizontal, Braces, Clock, Grid3X3 } from "@lucide/vue";
 import {
     GlassDock,
-    DockControl,
     DockTrigger,
     DockSeparator,
 } from "@mkbabb/glass-ui/dock";
 import { Button } from "@mkbabb/glass-ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem } from "@mkbabb/glass-ui/menu";
 import { provideDockPlate, useDockEdgeOffset } from "@composables/dockEdge";
 // T.C1 — the elision RENDER consumes T.B5's AUTHORITATIVE cardinality model
 // (the DFA projection — ONE source of the count arithmetic, per lane 18's
@@ -22,7 +22,7 @@ import {
     type DockSurfaceItem,
 } from "@state/controlSurfaces";
 // m-3 / R3-6 — one import granularity: every glass-ui family here comes from
-// its own subpath (`./dock`, `./button`, `./select`), never the root barrel.
+// its own subpath (`./dock`, `./button`, `./select`, `./menu`), never the root barrel.
 import {
     Select,
     SelectContent,
@@ -169,6 +169,16 @@ const surfaceItems = computed(() =>
     dockSurfaceItems(derivedSurfaces.value, props.channelFacets),
 );
 const showSurfaceItems = computed(() => props.currentSceneId !== props.homeScene.id);
+/** OD19-K6 — the menu's rows: every titled item (the blank facet seat has no
+ *  name to show). */
+const menuItems = computed(() => surfaceItems.value.filter((i) => i.title !== ""));
+/** The trigger's face: the selected surface's glyph (the one the pane shows),
+ *  else the first live surface's. */
+const faceItem = computed<DockSurfaceItem | undefined>(
+    () =>
+        menuItems.value.find((i) => i.enabled && i.surface === props.selectedControl) ??
+        menuItems.value.find((i) => i.enabled),
+);
 
 function iconFor(icon: string): Component {
     return TAB_ICONS[icon] ?? SlidersHorizontal;
@@ -253,7 +263,7 @@ const dockRef = useTemplateRef<InstanceType<typeof GlassDock>>("dockRef");
 const controlsPaneHover = inject(CONTROLS_PANE_HOVER_KEY, null);
 
 // ── Popup mutex: only one dropdown at a time ──
-type PopupKey = "scene";
+type PopupKey = "scene" | "surface";
 const openPopup = ref<PopupKey | null>(null);
 // The dock stays expanded while one of THIS component's own dropdowns is open
 // (the scene/controls Selects, one at a time through the mutex above) — holding
@@ -283,6 +293,7 @@ function popupModel(key: PopupKey) {
     });
 }
 const sceneSelectOpen = popupModel("scene");
+const surfaceMenuOpen = popupModel("surface");
 
 // X.KF.W13X.dock · UIA-KF-131 — the dock's popups open below the dock, not
 // inside it: the plate (the GlassDock's own root element, through this file's
@@ -292,6 +303,8 @@ const sceneSelectOpen = popupModel("scene");
 const dockPlate = computed<HTMLElement | null>(() => (dockRef.value?.$el as HTMLElement | undefined) ?? null);
 provideDockPlate(dockPlate);
 const sceneListOffset = useDockEdgeOffset(() => sceneTrigger.value?.$el, sceneSelectOpen, dockPlate);
+const surfaceTrigger = useTemplateRef<{ $el: HTMLElement }>("surfaceTrigger");
+const surfaceMenuOffset = useDockEdgeOffset(() => surfaceTrigger.value?.$el, surfaceMenuOpen, dockPlate);
 
 // X.KF.W13X.dock · UIA-KF-242 — warm on INTENT, and the intent is OPENING the
 // list: every scene's chunk is fetched as the list opens, so most picks resolve
@@ -383,7 +396,7 @@ watch(isSelectOpen, (open) => {
 <template>
     <div
         data-dock-tether="top"
-        class="dock-band fixed right-0 z-dock flex items-center justify-center pointer-events-none"
+        class="fixed left-0 right-0 z-dock flex items-center justify-center pointer-events-none"
         style="top: var(--dock-top-anchor);"
     >
         <div class="pointer-events-auto dock-vt-group">
@@ -393,9 +406,9 @@ watch(isSelectOpen, (open) => {
                  dead single-layer DockLayerGroup/DockLayer costume is collapsed —
                  the items mount directly in the GlassDock default slot. -->
             <!-- X.KF.W13T.k (OA-6) — the dock CONTAINS its controls, by layout.
-                 The band spans the viewport (right-0 and `.dock-band`'s left,
-                 the TransportDock band's idiom; from the stage column's start
-                 while the desktop rail is open, ESC-dock-2): the former `left-1/2 -translate-x-1/2` gave the
+                 The band spans the viewport (`left-0 right-0`, the
+                 TransportDock band's idiom; OD19-K2 retired ESC-dock-2's
+                 stage-column inset, so the dock centres on the viewport): the former `left-1/2 -translate-x-1/2` gave the
                  dock a shrink-to-fit containing block of 50vw, a cap no token
                  declared, so at 390/768 with a scene active the Controls tab,
                  the panel toggle and @mbabb painted past the capsule. The
@@ -488,41 +501,53 @@ watch(isSelectOpen, (open) => {
                             </SelectContent>
                         </Select>
 
-                        <!-- section: the scene's editor SURFACES as dock items
-                             (X.KF.W13V.s · OA-37/46/51). One item per kind —
-                             Controls · Keyframes · Timeline · the scene facet —
-                             from the ONE shared descriptor (`dockSurfaceItems`),
-                             identical on every scene: a surface the scene has no
-                             data for is DISABLED, never dropped and never
-                             invented. Each item opens the ONE shared controls
-                             pane on its surface; pressing the item that is
-                             already showing closes the pane (the item IS the
-                             pane's toggle, so no separate panel toggle rides
-                             the dock — one row, OA-40). Home has no scene, so
-                             no items. -->
+                        <!-- section: the scene's editor SURFACES (X.KF.W13V.s ·
+                             OA-37/46/51), now ONE dock trigger and its menu
+                             (OD19-K6: "the sliders/{ }/clock icon trio becomes a
+                             dropdown with titled items"). The trigger is the glass
+                             `DockTrigger for="dropdown"` + `DropdownMenu`, the
+                             @mbabb menu's own pair; its face is the showing
+                             surface's glyph. The rows come from the ONE shared
+                             descriptor (`dockSurfaceItems`), identical on every
+                             scene, each a glyph + its title: a surface the scene
+                             has no data for is a DISABLED row that keeps its
+                             title (the facet's reason, "Matrix: select the Matrix
+                             channel"), never dropped. Picking a row opens the
+                             shared pane on its surface; re-picking the row the
+                             open pane is showing closes the pane. The blank facet
+                             seat (KF-C13-01) has no name, so it is no row. Home
+                             has no scene, so no trigger. -->
                         <template v-if="showSurfaceItems">
                             <DockSeparator />
-                            <DockControl
-                                v-for="item in surfaceItems"
-                                :key="item.kind + ':' + (item.surface ?? 'none')"
-                                shape="icon"
-                                compact
-                                data-dock-surface-item
-                                :data-surface="item.surface"
-                                :data-selected="item.enabled && item.surface === selectedControl ? '' : undefined"
-                                :aria-label="item.title || undefined"
-                                :aria-hidden="item.icon ? undefined : 'true'"
-                                :title="item.title || undefined"
-                                :disabled="!item.enabled"
-                                :active="isSurfaceShowing(item)"
-                                @pointerenter="warmControlSurfaces"
-                                @focusin="warmControlSurfaces"
-                                @click="onSurfaceItem(item)"
-                            >
-                                <!-- X-DS KF-C13-01: the empty facet slot is a
-                                     blank seat; it wears no glyph. -->
-                                <component v-if="item.icon" :is="iconFor(item.icon)" aria-hidden="true" />
-                            </DockControl>
+                            <DropdownMenu v-model:open="surfaceMenuOpen">
+                                <DockTrigger
+                                    ref="surfaceTrigger"
+                                    for="dropdown"
+                                    aria-label="Editor surfaces"
+                                    data-dock-surface-trigger
+                                    :data-surface="faceItem?.surface"
+                                    @pointerenter="warmControlSurfaces"
+                                    @focusin="warmControlSurfaces"
+                                >
+                                    <component :is="iconFor(faceItem?.icon ?? '')" class="dock-glyph" aria-hidden="true" />
+                                </DockTrigger>
+                                <DropdownMenuContent align="center" :side-offset="surfaceMenuOffset" :collision-padding="16" class="z-popover text-body p-1.5">
+                                    <DropdownMenuItem
+                                        v-for="item in menuItems"
+                                        :key="item.kind + ':' + (item.surface ?? 'none')"
+                                        data-dock-surface-item
+                                        :data-surface="item.surface"
+                                        :data-selected="isSurfaceShowing(item) ? '' : undefined"
+                                        :text-value="item.title"
+                                        :disabled="!item.enabled"
+                                        class="gap-2.5 px-1.5 py-1"
+                                        @select="onSurfaceItem(item)"
+                                    >
+                                        <span class="w-7 shrink-0 flex justify-center"><component :is="iconFor(item.icon)" class="w-5 h-5" aria-hidden="true" /></span>
+                                        <span class="flex-1 min-w-0 text-small">{{ item.title }}</span>
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
                         </template>
 
                         <DockSeparator v-if="$slots.items" />
@@ -590,17 +615,6 @@ watch(isSelectOpen, (open) => {
 </template>
 
 <style scoped>
-/* X.KF.W13X.esc2 · ESC-dock-2 (A2-KE-L3-6) — the band starts where the stage
-   column does: `--dock-band-inset-start` is published by the controls layout
-   (AnimationControlsGroup.css) while its desktop rail is open, and is unset
-   otherwise, so the band spans the viewport. The TransportDock band reads the
-   same token, so the two docks share one axis, and both ease with the rail
-   track's own spring. */
-.dock-band {
-    left: var(--dock-band-inset-start, 0px);
-    transition: left var(--spring-dock-duration) var(--spring-dock);
-}
-
 /* KFA-77 (X.KF.W13X.scene) — the pill is its own View-Transition group, so a
    scene swap morphs it from the old width to the new one and its label
    cross-fades in place, instead of double-exposing inside the root fade at two

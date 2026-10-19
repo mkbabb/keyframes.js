@@ -98,10 +98,13 @@ describe("ChromeDock contains its controls (OA-6)", () => {
         const band = wrapper.find('[data-dock-tether="top"]');
         expect(band.exists()).toBe(true);
         const cls = band.classes();
-        // X.KF.W13X.esc2 · ESC-dock-2 — the band's start edge is `.dock-band`'s
-        // (`left: var(--dock-band-inset-start, 0px)`: 0 unless the desktop rail
-        // is open, when it is the stage column's start), its end edge `right-0`.
-        expect(cls).toEqual(expect.arrayContaining(["fixed", "dock-band", "right-0", "justify-center"]));
+        // OD19-K2 — ESC-dock-2's stage-column inset is retired: the band spans
+        // the viewport edge to edge (`left-0 right-0`), so the dock centres on
+        // the viewport whether or not the desktop rail is open. No band reads an
+        // inset token, and no layout publishes one.
+        expect(cls).toEqual(expect.arrayContaining(["fixed", "left-0", "right-0", "justify-center"]));
+        expect(cls).not.toContain("dock-band");
+        expect((band.element as HTMLElement).style.left).toBe("");
         expect(cls).not.toContain("left-1/2");
         expect(cls).not.toContain("-translate-x-1/2");
         wrapper.unmount();

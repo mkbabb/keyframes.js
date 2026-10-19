@@ -6,8 +6,8 @@
  * for and never invents an item. Home has no scene, so no items.
  */
 import { describe, expect, it } from "vitest";
-import { defineComponent, h } from "vue";
-import { mount } from "@vue/test-utils";
+import { defineComponent, h, nextTick } from "vue";
+import { flushPromises, mount } from "@vue/test-utils";
 import { TooltipProvider } from "@mkbabb/glass-ui/tooltip";
 import ChromeDock from "@app/dock/ChromeDock.vue";
 import {
@@ -94,65 +94,116 @@ const springProps = {
     selectedControl: "spring",
 };
 
-describe("ChromeDock renders the items and each opens the shared pane", () => {
-    it("renders the four items (no Select, no separate panel toggle)", () => {
+// OD19-K6 — the surfaces are ONE glass DockTrigger (for="dropdown") and its
+// DropdownMenu, the @mbabb menu's pair: the face is the showing surface's
+// glyph, the rows are titled (glyph + title from `dockSurfaceItems`), a
+// disabled row keeps its title (its reason), and re-picking the showing row
+// closes the pane. The menu portals to the body, so rows are read there.
+const rows = () => [...document.querySelectorAll<HTMLElement>("[data-dock-surface-item]")];
+
+async function openMenu(wrapper: ReturnType<typeof mountDock>["wrapper"]) {
+    // The producer's DockTrigger actuates on `pointerdown`; the gesture is
+    // dispatched as the browser sends it (mbabb-menu-self-hold's idiom).
+    const el = wrapper.find("[data-dock-surface-trigger]").element;
+    const init = { bubbles: true, cancelable: true, button: 0 };
+    el.dispatchEvent(new window.PointerEvent("pointerdown", init));
+    el.dispatchEvent(new window.PointerEvent("pointerup", init));
+    el.dispatchEvent(new window.MouseEvent("click", { ...init, detail: 1 }));
+    await flushPromises();
+    await nextTick();
+}
+
+describe("ChromeDock: one surface trigger whose menu opens the shared pane", () => {
+    it("renders ONE trigger (no item run, no Select, no panel toggle) faced by the showing surface", async () => {
         const { wrapper } = mountDock(springProps);
-        const items = wrapper.findAll("[data-dock-surface-item]");
-        expect(items.map((i) => i.attributes("aria-label"))).toEqual([
-            "Controls",
-            "Keyframes",
-            "Timeline",
-            "Physics",
-        ]);
+        const triggers = wrapper.findAll("[data-dock-surface-trigger]");
+        expect(triggers).toHaveLength(1);
+        expect(triggers[0]!.attributes("aria-haspopup")).toBe("menu");
+        expect(triggers[0]!.attributes("data-surface")).toBe("spring");
+        // No surface row rides the dock itself: the rows are the menu's.
+        expect(wrapper.find(".glass-dock [data-dock-surface-item]").exists()).toBe(false);
         expect(wrapper.find("[aria-label='Controls tab']").exists()).toBe(false);
         expect(wrapper.find("[aria-label='Controls panel']").exists()).toBe(false);
-        expect(wrapper.find("[data-selected]").attributes("aria-label")).toBe("Physics");
+        expect(rows()).toHaveLength(0);
         wrapper.unmount();
     });
 
-    it("pressing an item selects its surface and opens the closed pane", async () => {
+    it("its menu names the four surfaces, each row a glyph + its title", async () => {
+        const { wrapper } = mountDock(springProps);
+        await openMenu(wrapper);
+        const r = rows();
+        expect(r.map((e) => e.getAttribute("role"))).toEqual(["menuitem", "menuitem", "menuitem", "menuitem"]);
+        expect(r.map((e) => e.textContent?.trim())).toEqual(["Controls", "Keyframes", "Timeline", "Physics"]);
+        for (const e of r) expect(e.querySelector("svg")).not.toBeNull();
+        expect(r.filter((e) => e.hasAttribute("data-selected"))).toHaveLength(0);
+        wrapper.unmount();
+    });
+
+    it("picking a row selects its surface and opens the closed pane", async () => {
         const { wrapper, onToggle, onSelect } = mountDock(springProps);
-        await wrapper.find("[data-surface='keyframes']").trigger("click");
+        await openMenu(wrapper);
+        rows().find((e) => e.dataset.surface === "keyframes")!.click();
+        await flushPromises();
         expect(onSelect).toEqual(["keyframes"]);
         expect(onToggle).toHaveLength(1);
         wrapper.unmount();
     });
 
-    it("pressing the item the open pane is showing closes the pane", async () => {
+    it("re-picking the row the open pane is showing closes the pane", async () => {
         const { wrapper, onToggle, onSelect } = mountDock({
             ...springProps,
             isControlsPanelOpen: true,
         });
-        const physics = wrapper.find("[data-surface='spring']");
-        expect(physics.attributes("aria-pressed")).toBe("true");
-        await physics.trigger("click");
+        await openMenu(wrapper);
+        const physics = rows().find((e) => e.dataset.surface === "spring")!;
+        expect(physics.hasAttribute("data-selected")).toBe(true);
+        physics.click();
+        await flushPromises();
         expect(onSelect).toEqual([]);
         expect(onToggle).toHaveLength(1);
         wrapper.unmount();
     });
 
-    it("a disabled item does nothing; home shows no items", async () => {
+    it("a disabled row keeps its title and does nothing; home shows no trigger", async () => {
         const seq = mountDock({
             currentSceneId: "sequence",
             scenes: [{ id: "sequence", label: "Sequence", icon: Glyph }],
             controlSurfaces: ["timeline"],
             extraControlTabs: [],
         });
-        const items = seq.wrapper.findAll("[data-dock-surface-item]");
-        expect(items).toHaveLength(4);
-        expect(items.map((i) => i.attributes("aria-disabled") === "true")).toEqual([
-            true,
-            true,
-            false,
-            true,
+        // The face is the one live surface's.
+        expect(seq.wrapper.find("[data-dock-surface-trigger]").attributes("data-surface")).toBe("timeline");
+        await openMenu(seq.wrapper);
+        const r = rows();
+        // The blank facet seat has no name, so it is no row.
+        expect(r.map((e) => [e.textContent?.trim(), e.hasAttribute("data-disabled")])).toEqual([
+            ["Controls", true],
+            ["Keyframes", true],
+            ["Timeline", false],
         ]);
-        await items[1]!.trigger("click");
+        r[1]!.click();
+        await flushPromises();
         expect(seq.onSelect).toEqual([]);
         expect(seq.onToggle).toEqual([]);
         seq.wrapper.unmount();
 
+        // A latent facet's disabled row names its reason.
+        const cube = mountDock({
+            currentSceneId: "cube",
+            scenes: [{ id: "cube", label: "Cube", icon: Glyph }],
+            controlSurfaces: ["controls", "keyframes", "timeline"],
+            extraControlTabs: [],
+            channelFacets: [{ surface: "matrix-controls", channel: "Matrix" }],
+            selectedControl: "controls",
+        });
+        await openMenu(cube.wrapper);
+        const facet = rows()[3]!;
+        expect(facet.textContent?.trim()).toBe("Matrix: select the Matrix channel");
+        expect(facet.hasAttribute("data-disabled")).toBe(true);
+        cube.wrapper.unmount();
+
         const home = mountDock({ currentSceneId: "home", controlSurfaces: [] });
-        expect(home.wrapper.findAll("[data-dock-surface-item]")).toHaveLength(0);
+        expect(home.wrapper.findAll("[data-dock-surface-trigger]")).toHaveLength(0);
         home.wrapper.unmount();
     });
 });
