@@ -62,15 +62,12 @@
                differently-delayed children at all — which is KF.W5's and is
                evidenced nowhere in the tree either way. Swapping first and
                testing later is how a severed cure gets un-severed by accident. -->
-        <!-- KFA-134 — the wave's in-content pause (WCAG 2.2.2, KF-AT-17) is
-             REACHABLE: the toggle below writes the producer's `--motion-weight: 0`
-             on the heading (the authority AnimatedText multiplies its lift by),
-             which stills the ripple in place. Before, the only path was the OS
-             reduced-motion media query — no UI set the weight. -->
-        <h1
-            class="hero-display text-display-mega"
-            :style="wavePaused ? { '--motion-weight': '0' } : undefined"
-        >
+        <!-- KF.DS.r1 (COHESION §0gf.2(b), owner word) — the visible title-wave
+             pause control (KFA-134) is REMOVED. The wave and the dots are
+             identity motion, kept: static under prefers-reduced-motion, and
+             parked at their own roots (AnimatedText, TypingDots) while the page
+             is hidden or the title is offscreen. -->
+        <h1 class="hero-display text-display-mega">
             <AnimatedText :text="hero.title" />
             <span class="hero-dots"><TypingDots /></span>
         </h1>
@@ -141,37 +138,11 @@
             <h2 v-if="hint" class="start-screen-prose hero-hint">
                 {{ hint }}
             </h2>
-            <!-- X-DS pass 1 (KF-P1-15) — the title-wave pause is a LABELLED
-                 control on its own line under the hint. It was an unlabelled
-                 pause glyph at the end of "…then press Play." (it read as a
-                 stray pause mark, or as the Play control itself; at 390 it sat
-                 alone at the far edge). The label is the control's name, the
-                 glyph rides inside it, and pressed = paused. It takes pointer
-                 input: the band is ink (`pointer-events: none`, inherited from
-                 the shell's start-screen wrapper), so the one control in it
-                 re-enables its own hit-testing (the TD-36 dock idiom).
-                 X-DS pass 10 (KF-C10-03) — on the desktop's left-aligned column
-                 the glyph lands on the deck's text edge (`button-text-flush`);
-                 below lg the column is centred, so it stays centred. -->
-            <Button
-                size="sm"
-                emphasis="quiet"
-                class="hero-motion-toggle pointer-events-auto lg:button-text-flush"
-                aria-label="Pause the title animation"
-                :aria-pressed="wavePaused"
-                @click="wavePaused = !wavePaused"
-            >
-                <Pause aria-hidden="true" />
-                <span>Pause the title animation</span>
-            </Button>
         </div>
     </div>
 </template>
 
 <script setup lang="ts">
-import { Button } from "@mkbabb/glass-ui/button";
-import { Pause } from "@lucide/vue";
-import { ref } from "vue";
 import AnimatedText from "./AnimatedText.vue";
 import TypingDots from "./TypingDots.vue";
 
@@ -192,9 +163,6 @@ defineProps<{
 // oracle (the per-char split must equal ITS glyph count, never the rendered
 // mirror's). Still copy, not configuration — no prop, no consumer can hand one.
 const hero = { title: "Select an animation" } as const;
-
-// KFA-134 — the one pause state for the hero wave (see the template note).
-const wavePaused = ref(false);
 </script>
 
 <style scoped>
@@ -331,11 +299,6 @@ h1.hero-display {
     font-size: var(--type-title);
     line-height: 1.15;
     color: var(--muted-foreground, var(--foreground));
-}
-
-/* KFA-134 — the wave's pause sits under the hint, quiet, on its own line. */
-.hero-motion-toggle {
-    margin-block-start: 0.5rem;
 }
 
 /* The engine-dogfooded ellipsis host: the THREE DOTS are one unbreakable

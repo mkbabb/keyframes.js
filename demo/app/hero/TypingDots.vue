@@ -12,6 +12,7 @@
          `.lift-down` NOR `.dot-fade` (the cascade collision dies with the split:
          no node carries two `animation` shorthands). -->
     <span
+        ref="root"
         class="typing-dots"
         aria-hidden="true"
         :style="{ '--typing-dot-rest': REST_OPACITY }"
@@ -37,7 +38,8 @@ export const typingDotKeyframes = () => ({
 </script>
 
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, useTemplateRef } from "vue";
+import { onBeforeUnmount, onMounted, useTemplateRef, watch } from "vue";
+import { useMotionPark } from "@composables/useMotionPark";
 // The inv-ζ dogfood seam: the dots loop on the kf ENGINE itself
 // (mirrors CopyButton.vue:24 / typingCursor / spinner — a per-dot
 // CSSKeyframesAnimation with iterationCount: Infinity). `steppedEase` is the
@@ -172,8 +174,22 @@ onMounted(async () => {
         }).fromKeyframes(typingDotKeyframes());
         anim.setTargets(el);
         anim.play();
+        if (parked.value) anim.pause();
         anims.push(anim);
     });
+});
+
+// KF.DS.r1 (KF-C3-02) — the dots are identity motion, kept; they park at THIS
+// root while the page is hidden or the dots are offscreen: every engine loop
+// pauses in place and resumes on its own clock (the engine re-bases on resume,
+// so there is no jump). Under reduced motion the engine already rests them, so
+// a resume re-enters that same resting frame.
+const parked = useMotionPark(useTemplateRef<HTMLElement>("root"));
+watch(parked, (isParked) => {
+    for (const anim of anims) {
+        if (isParked) anim.pause();
+        else anim.resume();
+    }
 });
 
 onBeforeUnmount(() => {

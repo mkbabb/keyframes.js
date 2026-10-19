@@ -54,7 +54,7 @@
          (EditorStartScreen.vue binds only `:text`). They are gone; the stagger
          and the cycle are the component's own CSS registers below, and the
          stagger reads the producer's `--motion-stagger-default` (KF-AT-16). -->
-    <span class="wave-text">
+    <span ref="root" class="wave-text" :class="{ 'is-parked': parked }">
         <span class="sr-only">{{ text }}</span>
         <span aria-hidden="true">
             <template v-for="(word, wi) in words" :key="`${wi}-${word.text}`">
@@ -73,7 +73,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, useTemplateRef } from "vue";
+import { useMotionPark } from "@composables/useMotionPark";
 
 // Fallthrough attributes land ONCE, on the single root (KF-AT-2): the old
 // `v-bind="$attrs"` inside the char `v-for` replicated every attribute onto N
@@ -94,6 +95,11 @@ const props = defineProps<{
      */
     text: string;
 }>();
+
+// KF.DS.r1 (KF-C3-02) — the wave is identity motion, kept; it parks at THIS
+// root while the page is hidden or the title is offscreen (`.is-parked` below
+// pauses every glyph in place), so no consumer overrides it per instance.
+const parked = useMotionPark(useTemplateRef<HTMLElement>("root"));
 
 // WORDS carry a running GLOBAL char index (spaces excluded — 17 for the default
 // "Select an animation") so the per-char delays are strictly monotone across
@@ -164,6 +170,12 @@ const words = computed(() => {
     display: inline-block;
     animation: charLift var(--wave-cycle) infinite both;
     animation-delay: calc(var(--wave-i, 0) * var(--wave-step));
+}
+
+/* KF.DS.r1 — parked (hidden page or offscreen title): every glyph holds its
+   current frame; the wave resumes from there when the title is seen again. */
+.wave-text.is-parked .wave-char {
+    animation-play-state: paused;
 }
 
 @keyframes charLift {
