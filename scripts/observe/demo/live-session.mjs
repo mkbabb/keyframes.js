@@ -907,7 +907,7 @@ async function runBattery() {
                     try {
                         m = JSON.parse(localStorage.getItem(mk) || "{}").activeScene;
                     } catch { /* unreadable */ }
-                    const trig = document.querySelector("[data-dock-surface-item][data-selected]");
+                    const trig = document.querySelector("[data-dock-surface-item][aria-checked=\"true\"]");
                     return { machine: m, trigger: trig ? (trig.getAttribute("aria-label") || "") : null };
                 }, [MACHINE_KEY]);
                 const subj = await subjectRect(page, libScene.subjectSelector);
@@ -955,7 +955,7 @@ async function runBattery() {
                         ([mk, id, expected]) => {
                             try {
                                 const m = JSON.parse(localStorage.getItem(mk) || "{}").activeScene;
-                                const trig = document.querySelector("[data-dock-surface-item][data-selected]");
+                                const trig = document.querySelector("[data-dock-surface-item][aria-checked=\"true\"]");
                                 const text = trig?.getAttribute("aria-label") || null;
                                 return m === id && (expected === null ? !trig : text === expected);
                             } catch {

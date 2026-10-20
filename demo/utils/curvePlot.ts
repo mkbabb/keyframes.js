@@ -96,15 +96,25 @@ const strokeVertices = (
     const ts = [...grid].sort((a, b) => a - b);
 
     const out: { t: number; v: number }[] = [{ t: ts[0]!, v: fn(ts[0]!) }];
+    let va = out[0]!.v;
     for (let i = 1; i < ts.length; i++) {
         let lo = ts[i - 1]!;
         let hi = ts[i]!;
-        let vlo = fn(lo);
+        let vlo = va;
         let vhi = fn(hi);
         const a = lo;
         const b = hi;
         const vb = vhi;
-        for (let k = 0; k < BISECT_DEPTH; k++) {
+        va = vb;
+        // C1-KF-03 — the bisection stops once the bracket's difference is
+        // under the jump floor: every curve the demo plots is monotone across
+        // a jump (steps), so a bracket that rises less than the floor holds no
+        // riser, and halving it further cannot find one. A continuous interval
+        // used to spend all 48 halvings (one fn call each) converging to zero:
+        // the Easing scene's tile plots were ~40 ms of its mount, inside the
+        // swap's commit. The vertices are the same; the grid ends are each
+        // evaluated once.
+        for (let k = 0; k < BISECT_DEPTH && Math.abs(vhi - vlo) > JUMP_EPSILON; k++) {
             const mid = (lo + hi) / 2;
             const vm = fn(mid);
             if (Math.abs(vm - vlo) >= Math.abs(vhi - vm)) {

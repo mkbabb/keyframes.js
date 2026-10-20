@@ -82,8 +82,8 @@
              OD19-K4 (the owner, 2026-10-19: "Reverse / Preview and the three
              dots integrated more deftly, using the ball") — there is no verb
              row. The ball track's two end discs ARE the two verbs: the start
-             disc is Reverse (the run's origin; its arrow points the way the
-             ball runs and flips under Reverse, `aria-pressed`), the dashed
+             disc is Reverse (the run's origin; its two-way arrow (C1-KF-11) mirrors
+             under Reverse, `aria-pressed`), the dashed
              ghost disc is the ball Preview (the run's destination; eye /
              eye-off is the state, `aria-pressed` while SHOWN). Both are named
              glass Buttons with Tooltips, authored here and seated by the
@@ -113,9 +113,13 @@
                             :aria-pressed="userReversed"
                             @click="onReverse"
                         >
-                            <ArrowRight
+                            <!-- C1-KF-11 — at rest the disc reads as its verb:
+                                 the two-way arrow (a lone forward arrow read
+                                 "next"), flipped under Reverse, at the eye
+                                 disc's 1rem glyph rung. -->
+                            <ArrowRightLeft
                                 :class="[
-                                    'transition-transform duration-fast',
+                                    'size-4 transition-transform duration-fast',
                                     userReversed ? 'scale-x-[-1]' : '',
                                 ]"
                                 aria-hidden="true"
@@ -176,7 +180,7 @@ import { useMediaQuery } from "@vueuse/core";
 import { useDragScrub } from "@composables/useDragScrub";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@mkbabb/glass-ui/tooltip";
 import { LabeledField } from "@mkbabb/glass-ui/labeled-field";
-import { ArrowRight, Eye, EyeOff } from "@lucide/vue";
+import { ArrowRightLeft, Eye, EyeOff } from "@lucide/vue";
 import AnimationVisualizer from "./AnimationVisualizer.vue";
 import { PREVIEW_EASE } from "./PreviewToggle.vue";
 

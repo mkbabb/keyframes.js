@@ -11,25 +11,34 @@
  *
  * OD19-K7 (owner 2026-10-19: "better syntax colour coding") — SIX rungs, not
  * three (KF-C24-02 folded the selectors, the at-rules, the property names and
- * the value keywords onto two neutrals, so they read alike). Every rung is an
- * app token or a `color-mix()` bridge of two (DESIGN §2: colour is named by
- * role; red stays destructive-only), on two axes: the NEUTRAL ladder carries
- * the grammar (structure → value → punctuation, stepping down) and the
- * identity VIOLET carries the meaning (the property a value lands on, the
- * numbers, and the keyframe stop the whole buffer is about). Mixing toward
- * `--foreground` keeps each rung's contrast in both theme arms.
+ * the value keywords onto two neutrals, so they read alike).
+ *
+ * C1-KF-04 (critic 1, 2026-10-20) — the six rungs still read as TWO families:
+ * structure and value were two near neutrals, and property, number and stop
+ * three close violets. Each rung is now its own HUE, read from glass's
+ * categorical palette (`--section-color-*`, theme-armed by the producer, each
+ * arm tuned to text on the ground) beside the app's own neutrals and the
+ * identity violet, which stays on the numbers (§0dm). Red stays
+ * destructive-only (DESIGN §2): no rung takes a red or pink section colour.
+ * The closest pair moves from ΔE 0.073 light / 0.058 dark (number/stop, two of
+ * the violets) to 0.092 / 0.104.
+ * Falsifier: `scripts/observe/demo/code-ink.mjs`, the minimum pairwise OKLab
+ * ΔE across the six resolved rungs, light and dark.
  */
 export const CODE_INK = {
-    /** At-rules (`@keyframes`), selectors and the keyframes' name. */
+    /** At-rules (`@keyframes`), selectors and the keyframes' name: the ink. */
     structure: "var(--foreground)",
-    /** Property names: the violet stepped toward the foreground. */
-    property: "color-mix(in oklab, var(--accent-kf) 50%, var(--foreground))",
-    /** Value keywords, functions and strings: the neutral midway rung. */
-    value: "color-mix(in oklab, var(--foreground) 55%, var(--muted-foreground))",
+    /** Property names: glass's blue (`--section-color-3`, hue ~220). */
+    property: "var(--section-color-3)",
+    /** Value keywords, functions and strings: glass's green (`--section-color-10`, hue ~128). */
+    value: "var(--section-color-10)",
     /** Numbers with their units (and hex literals): the identity violet. */
     number: "var(--color-progress)",
-    /** Keyframe stops (`0%`, `from`, `to`): the violet's strong step. */
-    stop: "var(--accent-kf-strong)",
+    /** Keyframe stops (`0%`, `from`, `to`): glass's amber (`--section-color-5`,
+     *  hue ~70) stepped 30% toward the ink, a real lightness step off the warm
+     *  muted punctuation in light; set bold in the editor, the mark that
+     *  anchors each block. */
+    stop: "color-mix(in oklab, var(--section-color-5) 70%, var(--foreground))",
     /** Punctuation and comments: the muted ink. */
     punct: "var(--muted-foreground)",
 } as const;

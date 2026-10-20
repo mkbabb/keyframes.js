@@ -938,7 +938,7 @@ export async function navToScene(
         .waitForFunction(
             (expected) => {
                 const trig = document.querySelector(
-                    "[data-dock-surface-item][data-selected]",
+                    "[data-dock-surface-item][aria-checked=\"true\"]",
                 );
                 const text = trig?.getAttribute("aria-label") || null;
                 return expected === null ? !trig : text === expected;

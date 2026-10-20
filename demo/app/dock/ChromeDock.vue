@@ -8,7 +8,12 @@ import {
     DockSeparator,
 } from "@mkbabb/glass-ui/dock";
 import { Button } from "@mkbabb/glass-ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem } from "@mkbabb/glass-ui/menu";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuRadioGroup,
+    DropdownMenuRadioItem,
+} from "@mkbabb/glass-ui/menu";
 import { provideDockPlate, useDockEdgeOffset } from "@composables/dockEdge";
 // T.C1 — the elision RENDER consumes T.B5's AUTHORITATIVE cardinality model
 // (the DFA projection — ONE source of the count arithmetic, per lane 18's
@@ -193,6 +198,17 @@ function isSurfaceShowing(item: DockSurfaceItem): boolean {
         props.selectedControl === item.surface
     );
 }
+/** C1-KF-10 — a row's value in the menu's radio group (a facet seat with no
+ *  surface still needs a scalar). */
+function rowKey(item: DockSurfaceItem): string {
+    return item.kind + ":" + (item.surface ?? "none");
+}
+/** The checked row: the one the open pane is showing, else none (""), so the
+ *  producer's own radio dot marks it, as the Scene list's dot marks its scene. */
+const showingRowKey = computed(() => {
+    const item = menuItems.value.find(isSurfaceShowing);
+    return item ? rowKey(item) : "";
+});
 
 const emit = defineEmits<{
     (e: "switchScene", id: string): void;
@@ -532,20 +548,29 @@ watch(isSelectOpen, (open) => {
                                     <component :is="iconFor(faceItem?.icon ?? '')" class="dock-glyph" aria-hidden="true" />
                                 </DockTrigger>
                                 <DropdownMenuContent align="center" :side-offset="surfaceMenuOffset" :collision-padding="16" class="z-popover text-body p-1.5">
-                                    <DropdownMenuItem
-                                        v-for="item in menuItems"
-                                        :key="item.kind + ':' + (item.surface ?? 'none')"
-                                        data-dock-surface-item
-                                        :data-surface="item.surface"
-                                        :data-selected="isSurfaceShowing(item) ? '' : undefined"
-                                        :text-value="item.title"
-                                        :disabled="!item.enabled"
-                                        class="gap-2.5 px-1.5 py-1"
-                                        @select="onSurfaceItem(item)"
-                                    >
-                                        <span class="w-7 shrink-0 flex justify-center"><component :is="iconFor(item.icon)" class="w-5 h-5" aria-hidden="true" /></span>
-                                        <span class="flex-1 min-w-0 text-small">{{ item.title }}</span>
-                                    </DropdownMenuItem>
+                                    <!-- C1-KF-10 — the showing surface is marked by the
+                                         producer's own radio item (its leading dot,
+                                         `aria-checked`), the affordance the Scene
+                                         list's dot gives the current scene; no local
+                                         selected style. The group is read-only here:
+                                         `@select` routes the press (re-picking the
+                                         checked row closes the pane). -->
+                                    <DropdownMenuRadioGroup :model-value="showingRowKey">
+                                        <DropdownMenuRadioItem
+                                            v-for="item in menuItems"
+                                            :key="rowKey(item)"
+                                            :value="rowKey(item)"
+                                            data-dock-surface-item
+                                            :data-surface="item.surface"
+                                            :text-value="item.title"
+                                            :disabled="!item.enabled"
+                                            class="gap-2.5 py-1"
+                                            @select="onSurfaceItem(item)"
+                                        >
+                                            <span class="w-7 shrink-0 flex justify-center"><component :is="iconFor(item.icon)" class="w-5 h-5" aria-hidden="true" /></span>
+                                            <span class="flex-1 min-w-0 text-small">{{ item.title }}</span>
+                                        </DropdownMenuRadioItem>
+                                    </DropdownMenuRadioGroup>
                                 </DropdownMenuContent>
                             </DropdownMenu>
                         </template>

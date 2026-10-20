@@ -132,10 +132,11 @@ describe("ChromeDock: one surface trigger whose menu opens the shared pane", () 
         const { wrapper } = mountDock(springProps);
         await openMenu(wrapper);
         const r = rows();
-        expect(r.map((e) => e.getAttribute("role"))).toEqual(["menuitem", "menuitem", "menuitem", "menuitem"]);
+        expect(r.map((e) => e.getAttribute("role"))).toEqual(["menuitemradio", "menuitemradio", "menuitemradio", "menuitemradio"]);
         expect(r.map((e) => e.textContent?.trim())).toEqual(["Controls", "Keyframes", "Timeline", "Physics"]);
         for (const e of r) expect(e.querySelector("svg")).not.toBeNull();
-        expect(r.filter((e) => e.hasAttribute("data-selected"))).toHaveLength(0);
+        // C1-KF-10 — the pane is closed, so no row is checked.
+        expect(r.filter((e) => e.getAttribute("aria-checked") === "true")).toHaveLength(0);
         wrapper.unmount();
     });
 
@@ -156,7 +157,11 @@ describe("ChromeDock: one surface trigger whose menu opens the shared pane", () 
         });
         await openMenu(wrapper);
         const physics = rows().find((e) => e.dataset.surface === "spring")!;
-        expect(physics.hasAttribute("data-selected")).toBe(true);
+        // C1-KF-10 — the showing row wears the producer's checked radio (its dot),
+        // and it is the only checked row.
+        expect(physics.getAttribute("aria-checked")).toBe("true");
+        expect(physics.querySelector(".menu__radio-dot")).not.toBeNull();
+        expect(rows().filter((e) => e.getAttribute("aria-checked") === "true")).toEqual([physics]);
         physics.click();
         await flushPromises();
         expect(onSelect).toEqual([]);
