@@ -93,22 +93,26 @@
                      table (`OPTION_GLYPHS`). The chevron is the producer's;
                      the trailing `pe-10` puts it in the easing chevron's
                      column (the easing field reserves that slot for its
-                     pencil), so the three chevrons stand in one line. -->
+                     pencil), so the three chevrons stand in one line.
+                     The glyph and the value are the trigger's OWN children (no
+                     span row around them): the producer's trigger line-clamps
+                     every direct `span` child (`[&>span]:line-clamp-1`, a
+                     -webkit-box), which stacked a wrapped glyph ABOVE a centred
+                     value (measured live, 2026-10-20). The value takes the
+                     row's slack, start-aligned, as easing's name does. -->
                 <SelectTrigger
                     :id="controlId"
-                    class="pe-10"
+                    class="gap-1.5 pe-10"
                     :aria-labelledby="labelledBy"
                     :aria-describedby="describedBy"
                 >
-                    <span class="flex min-w-0 flex-1 items-center gap-1.5">
-                        <component
-                            :is="OPTION_GLYPHS[stored.animationOptions[field.key] ?? field.fallback]"
-                            class="option-glyph"
-                            :stroke-width="1.5"
-                            aria-hidden="true"
-                        />
-                        <SelectValue />
-                    </span>
+                    <component
+                        :is="OPTION_GLYPHS[stored.animationOptions[field.key] ?? field.fallback]"
+                        class="option-glyph"
+                        :stroke-width="1.5"
+                        aria-hidden="true"
+                    />
+                    <SelectValue class="min-w-0 flex-1 text-start" />
                 </SelectTrigger>
                 <SelectContent>
                     <SelectGroup>

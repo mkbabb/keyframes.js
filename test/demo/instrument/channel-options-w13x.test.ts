@@ -563,6 +563,35 @@ describe("OD19-K3 — the direction and fill-mode selects lead with their value'
         }
     });
 
+    // KF-P2 AFTER (measured live 2026-10-20, 1440/390 x light/dark): a span row
+    // around glyph + value is a DIRECT span child of the producer's trigger,
+    // whose `[&>span]:line-clamp-1` makes it a -webkit-box — the glyph stood
+    // ABOVE a centred value. The glyph and the value are the trigger's own
+    // row children, the value start-aligned in the slack, as easing's name is.
+    it("(17) the glyph and the value sit in the trigger's own row — no span child wraps the glyph", async () => {
+        const { wrapper } = mountCard(1);
+        try {
+            await settle();
+            const triggers = [...wrapper.element.querySelectorAll('[data-stub="SelectTriggerStub"]')];
+            expect(triggers).toHaveLength(2);
+            for (const t of triggers) {
+                const svg = t.querySelector("svg.option-glyph")!;
+                const value = t.querySelector('[data-stub="SelectValueStub"]')!;
+                expect(svg.parentElement).toBe(t);
+                expect(value.parentElement).toBe(t);
+            }
+            // The stubs drop attrs from the DOM; the class the form passes is
+            // read off each producer component's own attrs.
+            const classOf = (name: string) =>
+                wrapper.findAllComponents({ name }).map((c) => String(c.vm.$attrs.class ?? "").split(/\s+/));
+            for (const cls of classOf("SelectValueStub"))
+                expect(cls).toEqual(expect.arrayContaining(["min-w-0", "flex-1", "text-start"]));
+            for (const cls of classOf("SelectTriggerStub")) expect(cls).toContain("gap-1.5");
+        } finally {
+            wrapper.unmount();
+        }
+    });
+
     it("(16) every item carries its own value's glyph — eight values, eight distinct glyphs, one table", async () => {
         const { wrapper } = mountCard(1);
         try {
