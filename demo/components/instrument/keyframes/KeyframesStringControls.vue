@@ -36,14 +36,21 @@
             actions-when="always"
             body-class="flex grow flex-col space-y-0 p-0"
         >
+            <!-- OD19-K7 (owner 2026-10-19: "replace ✓ Parsed with a bigger
+                 status dot only") — the status is the dot alone, at glass's
+                 `md` step: the visible word is gone and becomes the dot's
+                 accessible name (`label`). The live region still announces:
+                 the dot is keyed on its state, so each change ADDS a named
+                 node to the polite region rather than editing an attribute. -->
             <template #actions>
-                <span
-                    role="status"
-                    aria-live="polite"
-                    class="text-caption text-muted-foreground flex shrink-0 items-center gap-1.5"
-                >
-                    <StatusDot :state="paneStatus.dot" size="sm" motion="off" />
-                    {{ paneStatus.text }}
+                <span role="status" aria-live="polite" class="flex shrink-0 items-center">
+                    <StatusDot
+                        :key="paneStatus.dot"
+                        :state="paneStatus.dot"
+                        :label="paneStatus.text"
+                        size="md"
+                        motion="off"
+                    />
                 </span>
             </template>
             <!-- D-4 (X.KF.W12.e) — the editor WELL is the parse-error shake's

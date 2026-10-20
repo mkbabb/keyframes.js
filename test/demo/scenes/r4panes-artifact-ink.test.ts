@@ -128,11 +128,12 @@ describe("X.KF.W13X.r4panes — UIA-KF-097: the Entry artifact in the editor's c
             const inkOf = (re: RegExp) =>
                 spans.find((s) => re.test(s.textContent ?? ""))?.style.color ?? null;
             // jsdom keeps a `var()` colour verbatim, so the ink is read as written.
-            expect(inkOf(/^transition$/)).toBe(CODE_INK.structure);
-            expect(inkOf(/^opacity$/)).toBe(CODE_INK.structure);
+            expect(inkOf(/^transition$/)).toBe(CODE_INK.property);
+            expect(inkOf(/^opacity$/)).toBe(CODE_INK.property);
             expect(inkOf(/^0\.5s$/)).toBe(CODE_INK.number);
             expect(inkOf(/^20px$/)).toBe(CODE_INK.number);
-            expect(new Set(spans.map((s) => s.style.color).filter(Boolean)).size).toBe(3);
+            // OD19-K7: the six-rung table; this artifact carries five of them (no keyframe stop)
+            expect(new Set(spans.map((s) => s.style.color).filter(Boolean)).size).toBe(5);
             // the flat muted register is gone: the ink is per token
             expect(code.classes()).not.toContain("text-muted-foreground");
         } finally {
@@ -157,7 +158,7 @@ describe("X.KF.W13X.r4panes — UIA-KF-097: the Entry artifact in the editor's c
         };
         expect(inkOf("@starting-style")).toBe("structure");
         expect(inkOf(".card.is-open")).toBe("structure");
-        expect(inkOf("opacity:")).toBe("structure");
+        expect(inkOf("opacity:")).toBe("property");
         expect(inkOf("opacity 0.5s")).toBe("value");
         expect(inkOf("translateY")).toBe("value");
         expect(inkOf("linear")).toBe("value");

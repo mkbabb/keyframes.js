@@ -4,7 +4,7 @@
  * The pane opened straight onto line 1 of the code: no heading, no animation
  * name, no parse or apply state beside the source, and the tabpanel had no
  * accessible name. The pane is now a region named by a heading that carries the
- * animation's name, with one polite status line — Parsed · Parse error ·
+ * animation's name, with one polite status (OD19-K7: a labelled dot) — Parsed · Parse error ·
  * Applied — beside the buffer it describes. Since X-DS r8 pass 9 (KF-C9x-02)
  * the header is glass's ConfiguratorLayer (title, status, chevron).
  *
@@ -32,8 +32,9 @@ vi.mock("@mkbabb/glass-ui", () => ({
 vi.mock("@mkbabb/glass-ui/status-dot", () => ({
     StatusDot: defineComponent({
         name: "StatusDotStub",
-        props: { state: String },
-        setup: (p) => () => h("span", { "data-stub": "StatusDot", "data-state": p.state }),
+        props: { state: String, label: String, size: String },
+        setup: (p) => () =>
+            h("span", { "data-stub": "StatusDot", "data-state": p.state, "data-size": p.size, "aria-label": p.label }),
     }),
 }));
 vi.mock("@mkbabb/glass-ui/card", () => ({
@@ -114,20 +115,26 @@ describe("UIA-KF-275 — the pane's heading and status", () => {
         expect(trigger.attributes("aria-expanded")).toBe("true");
         expect(trigger.find(".configurator-section-label").text()).toBe("Rotations");
 
+        // OD19-K7 — the status is the dot alone (md): no visible word; the
+        // word is the dot's accessible name inside the polite live region.
         const status = () => region.find('[role="status"]');
-        expect(status().text()).toBe("Parsed");
+        const said = () => status().find('[data-stub="StatusDot"]').attributes("aria-label");
+        expect(status().attributes("aria-live")).toBe("polite");
+        expect(status().text()).toBe("");
+        expect(status().find('[data-stub="StatusDot"]').attributes("data-size")).toBe("md");
+        expect(said()).toBe("Parsed");
         expect(status().find('[data-stub="StatusDot"]').attributes("data-state")).toBe("success");
 
         // A refused edit says so beside the buffer.
         editor.vm.$emit("update:modelValue", "@");
-        await vi.waitFor(() => expect(status().text()).toBe("Parse error"), { timeout: 20_000 });
+        await vi.waitFor(() => expect(said()).toBe("Parse error"), { timeout: 20_000 });
         expect(status().find('[data-stub="StatusDot"]').attributes("data-state")).toBe("error");
 
         // Applied outranks the parse state.
         const seat = wrapper.vm as unknown as PaneSeat;
         seat.applyCSSStyles();
         await nextTick();
-        expect(status().text()).toBe("Applied");
+        expect(said()).toBe("Applied");
         seat.clearAppliedCSS();
         wrapper.unmount();
     });
@@ -150,7 +157,7 @@ describe("UIA-KF-275 — the pane's heading and status", () => {
         const trigger = region.find('[data-slot="configurator-layer-trigger"]');
         await trigger.trigger("click");
         expect(trigger.attributes("aria-expanded")).toBe("false");
-        expect(region.find('[role="status"]').text()).toBe("Parsed");
+        expect(region.find('[role="status"] [data-stub="StatusDot"]').attributes("aria-label")).toBe("Parsed");
         wrapper.unmount();
     });
 });

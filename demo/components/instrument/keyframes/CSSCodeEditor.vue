@@ -66,7 +66,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onUnmounted, ref, useTemplateRef, watch } from "vue";
+import { computed, onMounted, onUnmounted, ref, useTemplateRef, watch } from "vue";
 import { useMediaQuery, useResizeObserver } from "@vueuse/core";
 // Monaco is the demo's single largest module (`vendor-monaco`, ~2.5 MB
 // minified at the `editor.api` surface this boot loads). A static
@@ -151,10 +151,36 @@ function bootMonaco(): Promise<typeof Monaco> {
         };
         m.languages.register({ id: "css" });
         m.languages.setLanguageConfiguration("css", css.conf);
-        m.languages.setMonarchTokensProvider("css", css.language);
+        m.languages.setMonarchTokensProvider("css", withKeyframeStops(css.language));
         monaco = m;
         return m;
     }));
+}
+
+// OD19-K7 — the grammar names what this editor is about. Monaco's css grammar
+// tokenizes a keyframe stop (`0%`, `from`) as a value number / value keyword
+// and the animation's name as a value, so no theme rule could ink them apart
+// from a declaration's `20px` or `ease`. The grammar is data: a copy whose
+// `@keyframes` name is a `tag` (the structure, as a selector is) and whose
+// keyframe body reads its stops as `keyframe.stop` first. Every other state is
+// Monaco's own.
+type MonarchLanguage = Monaco.languages.IMonarchLanguage;
+function withKeyframeStops(language: MonarchLanguage): MonarchLanguage {
+    const { tokenizer } = language;
+    return {
+        ...language,
+        tokenizer: {
+            ...tokenizer,
+            keyframedeclaration: [
+                ["@identifier", "tag"],
+                ...tokenizer.keyframedeclaration!.slice(1),
+            ],
+            keyframebody: [
+                [/(?:from|to)\b|-?(?:\d*\.)?\d+%/, "keyframe.stop"],
+                ...tokenizer.keyframebody!,
+            ],
+        },
+    };
 }
 
 // X-DS pass 4 (KF-C4-01) — THE WELL'S GROUND IS THE APP'S. The vendored
@@ -166,91 +192,110 @@ function bootMonaco(): Promise<typeof Monaco> {
 // hex strings, not CSS, so the tokens are resolved on the page (a probe
 // element's computed colour, then one canvas pixel for the sRGB bytes), and the
 // ACTIVE scheme's theme is re-defined on every flip, after the tokens flip.
-function resolveTokenHex(css: string): string {
+//
+// OD19-ALL (editor open) — ONE probe and ONE canvas per theme definition, not
+// one of each per token: the theme resolves eleven colours, and each fresh
+// probe appended to <body> re-styled the page inside the editor's boot task.
+// The probe is `display: none` (its computed colour still resolves), so it
+// never dirties layout.
+function tokenResolver(): { hex: (css: string) => string; dispose: () => void } {
     const probe = document.createElement("div");
-    probe.style.color = css;
+    probe.style.display = "none";
     document.body.appendChild(probe);
-    const computed = getComputedStyle(probe).color;
-    probe.remove();
     const ctx = document.createElement("canvas").getContext("2d", {
         willReadFrequently: true,
     });
-    if (!ctx) return "#00000000";
-    ctx.fillStyle = computed;
-    ctx.fillRect(0, 0, 1, 1);
-    const [r = 0, g = 0, b = 0, a = 255] = ctx.getImageData(0, 0, 1, 1).data;
-    return `#${[r, g, b, a].map((v) => v.toString(16).padStart(2, "0")).join("")}`;
+    const hex = (css: string): string => {
+        probe.style.color = css;
+        const computed = getComputedStyle(probe).color;
+        if (!ctx) return "#00000000";
+        ctx.clearRect(0, 0, 1, 1);
+        ctx.fillStyle = computed;
+        ctx.fillRect(0, 0, 1, 1);
+        const [r = 0, g = 0, b = 0, a = 255] = ctx.getImageData(0, 0, 1, 1).data;
+        return `#${[r, g, b, a].map((v) => v.toString(16).padStart(2, "0")).join("")}`;
+    };
+    return { hex, dispose: () => probe.remove() };
 }
 
 function defineGroundedTheme(m: typeof Monaco, dark: boolean): void {
     const base = (dark ? DarkTheme : LightTheme) as Monaco.editor.IStandaloneThemeData;
-    const ground = resolveTokenHex("var(--muted)");
-    const highlight = resolveTokenHex(
-        "color-mix(in srgb, var(--foreground) 6%, var(--muted))",
-    );
-    // X-DS r4 pass 5 (KF-C24-02) — THE INK IS THE APP'S TOO. The vendored
-    // themes' rules are TextMate scopes (`entity.other.attribute-name`,
-    // `keyword.other…`), and the Monarch css tokenizer emits none of them
-    // (`attribute.name.css`, `attribute.value.number.css`, `keyword.css`,
-    // `delimiter.bracket.css`…), so stock vs/vs-dark showed through: pure-red
-    // property names, bold-blue `@keyframes`, a five-hue spread. The rules are
-    // written here against the Monarch names, from the app's tokens, resolved
-    // as the ground is: ONE hue carries meaning (the numbers and units, the
-    // identity violet), the structure is the foreground, the values and the
-    // punctuation step down to the muted ink. Monaco takes rule colours as
-    // six-digit hex without the `#`. UIA-KF-097 (X.KF.W13X.r4panes) — the
-    // three rungs are `CODE_INK`'s, the one table the app's printed code
-    // (the spring scene's artifact) is inked from too.
-    const ink = (css: string) => resolveTokenHex(css).slice(1, 7);
-    const fg = ink(CODE_INK.structure);
-    const muted = ink(CODE_INK.value);
-    const accent = ink(CODE_INK.number);
-    // X-DS r7 pass 8 (KF-C8r-01) — THE GUTTER AND THE GUIDES ARE THE APP'S.
-    // The ground and the ink were re-derived, but the line numbers and indent
-    // guides were still stock (vs teal numerals and a navy active number over
-    // #D3D3D3 guides; vs-dark's cool #858585 / #404040): the only teal or cool
-    // grey marks on a warm page, in the column the eye scans down. They take
-    // the muted ink, the structure ink and the border, resolved as above.
-    const numeral = resolveTokenHex("var(--muted-foreground)");
-    const rule = resolveTokenHex("var(--border)");
-    m.editor.defineTheme(dark ? "dark-theme" : "light-theme", {
-        base: base.base,
-        // The base's rules stay underneath (its default ground and ink keep
-        // the colour map whole); every token the css tokenizer emits is
-        // re-inked here, including the three vs-dark qualifies with `.css`
-        // (a more specific rule outranks a shorter one).
-        inherit: true,
-        rules: [
-            { token: "", foreground: fg },
-            { token: "tag", foreground: fg },
-            { token: "keyword", foreground: fg },
-            { token: "attribute.name", foreground: fg },
-            { token: "attribute.value", foreground: muted },
-            { token: "attribute.value.number", foreground: accent },
-            { token: "attribute.value.unit", foreground: accent },
-            { token: "attribute.value.number.css", foreground: accent },
-            { token: "attribute.value.unit.css", foreground: accent },
-            { token: "attribute.value.hex.css", foreground: muted },
-            { token: "number", foreground: accent },
-            { token: "string", foreground: muted },
-            { token: "comment", foreground: muted, fontStyle: "italic" },
-            { token: "delimiter", foreground: muted },
-        ],
-        colors: {
-            ...base.colors,
-            "editor.foreground": `#${fg}`,
-            "editor.background": ground,
-            "editorGutter.background": ground,
-            "editor.lineHighlightBackground": highlight,
-            "editor.lineHighlightBorder": highlight,
-            "editorLineNumber.foreground": numeral,
-            "editorLineNumber.activeForeground": `#${fg}`,
-            "editorIndentGuide.background1": rule,
-            "editorIndentGuide.activeBackground1": rule,
-            // X-DS r6 pass 4 (KF-R6C4-03) — no `scrollbarSlider.*` re-ink: the
-            // well draws no scrollbar (the editor options below).
-        },
-    });
+    const { hex: resolveTokenHex, dispose } = tokenResolver();
+    try {
+        const ground = resolveTokenHex("var(--muted)");
+        const highlight = resolveTokenHex(
+            "color-mix(in srgb, var(--foreground) 6%, var(--muted))",
+        );
+        // X-DS r4 pass 5 (KF-C24-02) — THE INK IS THE APP'S TOO. The vendored
+        // themes' rules are TextMate scopes (`entity.other.attribute-name`,
+        // `keyword.other…`), and the Monarch css tokenizer emits none of them
+        // (`attribute.name.css`, `attribute.value.number.css`, `keyword.css`,
+        // `delimiter.bracket.css`…), so stock vs/vs-dark showed through. The rules
+        // are written here against the Monarch names, from the app's tokens,
+        // resolved as the ground is. Monaco takes rule colours as six-digit hex
+        // without the `#`. UIA-KF-097 — the rungs are `CODE_INK`'s, the one table
+        // the app's printed code (the spring scene's artifact) is inked from too.
+        // OD19-K7 — six rungs (codeTokens.ts): at-rules and selectors, property
+        // names, value keywords, numbers with units, keyframe stops, punctuation
+        // and comments; the stop also carries the weight, the one mark that
+        // anchors each block of the buffer.
+        const ink = (css: string) => resolveTokenHex(css).slice(1, 7);
+        const fg = ink(CODE_INK.structure);
+        const property = ink(CODE_INK.property);
+        const value = ink(CODE_INK.value);
+        const number = ink(CODE_INK.number);
+        const stop = ink(CODE_INK.stop);
+        const punct = ink(CODE_INK.punct);
+        // X-DS r7 pass 8 (KF-C8r-01) — THE GUTTER AND THE GUIDES ARE THE APP'S.
+        // The ground and the ink were re-derived, but the line numbers and indent
+        // guides were still stock (vs teal numerals and a navy active number over
+        // #D3D3D3 guides; vs-dark's cool #858585 / #404040): the only teal or cool
+        // grey marks on a warm page, in the column the eye scans down. They take
+        // the muted ink, the structure ink and the border, resolved as above.
+        const numeral = resolveTokenHex("var(--muted-foreground)");
+        const rule = resolveTokenHex("var(--border)");
+        m.editor.defineTheme(dark ? "dark-theme" : "light-theme", {
+            base: base.base,
+            // The base's rules stay underneath (its default ground and ink keep
+            // the colour map whole); every token the css tokenizer emits is
+            // re-inked here, including the three vs-dark qualifies with `.css`
+            // (a more specific rule outranks a shorter one).
+            inherit: true,
+            rules: [
+                { token: "", foreground: fg },
+                { token: "tag", foreground: fg },
+                { token: "keyword", foreground: fg },
+                { token: "attribute.name", foreground: property },
+                { token: "attribute.value", foreground: value },
+                { token: "attribute.value.number", foreground: number },
+                { token: "attribute.value.unit", foreground: number },
+                { token: "attribute.value.number.css", foreground: number },
+                { token: "attribute.value.unit.css", foreground: number },
+                { token: "attribute.value.hex.css", foreground: number },
+                { token: "number", foreground: number },
+                { token: "keyframe.stop", foreground: stop, fontStyle: "bold" },
+                { token: "string", foreground: value },
+                { token: "comment", foreground: punct, fontStyle: "italic" },
+                { token: "delimiter", foreground: punct },
+            ],
+            colors: {
+                ...base.colors,
+                "editor.foreground": `#${fg}`,
+                "editor.background": ground,
+                "editorGutter.background": ground,
+                "editor.lineHighlightBackground": highlight,
+                "editor.lineHighlightBorder": highlight,
+                "editorLineNumber.foreground": numeral,
+                "editorLineNumber.activeForeground": `#${fg}`,
+                "editorIndentGuide.background1": rule,
+                "editorIndentGuide.activeBackground1": rule,
+                // X-DS r6 pass 4 (KF-R6C4-03) — no `scrollbarSlider.*` re-ink: the
+                // well draws no scrollbar (the editor options below).
+            },
+        });
+    } finally {
+        dispose();
+    }
 }
 
 const props = withDefaults(
@@ -438,28 +483,9 @@ const initEditor = async () => {
         language: "css",
         // KF-CE-21: the accessible name of the input area.
         ariaLabel: props.ariaLabel,
-        fontLigatures: true,
         theme: themeName(),
-        fontSize: clampIOSNoZoomFontSize(props.fontSize),
-        // KF-CE-20 (W6-M, the token-read half; the pipeline is EDITOR-UNIT's) —
-        // the family was the bare literal `"Fira Code"`, with NO generic
-        // fallback and bypassing `--font-mono` entirely. It was latent only
-        // because `style.css` self-hosts the OFL payload on the same page: any
-        // load failure, any consumer that does not ship that payload, and Monaco
-        // silently renders whatever the platform picks for an unresolvable
-        // family — with no `monospace` behind it to catch the fall. The token is
-        // the demo's single mono authority (`--font-mono: "Fira Code",
-        // monospace`, declared in `style.css`'s `@theme`), and reading it here
-        // takes BOTH halves at once: the editor follows the same family every
-        // other code surface reads, and the generic fallback arrives with it.
-        // Monaco takes a CSS font-family STRING, not an element, so the value is
-        // resolved once off the document element at create time rather than
-        // re-read per frame; the literal below is the last resort if the
-        // stylesheet has not applied yet, and it is a GENERIC, never a face.
-        fontFamily:
-            getComputedStyle(document.documentElement)
-                .getPropertyValue("--font-mono")
-                .trim() || "monospace",
+        // KF-CE-20 — the font (family from `--font-mono`): `fontOptions()`.
+        ...fontOptions(),
         minimap: { enabled: false },
         // X-DS r4 pass 5 (KF-C24-02) — matching the bracket under the cursor
         // stays; the bracket-pair rainbow goes (below, on the model).
@@ -632,10 +658,105 @@ const whenPainted = (run: () => void) => {
     if ("requestIdleCallback" in window) requestIdleCallback(run);
     else requestAnimationFrame(() => setTimeout(run));
 };
+// OD19-ALL (editor open) — a box that arrives on a pane OPEN boots one frame
+// later still: the observer reports inside the reveal frame, and an idle
+// period could open before that frame rendered, so `editor.create` forced the
+// whole revealed pane's layout inside its own task (a 70–77 ms frame, 28–30 ms
+// of it forced layout, LoAF). After one animation frame the pane is laid out
+// and painted, and the editor's task lays out only itself.
 const initAfterPaint = () =>
+    requestAnimationFrame(() =>
+        whenPainted(() => {
+            if (!disposed) void initEditor();
+        }),
+    );
+
+// The font the editor measures (Monaco keys its font-measurement cache on it):
+// one source for the editor and for the warm below.
+// KF-CE-20 (W6-M, the token-read half; the pipeline is EDITOR-UNIT's) —
+// the family was the bare literal `"Fira Code"`, with NO generic
+// fallback and bypassing `--font-mono` entirely. It was latent only
+// because `style.css` self-hosts the OFL payload on the same page: any
+// load failure, any consumer that does not ship that payload, and Monaco
+// silently renders whatever the platform picks for an unresolvable
+// family — with no `monospace` behind it to catch the fall. The token is
+// the demo's single mono authority (`--font-mono: "Fira Code",
+// monospace`, declared in `style.css`'s `@theme`), and reading it here
+// takes BOTH halves at once: the editor follows the same family every
+// other code surface reads, and the generic fallback arrives with it.
+// Monaco takes a CSS font-family STRING, not an element, so the value is
+// resolved once off the document element at create time rather than
+// re-read per frame; the literal below is the last resort if the
+// stylesheet has not applied yet, and it is a GENERIC, never a face.
+const fontOptions = () => ({
+    fontLigatures: true,
+    fontSize: clampIOSNoZoomFontSize(props.fontSize),
+    fontFamily:
+        getComputedStyle(document.documentElement).getPropertyValue("--font-mono").trim() ||
+        "monospace",
+});
+
+// The first `editor.create` on a page measures the font (character widths,
+// read through forced layouts of Monaco's own measuring nodes): the
+// `readFontInfo` chain is the open's largest forced layout (CPU profile, OD19
+// KF-P3, `profile-open-forced.txt`). Monaco caches that measurement for the
+// page, keyed on the font, so the warm primes it: one throwaway editor with
+// the SAME font, in an offscreen box of its own at <body> (never the hidden
+// well, so the well is still never laid out), disposed in the same task, at
+// idle.
+function warmFontMeasurement(m: typeof Monaco): void {
+    const box = document.createElement("div");
+    box.style.cssText =
+        "position:fixed;left:-10000px;top:0;width:240px;height:48px;visibility:hidden;contain:strict";
+    document.body.appendChild(box);
+    try {
+        m.editor
+            .create(box, {
+                ...fontOptions(),
+                automaticLayout: false,
+                dimension: { width: 240, height: 48 },
+                minimap: { enabled: false },
+            })
+            .dispose();
+    } finally {
+        box.remove();
+    }
+}
+
+// OD19-ALL (editor open; KF-P3) — THE CHUNK IS WARM BEFORE THE PANE OPENS.
+// The Keyframes pane force-mounts this well hidden at idle (T.G9), and the
+// boot waited for the well's first box (C1r2-2), so opening the surface paid
+// the Monaco chunk's fetch and evaluation AND `editor.create` in the open's
+// frames (276–407 ms input→editor paint, one 128–134 ms frame). The well's
+// first idle period after mount now WARMS the chunk: the module boot only
+// (`bootMonaco`: the imports, the worker env, the css language) and, one idle
+// period later, the font measurement (`warmFontMeasurement`); never an editor
+// in the well, never a geometry read of it, so a hidden well stays unlaid-out
+// and the open pays the well's own `editor.create` alone. It is the SAME idle seat the boot takes
+// (KFA-81): a well that already has a box when that period comes boots in it,
+// so there is still one idle callback per mount; a box that arrives later
+// boots in an idle period of its own. A failed warm is dropped like a failed
+// boot, so the real boot retries the fetch and surfaces its error.
+let mountIdleDone = false;
+onMounted(() =>
     whenPainted(() => {
-        if (!disposed) void initEditor();
-    });
+        mountIdleDone = true;
+        if (disposed) return;
+        if (bootQueued) {
+            void initEditor();
+            return;
+        }
+        bootMonaco().then(
+            (m) =>
+                whenPainted(() => {
+                    if (!disposed && !editor) warmFontMeasurement(m);
+                }),
+            () => {
+                monacoBoot = undefined;
+            },
+        );
+    }),
+);
 
 // KF.W13X Repair (C1r2-2 · C1r2-3) — ONE observer on the well, bound to this
 // component's scope: it boots the editor once the well first has a box, and
@@ -657,7 +778,9 @@ useResizeObserver(containerEl, (entries) => {
     if (bootQueued) return;
     bootQueued = true;
     phase.value = "booting";
-    initAfterPaint();
+    // Before the mount's idle period the boot rides it (above); after, it
+    // takes the next one.
+    if (mountIdleDone) initAfterPaint();
 });
 
 onUnmounted(() => {

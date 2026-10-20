@@ -196,6 +196,9 @@ const monaco = await import("monaco-editor/esm/vs/editor/editor.api.js");
 const CSSCodeEditor = (
     await import("@components/instrument/keyframes/CSSCodeEditor.vue")
 ).default;
+const { CODE_INK, tokenizeCSS } = await import(
+    "@components/instrument/keyframes/utils/codeTokens"
+);
 const KeyframesStringControls = (
     await import("@components/instrument/keyframes/KeyframesStringControls.vue")
 ).default;
@@ -219,6 +222,63 @@ afterEach(() => {
 });
 
 describe("G-KFW12-4 — the Monaco seam", () => {
+    // OD19-ALL (editor open, KF-P3). FIRST in the file on purpose: the boot is
+    // module-scoped (one per page), so this case is the one that meets a cold
+    // chunk. The Keyframes pane force-mounts the well hidden at idle (T.G9), and
+    // the open used to pay the chunk's fetch + evaluation and `editor.create` in
+    // its own frames (276–407 ms input→editor paint, one 128–134 ms frame). The
+    // hidden well now warms the chunk in its first idle period: the module boot
+    // only (the css language is registered), no editor, no geometry read.
+    it("(0) OD19-ALL: a hidden well warms the Monaco chunk and the font measurement at idle, creating no editor in the well and reading no geometry", async () => {
+        let geometryReads = 0;
+        const width = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetWidth")!;
+        const height = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "offsetHeight")!;
+        Object.defineProperty(HTMLElement.prototype, "offsetWidth", { configurable: true, get: () => (geometryReads++, 480) });
+        Object.defineProperty(HTMLElement.prototype, "offsetHeight", { configurable: true, get: () => (geometryReads++, 300) });
+        const idle: Array<() => void> = [];
+        const w = window as unknown as { requestIdleCallback?: (cb: () => void) => number };
+        w.requestIdleCallback = (cb) => idle.push(cb);
+        boxes.held = true;
+        const cssRegistered = () => monaco.languages.getLanguages().some((l) => l.id === "css");
+        try {
+            expect(cssRegistered()).toBe(false);
+            mounted = mount(CSSCodeEditor, {
+                props: { modelValue: "a { color: red }" },
+                attachTo: document.body,
+            });
+            await nextTick();
+            expect(idle.length).toBe(1);
+            idle.splice(0).forEach((run) => run());
+            for (let i = 0; i < 100 && !cssRegistered(); i++) await sleep(20);
+            expect(cssRegistered()).toBe(true);
+            expect(mounted.element.querySelector(".monaco-editor")).toBeNull();
+            expect(geometryReads).toBe(0);
+            // One idle period later the font measurement is primed: a throwaway
+            // editor with the well's font, in a box OUTSIDE the well, disposed
+            // in the same task (Monaco caches the measurement for the page).
+            expect(idle.length).toBe(1);
+            const create = vi.spyOn(monaco.editor, "create");
+            const live = monaco.editor.getEditors().length;
+            try {
+                idle.splice(0).forEach((run) => run());
+                expect(create).toHaveBeenCalledTimes(1);
+                const [box, options] = create.mock.calls[0]!;
+                expect(mounted.element.contains(box)).toBe(false);
+                expect(box.isConnected).toBe(false);
+                expect(options).toMatchObject({ fontLigatures: true, fontSize: 14 });
+                expect(monaco.editor.getEditors().length).toBe(live);
+                expect(mounted.element.querySelector(".monaco-editor")).toBeNull();
+            } finally {
+                create.mockRestore();
+            }
+        } finally {
+            boxes.held = false;
+            delete w.requestIdleCallback;
+            Object.defineProperty(HTMLElement.prototype, "offsetWidth", width);
+            Object.defineProperty(HTMLElement.prototype, "offsetHeight", height);
+        }
+    });
+
     it("(1) KF-CE-3: a Tab keydown on the focused input area is not swallowed", async () => {
         mounted = mount(CSSCodeEditor, {
             props: { modelValue: "a { color: red }" },
@@ -426,5 +486,111 @@ describe("G-KFW12-4 — the Monaco seam", () => {
         } finally {
             delete w.requestIdleCallback;
         }
+    });
+
+    // OD19-K7 (owner 2026-10-19: "better syntax colour coding in the code
+    // editor") — the theme rules ink SIX classes apart (BEFORE: three rungs, so
+    // selectors, `@keyframes`, property names and value keywords shared inks),
+    // and the grammar names the keyframe stops and the animation's name. jsdom
+    // resolves no colour, so the canvas pixel read is answered with bytes
+    // derived from the colour expression the theme resolved: equal expressions
+    // give equal hex, distinct expressions distinct hex.
+    it("(9) OD19-K7: the theme inks six Monarch classes apart; the grammar emits keyframe stops and the name as structure", async () => {
+        const getContext = Object.getOwnPropertyDescriptor(HTMLCanvasElement.prototype, "getContext")!;
+        Object.defineProperty(HTMLCanvasElement.prototype, "getContext", {
+            configurable: true,
+            value: () => {
+                let fill = "";
+                return new Proxy({ webkitBackingStorePixelRatio: 1 } as Record<PropertyKey, unknown>, {
+                    get: (target, key) => {
+                        if (key === "getImageData")
+                            return () => {
+                                let hsh = 2166136261;
+                                for (const c of fill) hsh = Math.imul(hsh ^ c.charCodeAt(0), 16777619) >>> 0;
+                                return { data: [hsh & 255, (hsh >> 8) & 255, (hsh >> 16) & 255, 255] };
+                            };
+                        return key in target ? target[key] : () => ({ width: 0, data: [] });
+                    },
+                    set: (_t, key, v) => {
+                        if (key === "fillStyle") fill = String(v);
+                        return true;
+                    },
+                });
+            },
+        });
+        const define = vi.spyOn(monaco.editor, "defineTheme");
+        try {
+            mounted = mount(CSSCodeEditor, {
+                props: { modelValue: "@keyframes spin { 0% { opacity: 0 } }" },
+                attachTo: document.body,
+            });
+            await booted(mounted);
+            const theme = define.mock.calls.at(-1)![1];
+            const rule = (token: string) => theme.rules.find((r) => r.token === token);
+            const classes = ["keyword", "attribute.name", "attribute.value", "attribute.value.number", "keyframe.stop", "delimiter"];
+            const inks = classes.map((c) => rule(c)?.foreground);
+            expect(inks.every(Boolean)).toBe(true);
+            expect(new Set(inks).size).toBe(6);
+            expect(rule("tag")?.foreground).toBe(rule("keyword")?.foreground);
+            expect(rule("comment")?.foreground).toBe(rule("delimiter")?.foreground);
+            expect(rule("keyframe.stop")?.fontStyle).toBe("bold");
+
+            const types = monaco.editor
+                .tokenize("@keyframes spin {\n  0% { opacity: 0.5; }\n  to { transform: rotate(1turn); }\n}", "css")
+                .flat()
+                .map((t) => t.type);
+            expect(types).toContain("keyframe.stop.css");
+            expect(types).toContain("tag.css");
+            expect(types.filter((t) => t === "keyframe.stop.css")).toHaveLength(2);
+            expect(types).toContain("attribute.name.css");
+            expect(types).toContain("attribute.value.number.css");
+        } finally {
+            define.mockRestore();
+            Object.defineProperty(HTMLCanvasElement.prototype, "getContext", getContext);
+        }
+    });
+
+    it("(10) OD19-K7: tokenizeCSS folds the same six rungs (StartingStyleTarget stays in lockstep)", () => {
+        const css = "@keyframes spin {\n  0% { opacity: 0.5; }\n  to { transform: rotate(1turn); }\n}";
+        const tokens = tokenizeCSS(css);
+        expect(tokens.map((t) => t.text).join("")).toBe(css);
+        const inkOf = (text: string) => {
+            const at = css.indexOf(text);
+            let pos = 0;
+            for (const t of tokens) {
+                if (at < pos + t.text.length) return t.ink;
+                pos += t.text.length;
+            }
+            return undefined;
+        };
+        expect(inkOf("@keyframes")).toBe("structure");
+        expect(inkOf("spin")).toBe("structure");
+        expect(inkOf("0%")).toBe("stop");
+        expect(inkOf("to {")).toBe("stop");
+        expect(inkOf("opacity")).toBe("property");
+        expect(inkOf("0.5")).toBe("number");
+        expect(inkOf("1turn")).toBe("number");
+        expect(inkOf("rotate")).toBe("value");
+        expect(inkOf("{")).toBe("punct");
+        expect(new Set(tokens.map((t) => t.ink).filter(Boolean)).size).toBe(6);
+        expect(new Set(Object.values(CODE_INK)).size).toBe(6);
+    });
+
+    // OD19-K7 — the status is a bigger dot only: no visible word; the word is
+    // the dot's accessible name, and the polite live region still carries it.
+    it("(11) OD19-K7: the pane status is a labelled md dot with no visible text, inside the polite live region", async () => {
+        mounted = mount(KeyframesStringControls, {
+            props: { animation: {} as never },
+            attachTo: document.body,
+        });
+        const status = mounted.element.querySelector("[role=status]")!;
+        expect(status).not.toBeNull();
+        expect(status.getAttribute("aria-live")).toBe("polite");
+        expect(status.textContent?.trim()).toBe("");
+        const dot = status.querySelector(".status-dot")!;
+        expect(dot.getAttribute("data-size")).toBe("md");
+        expect(dot.getAttribute("data-state")).toBe("success");
+        expect(dot.getAttribute("aria-label")).toBe("Parsed");
+        expect(dot.getAttribute("role")).toBe("img");
     });
 });
