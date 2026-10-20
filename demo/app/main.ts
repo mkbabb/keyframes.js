@@ -28,9 +28,18 @@ import "@styles/style.css";
 // skeleton + critical CSS are JS-independent (criticalCSSPlugin inlines them), so
 // this boot await does not block the visual first paint.
 import { warmKfEngine } from "@kf-engine";
+import { warmScene } from "./scene/scenes";
 
 const app = createApp(App);
 app.use(router);
+
+// OD19-ALL (load) — a deep link's scene chunk is fetched BESIDE the engine
+// chunk, not after it: the mount below waits on the engine, and the scene's
+// `<Suspense>` would only start its import at that mount, one round trip and
+// one evaluation later. The warm shares the scene's own loader (Vite caches
+// the module), so the mount resolves on the module already in flight. Home and
+// the cube are in the boot chunk; their warm is a no-op.
+void router.isReady().then(() => warmScene(String(router.currentRoute.value.name)));
 
 // T.D3 — decode the body face BEFORE mount. Plus Jakarta Sans is a base64
 // @font-face (zero network — the glass-ui fonts import), but @font-face decode

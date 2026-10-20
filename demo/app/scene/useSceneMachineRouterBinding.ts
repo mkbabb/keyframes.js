@@ -154,7 +154,17 @@ export function useSceneMachineRouterBinding(opts: {
     // first-load precedence is: deep-link URL > ?state= (router.beforeEach
     // already redirected) > localStorage (the persisted activeScene) > ?anim=
     // (applied LAST, scene-keyed, once the seed scene is known).
-    router.isReady().then(() => {
+    //
+    // OD19-ALL (load) — the seed runs IN SETUP when the initial navigation has
+    // already resolved, which it has on every boot (`main.ts` mounts after the
+    // engine chunk resolves, long after `app.use(router)`'s first navigation).
+    // Deferred to the `isReady()` microtask, App's first render drew the
+    // persisted scene (home on a first visit) for a deep link to #/<scene>: it
+    // fetched and evaluated the home-only Aurora chunk, mounted the start
+    // screen, and only then switched. Seeded here, the first render is the
+    // linked scene. A not-yet-resolved router (no boot path does this) keeps
+    // the microtask seat.
+    const seed = () => {
         const urlScene = routeToScene(route.name);
         if (urlScene !== HOME_SCENE_ID) {
             machine.dispatch({ type: "NAVIGATE", to: urlScene });
@@ -163,5 +173,7 @@ export function useSceneMachineRouterBinding(opts: {
         }
         // ?anim= applied AFTER the seed — scene-keyed off the resolved scene.
         applyAnimFromUrl();
-    });
+    };
+    if (router.currentRoute.value === START_LOCATION) void router.isReady().then(seed);
+    else seed();
 }

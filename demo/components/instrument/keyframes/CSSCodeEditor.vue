@@ -65,9 +65,7 @@
     </component>
 </template>
 
-<script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref, useTemplateRef, watch } from "vue";
-import { useMediaQuery, useResizeObserver } from "@vueuse/core";
+<script lang="ts">
 // Monaco is the demo's single largest module (`vendor-monaco`, ~2.5 MB
 // minified at the `editor.api` surface this boot loads). A static
 // `import * as monaco` here pulled it onto the eager graph of EVERY scene
@@ -88,32 +86,15 @@ import { useMediaQuery, useResizeObserver } from "@vueuse/core";
 // under `verbatimModuleSyntax`, no runtime edge; this ROOT type import is also
 // what types `self.MonacoEnvironment`, so it is not deletable.
 import type * as Monaco from "monaco-editor/esm/vs/editor/editor.api.js";
-// Theme JSONs are vendored locally: monaco-themes@0.4.x only exports `.` and
-// `./dist/monaco-themes.js` in its `exports` field, so `monaco-themes/themes/*`
-// is not resolvable under the strict bundler (Vite 8 / Rolldown). These two
-// small theme definitions live alongside this editor instead. Their `base` is
-// a JSON string where monaco wants the `BuiltinTheme` literal union; the
-// narrow cast at `defineTheme` is exactly that widening and nothing else
-// (KF-CE-29 — with the specifier resolving, the cast is load-bearing).
-import DarkTheme from "./monaco-themes/Dracula.json";
-import LightTheme from "./monaco-themes/GitHub.json";
-import { CODE_INK } from "./utils/codeTokens";
-import { Card } from "@mkbabb/glass-ui/card";
-import { useGlobalDark } from "@mkbabb/glass-ui/dark";
-import { clampIOSNoZoomFontSize } from "@utils/iosTextEntry";
-import { formatEditorCSS } from "@utils/formatEditorCSS";
-import { debounce } from "@utils/helpers";
-import { toast } from "@mkbabb/glass-ui/toast";
-// `Skeleton` and `Button` are root-barrel-only at glass-ui 7.0.0 (no
-// `./skeleton` subpath — the record's killed #2); the root barrel is already
-// on the app's eager graph (the ribbon, the shell's Suspense fallback), so
-// this import adds no chunk.
-import { Button, Skeleton } from "@mkbabb/glass-ui";
 
-// The resolved Monaco namespace + a single in-flight boot promise. The boot is
-// idempotent and module-scoped: the FIRST editor to mount loads + configures
-// Monaco once (worker env, themes, the `css` language), every later editor
-// awaits the same settled promise — no double-register, no second fetch.
+// The resolved Monaco namespace + a single in-flight boot promise, in MODULE
+// scope (this plain <script> block; OD19-ALL load: they sat in <script setup>,
+// so every mount of a well — one per scene swap, the Keyframes pane
+// force-mounts it hidden — re-registered the `css` language, recompiled its
+// grammar and re-warmed the font measurement inside the swap). The FIRST
+// editor to mount loads + configures Monaco once (worker env, themes, the
+// `css` language); every later editor awaits the same settled promise — no
+// double-register, no second fetch.
 //
 // THE LANGUAGE (KF-CE-1 / KF-CE-4, arm (b) — decided in the wave record before
 // this byte): `editor.api` registers NO language, NO tokenizer and NONE of the
@@ -182,6 +163,38 @@ function withKeyframeStops(language: MonarchLanguage): MonarchLanguage {
         },
     };
 }
+
+// The page's one font-measurement warm (`warmFontMeasurement`): Monaco caches
+// the measurement for the page, so a second throwaway editor buys nothing and
+// costs a create in whatever idle period (often a scene swap's) it lands in.
+let fontMeasured = false;
+</script>
+
+<script setup lang="ts">
+import { computed, onMounted, onUnmounted, ref, useTemplateRef, watch } from "vue";
+import { useMediaQuery, useResizeObserver } from "@vueuse/core";
+// Theme JSONs are vendored locally: monaco-themes@0.4.x only exports `.` and
+// `./dist/monaco-themes.js` in its `exports` field, so `monaco-themes/themes/*`
+// is not resolvable under the strict bundler (Vite 8 / Rolldown). These two
+// small theme definitions live alongside this editor instead. Their `base` is
+// a JSON string where monaco wants the `BuiltinTheme` literal union; the
+// narrow cast at `defineTheme` is exactly that widening and nothing else
+// (KF-CE-29 — with the specifier resolving, the cast is load-bearing).
+import DarkTheme from "./monaco-themes/Dracula.json";
+import LightTheme from "./monaco-themes/GitHub.json";
+import { CODE_INK } from "./utils/codeTokens";
+import { Card } from "@mkbabb/glass-ui/card";
+import { useGlobalDark } from "@mkbabb/glass-ui/dark";
+import { clampIOSNoZoomFontSize } from "@utils/iosTextEntry";
+import { formatEditorCSS } from "@utils/formatEditorCSS";
+import { debounce } from "@utils/helpers";
+import { toast } from "@mkbabb/glass-ui/toast";
+// `Skeleton` and `Button` are root-barrel-only at glass-ui 7.0.0 (no
+// `./skeleton` subpath — the record's killed #2); the root barrel is already
+// on the app's eager graph (the ribbon, the shell's Suspense fallback), so
+// this import adds no chunk.
+import { Button, Skeleton } from "@mkbabb/glass-ui";
+
 
 // X-DS pass 4 (KF-C4-01) — THE WELL'S GROUND IS THE APP'S. The vendored
 // themes keep their syntax colours, but their editor ground, line highlight and
@@ -705,6 +718,8 @@ const fontOptions = () => ({
 // well, so the well is still never laid out), disposed in the same task, at
 // idle.
 function warmFontMeasurement(m: typeof Monaco): void {
+    if (fontMeasured) return;
+    fontMeasured = true;
     const box = document.createElement("div");
     box.style.cssText =
         "position:fixed;left:-10000px;top:0;width:240px;height:48px;visibility:hidden;contain:strict";

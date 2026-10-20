@@ -279,6 +279,39 @@ describe("G-KFW12-4 — the Monaco seam", () => {
         }
     });
 
+    // OD19-ALL (load). The boot and the font warm are the PAGE's, not the
+    // well's: the Keyframes pane force-mounts a well on every scene swap, and
+    // with the boot in <script setup> each mount re-registered the css
+    // grammar and made a second throwaway editor inside the swap.
+    it("(0b) OD19-ALL: a second hidden well re-registers no language and makes no second throwaway editor", async () => {
+        const idle: Array<() => void> = [];
+        const w = window as unknown as { requestIdleCallback?: (cb: () => void) => number };
+        w.requestIdleCallback = (cb) => idle.push(cb);
+        boxes.held = true;
+        const tokens = vi.spyOn(monaco.languages, "setMonarchTokensProvider");
+        const create = vi.spyOn(monaco.editor, "create");
+        try {
+            mounted = mount(CSSCodeEditor, {
+                props: { modelValue: "a { color: red }" },
+                attachTo: document.body,
+            });
+            await nextTick();
+            for (let round = 0; round < 3; round++) {
+                idle.splice(0).forEach((run) => run());
+                await sleep(20);
+            }
+            expect(idle.length).toBe(0);
+            expect(tokens).not.toHaveBeenCalled();
+            expect(create).not.toHaveBeenCalled();
+            expect(mounted.element.querySelector(".monaco-editor")).toBeNull();
+        } finally {
+            tokens.mockRestore();
+            create.mockRestore();
+            boxes.held = false;
+            delete w.requestIdleCallback;
+        }
+    });
+
     it("(1) KF-CE-3: a Tab keydown on the focused input area is not swallowed", async () => {
         mounted = mount(CSSCodeEditor, {
             props: { modelValue: "a { color: red }" },
