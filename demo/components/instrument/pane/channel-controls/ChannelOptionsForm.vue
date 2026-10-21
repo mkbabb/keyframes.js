@@ -152,17 +152,8 @@ import {
     SelectValue,
 } from "@mkbabb/glass-ui";
 import { LabeledField, LabeledInput } from "@mkbabb/glass-ui/labeled-field";
-import { ref, type Component } from "vue";
-import {
-    ArrowLeft,
-    ArrowLeftRight,
-    ArrowLeftToLine,
-    ArrowRight,
-    ArrowRightLeft,
-    ArrowRightToLine,
-    CircleDashed,
-    MoveHorizontal,
-} from "@lucide/vue";
+import { ref } from "vue";
+import { OPTION_GLYPHS } from "./optionGlyphs";
 import { kfEngine } from "@kf-engine";
 
 const props = defineProps<{ animation: KeyframesAnimation<any> }>();
@@ -188,23 +179,6 @@ const ENUM_FIELDS = [
     { key: "direction", label: "direction", items: DIRECTIONS, fallback: "normal" },
     { key: "fillMode", label: "fill mode", items: FILL_MODES, fallback: "forwards" },
 ] as const;
-
-/** OD19-K3 — THE ONE value->glyph table for the two enumerated options. The
- *  glyph draws what the value does to the run: direction is the arrow of
- *  travel (one way, the other, there-and-back, back-and-there); fill mode is
- *  which end the run holds (none, the end it reaches, the start it waits
- *  at, both). The two key sets are disjoint, so one table serves both. */
-type EnumOption = (typeof DIRECTIONS)[number] | (typeof FILL_MODES)[number];
-const OPTION_GLYPHS: Record<EnumOption, Component> = {
-    normal: ArrowRight,
-    reverse: ArrowLeft,
-    alternate: ArrowRightLeft,
-    "alternate-reverse": ArrowLeftRight,
-    none: CircleDashed,
-    forwards: ArrowRightToLine,
-    backwards: ArrowLeftToLine,
-    both: MoveHorizontal,
-};
 
 // ── KF-CO-3 ≡ L·B-1 / C·B-1 (+ N-1, N-15) — ONE guarded option handler ──────
 // The engine setters are fail-explicit: a malformed PRESENT value throws an

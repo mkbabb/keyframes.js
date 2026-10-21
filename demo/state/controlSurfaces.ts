@@ -343,6 +343,10 @@ export interface DockSurfaceItem {
     label: string;
     icon: string;
     title: string;
+    /** C2-KF-03 — why a disabled row is disabled ("Select the Matrix
+     *  channel"). The row's title stays the surface's name; the reason is its
+     *  accessible description, never the title. */
+    reason?: string;
     enabled: boolean;
 }
 
@@ -420,7 +424,8 @@ export function dockSurfaceItems(
                     surface,
                     label: meta.label,
                     icon: meta.icon ?? "SlidersHorizontal",
-                    title: `${meta.label}: select the ${channel} channel`,
+                    title: meta.label,
+                    reason: `Select the ${channel} channel`,
                     enabled: false,
                 };
             })

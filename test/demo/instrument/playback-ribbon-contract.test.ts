@@ -22,6 +22,7 @@ import { defineComponent, h, nextTick, provide, ref, shallowRef } from "vue";
 import { mount, type VueWrapper } from "@vue/test-utils";
 import { CSSKeyframesAnimation } from "../../../src/animation/engine";
 import { warmKfEngine } from "../../../demo/kf-engine";
+import { OPTION_GLYPHS } from "../../../demo/components/instrument/pane/channel-controls/optionGlyphs";
 
 const passthrough = (name: string) =>
     defineComponent({
@@ -875,5 +876,34 @@ describe("OD19-K4 — Reverse and Preview are the ball track's own discs", () =>
         } finally {
             window.matchMedia = saved;
         }
+    });
+});
+
+// C2-KF-02 — one meaning per glyph in the pane. The direction select draws its
+// values from OPTION_GLYPHS; the ribbon's Reverse disc sits ~300 px from it, so
+// it must draw the table's "reverse" glyph and none of the other values' (the
+// two-way arrow there means "alternate").
+describe("C2-KF-02 — the Reverse disc speaks the pane's direction vocabulary", () => {
+    const lucideName = (el: Element | null | undefined) =>
+        [...(el?.classList ?? [])].find((c) => c.startsWith("lucide-")) ?? null;
+    const glyphName = (glyph: (typeof OPTION_GLYPHS)[keyof typeof OPTION_GLYPHS]) => {
+        const w = mount(glyph);
+        const name = lucideName(w.find("svg").element);
+        w.unmount();
+        return name;
+    };
+    it("the disc's glyph is OPTION_GLYPHS.reverse, and not one of the table's non-reverse entries", async () => {
+        const seat = mountRibbon();
+        await settle();
+        const disc = [...seat.root.querySelectorAll<HTMLButtonElement>("button")].find(
+            (b) => b.textContent?.trim() === "Reverse",
+        );
+        const drawn = lucideName(disc?.querySelector("svg"));
+        expect(drawn).not.toBeNull();
+        expect(drawn).toBe(glyphName(OPTION_GLYPHS.reverse));
+        const others = Object.entries(OPTION_GLYPHS)
+            .filter(([value]) => value !== "reverse")
+            .map(([, glyph]) => glyphName(glyph));
+        expect(others).not.toContain(drawn);
     });
 });

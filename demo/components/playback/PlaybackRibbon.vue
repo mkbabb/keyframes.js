@@ -113,11 +113,13 @@
                             :aria-pressed="userReversed"
                             @click="onReverse"
                         >
-                            <!-- C1-KF-11 — at rest the disc reads as its verb:
-                                 the two-way arrow (a lone forward arrow read
-                                 "next"), flipped under Reverse, at the eye
-                                 disc's 1rem glyph rung. -->
-                            <ArrowRightLeft
+                            <!-- C1-KF-11 / C2-KF-02 — at rest the disc reads as
+                                 its verb in the pane's own vocabulary: the
+                                 direction table's "reverse" glyph (the two-way
+                                 arrow there means "alternate"), flipped under
+                                 Reverse, at the eye disc's 1rem glyph rung. -->
+                            <component
+                                :is="OPTION_GLYPHS.reverse"
                                 :class="[
                                     'size-4 transition-transform duration-fast',
                                     userReversed ? 'scale-x-[-1]' : '',
@@ -180,7 +182,8 @@ import { useMediaQuery } from "@vueuse/core";
 import { useDragScrub } from "@composables/useDragScrub";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@mkbabb/glass-ui/tooltip";
 import { LabeledField } from "@mkbabb/glass-ui/labeled-field";
-import { ArrowRightLeft, Eye, EyeOff } from "@lucide/vue";
+import { Eye, EyeOff } from "@lucide/vue";
+import { OPTION_GLYPHS } from "@components/instrument/pane/channel-controls/optionGlyphs";
 import AnimationVisualizer from "./AnimationVisualizer.vue";
 import { PREVIEW_EASE } from "./PreviewToggle.vue";
 

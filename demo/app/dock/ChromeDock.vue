@@ -527,8 +527,10 @@ watch(isSelectOpen, (open) => {
                              descriptor (`dockSurfaceItems`), identical on every
                              scene, each a glyph + its title: a surface the scene
                              has no data for is a DISABLED row that keeps its
-                             title (the facet's reason, "Matrix: select the Matrix
-                             channel"), never dropped. Picking a row opens the
+                             title (the facet's name, "Matrix"; C2-KF-03: its
+                             reason, "Select the Matrix channel", is the row's
+                             aria-description, not its title), never dropped.
+                             Picking a row opens the
                              shared pane on its surface; re-picking the row the
                              open pane is showing closes the pane. The blank facet
                              seat (KF-C13-01) has no name, so it is no row. Home
@@ -564,6 +566,7 @@ watch(isSelectOpen, (open) => {
                                             :data-surface="item.surface"
                                             :text-value="item.title"
                                             :disabled="!item.enabled"
+                                            :aria-description="item.reason"
                                             class="gap-2.5 py-1"
                                             @select="onSurfaceItem(item)"
                                         >

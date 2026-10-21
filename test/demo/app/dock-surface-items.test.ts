@@ -192,7 +192,8 @@ describe("ChromeDock: one surface trigger whose menu opens the shared pane", () 
         expect(seq.onToggle).toEqual([]);
         seq.wrapper.unmount();
 
-        // A latent facet's disabled row names its reason.
+        // A latent facet's disabled row is titled by the facet and carries its
+        // reason as the row's description (C2-KF-03).
         const cube = mountDock({
             currentSceneId: "cube",
             scenes: [{ id: "cube", label: "Cube", icon: Glyph }],
@@ -203,8 +204,11 @@ describe("ChromeDock: one surface trigger whose menu opens the shared pane", () 
         });
         await openMenu(cube.wrapper);
         const facet = rows()[3]!;
-        expect(facet.textContent?.trim()).toBe("Matrix: select the Matrix channel");
+        expect(facet.textContent?.trim()).toBe("Matrix");
+        expect(facet.getAttribute("aria-description")).toBe("Select the Matrix channel");
         expect(facet.hasAttribute("data-disabled")).toBe(true);
+        // The enabled rows carry no description: only a disabled row has a reason.
+        for (const row of rows().slice(0, 3)) expect(row.hasAttribute("aria-description")).toBe(false);
         cube.wrapper.unmount();
 
         const home = mountDock({ currentSceneId: "home", controlSurfaces: [] });
@@ -244,7 +248,8 @@ describe("the one surface registry (X.KF.W13X.esc1)", () => {
             surface: "matrix-controls",
             label: "Matrix",
             icon: SURFACE_META["matrix-controls"].icon,
-            title: "Matrix: select the Matrix channel",
+            title: "Matrix",
+            reason: "Select the Matrix channel",
             enabled: false,
         });
         const selected = dockSurfaceItems(surfacesFor({ channels, facets: [] }, "Matrix"), facets);
