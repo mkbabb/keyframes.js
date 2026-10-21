@@ -57,7 +57,7 @@
              down. The subtlety bound lives in HeroAurora
              (HERO_AURORA_OPACITY_CEILING). -->
         <template v-if="isHome" #backdrop>
-            <HeroAurora />
+            <HomeBackdrop />
         </template>
 
         <template #start-screen>
@@ -135,7 +135,6 @@ import "@styles/brand.css";
 
 import {
     computed,
-    defineAsyncComponent,
     markRaw,
     provide,
     ref,
@@ -156,20 +155,12 @@ import EditorStartScreen from "./hero/EditorStartScreen.vue";
 // the start screen it backs; imported directly, not via the barrel — a
 // single-consumer leaf, the P-HERO import shape).
 //
-// KF-APP-15 — the boundary is ASYNC, and the scope of that is stated exactly:
-// a static import pulls the whole aurora module — the shader sources, the
-// palette derivation, the WebGPU/WebGL2 substrate — into the boot chunk of
-// EVERY route, including the scene routes that never mount this layer. The
-// dynamic boundary moves it to its own chunk fetched when `isHome` first
-// renders the backdrop. It does NOT delete the layer and does not change what
-// the home route eventually paints; the home route's own arrival cost is the
-// visual audit's measurement, not a claim made here. No <Suspense> wraps this
-// slot, so the async component renders nothing until its chunk resolves —
-// correct for a decorative backdrop, and the reason the scene host's keyed
-// <Suspense> (which broke under a wrapping <Transition>) is untouched.
-const HeroAurora = defineAsyncComponent(
-    () => import("./hero/HeroAurora.vue"),
-);
+// KF-APP-15 — the boundary is ASYNC: a static import would pull the whole
+// aurora module (shaders, palette derivation, the WebGPU/WebGL2 substrate) into
+// the boot chunk of every route. C3-KF-02 (OD19 repair 3) — the async boundary
+// is `HomeBackdrop` (app/scene/scenes.ts), declared with the scenes' own loader,
+// so the idle warm, the Scene-menu warm and the switch's pre-transition load
+// settle its chunk before a move into Home, as they do a scene's.
 import DemoGlobalChrome from "./DemoGlobalChrome.vue";
 import SceneSkeleton from "./SceneSkeleton.vue";
 import { ChromeDock, MbabbMenu } from "@app/dock";
@@ -193,7 +184,7 @@ import { useSceneMachineShellBinding } from "./scene/useSceneMachineShellBinding
 import { useStartScreen } from "./scene/useStartScreen";
 import { useSceneSwap } from "./transition/useSceneSwap";
 import { useSceneTransition } from "./transition/useSceneTransition";
-import { scenes, sceneMap, warmScene, homeScene } from "./scene/scenes";
+import { scenes, sceneMap, warmScene, homeScene, HomeBackdrop } from "./scene/scenes";
 // X-DS pass 4 (KF-C4-16) — the Boing room draws its own floor and wall grid,
 // so the shell's graph paper stays off on that one scene: two grids at two
 // pitches interleaved behind the ball as a moiré. The room is the only ground.

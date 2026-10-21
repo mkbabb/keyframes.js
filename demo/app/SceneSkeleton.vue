@@ -8,7 +8,7 @@
  *     never as bare "Loading…" text and never as a stage-gating spinner.
  *   - The plate is the stage-card register the Square, Easing, Spring and
  *     Sequence scenes stand on (`<Card :shadow="false">`); the loading motion is
- *     glass's `Skeleton` breathe inside it, so neither is re-authored here.
+ *     glass's `Skeleton` shimmer inside it, so neither is re-authored here.
  *   - It is decorative (`aria-hidden`): the announcement rides EditorShell's
  *     persistent status region through `SCENE_ANNOUNCER_KEY` ("Loading scene"
  *     on mount, "Scene ready" on unmount).
@@ -27,7 +27,7 @@ onUnmounted(() => announce?.("Scene ready"));
 <template>
     <div class="scene-skeleton" aria-hidden="true">
         <Card :shadow="false" class="scene-skeleton__plate h-full w-full">
-            <Skeleton class="scene-skeleton__sheen" />
+            <Skeleton shimmer class="scene-skeleton__sheen" />
         </Card>
     </div>
 </template>

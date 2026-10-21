@@ -172,6 +172,18 @@ export const homeScene: SceneDescriptor = {
     component: CubeScene,
 };
 
+/**
+ * C3-KF-02 / C3-KF-03 (OD19 repair 3) — Home's backdrop (the hero Aurora) is
+ * route-lazy like a scene, so it takes the scenes' one load path: its loader is
+ * registered under home's id, and the warm at idle, the Scene-menu warm and the
+ * switch's pre-transition `loadScene` all fetch it. A move into Home then
+ * resolves the chunk (and the glass aurora module it imports) BEFORE the View
+ * Transition starts, so the swap never pays it, and the new-state capture holds
+ * the backdrop, never the bare page under a still-pending async slot. App.vue
+ * mounts this component in EditorShell's `#backdrop` slot on home only.
+ */
+export const HomeBackdrop = lazyScene(HOME_SCENE_ID, () => import("../hero/HeroAurora.vue"));
+
 export const scenes: SceneDescriptor[] = [
     {
         id: CUBE_SCENE_ID,

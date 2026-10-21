@@ -92,7 +92,9 @@ describe("UIA-KF-237 — the two dock triggers share the dock's label rung", () 
 });
 
 describe("UIA-KF-242 — opening the scene list warms every scene", () => {
-    it("(2) a keyboard open with NO row hovered or arrowed warms each scene once", async () => {
+    // C3-KF-02 (OD19 repair 3) — Home's row is in the list, and its backdrop
+    // chunk is warmed with the scenes' (scenes.ts `HomeBackdrop`).
+    it("(2) a keyboard open with NO row hovered or arrowed warms each row, Home's backdrop with the scenes", async () => {
         const warm = vi.fn();
         const w = mountDock(warm);
         const trig = w.find('[aria-label="Scene"]').element as HTMLElement;
@@ -100,7 +102,7 @@ describe("UIA-KF-242 — opening the scene list warms every scene", () => {
         trig.dispatchEvent(new window.KeyboardEvent("keydown", { key: "Enter", bubbles: true, cancelable: true }));
         await vi.waitFor(() => expect(document.querySelector("[role=listbox]")).toBeTruthy());
         await nextTick();
-        expect(new Set(warm.mock.calls.map((c) => c[0]))).toEqual(new Set(SCENES.map((s) => s.id)));
+        expect(new Set(warm.mock.calls.map((c) => c[0]))).toEqual(new Set(["home", ...SCENES.map((s) => s.id)]));
         w.unmount();
     });
 });

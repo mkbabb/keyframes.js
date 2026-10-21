@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, inject, nextTick, ref, watch, useTemplateRef, type Component } from "vue";
 import { CONTROLS_PANE_HOVER_KEY } from "@components/instrument/transport/injectionKeys";
+import { useMediaQuery } from "@vueuse/core";
 import { Activity, Atom, SlidersHorizontal, Braces, Clock, Grid3X3 } from "@lucide/vue";
 import {
     GlassDock,
@@ -177,26 +178,30 @@ const showSurfaceItems = computed(() => props.currentSceneId !== props.homeScene
 /** OD19-K6 — the menu's rows: every titled item (the blank facet seat has no
  *  name to show). */
 const menuItems = computed(() => surfaceItems.value.filter((i) => i.title !== ""));
+/** The selected surface's row: the one the pane holds. */
+const selectedItem = computed<DockSurfaceItem | undefined>(() =>
+    menuItems.value.find((i) => i.enabled && i.surface === props.selectedControl),
+);
 /** The trigger's face: the selected surface's glyph (the one the pane shows),
  *  else the first live surface's. */
 const faceItem = computed<DockSurfaceItem | undefined>(
-    () =>
-        menuItems.value.find((i) => i.enabled && i.surface === props.selectedControl) ??
-        menuItems.value.find((i) => i.enabled),
+    () => selectedItem.value ?? menuItems.value.find((i) => i.enabled),
 );
+/** C3-KF-04 — whether the pane is showing its surface: the desktop rail while
+ *  open; the phone sheet always, since it never closes (ControlsPaneWrapper
+ *  parks it at PEEK, its surface's title row in view). The SAME 1023px boundary
+ *  the sheet uses. */
+const isSheetLayout = useMediaQuery("(max-width: 1023px)");
+const paneShowsSurface = computed(() => props.isControlsPanelOpen || isSheetLayout.value);
 
 function iconFor(icon: string): Component {
     return TAB_ICONS[icon] ?? SlidersHorizontal;
 }
 
-/** The item whose surface the open pane is showing wears the active seat. */
+/** The item whose surface the pane is showing: the face's own row (one read,
+ *  so face and checked row never disagree), while the pane shows it. */
 function isSurfaceShowing(item: DockSurfaceItem): boolean {
-    return (
-        item.enabled &&
-        props.isControlsPanelOpen &&
-        item.surface !== undefined &&
-        props.selectedControl === item.surface
-    );
+    return paneShowsSurface.value && item === selectedItem.value;
 }
 /** C1-KF-10 — a row's value in the menu's radio group (a facet seat with no
  *  surface still needs a scalar). */
@@ -329,8 +334,12 @@ const surfaceMenuOffset = useDockEdgeOffset(() => surfaceTrigger.value?.$el, sur
 // for the keyboard only on the rows it arrowed through. Latency only — the one
 // commit point in App.vue holds the chrome either way; a repeat warm is a
 // cached import.
+// C3-KF-02 — Home's row is in the list too, so its backdrop chunk warms with
+// the scenes' (`scenes.ts` `HomeBackdrop`).
 watch(sceneSelectOpen, (open) => {
-    if (open) for (const scene of props.scenes) emit("warmScene", scene.id);
+    if (!open) return;
+    emit("warmScene", props.homeScene.id);
+    for (const scene of props.scenes) emit("warmScene", scene.id);
 });
 
 // ── T.G9 — the Monaco keyframes-pane INTERACTION WARM, re-homed HERE ─────────

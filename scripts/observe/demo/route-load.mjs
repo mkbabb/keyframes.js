@@ -19,6 +19,9 @@
  *   the router -> runSceneSwitch path the dock takes): every swap's
  *   `scene-swap:prepare` <= SWAP_PREPARE_MS and `scene-swap:commit` (the
  *   frozen-snapshot span the View Transition holds) <= SWAP_COMMIT_MS.
+ *   DEEP LINK -> HOME (a fresh context: boot #/sequence, idle, navigate home):
+ *     the same two bars, and no request for Home's backdrop chunk starts after
+ *     the pick (C3-KF-02).
  *
  * The bars are the AFTER measurements with headroom for a loaded machine
  * (value.js docs/tranches/X/execution/OD19/keyframes.md "### load"). Exit 1 on
@@ -126,6 +129,42 @@ try {
                 }
             } finally {
                 await context.close();
+            }
+            // C3-KF-02 (OD19 repair 3) — the first move into Home from a deep
+            // link: a fresh context boots #/sequence (home's backdrop is not in
+            // its cold load), idles, then navigates home. The swap's bars hold,
+            // and no request for the backdrop (HeroAurora) starts after the
+            // pick: the idle warm settled it with the scenes' chunks.
+            const deep = await newContext(browser);
+            try {
+                const page = await deep.newPage();
+                await throttle(deep, page);
+                await page.goto(server.url + "/#/sequence", { waitUntil: "load" });
+                await page.waitForFunction(READY, undefined, { timeout: 30_000 });
+                await page.waitForTimeout(3000);
+                const m = await page.evaluate(async () => {
+                    performance.clearMeasures();
+                    const pick = performance.now();
+                    location.hash = "#/";
+                    for (let i = 0; i < 400 && !performance.getEntriesByName("scene-swap:total").length; i++)
+                        await new Promise((r) => setTimeout(r, 16));
+                    const swap = Object.fromEntries(
+                        performance
+                            .getEntriesByType("measure")
+                            .filter((e) => e.name.startsWith("scene-swap:"))
+                            .map((e) => [e.name.slice(11), Math.round(e.duration)]),
+                    );
+                    const late = performance
+                        .getEntriesByType("resource")
+                        .filter((e) => /HeroAurora/.test(e.name) && e.startTime >= pick)
+                        .map((e) => e.name.split("/").pop());
+                    return { ...swap, late };
+                });
+                check(m.prepare !== undefined && m.prepare <= SWAP_PREPARE_MS, `warm sequence(deep link)->home: prepare ${m.prepare} ms (bar ${SWAP_PREPARE_MS})`);
+                check(m.commit !== undefined && m.commit <= SWAP_COMMIT_MS, `warm sequence(deep link)->home: commit ${m.commit} ms (bar ${SWAP_COMMIT_MS})`);
+                check(m.late.length === 0, `warm sequence(deep link)->home: backdrop fetched after the pick: ${m.late.join(", ") || "none"}`);
+            } finally {
+                await deep.close();
             }
         },
         { label: "route-load" },

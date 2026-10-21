@@ -137,6 +137,9 @@ describe("KFA-25 / KFA-26 / KFA-201 — the switch prepares, then captures the r
             },
         });
         wrapper = mount(Host);
+        // C3-KF-02 (OD19 repair 3) — home's backdrop is a loader like a
+        // scene's; the idle warm settles it before a pick, as here.
+        await scenesModule.loadScene(HOME_SCENE_ID);
         run(HOME_SCENE_ID);
         // The cure gates on ONE frame (reka marks the content closed a frame
         // after the pick), then starts the transition.

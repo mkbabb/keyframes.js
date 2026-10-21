@@ -169,6 +169,40 @@ describe("ChromeDock: one surface trigger whose menu opens the shared pane", () 
         wrapper.unmount();
     });
 
+    // C3-KF-04 (OD19 repair 3) — the phone sheet never closes: it parks at PEEK
+    // with its surface's title row in view, so the surface it holds IS showing
+    // with the store's open fact false. The face and the checked row read the one
+    // showing surface: the face draws Physics, so the Physics row is checked.
+    it("on the phone sheet's peek, the face's surface is the checked row", async () => {
+        const prior = window.matchMedia;
+        (window as unknown as { matchMedia: unknown }).matchMedia = (query: string) => ({
+            matches: query.includes("max-width: 1023px"),
+            media: query,
+            onchange: null,
+            addListener() {},
+            removeListener() {},
+            addEventListener() {},
+            removeEventListener() {},
+            dispatchEvent: () => false,
+        });
+        try {
+            const { wrapper, onToggle, onSelect } = mountDock({ ...springProps, isControlsPanelOpen: false });
+            expect(wrapper.find("[data-dock-surface-trigger]").attributes("data-surface")).toBe("spring");
+            await openMenu(wrapper);
+            const physics = rows().find((e) => e.dataset.surface === "spring")!;
+            expect(rows().filter((e) => e.getAttribute("aria-checked") === "true")).toEqual([physics]);
+            expect(physics.querySelector(".menu__radio-dot")).not.toBeNull();
+            // Re-picking the peeking surface raises the sheet (the store fact opens).
+            physics.click();
+            await flushPromises();
+            expect(onSelect).toEqual([]);
+            expect(onToggle).toHaveLength(1);
+            wrapper.unmount();
+        } finally {
+            (window as unknown as { matchMedia: unknown }).matchMedia = prior;
+        }
+    });
+
     it("a disabled row keeps its title and does nothing; home shows no trigger", async () => {
         const seq = mountDock({
             currentSceneId: "sequence",
