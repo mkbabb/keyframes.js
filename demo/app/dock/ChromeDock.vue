@@ -558,7 +558,7 @@ watch(isSelectOpen, (open) => {
                                 >
                                     <component :is="iconFor(faceItem?.icon ?? '')" class="dock-glyph" aria-hidden="true" />
                                 </DockTrigger>
-                                <DropdownMenuContent align="center" :side-offset="surfaceMenuOffset" :collision-padding="16" class="z-popover text-body p-1.5">
+                                <DropdownMenuContent align="center" :side-offset="surfaceMenuOffset" :collision-padding="16" class="text-body p-1.5">
                                     <!-- C1-KF-10 — the showing surface is marked by the
                                          producer's own radio item (its leading dot,
                                          `aria-checked`), the affordance the Scene

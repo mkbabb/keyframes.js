@@ -37,7 +37,7 @@
              one, and focusing it painted the heaviest stroke on the page (the
              field's focus ring) the moment Share opened. -->
         <PopoverContent
-            class="z-popover w-(--dock-panel-width)"
+            class="w-(--dock-panel-width)"
             align="end"
             :side-offset="sideOffset"
             :collision-padding="16"

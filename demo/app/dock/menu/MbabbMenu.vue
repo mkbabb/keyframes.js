@@ -13,15 +13,11 @@
              identifier register stays where the menu names the account as an
              identifier (the "@mbabb · GitHub" row below). -->
         <DockTrigger ref="mbabbTrigger" for="dropdown" aria-label="@mbabb menu" class="dock-label">@mbabb</DockTrigger>
-        <!-- MM-15 — `z-popover`, not `z-modal`. The dock menu is a popover and
-             the demo's own written z-contract reserves `--z-modal` (140) for
-             modal dialogs. The wrong rung was INERT and therefore invisible:
-             the producer's unlayered `z-index: var(--z-popover)` outranked the
-             layered utility, so both portalled siblings (this menu and the
-             Share popover) sat at 130 and DOM order decided. The moment glass
-             layers its sheet (MM-4, relayed as O-26 R-1) the utility ARMS — and
-             `z-modal` would then occlude the Share popover. Corrected BEFORE the
-             producer fix lands, which is exactly why it rides this motion.
+        <!-- MM-15 — the dock menu is a popover, never `z-modal` (the demo's
+             written z-contract reserves `--z-modal` (140) for modal dialogs).
+             Since glass 10.1.1 (G-2) the rung is the overlay role's own: the
+             menu and this file's Share popover both take `z-popover` from
+             glass, so the consumer class that once named it is retired.
              X.KF.W13X.dock · UIA-KF-113 + A2-KE-X-12 — `collision-padding`
              16, the Select's own figure: the glass DropdownMenuContent places
              with none, so where the end-aligned menu out-runs the viewport
@@ -30,7 +26,7 @@
              through to the primitive's floating content. The producer half —
              a default padding on every floating content from
              `--popover-viewport-pad` — stays relay-only (O-59). -->
-        <DropdownMenuContent align="end" :side-offset="menuOffset" :collision-padding="16" class="z-popover min-w-[var(--dock-panel-width)] text-body p-1.5" @close-auto-focus="onMenuCloseAutoFocus">
+        <DropdownMenuContent align="end" :side-offset="menuOffset" :collision-padding="16" class="min-w-[var(--dock-panel-width)] text-body p-1.5" @close-auto-focus="onMenuCloseAutoFocus">
             <!-- Share.
                  MM-8 + MM-9, the one voice pass, applied at all FOUR of its
                  sites (here, the Clear-all sub-line, and the two @mbabb lines).

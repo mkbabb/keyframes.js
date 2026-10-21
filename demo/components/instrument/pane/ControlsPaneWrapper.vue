@@ -587,9 +587,9 @@ const activeSnap = computed<number | null>({
 // the grip key write. The up-chevron then says what the press does. Once the
 // sheet is OPEN or FULL the header is the layer's own collapse again. The
 // side sheet (a short landscape phone) rests as the rail, its body in view,
-// so its headers keep their own toggle. (The sheet's visible rise still waits
-// on glass: `.glass-floating`'s `position: relative` outranks the sheet's own
-// `fixed`, the SHEET-POSITION row held on O-87/O-88; not overridden here.)
+// so its headers keep their own toggle. (The sheet's position is glass's:
+// since 10.1.1 (G-1) `SheetContent` carries the `fixed` utility, curing the
+// SHEET-POSITION row held on O-87/O-88; nothing here overrides it.)
 const onParkedHeaderPress = (e: MouseEvent) => {
     if (props.storedControls.isControlsPanelOpen || sheetSide.value !== "bottom") return;
     const sheet = e.currentTarget;
