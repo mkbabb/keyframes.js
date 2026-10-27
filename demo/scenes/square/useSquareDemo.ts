@@ -488,7 +488,7 @@ export function useSquareDemo(
     // #C462D8, and no family member resolves to #5AC8FA or #3DD0C4 at all — the
     // exact drift hazard this module's own sibling comment describes
     // eliminating. `TOUR_PALETTE` (now in `squareMotion.ts`) names the tokens; `resolveTourPalette()`
-    // seats their live values at mount, and each hex here is that token's own
+    // seats their live values on the plate's first observer report, and each hex here is that token's own
     // declared value so an unloaded stylesheet degrades hue-identically. This
     // became visible paint the moment C-1 was cured.
     // KF.W13U.d2 — the tour's options and keyframes live in `squareMotion.ts`,
@@ -500,8 +500,8 @@ export function useSquareDemo(
     );
 
     /**
-     * MISS-5 — seat the tour's stops from the LIVE tokens (mount-time, DOM
-     * available), so the diamond genuinely rides the sanctioned family its own
+     * MISS-5 — seat the tour's stops from the LIVE tokens (the plate's first
+     * observer report, DOM laid out), so the diamond genuinely rides the sanctioned family its own
      * comment has always claimed. A token that resolves empty leaves the
      * authored fallback — which is that token's declared value — in place.
      */
@@ -613,24 +613,35 @@ export function useSquareDemo(
 
     /**
      * Paint the rest pose once on mount (the springs start at 0 → the box sits
-     * home, un-deflected, before any drag) AND seat the tour's stops from the
-     * live tokens. The comment here used to promise the second half and the code
-     * did only the first — the sweep's own resolution lives in `useSquareTumble`,
-     * and the tour's stops were resolved nowhere at all (MISS-5). Both halves
-     * are true of this function now.
+     * home, un-deflected, before any drag). The tour's stops are seated from
+     * the live tokens on the plate's first observer report (MISS-5; residue-2
+     * below), the sweep's own in `useSquareTumble` at the first sweep.
      */
     // D-8 / X.KF.W13X — the envelope is the PLATE's, so the plate resizing moves
     // it (a window resize, and also a sheet or pane opening beside the stage,
     // which no window `resize` reports). The springs are normalized, so nothing
     // needs re-seating; only the px scale and the tour's authored corners follow.
+    //
+    // OD19 residue-2 (COHESION §0gq.3) — THE MOUNT READS NO STYLE. `paintRest`
+    // read `--square-travel` and the tour's root tokens inside the swap's
+    // commit, a forced style recalc of the half-mounted scene. The rest pose
+    // needs neither (it sits at 0, 0, and each stop's fallback is its token's
+    // declared value), and the plate's first observer report, which comes
+    // after the commit frame's layout, already resolves the envelope. The tour's
+    // stops are seated on that same first report, once, where the read is free.
+    let tourPaletteSeated = false;
     useResizeObserver(
         () => box.value?.parentElement ?? null,
-        () => resolveEnvelope(),
+        () => {
+            resolveEnvelope();
+            if (!tourPaletteSeated) {
+                tourPaletteSeated = true;
+                resolveTourPalette();
+            }
+        },
     );
 
     const paintRest = (): void => {
-        resolveEnvelope();
-        resolveTourPalette();
         paintingFromLoop = true;
         transformFunc({
             transform: { x: 0, y: 0, a: { b: { c: { d: 1 } } } },

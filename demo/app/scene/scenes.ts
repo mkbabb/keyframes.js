@@ -137,7 +137,9 @@ export function warmScene(id: string): void {
 
 /**
  * KFA-76 (X.KF.W13X.scene) — warm EVERY scene chunk once the page is idle after
- * first paint, so a first-visit switch evaluates no chunk on the swap tick.
+ * first paint, so a first-visit switch evaluates no chunk on the swap tick. The
+ * caller arms it after the first scene's content has painted (KF-RES-1,
+ * `useSceneTransition`'s `onSceneContent`), never at mount.
  * `requestIdleCallback` where the engine ships it (Safari does not), else one
  * macrotask after load; either way the warm never competes with first paint.
  */

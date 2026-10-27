@@ -401,8 +401,27 @@ export function useFoldLanding(
             schedule();
         }
     };
+    // OD19 residue-2 (COHESION §0gq.3) — A SWAP'S LANDING WAITS OUT ITS
+    // COMMIT FRAME. A scene swap mounts the new rail inside the View
+    // Transition's update callback, so the landing it schedules ran in the
+    // commit frame, where clearing a cap and reading the fold forced a layout
+    // of the half-built scene (2-10 ms of that frame on the real-GPU cell).
+    // While a transition runs, the landing takes the frame after: the new
+    // state is still at the dissolve's first step, so no fold is seen moving,
+    // and the commit frame lays the scene out once. Outside a transition it
+    // lands in the next frame, as before.
+    const swapping = () => {
+        try {
+            return document.documentElement.matches(":active-view-transition");
+        } catch {
+            return false;
+        }
+    };
     function schedule() {
-        frame ||= requestAnimationFrame(land);
+        if (frame) return;
+        frame = requestAnimationFrame(
+            swapping() ? () => (frame = requestAnimationFrame(land)) : land,
+        );
     }
     // A channel or surface swap re-creates scrollers or their content.
     const mutations = new MutationObserver(() => {

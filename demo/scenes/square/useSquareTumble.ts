@@ -2,7 +2,7 @@ import { SpringProgress } from "@mkbabb/keyframes.js";
 import { parseCssColor, serializeCssColor, type CssColor } from "@mkbabb/value.js/css";
 import { mixColors } from "@mkbabb/value.js/color";
 import { clamp } from "@mkbabb/value.js/math";
-import { onMounted, onScopeDispose } from "vue";
+import { onScopeDispose } from "vue";
 
 /** Which sweep is live: the double-tap egg, or the return to rest after a
  *  takeover (X.KF.W13X · UIA-KF-199 — the same spin-keyed blend, no bloom). */
@@ -31,7 +31,12 @@ const LANDING_PULSE_MS = 180;
  * strings on EVERY tumble frame — four Result allocations a frame, ~120 frames a
  * tumble — and the per-frame parse is what moved the D-27 throw class out of a
  * survivable init site and into the loop-bricking frame path. The stops are
- * resolved and parsed ONCE at mount; the frame path only mixes and serializes.
+ * resolved and parsed ONCE, at the first sweep; the frame path only mixes and
+ * serializes. OD19 residue-2 (COHESION §0gq.3): they were read at MOUNT, a
+ * `getComputedStyle(:root)` inside the swap's commit that forced a style
+ * recalc of the half-mounted scene (~4 ms of the amiga -> square commit on the
+ * real-GPU cell). A sweep is a gesture's, never the mount's, so the palette is
+ * read when the first sweep opens, and kept.
  *
  * L-11/C-5 — THE LANDING IS SEAMLESS BY CONSTRUCTION, AND THE SETTLE NO LONGER
  * WRAPS. (b) the terminal stop was `--rainbow-green` (hsl(130 70% 50%)) while
@@ -64,28 +69,31 @@ export function useSquareTumble(startLoop: () => void) {
     const tokens = ["--rainbow-violet", "--rainbow-blue", "--subject-teal"];
     const hues = ["hsl(300 75% 60%)", "hsl(210 80% 55%)", "#52e898"];
 
-    /** The parsed palette (MISS-4: parse once). Absent until mount, or when a
-     *  stop will not parse — then the roll still rolls, it just does not
-     *  recolour. */
-    let palette: { violet: CssColor; blue: CssColor; rest: CssColor } | null = null;
+    type Palette = { violet: CssColor; blue: CssColor; rest: CssColor };
+    /** The parsed palette (MISS-4: parse once). Unread until the first sweep;
+     *  null when a stop will not parse — then the roll still rolls, it just
+     *  does not recolour. */
+    let palette: Palette | null | undefined;
 
-    onMounted(() => {
+    const readPalette = (): Palette | null => {
+        if (palette !== undefined) return palette;
+        palette = null;
         const style = getComputedStyle(document.documentElement);
         const parsed: CssColor[] = [];
         for (const [index, token] of tokens.entries()) {
             const css = style.getPropertyValue(token).trim() || hues[index]!;
             const result = parseCssColor(css);
             if (!result.ok) {
-                // D-27 — reported once, at mount, never in the frame path.
+                // D-27 — reported once, at the first sweep, never in the frame path.
                 console.error(
                     `[square] tumble palette stop ${JSON.stringify(css)} is not a colour — the sweep stays off.`,
                 );
-                return;
+                return palette;
             }
             parsed.push(result.value);
         }
-        palette = { violet: parsed[0]!, blue: parsed[1]!, rest: parsed[2]! };
-    });
+        return (palette = { violet: parsed[0]!, blue: parsed[1]!, rest: parsed[2]! });
+    };
 
     /** A painted fill, parsed — the colour a sweep leaves FROM. */
     const parse = (css: string | undefined): CssColor | undefined => {
@@ -123,6 +131,7 @@ export function useSquareTumble(startLoop: () => void) {
      * one-frame teal → magenta snap at rotation 0.
      */
     const tumble = (fromFill?: string) => {
+        const palette = readPalette();
         const from = parse(fromFill) ?? palette?.rest;
         open(
             palette && from ? "tumble" : null,
@@ -138,6 +147,7 @@ export function useSquareTumble(startLoop: () => void) {
      * colour to the rest teal on the same leg.
      */
     const returnHome = (fromFill?: string) => {
+        const palette = readPalette();
         const from = parse(fromFill);
         open(
             palette && from ? "return" : null,

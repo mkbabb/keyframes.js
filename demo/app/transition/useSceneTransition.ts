@@ -1,4 +1,4 @@
-import { nextTick, onMounted, ref, type Ref } from "vue";
+import { nextTick, ref, type Ref } from "vue";
 import { viewTransition, type ViewTransitionHandle } from "@mkbabb/keyframes.js";
 import { loadScene, warmScenesAtIdle } from "../scene/scenes";
 
@@ -71,7 +71,20 @@ export function useSceneTransition(opts: {
     // motion" even when the call threw and hard-cut.
     const lastSwapBackend = ref<ViewTransitionHandle["backend"] | null>(null);
 
-    onMounted(warmScenesAtIdle);
+    // KF-RES-1 (OD19 residue-2, COHESION §0gq.3) — the idle warm of every
+    // scene chunk starts once the FIRST scene's content has painted, never at
+    // the shell's mount. An idle callback has no deadline: on a deep link the
+    // main thread idles while the route's own chunk is in flight, so a warm
+    // armed at mount fetched every other scene (and Home's Aurora) before the
+    // route's content (cold #/amiga: 1707 KB against 1427). `onSceneContent`
+    // is the scene host's <Suspense> resolve; the warm is armed in the next
+    // frame, so its idle period comes after that frame's paint.
+    let warmArmed = false;
+    function onSceneContent() {
+        if (warmArmed) return;
+        warmArmed = true;
+        requestAnimationFrame(warmScenesAtIdle);
+    }
 
     let generation = 0;
 
@@ -98,7 +111,7 @@ export function useSceneTransition(opts: {
         });
     }
 
-    return { runSceneSwitch, lastSwapBackend };
+    return { runSceneSwitch, lastSwapBackend, onSceneContent };
 }
 
 /**

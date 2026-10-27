@@ -92,7 +92,7 @@
                 <Suspense
                     :key="activeSceneKey"
                     @fallback="onSceneFallback"
-                    @resolve="onSceneResolved(); onSceneResolve()"
+                    @resolve="onSceneResolved(); onSceneResolve(); onSceneContent()"
                 >
                     <component
                         :is="activeSceneComponent"
@@ -430,7 +430,7 @@ const {
 // path falls through to the SpringProgress cross-dissolve unchanged, and focus
 // routes to the scene host on `finished` (a11y). Every scene-nav entry (the dock
 // @switch-scene, the SharePopover restore, a URL change) goes through this.
-const { runSceneSwitch, lastSwapBackend } = useSceneTransition({
+const { runSceneSwitch, lastSwapBackend, onSceneContent } = useSceneTransition({
     mutate: switchScene,
     sceneHost: sceneHostEl,
     whenSceneReady,

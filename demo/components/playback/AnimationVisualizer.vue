@@ -130,19 +130,34 @@ const containerEl = useTemplateRef<HTMLElement>("containerEl");
 // genuine signal `bumpLayoutEpoch` exists for (the demo OWNS its container; the
 // eviction policy stays ONCE in browser.ts — DRY). useResizeObserver
 // auto-cleans on scope dispose.
-useResizeObserver(containerEl, () => bumpLayoutEpoch());
+//
+// OD19 residue-2 (COHESION §0gq.3) — THE BALL'S RUN IS READ ONCE, NOT PER
+// PAINT. `getMaxX` read the stage's and the ball's `clientWidth` on every
+// paint: every frame of a play, and the paused seat a swap makes inside its
+// commit, so each paint forced a layout of whatever the frame had dirtied
+// (24.6 ms across the sequence -> cube swap on the real-GPU cell, ~4 ms in
+// cube -> amiga's commit). The run is a size, so it is kept as one, and the
+// same observer that bumps the epoch re-reads it after layout, when the read
+// costs nothing: the stage, and the ball (`--ball-size` changes with the
+// compact rail). The first paint before the first report reads it once.
+let maxX: number | null = null;
+const measureMaxX = (): number => {
+    const container = containerEl.value;
+    const ball = ballEl.value;
+    if (!container || !ball) return 0;
+    return (maxX = container.clientWidth - ball.clientWidth);
+};
+useResizeObserver([containerEl, ballEl], () => {
+    bumpLayoutEpoch();
+    measureMaxX();
+});
 
 const gate = useTouchGate();
 
 let grabOffset = 0;
 
 /** Max translateX in pixels (container width − ball width). */
-const getMaxX = () => {
-    const container = containerEl.value;
-    const ball = ballEl.value;
-    if (!container || !ball) return 0;
-    return container.clientWidth - ball.clientWidth;
-};
+const getMaxX = () => maxX ?? measureMaxX();
 
 /** Set ball position directly via transform — no animation timing curve. */
 const setBallProgress = (progress: number) => {

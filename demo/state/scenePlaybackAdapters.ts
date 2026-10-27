@@ -146,21 +146,36 @@ export function restoreGroupPlaybackState(
 
         // Interpolate frames at the saved t to populate values (targets are
         // attached at SCENE_READY, so interpFrames resolves computed units).
+        // OD19 residue-2 (COHESION §0gq.3): a PLAYING restore does not — see below.
+        if (snap.playing) continue;
         const vars = anim.interpFrames(animSnap.t, false);
         Object.assign(groupObject.values, vars);
+    }
+
+    group.paused = true;
+
+    if (snap.playing) {
+        // Resume from the restored paused state: unpauses children + restarts
+        // the draw loop, whose first frame samples and paints the restored
+        // clocks before the frame is drawn.
+        //
+        // OD19 residue-2 (COHESION §0gq.3) — A RESUMED RESTORE PAINTS ONCE, IN
+        // THE LOOP. The restore used to sample and paint the saved clocks here,
+        // inside the swap's commit (SCENE_READY runs in the View Transition's
+        // update callback), and the loop sampled and painted them again in the
+        // same rendering step. On the cube that sample is a computed endpoint
+        // (`var(--rotationX)`), whose `probeBrowserScalar` forced a style recalc
+        // of the half-mounted scene (5-8 ms of the sequence -> cube commit on
+        // the real-GPU cell). The loop's own first frame is the one paint, read
+        // after the commit's DOM work is done.
+        group.resume();
+        return;
     }
 
     // Render the restored frame. R.W2 — `render(now)` is the PUBLIC single-frame
     // paint entry (passing the explicit restored clock); `transformFramesGrouped`
     // is now private (the demo no longer reaches into group internals).
-    group.paused = true;
     group.render(now);
-
-    if (snap.playing) {
-        // Resume from the restored paused state: unpauses children + restarts
-        // the draw loop.
-        group.resume();
-    }
 }
 
 // ── The raw-rAF adapter ──────────────────────────────────────────────────────
