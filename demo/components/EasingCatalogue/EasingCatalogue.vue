@@ -155,7 +155,7 @@ import { SegmentedTabs, type SegmentedTabOption } from "@mkbabb/glass-ui/tabs";
 import { ToggleGroup, ToggleGroupItem } from "@mkbabb/glass-ui/toggle-group";
 import type { TimingFunction } from "@mkbabb/keyframes.js";
 
-import { curvePlot, unitEasingFrame, type CurvePlot } from "@utils/curvePlot";
+import { unitEasingPlot, type CurvePlot } from "@utils/curvePlot";
 
 /** One family of the catalogue: its name and its curves, in display order. */
 export interface CatalogueGroup {
@@ -544,13 +544,13 @@ const descriptionId = (name: string): string => `${idBase}-desc-${name}`;
 
 // ── The tile plots: ONE plot per name, from the function it installs ──
 // Re-derived when `curveFor`'s reactive inputs move (the dropdown's draft
-// kinds track the store's live quad / step options).
-const TILE_FRAME = unitEasingFrame();
+// kinds track the store's live quad / step options). A function object is
+// plotted once (`unitEasingPlot`), so a caller that hands stable functions
+// (the Easing scene's specimens) mounts with no curve call (OD19 residue).
 const plots = computed(() => {
     const map = new Map<string, CurvePlot>();
     for (const g of props.groups)
-        for (const i of g.items)
-            map.set(i.name, curvePlot(props.curveFor(i.name), TILE_FRAME));
+        for (const i of g.items) map.set(i.name, unitEasingPlot(props.curveFor(i.name)));
     return map;
 });
 const plotFor = (name: string): CurvePlot => plots.value.get(name)!;

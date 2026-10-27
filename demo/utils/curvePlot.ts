@@ -202,6 +202,24 @@ export const unitEasingFrame = (
     viewBox: readonly [number, number, number, number] = [0, 0, 1, 1],
 ): PlotFrame => ({ viewBox, x: (t) => t, y: (v) => 1 - v });
 
+const UNIT_FRAME = unitEasingFrame();
+const unitPlots = new WeakMap<CurveFn, CurvePlot>();
+
+/**
+ * OD19 residue (value.js COHESION §0gp) — the unit-frame plot of `fn`, built
+ * ONCE per function object. A plot is a pure function of its curve, so a
+ * catalogue mount that is handed the same function objects draws from the
+ * built plots and calls no curve. The Easing scene's 28 tiles were ~24,000
+ * curve calls (~15 ms) inside its swap's commit frame on the real-GPU cell;
+ * its specimen table (`scenes/easing/specimens.ts`) builds them when the
+ * scene's chunk evaluates (the idle warm), not in the swap.
+ */
+export const unitEasingPlot = (fn: CurveFn): CurvePlot => {
+    let plot = unitPlots.get(fn);
+    if (!plot) unitPlots.set(fn, (plot = curvePlot(fn, UNIT_FRAME)));
+    return plot;
+};
+
 /**
  * The plot's walk as CSS `@keyframes` for the carriage: one keyframe per stroke
  * vertex, at its own time offset. Played under a LINEAR timing function the

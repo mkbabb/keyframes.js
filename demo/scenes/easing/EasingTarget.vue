@@ -97,33 +97,19 @@
 import { computed, inject } from "vue";
 import { Card } from "@mkbabb/glass-ui";
 import { cubicBezierToString } from "@mkbabb/value.js/math";
-import type { TimingFunction } from "@mkbabb/keyframes.js";
 
 import CopyButton from "@components/CopyButton/CopyButton.vue";
 import EasingCatalogue, {
     type CatalogueClock,
 } from "@components/EasingCatalogue/EasingCatalogue.vue";
-import {
-    namedEasing,
-    steppedEasing,
-} from "@utils/reference-data/timingCurveUtils";
-import { EASING_GROUPS } from "@utils/reference-data/easingGroups";
 import SceneStageHeader from "../SceneStageHeader.vue";
 import { EASING_DEMO_KEY } from "./easingKeys";
+import { SPECIMEN_GROUPS, specimenCurve as fnForCurve } from "./specimens";
 
 const demo = inject(EASING_DEMO_KEY)!;
 
-// "Custom" (the bare cubic-bezier editor affordance) is a SIDEBAR concern (the
-// EasingPicker editor), not a specimen — it carries no tile and no filter entry.
-const SPECIMEN_GROUPS = EASING_GROUPS.filter((g) => g.family !== "Custom");
-
-// Every named curve is a tile. Parameterized entries get honest static
-// defaults ("steps" = the 4-step staircase; the selected curve's live
-// parameters ride the header literal + the sidebar editor, not the tile).
-const fnForCurve = (name: string): TimingFunction => {
-    if (name === "steps") return steppedEasing(4, "jump-end");
-    return namedEasing(name);
-};
+// The specimen set and each tile's function (one stable object per name, its
+// plot built when this chunk evaluates) live in `./specimens`.
 
 // The scene's ONE sweep clock: the catalogue's painter registers on the demo's
 // registerDotPainter seam (I.W4 D4) and repaints through it.
