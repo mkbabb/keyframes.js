@@ -10,8 +10,10 @@
  * `"unit"` (a word or grapheme — an animatable fragment) or `"space"` (inter-unit
  * whitespace — kept as a live text node so the browser can still wrap the run at
  * real break opportunities; the per-glyph inline-blocks otherwise defeat
- * `text-wrap: balance`, the AnimatedText X-5 lesson). Punctuation rides as its
- * own `"unit"` under word granularity (`isWordLike === false` but non-blank).
+ * `text-wrap: balance`, the AnimatedText X-5 lesson). Under word granularity
+ * punctuation rides WITH the word it abuts (KF-1): `Intl.Segmenter` emits `,`
+ * `.` `!` `"` as their own non-word-like segments, and splitting on those made
+ * "Hello," two fragments, so the comma could stagger in late or wrap alone.
  */
 
 /** One ordered piece of the source text. */
@@ -41,9 +43,35 @@ export function segmentWords(text: string, locale?: string): TextSegment[] {
     if (SEGMENTER_OK) {
         const seg = new Intl.Segmenter(locale, { granularity: "word" });
         const out: TextSegment[] = [];
-        for (const { segment } of seg.segment(text)) {
-            out.push({ text: segment, kind: isBlank(segment) ? "space" : "unit" });
+        // Punctuation that OPENS a word (a quote or bracket after a space or at
+        // the start), held until the word it opens arrives.
+        let leading = "";
+        // True when the last pushed entry is a unit touching the current
+        // position (no whitespace in between).
+        let afterUnit = false;
+        for (const { segment, isWordLike } of seg.segment(text)) {
+            if (isBlank(segment)) {
+                if (leading) out.push({ text: leading, kind: "unit" });
+                leading = "";
+                out.push({ text: segment, kind: "space" });
+                afterUnit = false;
+            } else if (isWordLike) {
+                // Adjacent word-like segments stay separate units: scripts
+                // written without spaces (CJK, Thai) segment into words that
+                // touch, and those are the fragments `by: "word"` promises.
+                out.push({ text: leading + segment, kind: "unit" });
+                leading = "";
+                afterUnit = true;
+            } else if (afterUnit) {
+                // TRAILING punctuation: it closes the unit it touches.
+                out[out.length - 1]!.text += segment;
+            } else {
+                leading += segment;
+            }
         }
+        // Punctuation with no word to open (a lone dash, an ellipsis at the
+        // end after a space) is its own unit.
+        if (leading) out.push({ text: leading, kind: "unit" });
         return out;
     }
     // Fallback: split on whitespace boundaries, keeping the separators.
