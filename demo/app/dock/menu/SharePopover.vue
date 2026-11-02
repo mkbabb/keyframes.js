@@ -161,12 +161,21 @@ const { loadHashInput, loadError, copyFallbackUrl, shareState, loadFromInput } =
     open,
 );
 // UIA-KF-321 — the fallback field takes focus with its whole link selected.
+// The surface's own focus selects the link only once focus has landed on the
+// mounted field (`focus()` is synchronous), never through the field's `@focus`
+// listener: that listener is attached in the same flush, and Vue's invoker
+// drops an event stamped (by an ancestor's capture listener) no later than the
+// listener's attach millisecond, so a focus landing in that millisecond would
+// arrive unselected. `@focus` keeps the whole-link selection for a user's
+// later return to the field.
 const fallbackEl = useTemplateRef<ComponentPublicInstance>("fallbackEl");
 const selectAll = (event: FocusEvent) => (event.target as HTMLInputElement).select();
 watch(copyFallbackUrl, async (url) => {
     if (url === null) return;
     await nextTick();
-    (fallbackEl.value?.$el as HTMLInputElement | undefined)?.focus();
+    const field = fallbackEl.value?.$el as HTMLInputElement | undefined;
+    field?.focus();
+    if (field && document.activeElement === field) field.select();
 });
 
 // SP-6: the async copy's in-flight span, so the Share button carries `loading`
