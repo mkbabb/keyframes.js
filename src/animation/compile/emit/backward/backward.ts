@@ -17,8 +17,10 @@
  * run backward. The emit projects from the DECLARED template
  * (`animation.parsedVars[i]` via `unflattenObjectToString`, never a DOM-resolved
  * `at(progress)` sample), so a `var()`/`matrix3d()`/`cqw` round-trips VERBATIM.
- * The per-child `animation` shorthand is value.js's OWN `reverseAnimationShorthand`
- * (the published inverse of its shorthand parser), NOT a bespoke re-derivation.
+ * The per-child `animation` shorthand is kf's OWN `reverseAnimationShorthand`
+ * (`../css-text`) — the sole implementation: the inverse over value.js's
+ * `CSSAnimationOptions` model (what `@mkbabb/value.js/css`'s
+ * `collectAnimationOptions` produces), of which value.js publishes no inverse.
  * GSAP/Motion/anime author in a bespoke tween model — "export to CSS" for them
  * is a lossy re-derivation nobody ships. The faithfulness is the moat; a lossy
  * emitter forfeits it (`K.md §MANDATE`).

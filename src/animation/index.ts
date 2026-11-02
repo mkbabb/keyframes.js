@@ -229,8 +229,9 @@ export type {
 export type { ScrollScene } from "./scroll";
 // K.W10 COMPILE (FLAGGED ADDITIVE EDIT) — the round-trip's BACKWARD half: compile
 // an orchestration graph (AnimationGroup / Sequence / child list) → zero-runtime
-// CSS. HEAVY (compile.ts statically imports value.js's reverseAnimationShorthand
-// /sampleColorRamp + the engine), so the runtime `compileToCSS` rides
+// CSS. HEAVY (compile/emit/backward statically imports value.js's colour kernels
+// via ./color, beside kf's own reverseAnimationShorthand + the engine), so the
+// runtime `compileToCSS` rides
 // loadAnimationEngine below; ONLY its option/result TYPES are re-exported here
 // (erased — no static value.js edge on the LIGHT barrel; proof:boundary stays
 // green). The compiler is the parser run BACKWARD over the SAME data model.

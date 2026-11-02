@@ -7,7 +7,8 @@
  * bodies + the `@keyframes` block builders). THIS file owns the sibling concern:
  * serializing an animation's OPTIONS back to CSS — the `.class { animation-* }`
  * longhand block ({@link animationOptionsToString}), the per-child `animation`
- * SHORTHAND via value.js's `reverseAnimationShorthand` ({@link animationShorthand}),
+ * SHORTHAND via kf's own `reverseAnimationShorthand` (`../css-text`;
+ * {@link animationShorthand}),
  * the standalone `animation-composition` longhand ({@link animationComposition}),
  * and the `@property` typing-block re-serialize ({@link propertyRegistryToString}).
  *
@@ -77,13 +78,13 @@ export function animationOptionsToString(
 }
 
 /**
- * K.W10 CC-1 — the per-child `animation` SHORTHAND emit via value.js's
- * `reverseAnimationShorthand` (the published 0.12.0 inverse of the
- * `animation`-shorthand parser). This is the round-trip producer for each
- * child's `animation` longhand: kf's {@link AnimationOptions} → the
- * value.js-spec {@link CSSAnimationOptions} → the canonical shorthand string —
- * the parser run BACKWARD over value.js's OWN shorthand grammar, NOT a bespoke
- * re-derivation.
+ * K.W10 CC-1 — the per-child `animation` SHORTHAND emit via kf's own
+ * `reverseAnimationShorthand` (`../css-text`, the sole implementation —
+ * value.js publishes no inverse of its `animation`-shorthand parser). This is
+ * the round-trip producer for each child's `animation` longhand: kf's
+ * {@link AnimationOptions} → the value.js-spec {@link CSSAnimationOptions} (the
+ * model `@mkbabb/value.js/css`'s `collectAnimationOptions` produces) → the
+ * canonical shorthand string — that parse run BACKWARD over the same data model.
  *
  * `animation-composition` is DELIBERATELY NOT folded into the shorthand here:
  * per the CSS Animations L2 grammar it is NOT a sub-property of the `animation`
@@ -146,8 +147,9 @@ export function animationComposition(
  * them with the UA, but the backward serialize path dropped them — a compiled
  * artifact lost its custom-property TYPING block on re-ship (`--foo` falls back
  * to the `<universal>` type, breaking `@property`-typed transitions). Emit each
- * registry entry via value.js's `serializeStylesheetItem` (the published inverse
- * of the `@property` parser) — NOT a bespoke re-derivation. Returns the joined
+ * registry entry via kf's own `serializeStylesheetItem` (`../css-text`; value.js
+ * publishes no stylesheet-item serializer) — the inverse of the `@property`
+ * parse over value.js's `StylesheetItem` model. Returns the joined
  * blocks (one per entry) or `""` when the registry is empty. A plain `Animation`
  * (no registry) yields `""` — the field lives on `CSSKeyframesAnimation` only.
  */
