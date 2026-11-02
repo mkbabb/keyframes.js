@@ -63,18 +63,28 @@ if ! npx --yes wrangler pages project list 2>/dev/null \
 fi
 
 # ── 2. Capture the current live deployment ID as the rollback target ──────────
-# The first row of `pages deployment list` is the live deployment; its id is the
-# `wrangler pages deployment rollback <id> --project-name <slug>` target if the
-# new deploy's validation fails. Capture BEFORE the deploy swaps the alias.
+# The newest PRODUCTION row of `pages deployment list` is the live deployment;
+# its id is the `wrangler pages deployment rollback <id> --project-name <slug>`
+# target if the new deploy's validation fails. Capture BEFORE the deploy swaps
+# the alias. wrangler 4.x's `--json` prints the table's own title-cased rows
+# (`Id`, `Environment`, `Branch`, …, newest first, previews included), so the
+# list is filtered to production and the field read is `Id` (§0hg.4 residual c:
+# the former `.[0].id` read null on every deploy). A list failure is not masked:
+# its stderr is shown, and only an honestly empty production list is a first
+# deploy.
 log "Recording current live deployment as rollback target..."
-ROLLBACK_ID="$(npx --yes wrangler pages deployment list \
-    --project-name "$PAGES_PROJECT" --json 2>/dev/null \
-    | jq -r '.[0].id // empty' 2>/dev/null || true)"
-if [ -n "$ROLLBACK_ID" ]; then
-    log "Rollback target: $ROLLBACK_ID"
-    log "  recover with: npx wrangler pages deployment rollback $ROLLBACK_ID --project-name $PAGES_PROJECT"
+if DEPLOYMENTS_JSON="$(npx --yes wrangler pages deployment list \
+    --project-name "$PAGES_PROJECT" --environment production --json)"; then
+    ROLLBACK_ID="$(printf '%s' "$DEPLOYMENTS_JSON" | jq -r '.[0].Id // empty')"
+    if [ -n "$ROLLBACK_ID" ]; then
+        log "Rollback target: $ROLLBACK_ID"
+        log "  recover with: npx wrangler pages deployment rollback $ROLLBACK_ID --project-name $PAGES_PROJECT"
+    else
+        log "No production deployment yet (first deploy of '$PAGES_PROJECT'): no rollback target to capture."
+    fi
 else
-    err "Could not capture rollback target (first deploy, or list failed) — read it from the CF dashboard if needed."
+    ROLLBACK_ID=""
+    err "Could not capture rollback target: 'wrangler pages deployment list' failed (see its output above) — read it from the CF dashboard if needed."
 fi
 
 # ── 3. Build ──────────────────────────────────────────────────────────────────
