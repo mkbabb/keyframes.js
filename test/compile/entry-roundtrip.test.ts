@@ -76,7 +76,9 @@ describe.skipIf(!chromium)("S.F3 EN-c — proof:entry-roundtrip browser oracle",
         const out = await compileToEntry({ ".toast": { enter: mkEnter() } });
         expect(out.eligible).toBe(true);
         expect(out.css).toMatch(/@starting-style/);
-        expect(out.css).toMatch(/display 350ms allow-discrete/);
+        // UIA-KF-177 (reverseCSSTime): a programmatic 350 ms with no authored
+        // unit is written in its shortest exact spelling, seconds on a tie.
+        expect(out.css).toMatch(/display 0\.35s allow-discrete/);
 
         const p = await browser.newPage();
         try {
@@ -150,7 +152,7 @@ describe.skipIf(!chromium)("S.F3 EN-c — proof:entry-roundtrip browser oracle",
         const out = await compileToEntry({ ".toast": { enter: mkEnter() } });
         // Strip the display/overlay allow-discrete entries from both lists.
         const noDiscrete = out.css.replace(
-            /,?\s*(?:display|overlay) \d+ms allow-discrete/g,
+            /,?\s*(?:display|overlay) \d*\.?\d+m?s allow-discrete/g,
             "",
         );
         const p = await browser.newPage();
