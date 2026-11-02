@@ -11,7 +11,7 @@
  * reaches both gates at once — net-better, no duplication.
  *
  * Exports (the lane contract — keep stable; both gates depend on it):
- *   SCENES         — Array<{ key, route, subjectSelector, dockFloatAllowed }>
+ *   SCENES         — Array<{ key, route, subjectSelector, dockFloatAllowed, sweepingSubject, surface }>
  *                    RE-SOURCED from `demo/app/scene/scenes.ts` at H.W8 S1 (was a
  *                    hand-maintained 6-entry array that drifted to the demo's 8
  *                    scenes). `key` === the scenes.ts id; `route` === the hash
@@ -90,13 +90,18 @@ const SCENES_TS = path.resolve(
 // legitimately permits an edge-floating dock; every other scene FAILS inv δ when
 // a dock covers its content rect. KEYED BY the `scenes.ts` id (the stale-key
 // guard below binds this map's keys EXACTLY to the parsed scene set).
+// `surface` is the scene's AT-REST surface fact — the surfaces trigger face's
+// `data-surface` on entry (`null`: home has no surfaces trigger) — the
+// `expectedSurface` every `navToScene` caller passes, so a nav returns the
+// instant the destination projects instead of waiting out the ceiling
+// (COHESION §0hg.4 residual b; the values `live-session.mjs` SWEEP_META reads).
 const SCENE_GATE_META = {
-    home: { subjectSelector: ".graph, .cube, h1", dockFloatAllowed: false },
-    cube: { subjectSelector: ".graph, .cube", dockFloatAllowed: false },
+    home: { subjectSelector: ".graph, .cube, h1", dockFloatAllowed: false, surface: null },
+    cube: { subjectSelector: ".graph, .cube", dockFloatAllowed: false, surface: "controls" },
     // amiga renders a full-bleed Three.js <canvas> — an edge-floating dock over
     // its bleed is the intended design, NOT occlusion (C.W1 § Design decisions).
-    amiga: { subjectSelector: "canvas", dockFloatAllowed: true },
-    square: { subjectSelector: ".demo-box", dockFloatAllowed: false },
+    amiga: { subjectSelector: "canvas", dockFloatAllowed: true, surface: "controls" },
+    square: { subjectSelector: ".demo-box", dockFloatAllowed: false, surface: "controls" },
     // The easing stage is the specimen gallery (EasingCatalogue, T.E6): its
     // subject is each tile's ball, which rides the tile's curve
     // (`.curve-ball.tile-ball`, KF.W13W.b). The ribbon's AnimationVisualizer
@@ -105,6 +110,7 @@ const SCENE_GATE_META = {
     easing: {
         subjectSelector: ".tile-ball",
         dockFloatAllowed: false,
+        surface: "easing",
         // A SWEEPING subject: a tile ball's x IS its curve's progress
         // (curvePlot.place), and the tiles sit in a grid, so a static
         // "centered 15-85%" check does not apply. The render + dock-occlusion
@@ -114,6 +120,7 @@ const SCENE_GATE_META = {
     spring: {
         subjectSelector: "[class*=glass-card], [class*=Target], [class*=rail]",
         dockFloatAllowed: false,
+        surface: "spring",
     },
     // The H.W11 stage scenes — the subject is the glass `<Card>` inside the
     // `.stage-cell` PRIMITIVE (the storyboard/path plate); the broad selector
@@ -121,6 +128,7 @@ const SCENE_GATE_META = {
     sequence: {
         subjectSelector: ".stage-cell [data-surface], [class*=Target], [class*=glass-card]",
         dockFloatAllowed: false,
+        surface: "timeline",
     },
 };
 
@@ -312,8 +320,9 @@ const sceneIds = sceneRecords.map((r) => r.id);
 /**
  * SCENES — the re-sourced manifest the occlusion/capture/lighthouse gates consume.
  * Shape UNCHANGED from the pre-H.W8 hand-maintained array
- * (`{ key, route, subjectSelector, dockFloatAllowed }`); `key` === the scenes.ts
- * id, `route` === the hash route (`""` for home, `id` for the rest — 1:1 with
+ * (`{ key, route, subjectSelector, dockFloatAllowed }`) plus `sweepingSubject`
+ * and `surface` (the at-rest surface fact `navToScene` waits on); `key` === the
+ * scenes.ts id, `route` === the hash route (`""` for home, `id` for the rest — 1:1 with
  * `demo/app/scene/router.ts`). DERIVED from `scenes.ts` so a new scene auto-enrolls.
  */
 export const SCENES = sceneRecords.map((r) => ({
@@ -322,6 +331,7 @@ export const SCENES = sceneRecords.map((r) => ({
     subjectSelector: SCENE_GATE_META[r.id].subjectSelector,
     dockFloatAllowed: SCENE_GATE_META[r.id].dockFloatAllowed,
     sweepingSubject: SCENE_GATE_META[r.id].sweepingSubject ?? false,
+    surface: SCENE_GATE_META[r.id].surface,
 }));
 
 // The route → superKey map the demo's control-options store is keyed by

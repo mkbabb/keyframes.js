@@ -63,7 +63,7 @@ import path from "node:path";
 import crypto from "node:crypto";
 import { fileURLToPath } from "node:url";
 import { PNG } from "pngjs";
-import { REQUIRE_BROWSER, withPage, navToScene } from "../../lib/demo-driver.mjs";
+import { REQUIRE_BROWSER, SCENES as SCENE_MANIFEST, withPage, navToScene } from "../../lib/demo-driver.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../..");
 const DIST = path.join(REPO, "dist/gh-pages");
@@ -73,6 +73,11 @@ const BLESSED_PATH = path.join(GOLDENS_DIR, "BLESSED.json");
 
 // The owner-cited scene matrix (verdict #1/#4/#9/#21 subjects live here).
 const SCENES = ["home", "cube", "amiga", "square", "easing", "spring", "sequence"];
+// Each scene's at-rest surface fact, from the one SCENES manifest: navToScene
+// returns the instant the destination projects (§0hg.4 residual b; a `null`
+// fact never holds on a scene with a surfaces trigger, so each nav waited out
+// the 12 s ceiling).
+const AT_REST_SURFACE = Object.fromEntries(SCENE_MANIFEST.map((s) => [s.key, s.surface]));
 const THEMES = ["light", "dark"];
 const CELLS = SCENES.flatMap((s) => THEMES.map((t) => `${s}-${t}`));
 
@@ -178,7 +183,7 @@ async function captureCandidates() {
                 await page.waitForTimeout(1500);
                 for (const scene of SCENES) {
                     if (scene !== "home") {
-                        await navToScene(page, scene, null, { timeout: 12000 });
+                        await navToScene(page, scene, AT_REST_SURFACE[scene], { timeout: 12000 });
                     } else {
                         await page.goto(`${base}/#/`, { waitUntil: "load" });
                     }
@@ -307,7 +312,7 @@ async function gate() {
                             const goldenPath = path.join(GOLDENS_DIR, "golden", `${cell}.png`);
                             if (!fs.existsSync(goldenPath)) continue;
                             if (scene !== "home") {
-                                await navToScene(page, scene, null, { timeout: 12000 });
+                                await navToScene(page, scene, AT_REST_SURFACE[scene], { timeout: 12000 });
                             } else {
                                 await page.goto(`${base}/#/`, { waitUntil: "load" });
                             }

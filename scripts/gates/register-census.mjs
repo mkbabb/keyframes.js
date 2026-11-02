@@ -170,7 +170,10 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     if (!staticOnly) {
         const { navToScene, SCENES, withPage } =
             await import("../lib/demo-driver.mjs");
-        const roster = SCENES.map((s) => s.id);
+        // The non-home scenes (home is visited first, below), each with its
+        // at-rest surface fact so navToScene returns the instant the destination
+        // projects (§0hg.4 residual b). The manifest row's id field is `key`.
+        const roster = SCENES.filter((s) => s.key !== "home");
         const outcome = await withPage(
             {
                 distDir: DIST,
@@ -349,9 +352,9 @@ if (import.meta.url === `file://${process.argv[1]}`) {
                 await page.goto(`${base}/`, { waitUntil: "load" });
                 await page.waitForTimeout(400);
                 await visit("home");
-                for (const id of roster) {
+                for (const { key: id, surface } of roster) {
                     try {
-                        await navToScene(page, id);
+                        await navToScene(page, id, surface);
                         await page.waitForTimeout(250);
                         await visit(id);
                     } catch (e) {
