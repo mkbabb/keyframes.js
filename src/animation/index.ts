@@ -101,7 +101,7 @@ export type {
     StaggerFn,
 } from "./orchestration/stagger";
 export { flip, flipShared } from "./orchestration/flip";
-export type { FlipOptions } from "./orchestration/flip";
+export type { FlipHandle, FlipOptions } from "./orchestration/flip";
 // S.F2 SplitText — a11y-first text-splitter (LIGHT: composes `stagger` + the
 // platform Intl.Segmenter; no parser/color edge — proof:boundary enrolls it
 // off this barrel). Returns a fragment cohort + a ready stagger; the container
