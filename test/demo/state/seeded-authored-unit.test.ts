@@ -48,9 +48,11 @@ describe("UIA-KF-177 — a seeded bucket keeps the authored time unit", () => {
 
             // Round-trip: the stored spelling, re-ingested, is the same
             // milliseconds, and the engine's emit writes the authored spelling.
+            // (The stored fields are asserted equal to the want-spellings above;
+            // re-ingesting those keeps the non-optional option type exact.)
             const again = new CSSKeyframesAnimation({
-                duration: stored.duration,
-                delay: stored.delay,
+                duration: wantDuration,
+                delay: wantDelay,
             });
             expect(again.options.duration).toBe(duration);
             expect(again.options.delay).toBe(delay);
