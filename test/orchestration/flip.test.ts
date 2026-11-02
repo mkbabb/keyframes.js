@@ -212,3 +212,120 @@ describe("flipShared", () => {
         expect(sy).toBeCloseTo(bRect.height / aRect.height); // 0.5
     });
 });
+
+/**
+ * KF-4 (COHESION §0he.4; consumer Gregg, a second filter click waited out a
+ * running 680 ms re-sort). A real browser's `getBoundingClientRect` reports the
+ * VISUAL rect — the layout box with the inline `transform` applied. This stub
+ * models exactly that (top-left origin: translate, then scale about the box's
+ * top-left corner), so a mid-flight read sees the current interpolated rect.
+ */
+const stubLiveRect = (el: HTMLElement, layout: () => Rect): void => {
+    stubRect(el, () => {
+        const l = layout();
+        if (!el.style.transform) return l;
+        const { tx, ty, sx, sy } = parseTransform(el.style.transform);
+        return {
+            x: l.x + tx,
+            y: l.y + ty,
+            width: l.width * sx,
+            height: l.height * sy,
+        };
+    });
+};
+
+const nextFrame = (): Promise<void> =>
+    new Promise((r) => requestAnimationFrame(() => r()));
+
+/** Wait (bounded) until the element's inline transform changes. */
+const waitForMotion = async (el: HTMLElement): Promise<void> => {
+    const start = el.style.transform;
+    for (let i = 0; i < 60 && el.style.transform === start; i++) {
+        await nextFrame();
+    }
+    await nextFrame();
+    expect(el.style.transform).not.toBe(start);
+};
+
+const expectRectNear = (actual: Rect, expected: Rect, tol = 0.5): void => {
+    expect(Math.abs(actual.x - expected.x)).toBeLessThanOrEqual(tol);
+    expect(Math.abs(actual.y - expected.y)).toBeLessThanOrEqual(tol);
+    expect(Math.abs(actual.width - expected.width)).toBeLessThanOrEqual(tol);
+    expect(Math.abs(actual.height - expected.height)).toBeLessThanOrEqual(tol);
+};
+
+const visualOf = (el: HTMLElement): Rect => {
+    const r = el.getBoundingClientRect();
+    return { x: r.x, y: r.y, width: r.width, height: r.height };
+};
+
+describe("KF-4: flip is cancellable and re-targets from the live rect", () => {
+    const A: Rect = { x: 0, y: 0, width: 100, height: 50 };
+    const B: Rect = { x: 400, y: 200, width: 200, height: 100 };
+    const C: Rect = { x: 0, y: 300, width: 100, height: 50 };
+
+    it("a two-target interrupt's first post-retarget frame equals the interrupted frame (<= 0.5 px), and the first flip stops (no queue)", async () => {
+        const el = document.createElement("div");
+        let layout = A;
+        stubLiveRect(el, () => layout);
+
+        const first = flip(el, () => (layout = B), { duration: 680 });
+        await waitForMotion(el);
+        const interrupted = visualOf(el);
+
+        const second = flip(el, () => (layout = C), { duration: 680 });
+        // The synchronous t=0 paint IS the first post-retarget frame.
+        expectRectNear(visualOf(el), interrupted);
+
+        // No queue: the interrupted flip settles now, not 680 ms later.
+        const raced = await Promise.race([
+            first.then(() => "settled"),
+            nextFrame().then(() => "pending"),
+        ]);
+        expect(raced).toBe("settled");
+
+        await second;
+        expectRectNear(visualOf(el), C);
+    });
+
+    it("flip returns a Promise-like handle whose cancel() halts the play at the current frame", async () => {
+        const el = document.createElement("div");
+        let layout = A;
+        stubLiveRect(el, () => layout);
+
+        const handle = flip(el, () => (layout = B), { duration: 680 });
+        expect(handle).toBeInstanceOf(Promise);
+        await waitForMotion(el);
+        handle.cancel();
+        const frozen = el.style.transform;
+        await handle;
+        await nextFrame();
+        await nextFrame();
+        expect(el.style.transform).toBe(frozen);
+    });
+
+    it("flipShared: a re-target onto a new b starts from a's current interpolated rect", async () => {
+        const a = document.createElement("div");
+        const b1 = document.createElement("div");
+        const b2 = document.createElement("div");
+        stubLiveRect(a, () => A);
+        stubRect(b1, () => B);
+        stubRect(b2, () => C);
+
+        const first = flipShared(a, b1, { duration: 680 });
+        await waitForMotion(a);
+        const interrupted = visualOf(a);
+
+        const second = flipShared(a, b2, { duration: 680 });
+        expectRectNear(visualOf(a), interrupted);
+
+        const raced = await Promise.race([
+            first.then(() => "settled"),
+            nextFrame().then(() => "pending"),
+        ]);
+        expect(raced).toBe("settled");
+
+        await second;
+        expectRectNear(visualOf(a), C);
+    });
+});
