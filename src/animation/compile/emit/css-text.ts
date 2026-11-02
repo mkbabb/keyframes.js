@@ -1,14 +1,12 @@
 import type {
     CSSAnimationOptions,
-    CssColor,
     CssTimeUnit,
     Declaration,
     KeyframeSelector,
     StylesheetItem,
 } from "@mkbabb/value.js/css";
-import { serializeCssColor } from "@mkbabb/value.js/css";
-import type { CssValue } from "@mkbabb/value.js/value";
 import type { CssEasingLiteral } from "../../constants";
+import { serializeAdmittedValue } from "./serialize-value";
 
 /**
  * ms → a CSS time literal, in the unit the author wrote (UIA-KF-177).
@@ -56,27 +54,10 @@ export const serializeTimingFunction = (value: NonNullable<CSSAnimationOptions["
     }
 };
 
-export const serializeCssValue = (value: CssValue): string => {
-    if (value.kind === "call") {
-        return `${value.name}(${value.args.map(serializeCssValue).join(", ")})`;
-    }
-    if (value.kind === "list") {
-        const separator = value.separator === "comma" ? ", "
-            : value.separator === "slash" ? " / " : " ";
-        return value.items.map(serializeCssValue).join(separator);
-    }
-    const payload = value.payload;
-    if (payload.type === "number") return `${payload.value}${payload.unit}`;
-    if (payload.type === "keyword") return payload.value;
-    const serialized = serializeCssColor(payload.value as CssColor);
-    if (!serialized.ok) throw new TypeError("Value returned an unserializable CSS color.");
-    return serialized.value;
-};
-
 /**
  * THE keyframe-selector serializer (X.KF.W8 MISS-β2 · G3) — one body for
- * `50%` / `entry` / `entry 50%`, owned here beside the value and declaration
- * serializers it is the peer of. `emit/format/format.ts` held a second,
+ * `50%` / `entry` / `entry 50%`, owned here beside the declaration serializer
+ * it is the peer of (the value half is value.js's, via `./serialize-value`). `emit/format/format.ts` held a second,
  * byte-equivalent copy (`selectorText`) and now imports this one: the same
  * "a serializer with two implementations is the Tier-D defect this seam exists
  * to stop" the {@link serializeDeclaration} docblock states, applied to the
@@ -101,7 +82,7 @@ export const serializeSelector = (selector: KeyframeSelector): string => {
  * defect this seam exists to stop, not a convenience.
  */
 export const serializeDeclaration = (declaration: Declaration): string =>
-    `${declaration.name}: ${serializeCssValue(declaration.value)}${declaration.important ? " !important" : ""}`;
+    `${declaration.name}: ${serializeAdmittedValue(declaration.value)}${declaration.important ? " !important" : ""}`;
 
 const indent = (value: string): string =>
     value.split("\n").map((line) => `  ${line}`).join("\n");
@@ -118,13 +99,13 @@ export const serializeStylesheetItem = (item: StylesheetItem): string => {
             const lines: string[] = [];
             if (item.descriptor.syntax !== undefined) lines.push(`syntax: ${item.descriptor.syntax};`);
             if (item.descriptor.inherits !== undefined) lines.push(`inherits: ${item.descriptor.inherits};`);
-            if (item.descriptor.initialValue !== undefined) lines.push(`initial-value: ${serializeCssValue(item.descriptor.initialValue)};`);
+            if (item.descriptor.initialValue !== undefined) lines.push(`initial-value: ${serializeAdmittedValue(item.descriptor.initialValue)};`);
             return `@property ${item.name} {\n${lines.map(indent).join("\n")}\n}`;
         }
         case "function": {
             const params = item.descriptor.parameters?.map((parameter) => {
                 const syntax = parameter.syntax === undefined ? "" : ` ${parameter.syntax}`;
-                const fallback = parameter.default === undefined ? "" : `: ${serializeCssValue(parameter.default)}`;
+                const fallback = parameter.default === undefined ? "" : `: ${serializeAdmittedValue(parameter.default)}`;
                 return `${parameter.name}${syntax}${fallback}`;
             }).join(", ") ?? "";
             const declarations = item.descriptor.declarations?.map((declaration) =>

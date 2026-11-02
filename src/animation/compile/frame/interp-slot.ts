@@ -16,7 +16,7 @@ import {
     getLayoutEpoch,
     resolveBrowserScalar,
 } from "../../resolve/browser";
-import { serializeCssValue } from "../emit/css-text";
+import { serializeAdmittedValue } from "../emit/serialize-value";
 
 export interface NumericInterpSlot {
     readonly kind: "number";
@@ -330,9 +330,9 @@ export function serializeInterpSlot(slot: InterpSlot): string {
         }
         case "computed":
             return slot.cache === undefined
-                ? serializeCssValue(slot.from)
+                ? serializeAdmittedValue(slot.from)
                 : `${slot.current}${slot.unit}`;
         case "discrete":
-            return serializeCssValue(slot.current);
+            return serializeAdmittedValue(slot.current);
     }
 }

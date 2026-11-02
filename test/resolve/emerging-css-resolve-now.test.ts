@@ -20,7 +20,7 @@ import { describe, expect, it } from "vitest";
 import { parseCssValue } from "@mkbabb/value.js/css";
 import type { CssCall, CssValue } from "@mkbabb/value.js/value";
 import { resolveKeyframes } from "../../src/animation/compile/adapter";
-import { serializeCssValue } from "../../src/animation/compile/emit/css-text";
+import { serializeAdmittedValue } from "../../src/animation/compile/emit/serialize-value";
 import {
     resolveSpringTiming,
     springCssToOptions,
@@ -35,7 +35,7 @@ const stopValue = (
 ): string | undefined => {
     const frame = resolved.keyframes.get(percent);
     if (!frame || !(prop in frame)) return undefined;
-    return serializeCssValue(frame[prop] as CssValue);
+    return serializeAdmittedValue(frame[prop] as CssValue);
 };
 
 describe("P.W13 — emerging-css-resolve-NOW (Phase-1 element-independent)", () => {

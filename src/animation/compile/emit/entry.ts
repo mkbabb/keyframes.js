@@ -34,7 +34,8 @@
  * ── BOUNDARY: HEAVY (value.js-bearing). ──────────────────────────────────────
  * Reached ONLY via `loadAnimationEngine()` + the `./engine` static mirror.
  */
-import { reverseCSSTime, serializeCssValue } from "./css-text";
+import { reverseCSSTime } from "./css-text";
+import { serializeAdmittedValue } from "./serialize-value";
 import { convertColor } from "@mkbabb/value.js/color";
 import type { CssValue } from "@mkbabb/value.js/value";
 import { camelCaseToHyphen } from "../../internal/helpers";
@@ -163,7 +164,7 @@ function frameDecls<V extends Vars>(
         const prop = camelCaseToHyphen(propCamel);
         decls.push({
             prop,
-            value: serializeCssValue(canonicalizeColors(value)),
+            value: serializeAdmittedValue(canonicalizeColors(value)),
         });
     }
     return decls;

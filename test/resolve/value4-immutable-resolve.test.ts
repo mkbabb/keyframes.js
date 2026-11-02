@@ -6,7 +6,7 @@ import {
     type CustomFunctionDescriptor,
 } from "@mkbabb/value.js/css";
 import type { CssValue } from "@mkbabb/value.js/value";
-import { serializeCssValue } from "../../src/animation/compile/emit/css-text";
+import { serializeAdmittedValue } from "../../src/animation/compile/emit/serialize-value";
 import {
     DROP,
     makeResolveContext,
@@ -53,7 +53,7 @@ describe("Value 4 immutable resolver", () => {
         );
 
         expect(resolved).not.toBe(DROP);
-        expect(serializeCssValue(resolved as CssValue)).toBe("rgb(255 0 0)");
+        expect(serializeAdmittedValue(resolved as CssValue)).toBe("rgb(255 0 0)");
     });
 
     it("replaces sibling-index with a frozen numeric scalar", () => {
@@ -63,7 +63,7 @@ describe("Value 4 immutable resolver", () => {
         );
 
         expect(resolved).not.toBe(DROP);
-        expect(serializeCssValue(resolved as CssValue)).toContain("2");
+        expect(serializeAdmittedValue(resolved as CssValue)).toContain("2");
         expect(Object.isFrozen(resolved)).toBe(true);
     });
 
@@ -77,7 +77,7 @@ describe("Value 4 immutable resolver", () => {
         );
 
         expect(resolved).not.toBe(DROP);
-        const text = serializeCssValue(resolved as CssValue);
+        const text = serializeAdmittedValue(resolved as CssValue);
         expect(text).not.toContain("--double");
         expect(text).not.toContain("var(");
         expect(text).toContain("5px");

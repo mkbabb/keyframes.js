@@ -34,10 +34,8 @@ import type {
     Stylesheet,
 } from "@mkbabb/value.js/css";
 import type { Diagnostic } from "../../compile/adapter";
-import {
-    serializeCssValue,
-    serializeTimingFunction,
-} from "../../compile/emit/css-text";
+import { serializeTimingFunction } from "../../compile/emit/css-text";
+import { serializeAdmittedValue } from "../../compile/emit/serialize-value";
 import type { CompositeOperator, InputAnimationOptions } from "../../constants";
 
 /** The parsed sibling-rule `animation` shape value.js surfaces (the EMIT source). */
@@ -161,7 +159,7 @@ export function registerPropertyDescriptors(
             inherits: descriptor.inherits ?? false,
         };
         if (descriptor.initialValue != null) {
-            definition.initialValue = serializeCssValue(
+            definition.initialValue = serializeAdmittedValue(
                 descriptor.initialValue,
             );
         }

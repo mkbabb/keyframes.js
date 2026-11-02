@@ -23,7 +23,7 @@
 import { describe, expect, it } from "vitest";
 import type { CssValue } from "@mkbabb/value.js/value";
 import { CSSKeyframesAnimation } from "../../src/animation/engine";
-import { serializeCssValue } from "../../src/animation/compile/emit/css-text";
+import { serializeAdmittedValue } from "../../src/animation/compile/emit/serialize-value";
 
 /**
  * Read the resolved leaf STRING of the first template frame's `prop` value
@@ -42,7 +42,7 @@ const templateValueString = (
     if (!frame) return undefined;
     const vars = frame.vars as Record<string, unknown>;
     if (!(prop in vars)) return undefined;
-    return serializeCssValue(vars[prop] as CssValue);
+    return serializeAdmittedValue(vars[prop] as CssValue);
 };
 
 /**

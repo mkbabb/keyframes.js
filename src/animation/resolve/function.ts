@@ -3,7 +3,7 @@ import {
     type CustomFunctionParameter,
 } from "@mkbabb/value.js/css";
 import type { CssCall, CssList, CssValue } from "@mkbabb/value.js/value";
-import { serializeCssValue } from "../compile/emit/css-text";
+import { serializeAdmittedValue } from "../compile/emit/serialize-value";
 import { DROP, type ResolveContext, type Resolved } from "./env";
 
 export type ResolveNode = (
@@ -31,7 +31,7 @@ const coerceArg = (
     param: CustomFunctionParameter,
 ): Resolved<CssValue> => {
     if (param.syntax === undefined) return arg;
-    const coerced = coerceToSyntax(serializeCssValue(arg), param.syntax);
+    const coerced = coerceToSyntax(serializeAdmittedValue(arg), param.syntax);
     if (coerced.ok) return coerced.value;
     return param.default ?? DROP;
 };

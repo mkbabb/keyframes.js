@@ -4,7 +4,8 @@
 // serializer with two implementations is the Tier-D defect the emit sub-zone's
 // own `serializeDeclaration` docblock names, and it was the same defect one
 // function over.
-import { serializeCssValue, serializeSelector } from "../css-text";
+import { serializeSelector } from "../css-text";
+import { serializeAdmittedValue } from "../serialize-value";
 import type { CssValue } from "@mkbabb/value.js/value";
 import { camelCaseToHyphen } from "../../../internal/helpers";
 import type { KeyframesAnimation } from "../../../engine";
@@ -64,7 +65,7 @@ export function declaredDeclarationsFor<V extends Vars>(
     const decls: DeclaredDeclaration[] = Object.entries(declared).map(
         ([propName, value]) => ({
             prop: camelCaseToHyphen(propName),
-            value: serializeCssValue(value),
+            value: serializeAdmittedValue(value),
             declared: value,
         }),
     );
@@ -335,7 +336,7 @@ export function premultipliedKeyframesBlock<V extends Vars>(
 
         const decls = Object.entries(scaled).map(
             ([propName, value]) =>
-                `  ${camelCaseToHyphen(propName)}: ${serializeCssValue(value)};`,
+                `  ${camelCaseToHyphen(propName)}: ${serializeAdmittedValue(value)};`,
         );
         const frameEasing = templateFrame.timingFunction
             ? serializeEasing(templateFrame.timingFunction)
@@ -417,7 +418,8 @@ export async function CSSKeyframesToString<V extends Vars>(
     // erases. That is absence of coverage, not proof of death, and the repo's own
     // rule is that only GENUINELY dead surface is excised — the artifact's only
     // possible producer is the value serializer this block composes
-    // (`serializeCssValue` / `unflattenObjectToString`), which is the Tier-D
+    // (`serializeAdmittedValue` → value.js's `serializeCssValue` /
+    // `unflattenObjectToString`), which is the Tier-D
     // collapse subject owned by KF.W8 (MISS-β2). It is deleted THERE, with the
     // producer census in hand, and not here on a zero count.
     return `${keyframes.replace(/\(\s*\{/g, "{").replace(/\}\s*\)/g, "}")}\n`;

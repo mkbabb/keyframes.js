@@ -1,5 +1,5 @@
 import type { CssCall, CssList, CssScalar, CssValue } from "@mkbabb/value.js/value";
-import { serializeCssValue } from "../compile/emit/css-text";
+import { serializeAdmittedValue } from "../compile/emit/serialize-value";
 import { DROP, type ResolveContext, type Resolved } from "./env";
 import type { ResolveNode } from "./function";
 
@@ -81,7 +81,7 @@ const clausesOf = (fn: CssCall): readonly IfClause[] => {
 };
 
 const serializedArgs = (call: CssCall): string =>
-    call.args.map(serializeCssValue).join(", ");
+    call.args.map(serializeAdmittedValue).join(", ");
 
 const evalStyleCondition = (
     call: CssCall,
@@ -116,7 +116,7 @@ const evalStyleCondition = (
     // `style(--prop: value)` answers for every input value.js refuses. Not taken
     // on this wave's mandate; named so the next seat inherits the choice made.
     const normalize = (value: string) => value.trim().replace(/\s+/g, " ");
-    return normalize(actual) === normalize(serializeCssValue(expected));
+    return normalize(actual) === normalize(serializeAdmittedValue(expected));
 };
 
 const evalCondition = (

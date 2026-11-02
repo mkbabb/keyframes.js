@@ -7,7 +7,7 @@ import {
     keyframesBlock,
     premultipliedKeyframesBlock,
 } from "../../src/animation/compile/emit/format";
-import { serializeCssValue } from "../../src/animation/compile/emit/css-text";
+import { serializeAdmittedValue } from "../../src/animation/compile/emit/serialize-value";
 import { toWAAPIKeyframes } from "../../src/animation/waapi/emission";
 
 const parse = (source: string): CssValue => {
@@ -72,7 +72,7 @@ describe("structural CSS and WAAPI emission", () => {
 
         expect(result).toHaveProperty("block");
         if ("block" in result) expect(result.block).toContain("translateX(5px)");
-        expect(serializeCssValue(source)).toBe("translateX(10px)");
+        expect(serializeAdmittedValue(source)).toBe("translateX(10px)");
 
         const refused = premultipliedKeyframesBlock(
             animation([{ color: parse("red") }, { color: parse("blue") }]) as never,

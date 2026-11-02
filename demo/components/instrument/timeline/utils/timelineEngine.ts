@@ -1,8 +1,5 @@
-import {
-    camelCaseToHyphen,
-    hyphenToCamelCase,
-    serializeCssValue,
-} from "@utils/helpers";
+import { camelCaseToHyphen, hyphenToCamelCase } from "@utils/helpers";
+import { serializeCssValue } from "@mkbabb/value.js/css";
 import { loadAnimationEngine } from "@mkbabb/keyframes.js";
 import type {
     CSSKeyframesAnimation,
@@ -191,11 +188,20 @@ export async function importCSSToTimeline(
         const parsedSelector = requireKeyframeSelector(selector);
         const percent = selectorPercent(parsedSelector);
 
+        // value.js's published serializer is the row text's one author (the
+        // demo's own copy of it retired with kf's fork, X.KF.W3 G-KF3-4). Its
+        // `!ok` answer refuses the submission through the same channel the
+        // parse above uses — the caller's submission surface — never a
+        // fallback string.
         const flatVars: Record<string, string> = {};
         for (const [property, value] of Object.entries(vars)) {
-            flatVars[camelCaseToHyphen(property)] = serializeCssValue(
-                value as CssValue,
-            );
+            const serialized = serializeCssValue(value as CssValue);
+            if (!serialized.ok) {
+                throw new TypeError(
+                    `Invalid animation CSS: "${property}" has a value with no CSS spelling (${serialized.error.code}).`,
+                );
+            }
+            flatVars[camelCaseToHyphen(property)] = serialized.value;
         }
 
         keyframes.push({

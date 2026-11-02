@@ -1,7 +1,7 @@
 import { isLayoutTrackingUnit } from "@mkbabb/value.js/value";
 import type { CssValue } from "@mkbabb/value.js/value";
 import { parseCssScalar, requireParsed } from "../compile/parse-facade";
-import { serializeCssValue } from "../compile/emit/css-text";
+import { serializeAdmittedValue } from "../compile/emit/serialize-value";
 
 let layoutEpoch = 0;
 let browserScalarCache = new WeakMap<
@@ -143,7 +143,7 @@ export class BrowserScalarResolutionError extends TypeError {
         readonly actual: string,
     ) {
         super(
-            `Could not resolve "${serializeCssValue(authoredValue)}" for "${property}" to a numeric CSS scalar${actual === "" ? "" : ` (computed: "${actual}")`}.`,
+            `Could not resolve "${serializeAdmittedValue(authoredValue)}" for "${property}" to a numeric CSS scalar${actual === "" ? "" : ` (computed: "${actual}")`}.`,
         );
         this.name = "BrowserScalarResolutionError";
     }
@@ -214,7 +214,7 @@ const probeBrowserScalar = (
     const cssProperty = property.split(".", 1)[0] ?? property;
     const original = target.style.getPropertyValue(cssProperty);
     const priority = target.style.getPropertyPriority(cssProperty);
-    const authored = serializeCssValue(value);
+    const authored = serializeAdmittedValue(value);
     let computed = "";
     try {
         target.style.setProperty(cssProperty, authored);

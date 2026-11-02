@@ -10,7 +10,7 @@ import type { KeyframesAnimation } from "../../engine";
 import type { Vars } from "../../constants";
 import type { ParsedVarMap } from "../value";
 import { serializeEasing } from "./easing-serialize";
-import { serializeCssValue } from "./css-text";
+import { serializeAdmittedValue } from "./serialize-value";
 
 /**
  * EN-b (S.B3) — a template stop's selector `CssValue` → its numeric percent
@@ -48,7 +48,7 @@ function declaredDeclsExcluding<V extends Vars>(
     );
     const decls = Object.entries(kept).map(
         ([propName, value]) =>
-            `${camelCaseToHyphen(propName)}: ${serializeCssValue(value)};`,
+            `${camelCaseToHyphen(propName)}: ${serializeAdmittedValue(value)};`,
     );
 
     const templateFrame = animation.templateFrames[i]!;
