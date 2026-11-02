@@ -31,40 +31,45 @@ const registryNames = [
 ] as const;
 
 /**
- * The name→curve map, built ONCE at module evaluation so a registry name hands
- * out ONE stable reference for the process lifetime (X.KF.W4 K1 / R-2). value.js
- * 4.0.0's `easing()` is NOT memoised — 21 of these 40 names return a fresh
- * function on every call — so this map is what makes kf-side identity stable at
- * all, and `resolveTimingFunction` below must consult it BEFORE the CSS parser
- * or the guarantee is void for the names the parser also accepts.
- *
- * It is stable, NOT injective: the 40 names resolve onto **31** distinct
- * references, because nine hyphen/camel twin pairs (`ease-out-cubic` ≡
- * `easeOutCubic`, `smooth-step-3` ≡ `smoothStep3`, …) share one value.js
- * function. A reference therefore identifies the CURVE and never the name that
- * produced it — which is why `easing-serialize.ts`'s reverse lookup can tell a
- * registry curve from a closure but cannot recover WHICH name was written, and
- * why G-KFW4-5 proves identity by sampled value-identity on the 33-point grid
- * rather than by name equality (COHESION §0j.C KF-SS3). `test/compile/
- * easing-identity.test.ts` asserts all three facts.
- *
- * Scheduled deletion, declared not implied (R-2): when value.js 4.1's memoised
- * `easing()` lands, this memo is deleted in KF.W3's repin commit.
+ * A registry name's curve, straight from value.js's `easing()`. value.js
+ * 4.1.0's `easing()` is memoised, so every call for a name hands out the ONE
+ * reference value holds for it — kf keeps no name→curve map of its own (the
+ * X.KF.W4 K1 memo this replaces was deleted at the 4.1.0 repin, KF.W3, as it
+ * scheduled itself). A registry name value refuses is value rejecting its own
+ * easing: a broken contract, never a user refusal, so it throws.
  */
-export const timingFunctionEntries: readonly (readonly [
-    string,
-    EasingFunction,
-])[] = registryNames.map((name) => {
+const registryEasing = (name: string): EasingFunction => {
     const result = easing(name);
     if (!result.ok) {
         throw new Error(
             `value.js rejected its own easing ${JSON.stringify(name)}: ${result.error.code}`,
         );
     }
-    return [name, result.value] as const;
-});
+    return result.value;
+};
 
-const timingFunctionRegistry = new Map(timingFunctionEntries);
+/**
+ * The registry roster with each name's curve, evaluated at module top level —
+ * THE BOOT FENCE (G-KF3-6): a `bezierPresets` key value stops accepting is a kf
+ * boot `throw` here, and a key it adds silently widens this public roster.
+ *
+ * The references are value.js's memoised ones, so they are stable but NOT
+ * injective: the 40 names resolve onto **31** distinct references, because nine
+ * hyphen/camel twin pairs (`ease-out-cubic` ≡ `easeOutCubic`, `smooth-step-3` ≡
+ * `smoothStep3`, …) share one value.js function. A reference therefore
+ * identifies the CURVE and never the name that produced it — which is why
+ * `easing-serialize.ts`'s reverse lookup can tell a registry curve from a
+ * closure but cannot recover WHICH name was written, and why G-KFW4-5 proves
+ * identity by sampled value-identity on the 33-point grid rather than by name
+ * equality (COHESION §0j.C KF-SS3). `test/compile/easing-identity.test.ts`
+ * asserts all three facts.
+ */
+export const timingFunctionEntries: readonly (readonly [
+    string,
+    EasingFunction,
+])[] = registryNames.map((name) => [name, registryEasing(name)] as const);
+
+const registeredNames: ReadonlySet<string> = new Set(registryNames);
 
 /**
  * Resolve omitted CSS `linear()` positions after parsing. A two-position stop
@@ -145,20 +150,15 @@ export const resolveTimingFunction = (
         return timingFunction;
     }
 
-    // X.KF.W4 K1 (R-2) — THE REGISTRY IS CONSULTED FIRST. The parser used to
-    // run first, and four registry names are also CSS keywords (`ease`,
-    // `ease-in`, `ease-out`, `ease-in-out`), so those four took the parse path
-    // and got a FRESH `easing()` instance on every call — outside the module
-    // memo above. The curve was right and the identity was not, and identity is
-    // the thing the serializer reads: `serializeEasing({ fn:
-    // resolveTimingFunction("ease") })` THREW `a custom TimingFunction has no
-    // CSS representation` on the library's own registry keyword. Ordering the
-    // memo first is the whole cure — the parse branch below produces
-    // `easing(name)` for exactly these four, i.e. the same curve this map
-    // already holds, so no curve changes and every name now hands out one
-    // stable reference.
-    const registered = timingFunctionRegistry.get(timingFunction);
-    if (registered !== undefined) return registered;
+    // X.KF.W4 K1 (R-2) — THE REGISTRY IS CONSULTED FIRST. Four registry names
+    // are also CSS keywords (`ease`, `ease-in`, `ease-out`, `ease-in-out`), and
+    // the order is what keeps every registry name on ONE path: a name resolves
+    // through `registryEasing` (value's memoised `easing()`, the very reference
+    // `timingFunctionEntries` holds, which the serializer's reverse lookup
+    // reads), and only a non-registry string reaches the CSS parser.
+    if (registeredNames.has(timingFunction)) {
+        return registryEasing(timingFunction);
+    }
 
     return fromCssTimingFunction(
         requireParsed(
