@@ -831,7 +831,7 @@ const dialog = await compileToEntry(
 );
 dialog.eligible; // => true
 dialog.css.includes("@starting-style"); // => true
-dialog.css.includes("display 350ms allow-discrete"); // => true
+dialog.css.includes("display 0.35s allow-discrete"); // => true
 ```
 
 Options: `openSelector` (`".open"` | `"[data-open]"` | `":popover-open"` | `"[open]"`, concatenated onto the base selector), `display` (the open display, default `"block"`), `overlay` (emit `overlay allow-discrete`, default `true`). The `exit` defaults to `enter` reversed. **Born-open elements RUN the entry at first render** (an `@starting-style` platform semantic — an SSR'd open dialog animates in on load; opt out by not matching the open selector at initial render). Where `transition-behavior` is unsupported the artifact **degrades honestly** — snap-entry, correct end state, no broken half-transition.
