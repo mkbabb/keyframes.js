@@ -28,7 +28,7 @@ jobs:
     gates:
         name: library gates (library tests + proof:publish)
         runs-on: ubuntu-latest
-        timeout-minutes: 4
+        timeout-minutes: 10 # hang guard, not a perf bar: ~2.2x the measured step sum ~4m31s (npm ci 35s, types 22s, build 9s, correctness 56s, demo correctness 1m55s, lint 5s, proof:publish 16s); COHESION §0hg
         steps:
             - uses: actions/checkout@v5
               with:
