@@ -218,8 +218,18 @@ async function dragGlassHandle(page, dir, dyPx = 340) {
 /** The sheet/menubar/subject geometry on the LIVE mobile viewport. The menubar
  *  is the TransportDock host (`.menubar-safe-pb`, the fixed bottom z-dock band
  *  the CH-3 occlusion lives against). */
+// ESC-KFW3-r1-1 (COHESION §0he.1) — the sheet's detent ladder on this portrait
+// 390×844 viewport is ControlsPaneWrapper.vue's PEEK_SNAP 0.12 · OPEN_SNAP 0.36 ·
+// FULL_SNAP 1, and glass writes the live rung as `--detent-t`. Since glass 10.1.1
+// (G-1: SheetContent is position:fixed) the PEEK sheet, with its chrome floor,
+// shows 35.4% of the viewport (top 545 / h 171, measured ×2 at kf fb87dbcd), so
+// the T.H3-ADOPT Drawer-era visible-fraction cut (expanded > 0.35, peek < 0.30)
+// read a parked sheet as OPEN and could never read it as closed. OPEN is the
+// rung fact AND the old geometry floor; CLOSED is the PEEK rung.
+const SHEET_PEEK_T = 0.12;
+const SHEET_OPEN_T = 0.36;
 const readGeometry = (page) =>
-    page.evaluate(() => {
+    page.evaluate(([peekT, openT]) => {
         const r = (el) => {
             if (!el) return null;
             const b = el.getBoundingClientRect();
@@ -231,17 +241,21 @@ const readGeometry = (page) =>
             };
         };
         // T.H3-ADOPT — the mobile sheet is glass-ui's <SheetContent> ([data-slot=sheet-content]; the 7.0.0 <Drawer>).
-        // "open"/"closed" derive from the VISIBLE fraction (the bottom-anchored
-        // sheet shows the snap-fraction; expanded > 0.35, peek < 0.30); sheetT is
-        // --detent-t; the handle is [data-slot=sheet-detent-handle].
+        // "open" = the live rung (--detent-t) at OPEN or above AND a visible
+        // fraction > 0.35; "closed" = the PEEK rung (see SHEET_PEEK_T above);
+        // sheetT is --detent-t; the handle is [data-slot=sheet-detent-handle].
         const wrapper = document.querySelector('[data-slot="sheet-content"]');
         const vh = window.innerHeight;
         const visFrac = wrapper
             ? (vh - wrapper.getBoundingClientRect().top) / vh
             : 0;
+        const t = wrapper
+            ? parseFloat(getComputedStyle(wrapper).getPropertyValue("--detent-t"))
+            : NaN;
         return {
-            open: !!wrapper && visFrac > 0.35,
-            closed: !!wrapper && visFrac < 0.3,
+            open: !!wrapper && t >= openT - 1e-3 && visFrac > 0.35,
+            closed: !!wrapper && Math.abs(t - peekT) < 1e-3,
+            visFrac: Math.round(visFrac * 1000) / 1000,
             sheetT: wrapper
                 ? getComputedStyle(wrapper).getPropertyValue("--detent-t").trim()
                 : null,
@@ -250,7 +264,7 @@ const readGeometry = (page) =>
             handle: !!document.querySelector('[data-slot="sheet-detent-handle"]'),
             vh,
         };
-    });
+    }, [SHEET_PEEK_T, SHEET_OPEN_T]);
 
 /** Report the Glass 5 Drawer/menubar consume edge without certifying it.
  * Glass 5 fixes the full-height Drawer to the viewport bottom above the
@@ -418,7 +432,7 @@ async function runBattery() {
                 } else {
                     fail(
                         `M1 sheet OPEN: the Drawer did not reach its expanded detent ` +
-                            `(open=${geo.open}, --detent-t=${geo.sheetT}) — the touch expand gesture is broken`,
+                            `(open=${geo.open}, --detent-t=${geo.sheetT}, visible=${geo.visFrac}) — the touch expand gesture is broken`,
                     );
                 }
 
@@ -472,8 +486,10 @@ async function runBattery() {
                 }
 
                 // 3. CLOSE → RE-OPEN via real glass-handle DRAGS (the M2 re-open
-                // latch, on touch).
-                await dragGlassHandle(page, 1, 360);
+                // latch, on touch). The expand drag lands on FULL (top 107); the
+                // collapse drag spans FULL → PEEK (438px measured), so 480 — a
+                // 360 drag from FULL lands one rung down, on OPEN.
+                await dragGlassHandle(page, 1, 480);
                 await waitForSheetRest(page);
                 const closedGeo = await readGeometry(page);
                 if (closedGeo.closed) {
@@ -481,7 +497,7 @@ async function runBattery() {
                 } else {
                     fail(
                         `M1 sheet CLOSE: the drag did not collapse the Drawer ` +
-                            `(closed=${closedGeo.closed}, --detent-t=${closedGeo.sheetT})`,
+                            `(closed=${closedGeo.closed}, --detent-t=${closedGeo.sheetT}, visible=${closedGeo.visFrac})`,
                     );
                 }
                 // Record the same Glass consume edge at the peek detent.
@@ -489,12 +505,13 @@ async function runBattery() {
 
                 await dragGlassHandle(page, -1, 360);
                 await page
-                    .waitForFunction(() => {
+                    .waitForFunction((openT) => {
                         const el = document.querySelector('[data-slot="sheet-content"]');
                         if (!el) return false;
+                        const t = parseFloat(getComputedStyle(el).getPropertyValue("--detent-t"));
                         const r = el.getBoundingClientRect();
-                        return window.innerHeight - r.top > 0.35 * window.innerHeight;
-                    }, { timeout: 6000 })
+                        return t >= openT - 1e-3 && window.innerHeight - r.top > 0.35 * window.innerHeight;
+                    }, SHEET_OPEN_T, { timeout: 6000 })
                     .catch(() => {});
                 await waitForSheetRest(page);
                 // Reset the scroll latch state so the RE-OPEN swipe measures the
@@ -503,19 +520,20 @@ async function runBattery() {
                     const p = document.querySelector(".controls-pane");
                     if (p) p.scrollTop = 0;
                 });
-                const reopen = await page.evaluate(() => {
+                const reopen = await page.evaluate((openT) => {
                     const w = document.querySelector('[data-slot="sheet-content"]');
                     const p = document.querySelector(".controls-pane");
                     const vh = window.innerHeight;
                     const visFrac = w ? (vh - w.getBoundingClientRect().top) / vh : 0;
+                    const t = w ? parseFloat(getComputedStyle(w).getPropertyValue("--detent-t")) : NaN;
                     return {
-                        open: !!w && visFrac > 0.35,
+                        open: !!w && t >= openT - 1e-3 && visFrac > 0.35,
                         sheetT: w ? getComputedStyle(w).getPropertyValue("--detent-t").trim() : null,
                         overflowY: p ? getComputedStyle(p).overflowY : null,
                         cx: p ? Math.round(p.getBoundingClientRect().left + p.getBoundingClientRect().width / 2) : 0,
                         cy: p ? Math.round(p.getBoundingClientRect().top + p.getBoundingClientRect().height / 2) : 0,
                     };
-                });
+                }, SHEET_OPEN_T);
                 const reopenScrollable = reopen.overflowY === "auto" || reopen.overflowY === "scroll";
                 // The M2 re-open latch: overflow-y=auto re-armed on the re-opened
                 // Drawer (rides paneScrollable directly under T.H3-ADOPT). The felt
