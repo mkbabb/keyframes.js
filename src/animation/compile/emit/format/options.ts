@@ -43,7 +43,7 @@ export function animationOptionsToString(
 
     css += `  animation-name: ${name};\n`;
 
-    const duration = reverseCSSTime(options.duration);
+    const duration = reverseCSSTime(options.duration, options.durationUnit);
     css += `  animation-duration: ${duration};\n`;
 
     css += `  animation-timing-function: ${serializeEasing(options.timingFunction)};\n`;
@@ -55,7 +55,7 @@ export function animationOptionsToString(
     css += `  animation-fill-mode: ${options.fillMode};\n`;
 
     if (options.delay > 0) {
-        css += `  animation-delay: ${reverseCSSTime(options.delay)};\n`;
+        css += `  animation-delay: ${reverseCSSTime(options.delay, options.delayUnit)};\n`;
     }
 
     // L.W1 S5 (Band A) — the LAYER-level `animation-composition` longhand. An
@@ -112,13 +112,19 @@ export function animationShorthand(
     const cssOptions: CSSAnimationOptions = {
         name,
         duration: options.duration,
+        ...(options.durationUnit != null ? { durationUnit: options.durationUnit } : {}),
         timingFunction: timing,
         iterationCount: isFinite(options.iterationCount)
             ? options.iterationCount
             : Infinity,
         direction: options.direction,
         fillMode: options.fillMode,
-        ...(options.delay > 0 ? { delay: options.delay } : {}),
+        ...(options.delay > 0
+            ? {
+                  delay: options.delay,
+                  ...(options.delayUnit != null ? { delayUnit: options.delayUnit } : {}),
+              }
+            : {}),
     };
     return reverseAnimationShorthand(cssOptions);
 }

@@ -15,7 +15,7 @@
 // non-`import type` module edge in THIS file reddens the gate (strictly stronger
 // than the whole-surface boundary scan).
 import type { HueInterpolationMethod, SpaceId } from "@mkbabb/value.js/color";
-import type { KeyframeSelector } from "@mkbabb/value.js/css";
+import type { CssTimeUnit, KeyframeSelector } from "@mkbabb/value.js/css";
 import type { BezierPresetName } from "@mkbabb/value.js/easing";
 import type { DIRECTIONS, FILL_MODES } from "./defaults";
 import type { FlatAuthoredValues } from "../compile/value";
@@ -183,7 +183,18 @@ export type CompositeOperator = "replace" | "add" | "accumulate";
 export type AnimationOptions = {
     duration: number;
 
+    /**
+     * The `<time>` unit the author wrote for `duration` (UIA-KF-177): set from
+     * value.js's `CSSAnimationOptions.durationUnit` at ingest, so every emit
+     * writes the number back in it. Absent for a programmatic number, which
+     * emits in its shortest exact spelling.
+     */
+    durationUnit?: CssTimeUnit;
+
     delay: number;
+
+    /** The `<time>` unit the author wrote for `delay` (UIA-KF-177); see `durationUnit`. */
+    delayUnit?: CssTimeUnit;
 
     iterationCount: number;
 
@@ -241,7 +252,11 @@ export type AnimationOptions = {
  */
 export type InputAnimationOptions = Partial<{
     duration: number | string;
+    /** The authored unit of `duration`; it pairs with the number it rides with. */
+    durationUnit: CssTimeUnit;
     delay: number | string;
+    /** The authored unit of `delay`; it pairs with the number it rides with. */
+    delayUnit: CssTimeUnit;
 
     iterationCount: number | string | "infinite" | undefined;
 

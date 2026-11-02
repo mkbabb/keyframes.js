@@ -25,6 +25,7 @@ import {
     normalizeTimingFunction,
 } from "./options";
 import { shouldReverse } from "./play-lifecycle";
+import type { CssTimeUnit } from "@mkbabb/value.js/css";
 import type { InputAnimationOptions, Vars } from "../constants";
 import type { KeyframesAnimation } from "./animation";
 import { compilerFor } from "./compiler-state";
@@ -73,9 +74,25 @@ export function applyIterationCount<V extends Vars>(
     anim.options.iterationCount = normalizeIterationCount(iterationCount);
 }
 
+/**
+ * UIA-KF-177 — a time's authored unit pairs with the number it arrives with: a
+ * bag that carries the number sets the unit it carries beside it, and a number
+ * with no unit (a programmatic `setDuration(2000)`) clears any earlier one, so
+ * a stale unit never re-spells a value the author did not write in it.
+ */
+function applyTimeUnit(
+    options: { durationUnit?: CssTimeUnit; delayUnit?: CssTimeUnit },
+    field: "durationUnit" | "delayUnit",
+    unit: CssTimeUnit | undefined,
+): void {
+    if (unit === undefined) delete options[field];
+    else options[field] = unit;
+}
+
 export function applyDuration<V extends Vars>(
     anim: KeyframesAnimation<V>,
     duration: InputAnimationOptions["duration"],
+    unit?: InputAnimationOptions["durationUnit"],
 ): void {
     // Genuine omission: keep the current duration (the constructor always seeds
     // the default; a bare `setDuration()` is a no-op).
@@ -89,13 +106,16 @@ export function applyDuration<V extends Vars>(
         frame.time.stop *= ratio;
     }
     anim.options.duration = d;
+    applyTimeUnit(anim.options, "durationUnit", unit);
 }
 
 export function applyDelay<V extends Vars>(
     anim: KeyframesAnimation<V>,
     delay: InputAnimationOptions["delay"],
+    unit?: InputAnimationOptions["delayUnit"],
 ): void {
     anim.options.delay = normalizeDelay(delay);
+    applyTimeUnit(anim.options, "delayUnit", delay == null ? undefined : unit);
 }
 
 export function applyDirection<V extends Vars>(
@@ -177,9 +197,9 @@ export function applyOptions<V extends Vars>(
     options: InputAnimationOptions,
 ): void {
     applyTimingFunction(anim, options.timingFunction);
-    applyDuration(anim, options.duration);
+    applyDuration(anim, options.duration, options.durationUnit);
     applyIterationCount(anim, options.iterationCount);
-    applyDelay(anim, options.delay);
+    applyDelay(anim, options.delay, options.delayUnit);
     applyDirection(anim, options.direction);
     applyFillMode(anim, options.fillMode);
     applyUseWAAPI(anim, options.useWAAPI);

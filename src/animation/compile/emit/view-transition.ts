@@ -37,6 +37,7 @@
  * Reached ONLY via `loadAnimationEngine()` + the `./engine` static mirror — never
  * the LIGHT barrel (its LIGHT twin is `orchestration/view-transition`'s dispatch).
  */
+import type { CssTimeUnit } from "@mkbabb/value.js/css";
 import { reverseCSSTime } from "./css-text";
 import type { KeyframesAnimation } from "../../engine";
 import type { AnimationOptions, Vars } from "../../constants";
@@ -300,12 +301,13 @@ function emitRole<V extends Vars>(
 /** Derive the group pseudo's timing (duration + easing), or `null` when un-derivable. */
 function groupTiming<V extends Vars>(
     spec: VTRoleSpec<V>,
-): { duration: number; easing: string } | null {
+): { duration: number; durationUnit?: CssTimeUnit | undefined; easing: string } | null {
     const g = spec.group;
     if (g != null) {
         if ("options" in g && "templateFrames" in g) {
             return {
                 duration: g.options.duration,
+                durationUnit: g.options.durationUnit,
                 easing: serializeEasing(g.options.timingFunction),
             };
         }
@@ -318,6 +320,7 @@ function groupTiming<V extends Vars>(
     if (src != null) {
         return {
             duration: src.options.duration,
+            durationUnit: src.options.durationUnit,
             easing: serializeEasing(src.options.timingFunction),
         };
     }
@@ -405,7 +408,7 @@ export async function compileToViewTransition<V extends Vars>(
             if (timing != null) {
                 chunks.push(
                     `${typePrefix}::view-transition-group(${selectorArg}) {\n` +
-                        `  animation-duration: ${reverseCSSTime(timing.duration)};\n` +
+                        `  animation-duration: ${reverseCSSTime(timing.duration, timing.durationUnit)};\n` +
                         `  animation-timing-function: ${timing.easing};\n}`,
                 );
             }

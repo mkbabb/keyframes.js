@@ -1,6 +1,7 @@
 import type {
     CSSAnimationOptions,
     CssColor,
+    CssTimeUnit,
     Declaration,
     KeyframeSelector,
     StylesheetItem,
@@ -10,16 +11,21 @@ import type { CssValue } from "@mkbabb/value.js/value";
 import type { CssEasingLiteral } from "../../constants";
 
 /**
- * ms → the shortest exact CSS time literal, seconds on a tie (the CSSOM's
- * canonical unit). UIA-KF-177 (X.KF.W13X.r4lib): the old 5000 ms unit switch
- * re-wrote an authored `0.25s` as `250ms` and `4.5s` as `4500ms` on every
- * Format. The parse keeps only milliseconds (value.js's `CSSAnimationOptions`
- * carries no unit), and both spellings parse back to the same milliseconds, so
- * the shorter one is exact and one Format is a fixed point.
+ * ms → a CSS time literal, in the unit the author wrote (UIA-KF-177).
+ *
+ * value.js 4.1.0's `CSSAnimationOptions` carries the authored `<time>` unit
+ * beside the number (`durationUnit` / `delayUnit`), and kf's options keep it
+ * from ingest, so an authored `500ms` emits `500ms` and an authored `0.05s`
+ * emits `0.05s`. A time with no authored unit (a programmatic number, an
+ * external stagger offset) has no spelling to keep, so it takes the shortest
+ * exact literal, seconds on a tie (the CSSOM's canonical unit;
+ * X.KF.W13X.r4lib). Every spelling parses back to the same milliseconds.
  */
-export const reverseCSSTime = (milliseconds: number): string => {
+export const reverseCSSTime = (milliseconds: number, unit?: CssTimeUnit): string => {
     const seconds = `${milliseconds / 1000}s`;
     const ms = `${milliseconds}ms`;
+    if (unit === "s") return seconds;
+    if (unit === "ms") return ms;
     return seconds.length <= ms.length ? seconds : ms;
 };
 
@@ -29,9 +35,9 @@ const reverseIterationCount = (count: number): string =>
 export const reverseAnimationShorthand = (
     options: CSSAnimationOptions,
 ): string => [
-    options.duration == null ? undefined : reverseCSSTime(options.duration),
+    options.duration == null ? undefined : reverseCSSTime(options.duration, options.durationUnit),
     options.timingFunction == null ? undefined : serializeTimingFunction(options.timingFunction),
-    options.delay == null ? undefined : reverseCSSTime(options.delay),
+    options.delay == null ? undefined : reverseCSSTime(options.delay, options.delayUnit),
     options.iterationCount == null ? undefined : reverseIterationCount(options.iterationCount),
     options.direction,
     options.fillMode,

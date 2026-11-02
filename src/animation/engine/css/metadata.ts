@@ -63,7 +63,10 @@ export function recoverAnimationOptionsBase(
     opt: ParsedAnimationOptions,
 ): Partial<InputAnimationOptions> {
     const base: Partial<InputAnimationOptions> = {};
-    if (opt.duration != null) base.duration = opt.duration * 1000;
+    if (opt.duration != null) {
+        base.duration = opt.duration * 1000;
+        if (opt.durationUnit != null) base.durationUnit = opt.durationUnit;
+    }
     if (opt.timingFunction != null)
         base.timingFunction = serializeTimingFunction(opt.timingFunction);
     if (opt.iterationCount !== undefined)
@@ -73,7 +76,10 @@ export function recoverAnimationOptionsBase(
         base.direction = opt.direction as NonNullable<
             InputAnimationOptions["direction"]
         >;
-    if (opt.delay != null) base.delay = opt.delay * 1000;
+    if (opt.delay != null) {
+        base.delay = opt.delay * 1000;
+        if (opt.delayUnit != null) base.delayUnit = opt.delayUnit;
+    }
     if (opt.fillMode != null)
         base.fillMode = opt.fillMode as NonNullable<
             InputAnimationOptions["fillMode"]

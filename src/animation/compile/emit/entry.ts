@@ -398,7 +398,7 @@ export async function compileToEntry<V extends Vars>(
         const enterFirstDecls = frameDecls(enter, enterFirst);
         const enterLastDecls = frameDecls(enter, enterLast);
         const enterProps = transitionProps(enterFirstDecls, enterLastDecls);
-        const enterDur = reverseCSSTime(enter.options.duration);
+        const enterDur = reverseCSSTime(enter.options.duration, enter.options.durationUnit);
         const enterEasing = serializeEasing(enter.options.timingFunction);
 
         // The exit defaults to enter-REVERSED (its last frame = enter's first frame).
@@ -414,7 +414,7 @@ export async function compileToEntry<V extends Vars>(
                 frameDecls(role.exit, exFirstIdx),
                 exitLastDecls,
             );
-            exitDur = reverseCSSTime(role.exit.options.duration);
+            exitDur = reverseCSSTime(role.exit.options.duration, role.exit.options.durationUnit);
             exitEasing = serializeEasing(role.exit.options.timingFunction);
         } else {
             exitLastDecls = enterFirstDecls;
