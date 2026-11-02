@@ -36,7 +36,7 @@
  *                                    lifecycle (signal-safe; W7-1 rule below).
  *   SCENE_MACHINE_KEY              — the scene machine's localStorage key (the
  *                                    persisted `activeScene` EARLY fact).
- *   navToScene(page, sceneId, expectedTrigger, {timeout})
+ *   navToScene(page, sceneId, expectedSurface, {timeout})
  *                                  — hash-nav + per-EXPECTED-state settle (the
  *                                    J.W0 S2 primitive; no fixed settleMs).
  *   openControlsPanel(page)        — drive a scene into its OPEN-panel editing
@@ -900,15 +900,22 @@ export async function waitForRender(page, predicate, { timeout = 8000, arg } = {
  * reads the real (wrong) DOM and reds; only the timing race is removed
  * (J.W0 S2, `ci-linux-open-item.md §4.2`).
  *
- * @param expectedTrigger  the destination's control-tab label (e.g.
- *                         `"Controls"`, `"Easing"`, `"Spring"`), or `null`
- *                         when the scene has no control panel
- *                         (home/sequence).
+ * The destination fact is the dock's AT-REST surface: the surfaces trigger
+ * face's `data-surface` (`[data-dock-surface-trigger]`, ChromeDock.vue — the
+ * selected surface the pane holds). OD19-K6 `13762e6e` moved the surface
+ * items into a DropdownMenu whose rows mount only while it is open, so the
+ * former read (a checked `[data-dock-surface-item]`'s aria-label) has no
+ * at-rest subject (ESC-KFW3-r1-1, COHESION §0he.1).
+ *
+ * @param expectedSurface  the destination's selected surface id (e.g.
+ *                         `"controls"`, `"easing"`, `"spring"`,
+ *                         `"timeline"`), or `null` when the scene has no
+ *                         surfaces trigger (home).
  */
 export async function navToScene(
     page,
     sceneId,
-    expectedTrigger,
+    expectedSurface,
     { timeout = 12000 } = {},
 ) {
     await page.evaluate((s) => {
@@ -937,13 +944,11 @@ export async function navToScene(
     await page
         .waitForFunction(
             (expected) => {
-                const trig = document.querySelector(
-                    "[data-dock-surface-item][aria-checked=\"true\"]",
-                );
-                const text = trig?.getAttribute("aria-label") || null;
-                return expected === null ? !trig : text === expected;
+                const face = document.querySelector("[data-dock-surface-trigger]");
+                const surface = face?.getAttribute("data-surface") || null;
+                return expected === null ? !face : surface === expected;
             },
-            expectedTrigger,
+            expectedSurface,
             { timeout },
         )
         .catch(() => {});

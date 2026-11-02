@@ -251,7 +251,7 @@ async function realSceneHalf() {
         async (page, { url }) => {
             await page.goto(`${url}/#/cube`, { waitUntil: "load" });
             await page.evaluate(() => localStorage.clear());
-            await navToScene(page, "cube", "Controls");
+            await navToScene(page, "cube", "controls");
             await page
                 .waitForFunction(
                     () => !!document.querySelector('button[aria-label="Play animation"]'),

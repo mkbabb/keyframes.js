@@ -391,7 +391,7 @@ async function runBattery() {
                 const page = await ctx.newPage();
                 budget.attach(page, "M1:amiga-sheet");
                 await page.goto(`${base}/#/amiga`, { waitUntil: "load" });
-                await navToScene(page, "amiga", "Controls", { timeout: 12000 });
+                await navToScene(page, "amiga", "controls", { timeout: 12000 });
                 await page
                     .waitForFunction(
                         () =>
@@ -562,7 +562,7 @@ async function runBattery() {
                 const page = await ctx.newPage();
                 budget.attach(page, "M2:dock-switch");
                 await page.goto(`${base}/#/cube`, { waitUntil: "load" });
-                await navToScene(page, "cube", "Controls", { timeout: 12000 });
+                await navToScene(page, "cube", "controls", { timeout: 12000 });
                 await page.waitForTimeout(600);
 
                 // Tap-expand the morphing TOP dock (the scene dock — the one
@@ -757,6 +757,11 @@ async function runBattery() {
                     // ABSENT expectation asserted the exclusion-table state). The
                     // destination is discriminated by machine=easing + the
                     // Controls-tab node PRESENT (the derived triad's tell).
+                    // ESC-KFW3-r1-1 (COHESION §0he.1) — since OD19-K6 `13762e6e`
+                    // the surface rows mount only inside the open DropdownMenu,
+                    // so the at-rest tell is the surfaces trigger FACE carrying
+                    // the selected surface (`[data-dock-surface-trigger]
+                    // [data-surface]`).
                     await page
                         .waitForFunction(
                             () => {
@@ -764,8 +769,8 @@ async function runBattery() {
                                     const m = JSON.parse(
                                         localStorage.getItem("keyframes-js-scene-machine") || "{}",
                                     );
-                                    const trig = document.querySelector("[data-dock-surface-item][aria-checked=\"true\"]");
-                                    return m.activeScene === "easing" && !!trig;
+                                    const face = document.querySelector("[data-dock-surface-trigger]");
+                                    return m.activeScene === "easing" && !!face?.getAttribute("data-surface");
                                 } catch {
                                     return false;
                                 }
@@ -782,13 +787,13 @@ async function runBattery() {
                         }
                         return {
                             machine: m,
-                            trigger: document.querySelector("[data-dock-surface-item][aria-checked=\"true\"]")?.getAttribute("aria-label") ?? null,
+                            trigger: document.querySelector("[data-dock-surface-trigger]")?.getAttribute("data-surface") || null,
                         };
                     });
                     if (dest.machine === "easing" && dest.trigger !== null) {
                         ok(
                             `M2 dock SWITCH: the touch combobox commit landed cube→easing per the ` +
-                                `expected-destination-state predicate (machine=easing, control-tab "${dest.trigger}" ` +
+                                `expected-destination-state predicate (machine=easing, surface "${dest.trigger}" ` +
                                 `PROJECTS — the T.B2-derived triad's tell, the #25 asymmetry cure)`,
                         );
                     } else {
@@ -808,7 +813,7 @@ async function runBattery() {
                 const page = await ctx.newPage();
                 budget.attach(page, "M3:square-touch-drag");
                 await page.goto(`${base}/#/square`, { waitUntil: "load" });
-                await navToScene(page, "square", "Controls", { timeout: 12000 });
+                await navToScene(page, "square", "controls", { timeout: 12000 });
                 await page.waitForTimeout(900);
                 const box = await page.evaluate(() => {
                     const el = document.querySelector(".demo-box");
@@ -881,7 +886,7 @@ async function runBattery() {
                 const page = await ctx.newPage();
                 budget.attach(page, "M4:play-tap");
                 await page.goto(`${base}/#/cube`, { waitUntil: "load" });
-                await navToScene(page, "cube", "Controls", { timeout: 12000 });
+                await navToScene(page, "cube", "controls", { timeout: 12000 });
                 await page.waitForTimeout(900);
                 let tapped = false;
                 try {
@@ -1065,7 +1070,7 @@ async function runAppearanceBand() {
         },
         async (page, { url: base }) => {
             await page.goto(`${base}/#/easing`, { waitUntil: "load" });
-            await navToScene(page, "easing", /*T.B5-RENDER elided*/ null, { timeout: 12000 });
+            await navToScene(page, "easing", "easing" /* the Curve surface (item-7a) */, { timeout: 12000 });
             await page.waitForTimeout(900);
             return page.evaluate(() => {
                 const isDark = document.documentElement.classList.contains("dark");

@@ -423,7 +423,7 @@ async function browserHalf() {
         }
 
         // ── 3. UNIQUE ARIA-LABEL (editor scene) ─────────────────────────────
-        await navToScene(page, "cube", "Controls", { timeout: 8000 });
+        await navToScene(page, "cube", "controls", { timeout: 8000 });
         // Let the editor scene mount its control suite.
         await page.waitForTimeout(1500);
         const dupes = await page.evaluate(() => {

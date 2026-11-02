@@ -195,15 +195,15 @@ const CTRL_KEY = "animation-groups-control-options-store";
 // bidirectional stale-key guard below) — the sweep can never silently omit a
 // routed scene.
 const SWEEP_META = {
-    home: { trigger: null, label: "Home", kind: "home" },
-    cube: { trigger: "Controls", label: "Cube", kind: "group-play" },
-    amiga: { trigger: "Controls", label: "Amiga", kind: "present-loop" },
+    home: { surface: null, label: "Home", kind: "home" },
+    cube: { surface: "controls", label: "Cube", kind: "group-play" },
+    amiga: { surface: "controls", label: "Amiga", kind: "present-loop" },
     // T.A13 + T.B3 (fold row 69) — square RE-TABLED into the built-in triad: the
     // G2 collapse is CURED (the "Transform" anim is LIVE via the num() normalizer
     // + four-corner keyframes + the {idle,drag,playback} FSM), so the controls-tab
     // trigger PROJECTS. `group-play` — Play drives the honest four-corner tour
     // (proof:square-honest v2 owns the Play-paints oracle).
-    square: { trigger: "Controls", label: "Square", kind: "group-play" },
+    square: { surface: "controls", label: "Square", kind: "group-play" },
     // T.B5-RENDER / T.C1 — easing + spring each expose exactly ONE control surface,
     // redundant with the scene identity the compass already shows. Per the elision
     // (VERDICT #17, the `∿ Spring │ ∿ Spring` dup KILL) the control-tab trigger is
@@ -222,9 +222,13 @@ const SWEEP_META = {
     // [data-selected]`), the same fact (which surface the scene projected);
     // X.KF.W13V.s2 — sequence's one live item is Timeline (the Timeline pane's
     // Sequence mode), so it is the selected item.
-    easing: { trigger: "Curve", label: "Easing", kind: "group-play" },
-    spring: { trigger: "Physics", label: "Spring", kind: "spring-rail" },
-    sequence: { trigger: "Timeline", label: "Sequence", kind: "sequence-transport" },
+    // ESC-KFW3-r1-1 (COHESION §0he.1) — OD19-K6 `13762e6e` moved the items into
+    // a DropdownMenu whose rows mount only while it is open, so the at-rest
+    // fact is the surfaces trigger FACE's `data-surface` (the selected
+    // surface's id: "easing" is the Curve surface, "spring" the Physics one).
+    easing: { surface: "easing", label: "Easing", kind: "group-play" },
+    spring: { surface: "spring", label: "Spring", kind: "spring-rail" },
+    sequence: { surface: "timeline", label: "Sequence", kind: "sequence-transport" },
 };
 {
     const libKeys = SCENES.map((s) => s.key);
@@ -550,7 +554,7 @@ async function runBattery() {
             await page.goto(`${base}/#/cube`, { waitUntil: "load" });
             await waitActiveScene(page, "cube");
             await page.waitForTimeout(700);
-            await navToScene(page, "easing", "Curve") /* item-7a: easing opens on Curve */;
+            await navToScene(page, "easing", "easing") /* item-7a: easing opens on Curve (the easing surface) */;
             await page.waitForTimeout(1500);
             const easing = await page.evaluate(() => {
                 // [X.KF.W13R.m, glass 10.0.1] the picker's hook is its
@@ -907,17 +911,17 @@ async function runBattery() {
                     try {
                         m = JSON.parse(localStorage.getItem(mk) || "{}").activeScene;
                     } catch { /* unreadable */ }
-                    const trig = document.querySelector("[data-dock-surface-item][aria-checked=\"true\"]");
-                    return { machine: m, trigger: trig ? (trig.getAttribute("aria-label") || "") : null };
+                    const face = document.querySelector("[data-dock-surface-trigger]");
+                    return { machine: m, surface: face ? (face.getAttribute("data-surface") || "") : null };
                 }, [MACHINE_KEY]);
                 const subj = await subjectRect(page, libScene.subjectSelector);
                 const machineOk = state.machine === key;
-                const trigOk = meta.trigger === null ? state.trigger === null : state.trigger === meta.trigger;
+                const trigOk = meta.surface === null ? state.surface === null : state.surface === meta.surface;
                 const subjOk = subj != null;
                 if (machineOk && trigOk && subjOk) return true;
                 sceneFails.push(
-                    `${key}: ENTRY red — machine=${state.machine} (want ${key}), trigger=${JSON.stringify(state.trigger)} ` +
-                        `(want ${JSON.stringify(meta.trigger)}), subject ${subjOk ? "ok" : `ABSENT (${libScene.subjectSelector} — blank mount)`}`,
+                    `${key}: ENTRY red — machine=${state.machine} (want ${key}), surface=${JSON.stringify(state.surface)} ` +
+                        `(want ${JSON.stringify(meta.surface)}), subject ${subjOk ? "ok" : `ABSENT (${libScene.subjectSelector} — blank mount)`}`,
                 );
                 return false;
             };
@@ -955,14 +959,14 @@ async function runBattery() {
                         ([mk, id, expected]) => {
                             try {
                                 const m = JSON.parse(localStorage.getItem(mk) || "{}").activeScene;
-                                const trig = document.querySelector("[data-dock-surface-item][aria-checked=\"true\"]");
-                                const text = trig?.getAttribute("aria-label") || null;
-                                return m === id && (expected === null ? !trig : text === expected);
+                                const face = document.querySelector("[data-dock-surface-trigger]");
+                                const surface = face?.getAttribute("data-surface") || null;
+                                return m === id && (expected === null ? !face : surface === expected);
                             } catch {
                                 return false;
                             }
                         },
-                        [MACHINE_KEY, key, meta.trigger],
+                        [MACHINE_KEY, key, meta.surface],
                         { timeout: 12000 },
                     )
                     .catch(() => {});
@@ -1121,7 +1125,7 @@ async function runBattery() {
             // dock-combobox switch chain through every routed scene, wrapping
             // back to home (every scene a switch SOURCE and DESTINATION once).
             await page.goto(`${base}/#/`, { waitUntil: "load" });
-            await navToScene(page, walk[0], SWEEP_META[walk[0]].trigger);
+            await navToScene(page, walk[0], SWEEP_META[walk[0]].surface);
             await page.waitForTimeout(800);
             for (let i = 0; i < walk.length; i++) {
                 const key = walk[i];
@@ -1228,7 +1232,7 @@ async function runBattery() {
                 const page = await ctx.newPage();
                 budget.attach(page, "S2:prm-sheet-snap");
                 await page.goto(`${base}/#/easing`, { waitUntil: "load" });
-                await navToScene(page, "easing", null) /* T.B5-RENDER: easing control-tab elided */;
+                await navToScene(page, "easing", "easing") /* easing opens on its Curve surface (item-7a) */;
                 await page.waitForTimeout(1200);
                 const haveSheet = await page.evaluate(() => {
                     const w = document.querySelector(".glass-drawer");
@@ -1480,7 +1484,7 @@ async function runBattery() {
             const genAfter = budget.charges.filter((c) => /_gen-crash|_gen|Cannot read propert/.test(c.text)).length;
 
             // resume-iff-was-playing — switch back to easing + replay (continuity).
-            await navToScene(page, "easing", null) /* T.B5-RENDER: easing control-tab elided */;
+            await navToScene(page, "easing", "easing") /* easing opens on its Curve surface (item-7a) */;
             await page.waitForTimeout(1500);
             await page.waitForTimeout(500);
             await clickRainbowPlay(page);
