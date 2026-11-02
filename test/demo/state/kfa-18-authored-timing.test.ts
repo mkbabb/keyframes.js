@@ -40,7 +40,10 @@ describe("KFA-18/21 — the authored channel's timing is the truth", () => {
     it("an unseen bucket for a live animation is seeded from what it runs", () => {
         const anim = authored();
         const stored = getStoredAnimationOptions(anim);
-        expect(stored.animationOptions.duration).toBe("1600ms");
+        // A programmatic 1600 (no authored unit) takes the engine's own emit
+        // spelling, shortest-exact (`reverseCSSTime`), as the store does for an
+        // authored unit (UIA-KF-177, `seeded-authored-unit.test.ts`).
+        expect(stored.animationOptions.duration).toBe("1.6s");
         expect(stored.animationOptions.direction).toBe("normal");
         expect(stored.animationOptions.iterationCount).toBe("infinite");
         expect(stored.animationOptions.timingFunction).toBe("linear");

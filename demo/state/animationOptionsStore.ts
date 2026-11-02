@@ -87,13 +87,24 @@ const storedEasingLiteral = (
 const storedOptionsFrom = (
     animation: KeyframesAnimation<any>,
 ): StoredAnimationOptions => {
-    const { duration, delay, iterationCount, fillMode, direction, timingFunction } =
-        animation.options;
+    const {
+        duration,
+        durationUnit,
+        delay,
+        delayUnit,
+        iterationCount,
+        fillMode,
+        direction,
+        timingFunction,
+    } = animation.options;
+    const { reverseCSSTime } = kfEngine();
     const seeded = structuredClone(defaultStoredAnimationOptions);
     seeded.animationOptions = {
         ...seeded.animationOptions,
-        duration: `${duration}ms`,
-        delay: `${delay}ms`,
+        // UIA-KF-177: the `<time>` unit the author wrote, the same two-argument
+        // spelling the keyframes-panel op and every engine emit use.
+        duration: reverseCSSTime(duration, durationUnit),
+        delay: reverseCSSTime(delay, delayUnit),
         iterationCount: iterationCount === Infinity ? "infinite" : iterationCount,
         fillMode,
         direction,
