@@ -44,8 +44,10 @@
  *
  *   (i) MALFORMED SYNTAX — the empty-argument colour form. No model grammar
  *       emits a call with no arguments, so `oklch()` could never appear here.
- *       It is the R1 shipping crash, and at the pinned value.js 4.0.0 it
- *       reaches kf's own `fromString` as a THROWN TypeError, not a refusal.
+ *       It is the R1 shipping crash: at value.js 4.0.0 it reached kf's own
+ *       `fromString` as a THROWN TypeError, not a refusal; at the 4.1.0 repin
+ *       (KF.W3 .c1, 2026-11-02) it arrives as a citable `PARSE_ERROR` refusal
+ *       — the tripwire fired and the arm was PROMOTED, not widened.
  *
  *  (ii) CHARACTER-CLASS input DELIVERED OFF THE MODEL CHANNEL — KF-KC-17. A
  *       keydown pass-through inserts a tab as 4×U+00A0 straight into the DOM
@@ -280,8 +282,9 @@ describe("Q.WD2 S1 — grammar-fuzz: the PROMOTED round-trip arms (VJ-Q9 fixed i
  * site: a function name, its empty argument list, and the WELL-FORMED control
  * of the same function — so the arms below can show the refusal tracks the
  * ARGUMENT LIST and not the function name. Every reading was executed against
- * the installed value.js 4.0.0 before it was written down (OP-5 forbids a
- * repin, so 4.0.0 is the measured artifact these arms describe).
+ * the installed value.js before it was written down — 4.0.0 at authoring, and
+ * re-executed at the KF.W3 repin against 4.1.0, the artifact these arms now
+ * describe.
  */
 const EMPTY_ARGUMENT_COLOURS = [
     { fn: "oklch", wellFormed: "oklch(0.6 0.1 200)" },
@@ -328,22 +331,26 @@ const offModelNbspArb = fc
     });
 
 describe("X.KF.W2 G-W2-5 — grammar-fuzz: the MALFORMED class the model grammars cannot reach", () => {
-    it("malformedColourArb — the empty-argument colour form reaches kf's own fromString as a THROW, not a refusal (R1, at the pinned 4.0.0)", async () => {
+    it("malformedColourArb — the empty-argument colour form reaches kf's own fromString as a citable REFUSAL, never a throw (R1 cured at 4.1.0)", async () => {
         await fc.assert(
             fc.asyncProperty(malformedColourArb, async ({ entry, css }) => {
-                // TRIPWIRE, and it is declared as one: this asserts the MEASURED
-                // state of the installed 4.0.0 — five entries throw on the
-                // empty-argument colour forms. When KF.W3's repin to `RC-P(V)`
-                // turns the throw into an `ok:false`, this arm REDS, which is the
-                // repin's headline rather than a footnote nobody noticed. A seat
-                // arriving at that red promotes the arm; it does not widen it.
+                // TRIPWIRE, PROMOTED at the KF.W3 repin. Through 4.0.0 this arm
+                // asserted the measured THROW (five entries, `TypeError`); the
+                // repin to `RC-P(4.1.0)` turned it into an `ok:false` and the arm
+                // RED as declared. It now asserts the 4.1.0 contract — no throw,
+                // and a PARSE_ERROR naming the very empty-argument form — so a
+                // value.js that regresses to throwing reds here again.
+                const animation = new CSSKeyframesAnimation({ duration: 1000 });
                 expect(
-                    () =>
-                        new CSSKeyframesAnimation({
-                            duration: 1000,
-                        }).fromString(css),
-                    `${entry.fn}() no longer throws at this seam`,
-                ).toThrow(TypeError);
+                    () => animation.fromString(css),
+                    `${entry.fn}() threw at this seam`,
+                ).not.toThrow();
+                const refusal = animation.diagnostics.find(
+                    (d) => d.code === "PARSE_ERROR",
+                );
+                expect(refusal, `${entry.fn}() was not refused`).toBeDefined();
+                expect(refusal!.message).toContain(`${entry.fn}()`);
+                expect(parseStylesheet(css).ok).toBe(false);
             }),
             fcOpts,
         );

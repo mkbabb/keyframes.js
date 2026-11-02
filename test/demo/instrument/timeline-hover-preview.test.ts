@@ -273,6 +273,32 @@ describe("G10 (d) — the plate is fixed, the payload moves", () => {
         expect(style).not.toContain("scale(0.3)");
     });
 
+    // KF.W3 .c1 (O-117): value.js 4.1.0 retired its matrix family, so the ghost
+    // decomposes with kf's own `utils/decomposeMatrix`. The volumetric arm had
+    // no assertion at all; `matrix3d` = rotateY(90deg) with a 300px translate.
+    it("decomposes a `matrix3d` to the rotation and scale, translation dropped", () => {
+        const style = mountPreview(
+            kf({ vars: { transform: "matrix3d(0, 0, -1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 300, 0, 0, 1)" } }),
+        ).get(".ghost-xform").attributes("style") ?? "";
+        const rotate = /rotate3d\(([^,]+), ([^,]+), ([^,]+), ([^)]+)rad\)/.exec(style);
+        expect(rotate).not.toBeNull();
+        const [x, y, z, angle] = rotate!.slice(1).map(Number);
+        expect(x).toBeCloseTo(0, 12);
+        expect(y).toBeCloseTo(1, 12);
+        expect(z).toBeCloseTo(0, 12);
+        expect(angle).toBeCloseTo(Math.PI / 2, 12);
+        expect(style).toContain("scale3d(1, 1, 1)");
+        expect(style).not.toContain("300");
+    });
+
+    it("writes no ghost transform for a degenerate `matrix3d` (no rotation to read, never NaN)", () => {
+        // Negative control with a real subject: scaleX = 0 collapses the basis.
+        const w = mountPreview(
+            kf({ vars: { transform: "matrix3d(0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1)" } }),
+        );
+        expect(w.get(".ghost-xform").attributes("style")).toBeUndefined();
+    });
+
     it("leaves the wrapper untransformed for a value the UA has not normalised", () => {
         const w = mountPreview(
             kf({ vars: { transform: "translateX(300px) rotate(45deg)" } }),

@@ -273,8 +273,7 @@ export const describeKeyframe = (
 <script setup lang="ts">
 import { computed, useTemplateRef, watch } from "vue";
 import { clamp } from "@mkbabb/value.js/math";
-import { decomposeMatrix2D, decomposeMatrix3D } from "@mkbabb/value.js/transform";
-import type { Mat4 } from "@mkbabb/value.js/transform";
+import { decomposeMatrix2D, decomposeMatrix3D } from "../utils/decomposeMatrix";
 
 const props = defineProps<{
     keyframe: TimelineKeyframe;
@@ -343,9 +342,9 @@ const ghostTransform = (raw: string | undefined): string | null => {
     if (flat) {
         const n = numericList(flat[1]!, 6);
         if (!n) return null;
-        const d = decomposeMatrix2D(n[0]!, n[1]!, n[2]!, n[3]!, n[4]!, n[5]!);
+        const d = decomposeMatrix2D(n[0]!, n[1]!, n[2]!, n[3]!);
         // CSSOM §15.1 recomposes as rotate · skewX · scale (the order
-        // `recomposeMatrix2D` inverts); `skew` is the TANGENT of the skew angle.
+        // `decomposeMatrix2D` inverts); `skew` is the TANGENT of the skew angle.
         return `rotate(${d.angle}rad) skewX(${Math.atan(d.skew)}rad) scale(${d.scaleX}, ${d.scaleY})`;
     }
 
@@ -353,7 +352,7 @@ const ghostTransform = (raw: string | undefined): string | null => {
     if (volumetric) {
         const n = numericList(volumetric[1]!, 16);
         if (!n) return null;
-        const d = decomposeMatrix3D(n as unknown as Mat4);
+        const d = decomposeMatrix3D(n);
         if (!d) return null;
         const [x, y, z, w] = d.quaternion;
         const sin = Math.sqrt(Math.max(0, 1 - w * w));

@@ -1,12 +1,15 @@
 /**
  * easing-identity.test.ts — X.KF.W4 K1 / **G-KFW4-5** (G-L7a).
  *
- * The defect this locks: value.js 4.0.0's `easing(name)` is **not memoised**, so
- * 21 of the registry's 40 names hand out a FRESH function reference on every
- * call, and the 40 names resolve onto only **31 distinct references** (nine
+ * The defect this locks: value.js 4.0.0's `easing(name)` was **not memoised**,
+ * so 21 of the registry's 40 names handed out a FRESH function reference on
+ * every call; the 40 names resolve onto only **31 distinct references** (nine
  * hyphen/camel twin pairs share one). `registry.ts` builds its name→function
  * map ONCE at module evaluation (R-2's "memoise kf-side now"), which is what
- * makes kf-side identity stable at all.
+ * made kf-side identity stable at all. **At the 4.1.0 repin (KF.W3 .c1,
+ * 2026-11-02)** value.js's own `easing()` is memoised — stable for all 40, and
+ * the very reference the registry holds — so the K1 negative control is re-cut
+ * onto the input class no memo holds (a CSS `<easing-function>` string).
  *
  * **How identity is proved here, and why it is not a relabel** (COHESION §0j.C
  * **KF-SS3**, the owner's ruling): *"the easing-name trap is cured by K1's
@@ -59,16 +62,34 @@ describe("K1 — the module-evaluation memo makes registry identities stable", (
         }
     });
 
-    it("NEGATIVE CONTROL — value.js's own `easing()` is unstable for 21 of the 40, which is what the memo cures", () => {
-        // BITE: delete the module-evaluation map (resolve per call) and the
-        // clause above reds on exactly these names. Stated as a measured
-        // inequality rather than prose so the memo's necessity is checkable.
+    it("value.js 4.1.0's own `easing()` is stable for all 40, and IS the registry's reference", () => {
+        // The 4.0.0 measurement this replaces read 21 unstable names (the memo's
+        // whole reason). 4.1.0 memoises value-side; asserted, so a value.js that
+        // stops memoising — or a registry that stops handing out value's own
+        // function — reds here rather than silently relying on the kf map.
         const unstable = registryNames.filter((name) => {
             const a = easing(name);
             const b = easing(name);
             return a.ok && b.ok && a.value !== b.value;
         });
-        expect(unstable.length).toBe(21);
+        expect(unstable.length).toBe(0);
+        for (const name of registryNames) {
+            const direct = easing(name);
+            expect(direct.ok && direct.value).toBe(resolveTimingFunction(name));
+        }
+    });
+
+    it("NEGATIVE CONTROL — a CSS `<easing-function>` no memo holds resolves FRESH per call", () => {
+        // A real subject for the identity assertion's ability to fail: a
+        // non-registry `cubic-bezier()` is parsed and constructed on every
+        // resolution, so the `toBe` the first clause applies to every registry
+        // name DOES distinguish a memoised curve from an unmemoised one — while
+        // the curve itself is the same on the 33-point grid.
+        const css = "cubic-bezier(0.1, 0.2, 0.3, 0.4)";
+        const a = resolveTimingFunction(css);
+        const b = resolveTimingFunction(css);
+        expect(a).not.toBe(b);
+        expect(sample(a)).toEqual(sample(b));
     });
 });
 

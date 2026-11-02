@@ -37,18 +37,20 @@
  * answered to `pulse`; equality does not.
  *
  * ── THE BOUND THIS FIXTURE MEASURES AND DOES NOT HIDE (clause c) ─────────────
- * Linking an escaped-name sibling now feeds its text to `resolveKeyframes`, and
- * value.js **4.0.0** (the installed pin; OP-5 forbids a repin) refuses a CSS
- * escape — and any non-ASCII identifier — in the DECLARATION-VALUE position:
- *   parseCssValues("pu\\+lse")  → ok:false [css_syntax] expected ["scalar"]
- *   parseCssValues("puélse")    → ok:false [css_syntax] expected ["scalar"]
- * while the `@keyframes` NAME position accepts both. So the reconstruction of an
- * escaped-name animation surfaces a citable `PARSE_ERROR` naming the identifier
- * instead of riding the sibling's options. That is the module's own VJ-9
- * tripwire BITING rather than a kf defect: the ingest is honest (a diagnostic,
- * never a silent drop) and its robustness widens when the grammar does. Clause
- * (c) asserts that state deliberately, so the day value.js accepts escaped idents
- * this fixture goes red and the row is re-cut rather than rediscovered.
+ * Linking an escaped-name sibling feeds its text to `resolveKeyframes`. value.js
+ * **4.0.0** refused a CSS escape — and any non-ASCII identifier — in the
+ * DECLARATION-VALUE position (`parseCssValues("pu\\+lse")` → ok:false
+ * [css_syntax] expected ["scalar"]), so every escaped-name reconstruction
+ * surfaced a citable `PARSE_ERROR` instead of riding the sibling's options, and
+ * clause (c) pinned that state as a tripwire. **RE-CUT AT THE 4.1.0 REPIN
+ * (KF.W3 .c1, 2026-11-02) — the tripwire fired as designed**: 4.1.0's value
+ * grammar accepts those idents (`parseCssValues("pu\\+lse")` and
+ * `parseCssValues("puélse")` → ok:true), so five of the six names below now
+ * link END TO END — no diagnostic, the sibling's 2500ms on the object (clause
+ * b). The one 4.1.0 still refuses is the escaped PAREN, `a\(b`, at the
+ * stylesheet RULE level (`expected rule, got @keyframes a\…(b`): clause (c)
+ * keeps that real subject, so the ingest is still proven honest — a citable
+ * diagnostic, never a silent drop — where the grammar's bound now sits.
  */
 import { describe, expect, it } from "vitest";
 import { fromStyleSheets } from "../../src/animation/ingest";
@@ -112,6 +114,11 @@ const ESCAPED = [
     ["back\\\\slash", "backslash"],
 ] as const;
 
+/** The one of them value.js 4.1.0 still refuses (clause c's subject). */
+const REFUSED = "a\\(b";
+/** The rest: accepted by 4.1.0's grammar, so they link end to end (clause b). */
+const ACCEPTED = ESCAPED.filter(([name]) => name !== REFUSED);
+
 describe("G-W2-4 clause (a) — no identifier throws out of the walk", () => {
     // The browser reading: `CSSKeyframesRule.name` unescaped. Each of these is an
     // invalid regular expression the moment it is interpolated, and pre-cure each
@@ -142,11 +149,13 @@ describe("G-W2-4 clause (a) — no identifier throws out of the walk", () => {
 
 describe("G-W2-4 clause (b) — the escaped name LINKS its sibling rule", () => {
     // Pre-cure the pattern never matched, so the sibling text never reached the
-    // reconstruction. The reconstruction's own diagnostic carries the exact
-    // `input` it was handed, which is where the linkage is observable: the
-    // sibling's declaration text is IN it, ahead of the `@keyframes` block.
-    for (const [name, what] of ESCAPED) {
-        it(`links "${name}" (${what}) — its sibling's text rides the parse`, () => {
+    // reconstruction. At value.js 4.1.0 the grammar accepts these escaped idents,
+    // so the linkage is observable where it matters most: END TO END — the
+    // reconstruction is clean and the sibling's 2500ms is on the object (at
+    // 4.0.0 it could only be read off a refusal's `input`; clause c keeps that
+    // reading for the name 4.1.0 still refuses).
+    for (const [name, what] of ACCEPTED) {
+        it(`links "${name}" (${what}) — its sibling's options ride the parse`, () => {
             const sheet = installSheet(
                 `@keyframes ${name} ${STOPS} .t { animation: ${name} 2500ms linear; }`,
             );
@@ -155,13 +164,9 @@ describe("G-W2-4 clause (b) — the escaped name LINKS its sibling rule", () => 
             expect(diagnostics.length).toBe(0);
             const ingested = animations.get(name);
             expect(ingested).toBeDefined();
-            const inputs = ingested!.diagnostics.map((d) => d.input ?? "");
-            expect(inputs.length).toBeGreaterThan(0);
-            expect(
-                inputs.every((input) =>
-                    input.startsWith(`.t { animation: ${name} 2500ms linear; }`),
-                ),
-            ).toBe(true);
+            expect(ingested!.diagnostics).toEqual([]);
+            expect(ingested!.animation.templateFrames.length).toBe(2);
+            expect(ingested!.animation.options.duration).toBe(2500);
         });
     }
 
@@ -175,24 +180,41 @@ describe("G-W2-4 clause (b) — the escaped name LINKS its sibling rule", () => 
     });
 });
 
-describe("G-W2-4 clause (c) — the linked sibling is REFUSED, citably, by value.js 4.0.0", () => {
-    it("an escaped identifier surfaces a PARSE_ERROR naming it — never a silent drop", () => {
-        // THE DECLARED TRIPWIRE. This asserts the value.js-side bound, not a kf
-        // behaviour: `pu\+lse` is a legal CSS ident that the 4.0.0 VALUE grammar
-        // rejects (`expected ["scalar"]`), so the sibling-bearing source cannot
-        // be reconstructed. When value.js accepts escaped idents this assertion
-        // goes RED — deliberately: that is the signal to re-cut the row, not a
-        // flake. Nothing here is narrowed to make it pass.
+describe("G-W2-4 clause (c) — the grammar's bound at value.js 4.1.0, held citably", () => {
+    it("the 4.0.0 value-grammar refusal is gone: `pu\\+lse` reconstructs with no PARSE_ERROR", () => {
+        // THE TRIPWIRE, RE-CUT (KF.W3 .c1). Through 4.0.0 this case asserted the
+        // value.js-side REFUSAL (`expected ["scalar"]`); 4.1.0 accepts the ident
+        // and the assertion went RED exactly as it promised to. It now states the
+        // 4.1.0 contract, so a grammar that regresses to refusing escaped idents
+        // turns it RED again.
         const sheet = installSheet(
             `@keyframes pu\\+lse ${STOPS} .t { animation: pu\\+lse 2500ms linear; }`,
         );
         const ingested = fromStyleSheets([sheet]).animations.get("pu\\+lse")!;
-        const codes = ingested.diagnostics.map((d) => d.code);
-        expect(codes).toContain("PARSE_ERROR");
+        expect(ingested.diagnostics.map((d) => d.code)).not.toContain("PARSE_ERROR");
+        expect(ingested.animation.options.duration).toBe(2500);
+    });
+
+    it("an escaped paren is still REFUSED, citably — a PARSE_ERROR naming it, never a silent drop", () => {
+        // The negative control keeps a REAL subject: 4.1.0's stylesheet grammar
+        // refuses the escaped paren at the RULE level (`expected rule, got
+        // @keyframes a\…(b`; the realm re-escapes the backslash, so the count of
+        // them is not asserted). The linkage still happened — the refusal's
+        // `input` carries the sibling's text first — and the sibling's options
+        // do NOT silently ride an animation that was never reconstructed.
+        const sheet = installSheet(
+            `@keyframes ${REFUSED} ${STOPS} .t { animation: ${REFUSED} 2500ms linear; }`,
+        );
+        const ingested = fromStyleSheets([sheet]).animations.get(REFUSED)!;
         const parseError = ingested.diagnostics.find(
             (d) => d.code === "PARSE_ERROR",
-        )!;
-        expect(parseError.message).toContain("pu\\+lse");
+        );
+        expect(parseError).toBeDefined();
+        expect(parseError!.message).toMatch(/@keyframes a\\+\(b/);
+        expect(
+            parseError!.input?.startsWith(`.t { animation: ${REFUSED} 2500ms linear; }`),
+        ).toBe(true);
+        expect(ingested.animation.templateFrames.length).toBe(0);
     });
 
     it("a value.js-parsable declaration DOES ride the linkage end to end", () => {
