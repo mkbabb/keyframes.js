@@ -42,8 +42,16 @@ export function useKeyframeOps(
         animation.adoptCompiled(compiled);
 
         const stored = getStoredAnimationOptions(animation).animationOptions;
-        stored.duration = reverseCSSTime(animation.options.duration);
-        stored.delay = reverseCSSTime(animation.options.delay);
+        // UIA-KF-177: the store keeps the `<time>` unit the author wrote, the
+        // same two-argument spelling every engine emit uses (`css-text.ts`).
+        stored.duration = reverseCSSTime(
+            animation.options.duration,
+            animation.options.durationUnit,
+        );
+        stored.delay = reverseCSSTime(
+            animation.options.delay,
+            animation.options.delayUnit,
+        );
         stored.iterationCount = isFinite(animation.options.iterationCount)
             ? animation.options.iterationCount
             : "infinite";
