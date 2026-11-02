@@ -14,8 +14,8 @@ direction. Row contract: first cell the backticked export name, second its
 tier, third its README anchor (or a `manifest-only: <reason>` note).
 
 **The value.js consume-edge is exact-pinned by design.** The exact
-`@mkbabb/value.js@4.0.0` pin (see the CHANGELOG 6.0.0 "Dependency Changes"
-section) is deliberate: every constellation consume-edge is a measured,
+`@mkbabb/value.js@4.1.0` pin (the X·KF.W3 repin; see the CHANGELOG
+6.0.0 "Dependency Changes" section for the edge's policy) is deliberate: every constellation consume-edge is a measured,
 integrity-pinned edge, not a semver range. Value patches reach consumers through
 the smallest honest keyframes successor — a re-pinned, re-verified release —
 never by range drift under a caret.
@@ -195,6 +195,25 @@ teaches the validate→fix→compile LOOP (generated, never hand-edited).
 | `formatCSSKeyframeString`  | HEAVY | manifest-only: L.W8 S1 ED-3 — trim ONE keyframe body (strip the selector + leading indent) for display; the pure-string companion of the serializers, surfaced on the heavy chunk beside them; covered by `proof:publish` and `demo:correctness`. |
 | `transformTargetsStyle`    | HEAVY | manifest-only: L.W8 S1 ED-3 — paint a `Vars` snapshot directly onto DOM targets' inline style (the SAME painter `Animation.interpFrames`/the run loop drives); the matrix-editor's one-shot transform paint consumes it through `loadAnimationEngine()`; covered by `proof:publish` and `demo:correctness`. |
 | `yieldToMain`              | HEAVY | manifest-only: L.W8 S1 ED-3 — the engine's ONE INP-relief yield ladder (`scheduler.yield` probe + cached fallback, value.js-free); surfaced on the heavy chunk so a consumer batching keyframe ops yields with the SAME ladder rather than hand-rolling one; covered by `proof:publish` and `demo:correctness`. |
+
+### KF.W5 PUBLICATION DOOR — the ident normalizer, the two CSS-text serializers, the synchronous easing registry
+
+KF.W5's publication decision (S-3; B-10 + B-11 + B-12 + KF-ET-32) gave five
+names the library already owned a published door instead of a demo deep-reach
+(`src/animation/public.ts` + the `AnimationEngine` roster in
+`src/animation/load-engine.ts`, one surface by construction). HEAVY only: each
+carries value.js by specifier, so the LIGHT barrel's value.js-free boundary
+(`proof:boundary`) is not spent on a convenience re-export. None is taught by a
+README section — they are helpers beside the compile/emit surface, not front
+doors — so each row is manifest-only, its witness named.
+
+| Export                    | Tier  | Taught                                                                                                                                                                                                                          |
+| ------------------------- | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `cssIdent`                | HEAVY | manifest-only: KF.W5 B-10 — THE CSS-ident normalizer (`compile/emit/backward/walk.ts`): a child name → the `@keyframes`/class ident the emitters write (non-ident chars → `-`, a bare numeric id gets an `a` prefix); published so a consumer derives ONE name per animation instead of hand-rolling `.replace().toLowerCase()` (N-8); `test/demo/instrument/apply-css-identity.test.ts` |
+| `reverseCSSTime`          | HEAVY | manifest-only: KF.W5 B-11 — milliseconds → the CSS `<time>` literal the emitters write (`compile/emit/css-text.ts`), keeping an authored unit when given one, else the shortest exact literal (seconds on a tie); `test/compile/uia-kf-177-css-time.test.ts` |
+| `serializeTimingFunction` | HEAVY | manifest-only: KF.W5 B-11 — a parsed `animation-timing-function` value → its CSS easing literal (`compile/emit/css-text.ts`), the emitters' own serializer; its published door is held by `test/_root/public-surface.test.ts` |
+| `resolveTimingFunction`   | HEAVY | manifest-only: KF.W5 KF-ET-32 — the SYNCHRONOUS name→fn easing resolver (`compile/easing/registry.ts`; the async `resolveEasing` is the LIGHT door): a callable passes through, a registry name resolves through value.js's memoised `easing()` (registry first), any other string through the CSS timing-function parser; `test/compile/timing-function-names.test.ts` |
+| `timingFunctionEntries`   | HEAVY | manifest-only: KF.W5 KF-ET-32 — the registry roster behind `resolveTimingFunction`: `[name, fn]` pairs, stable order, not injective (a fn identifies the curve, never the name); evaluated at module load, so value.js rejecting its own easing is a boot throw (the G-KF3-6 fence); `test/compile/easing-identity.test.ts` |
 
 ## EP-3 — the live-coverage disposition (J.W4 S7 · the uncovered-export BOOK)
 
