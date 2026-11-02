@@ -69,3 +69,32 @@ export function springLinearStops(opts: SpringLinearStopsOptions): string {
     stops.push("1");
     return `linear(${stops.join(", ")})`;
 }
+
+/** Round to 5 decimals — the `linear()` stop-value / percentage quantization. */
+const round5 = (n: number): number => Math.round(n * 1e5) / 1e5;
+
+/**
+ * KF-3 — serialize evenly spaced curve samples to a CSS `linear()` easing:
+ * `samples[i]` becomes the stop `value (i / (n - 1) · 100)%`, values and
+ * percentages quantized to 5 decimals. Positions are explicit and strictly
+ * monotone, so the string is always grammar-valid, and overshoot values outside
+ * `[0, 1]` ride through (CSS `linear()` permits them). The ONE `linear()`
+ * densify serializer: {@link springTimingLUT}'s table and the compile tier's
+ * universal `TimingFunction` CSS twin both emit through it.
+ *
+ * @example
+ * linearFromSamples(springTimingLUT({ response: 0.5, dampingFraction: 0.45 }));
+ */
+export function linearFromSamples(samples: ArrayLike<number>): string {
+    const n = samples.length - 1;
+    if (n < 1) {
+        throw new RangeError(
+            `linearFromSamples needs at least 2 samples; got ${samples.length}.`,
+        );
+    }
+    const stops: string[] = [];
+    for (let i = 0; i <= n; i++) {
+        stops.push(`${round5(samples[i]!)} ${round5((i / n) * 100)}%`);
+    }
+    return `linear(${stops.join(", ")})`;
+}

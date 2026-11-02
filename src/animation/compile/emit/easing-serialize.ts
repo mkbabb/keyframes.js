@@ -8,6 +8,7 @@ import { camelCaseToHyphen } from "../../internal/helpers";
 import type { Easing, TimingFunction } from "../../constants";
 import { AnimationOptionError } from "../../internal/errors";
 import { timingFunctionEntries } from "../easing/registry";
+import { linearFromSamples } from "../../physics/spring/css/linear-stops";
 
 /**
  * EN-a (S.B3, P2-2 F6) — the SIX native-CSS `<easing-function>` keywords. A
@@ -18,9 +19,6 @@ import { timingFunctionEntries } from "../easing/registry";
  */
 const NATIVE_CSS_EASING =
     /^(linear|ease|ease-in|ease-out|ease-in-out|step-start|step-end)$/;
-
-/** Round to 5 decimals — the `linear()` stop-value / percentage quantization. */
-const round5 = (n: number): number => Math.round(n * 1e5) / 1e5;
 
 /**
  * EN-a (S.B3, P2-2 F6) — the UNIVERSAL CSS twin: densify a `TimingFunction`
@@ -36,12 +34,9 @@ const round5 = (n: number): number => Math.round(n * 1e5) / 1e5;
  * parse → serialize is stable.
  */
 function linearDensifyEasing(fn: TimingFunction, n = 32): string {
-    const stops: string[] = [];
-    for (let i = 0; i <= n; i++) {
-        const t = i / n;
-        stops.push(`${round5(fn(t))} ${round5(t * 100)}%`);
-    }
-    return `linear(${stops.join(", ")})`;
+    // The ONE `linear()` serializer (KF-3, `linearFromSamples`) over the
+    // `n + 1` evenly spaced samples of the callable.
+    return linearFromSamples(Array.from({ length: n + 1 }, (_, i) => fn(i / n)));
 }
 
 /**

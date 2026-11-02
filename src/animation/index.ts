@@ -52,6 +52,9 @@ export type { ReducedMotionPolicy } from "./internal/reduced-motion";
 export { springLinearStops } from "./physics/spring";
 export type { SpringLinearStopsOptions } from "./physics/spring";
 export { springTimingFunction } from "./physics/spring";
+// KF-3 (atlas A2(b)) — the sampled LUT form of `springTimingFunction` + the
+// `linear()` serializer over evenly spaced samples.
+export { springTimingLUT, linearFromSamples } from "./physics/spring";
 export type { SpringTimingFunctionOptions } from "./physics/spring";
 // SpringDurationOptions — the spring-from-duration option surface (R.W1: the
 // barrel gap fill, lib-spring §10).

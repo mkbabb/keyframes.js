@@ -24,5 +24,10 @@ export type {
 } from "./types";
 export { durationToSpringOptions } from "./solver";
 export type { SpringDurationOptions } from "./solver";
-export { springLinearStops, springTimingFunction } from "./css";
+export {
+    linearFromSamples,
+    springLinearStops,
+    springTimingFunction,
+    springTimingLUT,
+} from "./css";
 export type { SpringLinearStopsOptions, SpringTimingFunctionOptions } from "./css";

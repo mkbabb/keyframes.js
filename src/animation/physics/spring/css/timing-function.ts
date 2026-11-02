@@ -38,6 +38,46 @@ export interface SpringTimingFunctionOptions {
 }
 
 /**
+ * KF-3 (atlas A2(b)) — the sampled look-up-table form of
+ * {@link springTimingFunction}: `sampleCount + 1` spring positions at the evenly
+ * spaced normalized times `t = i / sampleCount`, with `lut[0] = 0` and
+ * `lut[sampleCount] = 1` exactly. Built for per-frame and many-mark consumers
+ * (an ECharts series, a canvas of marks, a CSS `linear()` via
+ * {@link linearFromSamples}) that want the samples themselves rather than a
+ * callable. This IS the table `springTimingFunction` interpolates — one sampler,
+ * one solver — so `springTimingFunction(opts).fn(i / n) === lut[i]`.
+ *
+ * @example
+ * const lut = springTimingLUT({ response: 0.5, dampingFraction: 0.45, sampleCount: 120 });
+ * const css = linearFromSamples(lut); // "linear(0 0%, … , 1 100%)"
+ */
+export function springTimingLUT(opts: SpringTimingFunctionOptions): Float64Array {
+    const sampleCount = opts.sampleCount ?? 64;
+    const settleThreshold = opts.settleThreshold ?? 1e-3;
+    const maxDuration = opts.maxDuration ?? opts.response * 4;
+
+    // Reuse the shared normalized-spring sampler — the same construct/step setup
+    // `springLinearStops` drives (R.W1 §spring). No second integrator. The LUT
+    // spaces its `sampleCount` interior points over `sampleCount`
+    // sub-intervals; `samples[i]` is the position at normalized t = i / sampleCount.
+    const positions = sampleNormalizedSpring({
+        response: opts.response,
+        dampingFraction: opts.dampingFraction,
+        sampleCount,
+        settleThreshold,
+        dt: maxDuration / sampleCount,
+    });
+    const samples = new Float64Array(sampleCount + 1);
+    samples[0] = 0;
+    for (let i = 1; i <= sampleCount; i++) {
+        samples[i] = positions[i - 1]!;
+    }
+    // Pin the final sample to the settled target so f(1) === 1 exactly.
+    samples[sampleCount] = 1;
+    return samples;
+}
+
+/**
  * Sample a `SpringProgress(target=1, initial=0)` solver and return a typed
  * {@link Easing}: `.fn` is the callable curve — `(t: number) => number`
  * over t∈[0,1] — that `ElementMorph`, `NumericAnimation`, and
@@ -65,28 +105,8 @@ export interface SpringTimingFunctionOptions {
 export function springTimingFunction(
     opts: SpringTimingFunctionOptions,
 ): Easing {
-    const sampleCount = opts.sampleCount ?? 64;
-    const settleThreshold = opts.settleThreshold ?? 1e-3;
-    const maxDuration = opts.maxDuration ?? opts.response * 4;
-
-    // Reuse the shared normalized-spring sampler — the same construct/step setup
-    // `springLinearStops` drives (R.W1 §spring). No second integrator. This
-    // serializer spaces its `sampleCount` interior points over `sampleCount`
-    // sub-intervals; `samples[i]` is the position at normalized t = i / sampleCount.
-    const positions = sampleNormalizedSpring({
-        response: opts.response,
-        dampingFraction: opts.dampingFraction,
-        sampleCount,
-        settleThreshold,
-        dt: maxDuration / sampleCount,
-    });
-    const samples = new Float64Array(sampleCount + 1);
-    samples[0] = 0;
-    for (let i = 1; i <= sampleCount; i++) {
-        samples[i] = positions[i - 1]!;
-    }
-    // Pin the final sample to the settled target so f(1) === 1 exactly.
-    samples[sampleCount] = 1;
+    const samples = springTimingLUT(opts);
+    const sampleCount = samples.length - 1;
 
     const fn: TimingFunction = (t: number): number => {
         if (t <= 0) return 0;
