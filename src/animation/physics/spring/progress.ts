@@ -201,10 +201,15 @@ export class SpringProgress {
     /**
      * Set the target. The closed-form solution is re-seated from the
      * current `(value, velocity)` so the trajectory is continuous.
-     * Idempotent if the target is unchanged.
+     * Idempotent if the target is unchanged AND the spring carries no live
+     * velocity. An equal target with nonzero velocity (e.g. right after
+     * `reset(x, v)`, which seats `target = x` and stops the managed loop)
+     * still re-seats — the trajectory is identical (the closed form re-seats
+     * from the current `(x, v)`), and the re-seat re-arms the managed loop so
+     * the spring runs to rest and commits (K-1).
      */
     set target(value: number) {
-        if (value === this.targetValue && !this.options.initialVelocity) {
+        if (value === this.targetValue && this.currentVelocity === 0) {
             // No-op if target unchanged and velocity zero — keep solver state.
             return;
         }
