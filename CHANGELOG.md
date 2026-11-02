@@ -3,6 +3,20 @@
 <!-- CONVENTION: entries follow the 5.0.0 format — consumer-facing Breaking/Minor/Patch sections,
      no internal wave codes (Wn, Band X, Tranche Y). Keep planning language in docs/tranches/. -->
 
+## 6.1.0
+
+### Minor Changes (additive)
+
+- **`flip` / `flipShared` return a cancellable `FlipHandle`** (KF-4): the play promise plus `cancel()`; a re-target on an element in flight starts from its live interpolated rect, so an interrupt glides on with no snap and no queue. `FlipHandle` is exported.
+- **`springTimingLUT` and `linearFromSamples`** (KF-3): the sampled LUT that `springTimingFunction` interpolates, for per-frame, many-mark and chart use, and the single `linear()` serializer for any sample table.
+
+### Patch Changes
+
+- **Spring snap on the release point finishes** (K-1): `SpringProgress`'s equal-target no-op now keys on the live velocity, so `reset(x, v≠0)` followed by `target = x` runs to rest and commits (a `Draggable` snap released on its snap point no longer stalls).
+- **`splitText(el, { by: "word" })` keeps punctuation with its word** (KF-1): trailing marks join the word they touch and opening marks join the next word (`"Hello, world."` → `["Hello,", "world."]`; a hyphenated compound splits as `["re-", "split"]`).
+- **`splitText` keeps existing semantic roles** (KF-2): headings and authored roles are never overwritten; a role is added only to a roleless `div` or `p`.
+- **Demo and deploy residuals**: a store bucket seeded from a live animation keeps the authored `<time>` unit; the Pages deploy captures its rollback target; the demo gates pass each scene's at-rest surface, so scene navigation settles in well under a second.
+
 ## 6.0.0
 
 ### Major Changes (BREAKING)
