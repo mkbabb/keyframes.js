@@ -695,7 +695,16 @@ await flipShared(a, b, {
 });
 ```
 
-Options: `duration` (default 300), `timingFunction` (callable or `Easing` — `springTimingFunction(…)` makes the FLIP springy), `transformOrigin` (default `"top left"`). Both return the play promise.
+Options: `duration` (default 300), `timingFunction` (callable or `Easing` — `springTimingFunction(…)` makes the FLIP springy), `transformOrigin` (default `"top left"`). Both return a `FlipHandle`: the play promise, extended with `cancel()`.
+
+**Interruptible.** `handle.cancel()` halts the play at its current frame (the element keeps that frame's transform) and settles the promise. Calling `flip` (or `flipShared`) again on an element whose play is still running is a **re-target**: First is the element's current interpolated rect (its live visual box), the running play is halted and its handle settles, and the new play glides on from that frame — no snap back to the stale First, no waiting out the old duration.
+
+```ts
+let resort = flip(list, () => sortBy(list, "date"), { duration: 680 });
+// A second click mid-flight glides on from where the list is right now:
+resort = flip(list, () => sortBy(list, "attendance"), { duration: 680 });
+resort.cancel(); // or stop it where it stands
+```
 
 ### `drag` / `Draggable`
 

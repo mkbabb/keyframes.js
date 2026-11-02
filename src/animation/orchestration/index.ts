@@ -9,7 +9,7 @@
 export { stagger } from "./stagger";
 export type { StaggerOrigin, StaggerOptions, StaggerFn } from "./stagger";
 export { flip, flipShared } from "./flip";
-export type { FlipOptions } from "./flip";
+export type { FlipHandle, FlipOptions } from "./flip";
 // S.B4 (a02 F4) — explicit-named barrel policy: `export *` is reserved for the
 // leaf tier, so the sub-zone surfaces are re-exported by name (a new sub-zone
 // export joins the package surface only through a reviewed barrel edit).

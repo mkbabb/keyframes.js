@@ -19,6 +19,11 @@
  *
  * ```ts
  * await flip(card, () => card.classList.toggle("expanded"), { duration: 300 });
+ *
+ * // Interruptible: a second flip mid-flight glides on from the live frame,
+ * // and the handle cancels.
+ * const handle = flip(list, () => resort(list));
+ * handle.cancel();
  * ```
  */
 import type { Easing, TimingFunction } from "../constants/types";
@@ -37,69 +42,140 @@ export interface FlipOptions {
     transformOrigin?: string;
 }
 
+/**
+ * The handle `flip` / `flipShared` return: the play promise (it resolves when
+ * the play completes, or as soon as it is cancelled or re-targeted), extended
+ * with `cancel()`. `cancel()` halts the play at its current frame — the
+ * element keeps that frame's inline transform, so a following `flip` on it
+ * glides on from exactly there.
+ */
+export type FlipHandle = Promise<void> & {
+    /** Halt the play at its current frame and settle the promise. */
+    cancel(): void;
+};
+
 const DEFAULT_FLIP_DURATION = 300;
+
+/** The identity of the transform string the play writes. */
+const IDENTITY_TRANSFORM = "translate(0px, 0px) scale(1, 1)";
 
 const rectOf = (el: HTMLElement): MorphRect => {
     const r = el.getBoundingClientRect();
     return { x: r.x, y: r.y, width: r.width, height: r.height };
 };
 
-const transformAt = (morph: ElementMorph, progress: number): string => {
-    // FLIP plays the INVERSION toward identity: at play-progress `p` the
-    // element (physically at its Last rect) is offset by `at(p) − at(1)`, the
-    // residual delta back toward First. p=0 → −at(1) = First−Last (the full
-    // inversion, element appears at First); p=1 → 0 (identity, element at
-    // Last). The morph's easing shapes `p` in the play direction.
-    //
-    // `NumericAnimation.at()` returns ONE pre-allocated, mutated result object
-    // (zero-alloc), so snapshot each sample's fields before the next `at()`
-    // call overwrites them.
-    const end = morph.at(1);
-    const endTX = end.translateX;
-    const endTY = end.translateY;
-    const endSX = end.scaleX;
-    const endSY = end.scaleY;
+/**
+ * The one in-flight play per element. A new `flip`/`flipShared` on an element
+ * still in this map is a RE-TARGET: it reads the element's live (visual) rect
+ * as its start, halts the old play, and glides on from there.
+ */
+const inFlight = new WeakMap<HTMLElement, () => void>();
 
-    const now = morph.at(progress);
-    const tx = now.translateX - endTX;
-    const ty = now.translateY - endTY;
-    // Scale is multiplicative: the residual factor is current/final.
-    const sx = endSX === 0 ? 1 : now.scaleX / endSX;
-    const sy = endSY === 0 ? 1 : now.scaleY / endSY;
+/**
+ * Halt `element`'s in-flight play (if any) and clear its transform so the next
+ * read is the bare layout box. Returns whether a play was in flight.
+ */
+const interrupt = (element: HTMLElement): boolean => {
+    const cancel = inFlight.get(element);
+    if (cancel === undefined) return false;
+    cancel();
+    element.style.transform = IDENTITY_TRANSFORM;
+    return true;
+};
+
+/**
+ * The transform that draws `element` — whose layout box is `layout` — at the
+ * rect `morph` (built `start → target`) reaches at play-progress `p`.
+ *
+ * The morph's sample is the delta off `start`: rect(p) = start translated by
+ * `(tx, ty)` and scaled by `(sx, sy)`. Re-expressed against the layout box
+ * (top-left origin) that is `translate(rect.xy − layout.xy)
+ * scale(rect.size / layout.size)`. For `flip` the layout box IS the target
+ * (Last), so p=1 is the identity and p=0 the full inversion back to First; for
+ * `flipShared` the layout box is `a`'s own, so p=0 is `a` where it stands and
+ * p=1 the full delta onto `b`. `start` is the element's VISUAL rect, so a
+ * re-target mid-flight begins on the interrupted frame — no snap.
+ */
+const transformAt = (
+    morph: ElementMorph,
+    start: MorphRect,
+    layout: MorphRect,
+    progress: number,
+): string => {
+    const { translateX, translateY, scaleX, scaleY } = morph.at(progress);
+    const tx = start.x + translateX - layout.x;
+    const ty = start.y + translateY - layout.y;
+    const sx =
+        layout.width === 0 ? 1 : (start.width * scaleX) / layout.width;
+    const sy =
+        layout.height === 0 ? 1 : (start.height * scaleY) / layout.height;
     return `translate(${tx}px, ${ty}px) scale(${sx}, ${sy})`;
 };
 
 /**
- * Build the playback driver shared by `flip` and `flipShared`. Given an element
- * physically at its Last rect and a morph whose `from=before`/`to=after`, it
- * inverts the element to its First rect, then animates the inversion to zero.
+ * The playback driver shared by `flip` and `flipShared`: paint the t=0 frame
+ * synchronously (the first paint never flashes the bare layout box), then play
+ * `start → target` over the element's `layout` box, registered as the
+ * element's one in-flight play.
  */
 const playFlip = (
     element: HTMLElement,
-    morph: ElementMorph,
-    duration: number,
-    transformOrigin: string,
-): Promise<void> => {
+    start: MorphRect,
+    layout: MorphRect,
+    target: MorphRect,
+    options: FlipOptions,
+): FlipHandle => {
+    const {
+        duration = DEFAULT_FLIP_DURATION,
+        timingFunction,
+        transformOrigin = "top left",
+    } = options;
+
+    const morph = new ElementMorph(start, target, {
+        ...(timingFunction !== undefined ? { timingFunction } : {}),
+        transformOrigin,
+    });
+
     element.style.transformOrigin = transformOrigin;
-    // Invert immediately so the first paint shows the element at its First
-    // rect, then play the inversion away.
-    element.style.transform = transformAt(morph, 0);
+    element.style.transform = transformAt(morph, start, layout, 0);
 
     if (duration <= 0) {
-        element.style.transform = transformAt(morph, 1);
-        return Promise.resolve();
+        element.style.transform = transformAt(morph, start, layout, 1);
+        return Object.assign(Promise.resolve(), { cancel: () => {} });
     }
 
     const playback = new RAFPlayback();
-    return playback.play(duration, (progress) => {
-        element.style.transform = transformAt(morph, progress);
-    });
+    const cancel = (): void => {
+        playback.stop();
+        if (inFlight.get(element) === cancel) inFlight.delete(element);
+    };
+    inFlight.set(element, cancel);
+
+    const played = playback
+        .play(duration, (progress) => {
+            element.style.transform = transformAt(
+                morph,
+                start,
+                layout,
+                progress,
+            );
+        })
+        .then(() => {
+            if (inFlight.get(element) === cancel) inFlight.delete(element);
+        });
+    return Object.assign(played, { cancel });
 };
 
 /**
  * Animate a layout change on `element`: measure (First), run `mutate` (Last),
  * measure again, then invert + play the transform between them via
- * {@link ElementMorph}. Returns the play promise.
+ * {@link ElementMorph}. Returns a {@link FlipHandle} — the play promise with a
+ * `cancel()`.
+ *
+ * Interruptible: called on an element whose previous flip is still playing,
+ * First is the element's CURRENT interpolated rect (the live visual box), the
+ * previous play is halted (its handle settles), and the new play glides on
+ * from that frame toward the new Last — no snap, no queue.
  *
  * @param element — the element whose layout `mutate` changes.
  * @param mutate — a synchronous DOM mutation (class toggle, reparent, …).
@@ -109,35 +185,28 @@ export function flip(
     element: HTMLElement,
     mutate: () => void,
     options: FlipOptions = {},
-): Promise<void> {
-    const {
-        duration = DEFAULT_FLIP_DURATION,
-        timingFunction,
-        transformOrigin = "top left",
-    } = options;
-
-    // Batched read-mutate-read: one forced layout per side, no thrash.
+): FlipHandle {
+    // Batched read-mutate-read: one forced layout per side, no thrash. First
+    // is the visual box — mid-flight, the interrupted frame.
     const before = rectOf(element);
+    interrupt(element);
     mutate();
     const after = rectOf(element);
 
-    const morph = new ElementMorph(before, after, {
-        ...(timingFunction !== undefined ? { timingFunction } : {}),
-        transformOrigin,
-    });
-
-    return playFlip(element, morph, duration, transformOrigin);
+    return playFlip(element, before, after, after, options);
 }
 
 /**
  * Shared-element FLIP: animate element `a` onto the rect of element `b`
  * (Motion's `layoutId` / GSAP Flip shared-element style). Unlike `flip`, `a`
  * does NOT move in the DOM — it stays at its own rect (First) and the morph
- * carries it FORWARD onto `b`'s rect (Last). So this is a plain forward
- * {@link ElementMorph} play (identity at t=0 → full delta at t=1), not the
- * inversion `flip` runs.
+ * carries it FORWARD onto `b`'s rect (Last): identity at t=0 → full delta at
+ * t=1. Returns a {@link FlipHandle}.
  *
- * The two reads are batched — one forced layout each, before any write.
+ * Interruptible like `flip`: re-targeting `a` (onto a new `b`) mid-flight
+ * starts from `a`'s current interpolated rect and halts the previous play.
+ *
+ * The reads are batched — one forced layout each, before any play write.
  *
  * @param a — the element to animate.
  * @param b — the element whose rect `a` morphs onto.
@@ -147,30 +216,11 @@ export function flipShared(
     a: HTMLElement,
     b: HTMLElement,
     options: FlipOptions = {},
-): Promise<void> {
-    const {
-        duration = DEFAULT_FLIP_DURATION,
-        timingFunction,
-        transformOrigin = "top left",
-    } = options;
-
-    // Both reads up front — one forced layout each, before any write.
+): FlipHandle {
     const before = rectOf(a);
+    // Mid-flight, `before` is a's visual box; its layout box is read bare.
+    const layout = interrupt(a) ? rectOf(a) : before;
     const after = rectOf(b);
 
-    const morph = new ElementMorph(before, after, {
-        ...(timingFunction !== undefined ? { timingFunction } : {}),
-        duration,
-        transformOrigin,
-    });
-
-    // Paint the t=0 frame synchronously (identity — `a` at its own rect) so the
-    // first paint never flashes an unstyled position; then forward-play walks
-    // `a` from its own rect (t=0) to the full delta onto b's rect (t=1).
-    morph.apply(a, 0);
-    if (duration <= 0) {
-        morph.apply(a, 1);
-        return Promise.resolve();
-    }
-    return morph.play(a, duration);
+    return playFlip(a, before, layout, after, options);
 }
