@@ -465,7 +465,15 @@ describe("X.KF.W11.f (5b) — the facet: trackless preset tiles; the presets are
             cells.forEach((cell, i) => {
                 const p = SPRING_PRESETS[i]!;
                 expect(cell.text()).toContain(p.name);
-                expect(cell.text()).toContain(`${p.response} s · ζ ${p.dampingFraction}`);
+                // ONE parameter line whose two values are each their own
+                // tabular data leaf (KF-CENSUS 2026-11-03); the middot join is
+                // the run's ::before decoration, not text.
+                const line = cell.findAll(".preset-values");
+                expect(line).toHaveLength(1);
+                expect(line[0]!.findAll(".tabular-nums").map((v) => v.text())).toEqual([
+                    `${p.response} s`,
+                    `ζ ${p.dampingFraction}`,
+                ]);
                 expect(cell.findAll('.progress-rail, .progress-ball, [role="slider"]')).toHaveLength(0);
             });
         } finally {
