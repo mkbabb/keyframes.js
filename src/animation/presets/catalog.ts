@@ -1,4 +1,5 @@
 import { springTimingFunction } from "../physics/spring";
+import { springCssToOptions } from "../resolve/spring-css";
 import { CSSKeyframesAnimation } from "../engine";
 import type { InputAnimationOptions } from "../constants";
 import * as classicData from "./classic-data";
@@ -57,6 +58,15 @@ const bare = (css: string): string => {
 const SPRING_SNAPPY = { response: 0.35, dampingFraction: 0.78 } as const;
 const SPRING_BOUNCY = { response: 0.5, dampingFraction: 0.5 } as const;
 const SPRING_GENTLE = { response: 0.7, dampingFraction: 0.95 } as const;
+/** `unfurl`'s CSS `spring(1 120 12 0)`: ζ ≈ 0.55, one gentle overshoot. The
+ *  option path takes a typed Easing, so the CSS physics map through the same
+ *  `springCssToOptions` algebra a keyframe `spring()` resolves by. */
+const { response: unfurlResponse, dampingFraction: unfurlDamping } =
+    springCssToOptions([1, 120, 12, 0]);
+const SPRING_UNFURL = {
+    response: unfurlResponse,
+    dampingFraction: unfurlDamping,
+} as const;
 const springCss = {
     springScaleInKeyframes:
         "\n  0% {\n    transform: scale(0.6);\n    opacity: 0;\n  }\n  100% {\n    transform: scale(1);\n    opacity: 1;\n  }\n",
@@ -304,6 +314,26 @@ export const PRESET_SPECS = {
         },
         group: "loop",
     },
+    garlandSway: {
+        css: classicData.garlandSwayKeyframes,
+        options: {
+            duration: 4200,
+            timingFunction: "ease-in-out",
+            iterationCount: Infinity,
+            fillMode: "none",
+            direction: "normal",
+        },
+        group: "loop",
+    },
+    unfurl: {
+        css: classicData.unfurlKeyframes,
+        options: {
+            duration: 900,
+            timingFunction: springTimingFunction(SPRING_UNFURL),
+            fillMode: "none",
+        },
+        group: "enter",
+    },
     jumpUp: {
         css: bare(classicData.jumpUpKeyframes),
         options: { duration: 700, timingFunction: "ease-in-bounce" },
@@ -393,6 +423,8 @@ export const {
     slideInRight,
     slideOutRight,
     hover,
+    garlandSway,
+    unfurl,
     jumpUp,
     jumpDown,
     springScaleIn,

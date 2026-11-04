@@ -3,6 +3,17 @@
 <!-- CONVENTION: entries follow the 5.0.0 format — consumer-facing Breaking/Minor/Patch sections,
      no internal wave codes (Wn, Band X, Tranche Y). Keep planning language in docs/tranches/. -->
 
+## 6.2.0
+
+### Minor Changes (additive)
+
+- **`garlandSway` and `unfurl` presets.** `garlandSway` (loop) is a pendulum hung from above: a closed 4.2 s loop within ±2.5° that dips 3 px at each crossing; set the hinge with `transform-origin` above the subject (e.g. `50% -40%`). `unfurl` (enter) grows a subject from its base and turns it open, `scale(0.2) rotate(-24deg)` → identity with opacity 0 → 1, on CSS `spring(1 120 12 0)` (ζ ≈ 0.55: one gentle overshoot); set `transform-origin` at the base (e.g. `50% 100%`). Both are in `presets` and the `loop`/`enter` taxonomy.
+- **`@mkbabb/value.js` 4.2.0.** The engine now depends on `@mkbabb/value.js@4.2.0` exact (was 4.1.0), so a consumer on value.js 4.2.0 bundles one copy of its grammar.
+
+### Patch Changes
+
+- **Demo: the cube's skins.** The cube's ppmycota toggle becomes a skin choice (Crayon, ppmycota, Daraksha) in the @mbabb menu; the Daraksha skin dresses the die in her register, unfurls its faces on choice and sways it like a garland.
+
 ## 6.1.0
 
 ### Minor Changes (additive)

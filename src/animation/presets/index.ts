@@ -43,6 +43,8 @@ export {
     slideInRight,
     slideOutRight,
     hover,
+    garlandSway,
+    unfurl,
     jumpUp,
     jumpDown,
 } from "./catalog";

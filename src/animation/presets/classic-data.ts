@@ -424,6 +424,38 @@ export const hoverKeyframes = /*css*/ `
   transform: translateY(0px);
 }
 `;
+/** A garland's sway: a pendulum hung from above. The arc dips at the
+ *  crossing (the 25% and 75% stops), as a hanging garland's does; the hinge is
+ *  the consumer's `transform-origin` (above the subject, e.g. `50% -40%`). */
+export const garlandSwayKeyframes = /*css*/ `
+0% {
+  transform: rotateZ(-2.5deg) translateY(0px);
+}
+25% {
+  transform: rotateZ(0deg) translateY(3px);
+}
+50% {
+  transform: rotateZ(2.5deg) translateY(0px);
+}
+75% {
+  transform: rotateZ(0deg) translateY(3px);
+}
+100% {
+  transform: rotateZ(-2.5deg) translateY(0px);
+}
+`;
+/** A petal unfurling: it grows from its base and turns open. The base is the
+ *  consumer's `transform-origin` (e.g. `50% 100%`). */
+export const unfurlKeyframes = /*css*/ `
+0% {
+  transform: scale(0.2) rotate(-24deg);
+  opacity: 0;
+}
+100% {
+  transform: scale(1) rotate(0deg);
+  opacity: 1;
+}
+`;
 export const jumpUpKeyframes = /*css*/ `@keyframes keyframeShift {
 0% {
     transform: translateY(0%);
