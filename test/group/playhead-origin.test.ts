@@ -17,11 +17,11 @@ import { AnimationGroup } from "../../src/animation/group";
  * subtracted the paused span from it again, so local = -(paused span).
  *
  * KFA-181 (5ae589ab) now carries a non-final wrap's anchor, which took the
- * cube's infinite channels off the fresh-anchor path; any child that reaches
- * the lazy start with no carried anchor (a finished finite channel in a still
- * running group) still took it. The cure: a fresh anchor is taken at this
- * frame's clock, so a pause recorded before it spans no local time and is
- * discarded, never applied.
+ * cube's infinite channels off the fresh-anchor path. The cure: a fresh anchor
+ * is taken at this frame's clock, so a pause recorded before it spans no local
+ * time and is discarded, never applied. (A finished finite channel in a still
+ * running group no longer reaches the lazy start at all — 6.2.1, it holds its
+ * end.)
  */
 const DURATION = 5000; // the demo's channel default (animationOptionsStore)
 const FRAME = 16.7;
@@ -90,7 +90,7 @@ describe("X.KF.W13X.r — a resume never runs the playhead negative", () => {
         expect(later).toBeCloseTo(overshoot + (2508.3 - 1266.7), 6);
     });
 
-    it("an unanchored child (a finished finite channel): the pause is not applied to its fresh anchor", async () => {
+    it("a finished finite channel holds its end: no fresh anchor, so no pause to misapply", async () => {
         const once = channel(1);
         const sibling = channel();
         const group = new AnimationGroup<any>(once, sibling);
@@ -101,11 +101,14 @@ describe("X.KF.W13X.r — a resume never runs the playhead negative", () => {
         await group.advanceTo(tp + 1266.7);
         const first = once.t;
         await group.advanceTo(tp + 2508.3);
-        const later = once.t;
-        // The pause-free control: the next tick re-anchors the child at its own
-        // clock (local 0) and it advances by the frame gap from there.
-        expect(first).toBe(0);
-        expect(later).toBeCloseTo(2508.3 - 1266.7, 6);
-        expect(once.pausedTime).toBe(0);
+        // 6.2.1 — a child that finishes before its siblings holds its end on
+        // the master clock until the group completes. It is never advanced
+        // again, so it never takes the fresh anchor this hazard lived on (it
+        // used to replay from 0 %: the delayed-petal "snap back").
+        expect(first).toBe(DURATION);
+        expect(once.t).toBe(DURATION);
+        expect(once.startTime).toBeUndefined();
+        expect(once.done).toBe(true);
+        expect(sibling.t).toBeGreaterThan(0);
     });
 });

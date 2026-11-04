@@ -2,8 +2,9 @@
  * The Daraksha motion signature: two library presets the cube's Daraksha
  * skin (and the daraksha.babb.dev die) play.
  *
- *  · `garlandSway` (loop) — a pendulum hung from above: a closed loop whose
- *    arc stays within ±2.5° and dips at the crossings (25% / 75%).
+ *  · `garlandSway` (loop) — a pendulum hung from above: a closed loop that
+ *    rests at the neutral hang (0% = 100% = the identity), stays within
+ *    ±2.5° and rises at the extremes (25% / 75%).
  *  · `unfurl` (enter) — a petal grows from its base and turns open on
  *    CSS `spring(1 120 12 0)` (ζ ≈ 0.55): one gentle overshoot, then rest.
  */
@@ -43,18 +44,28 @@ describe("garlandSway — a garland's pendulum", () => {
         expect(at(1)).toBe(at(0));
     });
 
+    it("rests at the neutral hang: 0% and 100% are the identity (0°, centred)", () => {
+        // The rest frame a stop (fill none → initial) and the reduced-motion
+        // snap (→ final) both paint. 6.2.0 rested at the arc's extreme
+        // (rotateZ(-2.5deg)), so a reduced-motion die hung tilted.
+        for (const p of [0, 1]) {
+            expect(fnArg(at(p), "rotateZ")).toBe(0);
+            expect(fnArg(at(p), "translateY")).toBe(0);
+        }
+    });
+
     it("|rotateZ| ≤ 2.5deg at every sampled frame", () => {
         for (let i = 0; i <= 100; i++) {
             expect(Math.abs(fnArg(at(i / 100), "rotateZ"))).toBeLessThanOrEqual(2.5);
         }
         // …and the arc actually reaches both ends.
-        expect(fnArg(at(0), "rotateZ")).toBe(-2.5);
-        expect(fnArg(at(0.5), "rotateZ")).toBe(2.5);
+        expect(fnArg(at(0.25), "rotateZ")).toBe(2.5);
+        expect(fnArg(at(0.75), "rotateZ")).toBe(-2.5);
     });
 
-    it("the pendulum dips at the crossings: translateY > 0 at 25%/75%, 0 at 0%/50%", () => {
-        expect(fnArg(at(0.25), "translateY")).toBeGreaterThan(0);
-        expect(fnArg(at(0.75), "translateY")).toBeGreaterThan(0);
+    it("the pendulum rises at the extremes: translateY < 0 at 25%/75%, 0 at the crossings", () => {
+        expect(fnArg(at(0.25), "translateY")).toBeLessThan(0);
+        expect(fnArg(at(0.75), "translateY")).toBeLessThan(0);
         expect(fnArg(at(0), "translateY")).toBe(0);
         expect(fnArg(at(0.5), "translateY")).toBe(0);
     });

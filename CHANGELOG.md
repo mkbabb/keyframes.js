@@ -3,6 +3,15 @@
 <!-- CONVENTION: entries follow the 5.0.0 format — consumer-facing Breaking/Minor/Patch sections,
      no internal wave codes (Wn, Band X, Tranche Y). Keep planning language in docs/tranches/. -->
 
+## 6.2.1
+
+### Patch Changes
+
+- **A child's `delay` in an `AnimationGroup` is honoured.** `delay` was a wall-clock sleep inside the first frame, so a group waited on its longest child's delay before it painted or scheduled a frame (a staggered cohort sat still, then jumped), and a child that finished before its siblings was advanced again and replayed from 0 %. `delay` is now a phase on the driving clock: `advanceTo(t)` is synchronous, before the delay elapses the local time is negative and `fillMode` decides the before-phase (`backwards`/`both`: the 0% frame; otherwise nothing), and `animationstart` fires when the active phase begins. A finished group child holds its end until the group completes. `group.seek()` and `elapsedOf()` read the same phase. The stagger idiom the docs describe works as written: `stagger()` delays on the children of one group.
+- **`garlandSway` rests at the neutral hang.** Its 0% and 100% frames are now the identity (it crosses the centre at 50% and rises 3 px at each ±2.5° extreme), so a stopped sway and the reduced-motion rest hang straight and centred. 6.2.0 rested at the arc's extreme, `rotateZ(-2.5deg)`.
+- **Demo: the Daraksha skin paints her colours exactly.** The crayon die's per-face tonal step is a skin property (DESIGN.md §2); under Daraksha it is 0%, so every face paints her declared colour. Under reduced motion her die hangs straight. The unfurl is one `AnimationGroup` of staggered `unfurl` children.
+- Consumers: `@mkbabb/value.js` does not depend on keyframes.js; no consumer change is needed.
+
 ## 6.2.0
 
 ### Minor Changes (additive)

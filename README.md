@@ -66,7 +66,7 @@ The `KeyframesAnimation` object drives `CSSKeyframesAnimation` and `AnimationGro
 ### `AnimationOptions`
 
 - `duration`: time in milliseconds (default: 1000)
-- `delay`: time in milliseconds before the animation begins (default: 0)
+- `delay`: time in milliseconds before the animation begins (default: 0) — a phase on the driving clock, taken once per play. Until it elapses the animation is in its before-phase and `fillMode` decides what it paints (`backwards`/`both`: the 0% frame; otherwise nothing); `animationstart` fires when it ends. In an `AnimationGroup` each child's delay offsets it on the group's one clock, so `stagger` delays fed to the children stagger them
 - `iterationCount`: number of repetitions (default: 1)
 - `direction`: `normal`, `reverse`, `alternate`, `alternate-reverse`
 - `fillMode`: `none`, `forwards`, `backwards`, `both`

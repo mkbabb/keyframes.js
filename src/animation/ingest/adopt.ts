@@ -320,18 +320,14 @@ const seedAtTime = <V extends Vars>(
     // Strip the source delay BEFORE onStart() (L.W3 S1). A mid-flight takeover is
     // a CONTINUATION — the native animation already consumed its `animation-delay`
     // on the page; re-imposing it re-freezes an animation the user was watching
-    // play. `onStart()` enters the `options.delay > 0` branch (engine.ts), sets
-    // `paused = true`, and returns a pending sleep promise; seedAtTime does NOT
-    // await it, so `paused` would stay true and the first `advanceTo` hits the
-    // `paused && pausedTime === 0` early-out — the engine frozen at the seed
-    // forever. Resetting the delay to 0 here makes `onStart()` take the immediate
-    // (non-delay) path. The reconstructed object's DECLARED delay is preserved on
+    // play: the seeded continuation carries no before-phase. The reconstructed
+    // object's DECLARED delay is preserved on
     // the sibling-rule serialization path (the strip is takeover-local, not a
     // reconstruction-time option) so round-trip symmetry is intact.
     animation.setDelay(0);
-    // Run the direction/fill setup (NOT a re-`animationstart` — `onStart` only
-    // dispatches when it falls through to the delay path; the takeover skips
-    // delay, so no event re-fires). This positions `reversed`/fill exactly as a
+    // Run the direction/fill setup (NOT a re-`animationstart` — `onStart`
+    // dispatches nothing; the seeded `startTime` below means `advanceTo` never
+    // anchors a fresh iteration, so no event re-fires). This positions `reversed`/fill exactly as a
     // fresh play would, minus the seed-at-zero.
     animation.onStart();
     animation.started = true;

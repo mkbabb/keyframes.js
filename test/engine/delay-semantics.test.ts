@@ -18,11 +18,15 @@
  *
  * The oracle is the MECHANISM, driven through `advanceTo` with an explicit
  * clock — not wall-clock timing, which in jsdom would measure the scheduler
- * rather than the contract. Two facts per iteration say everything: whether the
- * step was SYNC (a number = no sleep was taken) and where `startTime` landed
- * (t = no phase offset applied).
+ * rather than the contract. Two facts per iteration say everything: where
+ * `startTime` landed (t = no phase offset applied) and the local time it gives.
+ *
+ * 6.2.1 — the delay is a PHASE on the driving clock, never a wall-clock sleep:
+ * every step is SYNC, and before the delay elapses the local time is negative
+ * (the CSS before-phase). `animationstart` fires when the clock reaches the
+ * anchor (test/group/child-delay-master-clock.test.ts carries the group leg).
  */
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { CSSKeyframesAnimation } from "../../src/animation/engine";
 
 const DURATION = 40;
@@ -47,22 +51,28 @@ beforeEach(() => {
 });
 
 describe("`delay` is PER-PLAY (G-DELAY · KF-W5R4(2))", () => {
-    it("iteration 1 takes the delay: the step is async and startTime is offset", async () => {
+    it("iteration 1 takes the delay as a phase: startTime is offset, the step is sync", () => {
         const { anim } = delayedAnim(3);
+        const starts = vi
+            .spyOn(anim, "dispatchAnimationEvent")
+            .mock.calls;
 
-        const first = anim.advanceTo(1000);
-        // A thenable is the observable signature of the delay sleep.
-        expect(typeof first).not.toBe("number");
-        await first;
-
+        // Before-phase: local time counts up from −delay; no animationstart yet.
+        expect(anim.advanceTo(1000)).toBe(-DELAY);
         expect(anim._playback.startTime).toBe(1000 + DELAY);
+        expect(anim.advanceTo(1000 + DELAY / 2)).toBe(-DELAY / 2);
+        expect(starts.filter(([type]) => type === "animationstart")).toEqual([]);
+
+        // The active phase opens when the clock reaches the anchor.
+        expect(anim.advanceTo(1000 + DELAY + 10)).toBe(10);
+        expect(starts.filter(([type]) => type === "animationstart")).toHaveLength(1);
     });
 
-    it("iterations 2..N take NO delay: the step is sync and startTime is bare", async () => {
+    it("iterations 2..N take NO delay: the step is sync and startTime is bare", () => {
         const { anim } = delayedAnim(3);
 
         // Iteration 1, to its end.
-        await anim.advanceTo(1000);
+        anim.advanceTo(1000);
         const end1 = anim.advanceTo(1000 + DELAY + DURATION);
         expect(typeof end1).toBe("number");
         expect(anim._playback.iteration).toBe(1);
@@ -86,17 +96,17 @@ describe("`delay` is PER-PLAY (G-DELAY · KF-W5R4(2))", () => {
         expect(anim._playback.startTime).toBe(t3);
     });
 
-    it("the whole play costs delay + N·duration, not N·(delay + duration)", async () => {
+    it("the whole play costs delay + N·duration, not N·(delay + duration)", () => {
         const iterations = 4;
         const { anim } = delayedAnim(iterations);
 
         const start = 5_000;
-        await anim.advanceTo(start);
+        anim.advanceTo(start);
         let clock = start + DELAY;
         for (let i = 0; i < iterations; i++) {
             clock += DURATION;
             const stepped = anim.advanceTo(clock);
-            // Every post-first step is sync — a single awaited sleep in the play.
+            // Every step is sync.
             expect(typeof stepped).toBe("number");
             if (i < iterations - 1) anim.advanceTo(clock);
         }
@@ -106,17 +116,15 @@ describe("`delay` is PER-PLAY (G-DELAY · KF-W5R4(2))", () => {
         expect(clock - start).toBe(DELAY + iterations * DURATION);
     });
 
-    it("a fresh PLAY takes the delay again (per-play, not once-per-instance)", async () => {
+    it("a fresh PLAY takes the delay again (per-play, not once-per-instance)", () => {
         const { anim } = delayedAnim(1);
 
-        await anim.advanceTo(1000);
+        anim.advanceTo(1000);
         anim.advanceTo(1000 + DELAY + DURATION);
         expect(anim._playback.done).toBe(true);
 
         anim.settle();
-        const replay = anim.advanceTo(9000);
-        expect(typeof replay).not.toBe("number");
-        await replay;
+        expect(anim.advanceTo(9000)).toBe(-DELAY);
         expect(anim._playback.startTime).toBe(9000 + DELAY);
     });
 

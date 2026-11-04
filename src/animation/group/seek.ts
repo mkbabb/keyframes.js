@@ -28,16 +28,18 @@ export function elapsedOf<V extends Vars>(
 /** Seat every child at master elapsed time `elapsed`: its local time is the
  *  elapsed time past its delay, folded into its iteration (modulo its
  *  duration), and held at the end of its last iteration when it runs a finite
- *  count. A child whose iteration changes takes that iteration's direction (the
+ *  count. Before its delay a child's local time is NEGATIVE — the before-phase
+ *  its fill paints (6.2.1), the same phase a play reads off the master clock. A child
+ *  whose iteration changes takes that iteration's direction (the
  *  engine's own per-iteration rule); within its current iteration the
  *  direction it carries is kept. `render()` to paint the seated frame. */
 export function seek<V extends Vars>(group: AnimationGroup<V>, elapsed: number): void {
     for (const { animation: anim } of Object.values(group.animations)) {
         const { delay, duration, iterationCount, direction } = anim.options;
-        const local = Math.max(0, elapsed - Math.max(0, delay));
+        const local = elapsed - Math.max(0, delay);
         let iteration = 0;
-        let t = 0;
-        if (duration > 0) {
+        let t = Math.min(0, local);
+        if (duration > 0 && local >= 0) {
             iteration = Math.floor(local / duration);
             t = local - iteration * duration;
             if (iteration >= iterationCount) {

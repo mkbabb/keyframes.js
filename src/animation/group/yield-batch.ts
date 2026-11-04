@@ -5,7 +5,7 @@
  * `group/scheduler.ts` at S.B4 to clear the `scheduler.ts` cross-zone basename
  * collision with `internal/scheduler.ts`'s canonical `yieldToMain` — r3 F7).
  * `advanceSlice` is the
- * J.W6 S1 sync fast path; `advanceBatched` slices a large group with a
+ * sync per-slice advance; `advanceBatched` slices a large group with a
  * `yieldToMain()` between slices. Pure functions of the entries the group
  * passes in.
  */
@@ -13,27 +13,24 @@ import { yieldToMain } from "../internal/scheduler";
 import type { AnimationGroupEntry } from "./types";
 
 /**
- * Advance one slice of children to absolute clock `t` — the J.W6 S1 sync fast
- * path. Returns `undefined` IFF every child stepped SYNCHRONOUSLY (a plain
- * number from `Animation.advanceTo`); only a genuinely-async child (a thenable)
- * promotes the slice to a `Promise<void>`. The sync return allocates nothing —
- * no `promises` array is created unless an async child needs one — so the
- * steady per-frame composite path is zero-microtask, zero-alloc.
+ * Advance one slice of children to absolute clock `t` — synchronous (a child's
+ * `advanceTo` is: its delay is a phase on `t`, never a sleep), allocation-free.
  *
- * A paused child with a recorded `pausedTime` is skipped (it holds its frame).
+ * Skipped: a paused child with a recorded `pausedTime` (it holds its frame),
+ * and a FINISHED child. A child that finishes before its siblings holds its
+ * end on the group's master clock until the group completes; advancing it
+ * again re-entered `onStart` and replayed it from 0 % (6.2.1).
  */
 export const advanceSlice = <V extends Record<string, unknown>>(
     slice: AnimationGroupEntry<V>[],
     t: number,
-): Promise<void> | undefined => {
-    let promises: Promise<number>[] | undefined;
-    for (const entry of slice) {
-        const anim = entry.animation;
+): void => {
+    for (let i = 0; i < slice.length; i++) {
+        const anim = slice[i]!.animation;
+        if (anim.done) continue;
         if (anim.paused && anim.pausedTime !== 0) continue;
-        const stepped = anim.advanceTo(t);
-        if (typeof stepped !== "number") (promises ??= []).push(stepped);
+        anim.advanceTo(t);
     }
-    return promises && Promise.all(promises).then(() => undefined);
 };
 
 /**
@@ -49,7 +46,7 @@ export const advanceBatched = async <V extends Record<string, unknown>>(
     batch: number,
 ): Promise<void> => {
     for (let i = 0; i < entries.length; i += batch) {
-        await advanceSlice(entries.slice(i, i + batch), t);
+        advanceSlice(entries.slice(i, i + batch), t);
         if (i + batch < entries.length) await yieldToMain();
     }
 };

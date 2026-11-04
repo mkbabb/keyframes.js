@@ -338,9 +338,9 @@ export class AnimationGroup<V extends Vars> {
         return elapsedOf(this, nameOrAnim);
     }
 
-    /** Advance all child animations to absolute clock `t`. SYNC on the steady path
-     * (J.W6 S1): all-synchronous children advance with no per-frame microtask hop;
-     * a thenable only on an async child or the over-`YIELD_BATCH` yield path. */
+    /** Advance all child animations to absolute clock `t`. SYNC (J.W6 S1; 6.2.1:
+     * a child's delay is a phase on `t`, never a sleep): a thenable only on the
+     * over-`YIELD_BATCH` yield path. */
     advanceTo(t: number): this | Promise<this> {
         // K.W11 PHYS-C — advance any spring-driven layer weights by the frame
         // delta BEFORE updating `lastTickTime`. A first tick has `lastTickTime ===
@@ -352,15 +352,14 @@ export class AnimationGroup<V extends Vars> {
         this.started = true;
 
         // The slice fan-out / over-`YIELD_BATCH` batched advance are pure
-        // functions in `./yield-batch`; `advanceSlice` returns `undefined` on the
-        // all-sync fast path (J.W6 S1 — zero microtask).
+        // functions in `./yield-batch`; only the batched path yields.
         const entries = this.getEntries();
         const BATCH = AnimationGroup.YIELD_BATCH;
-        const pending =
-            entries.length <= BATCH
-                ? advanceSlice(entries, t)
-                : advanceBatched(entries, t, BATCH);
-        return pending ? pending.then(() => this) : this;
+        if (entries.length <= BATCH) {
+            advanceSlice(entries, t);
+            return this;
+        }
+        return advanceBatched(entries, t, BATCH).then(() => this);
     }
 
     /** The completion front-door (G.W13) — `await group.finished` resolves once

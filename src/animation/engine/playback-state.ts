@@ -50,6 +50,9 @@ export class PlaybackState {
      *  next rAF tick re-anchors the play to the first presented frame
      *  (`presentAnchor`). Any external `startTime` write clears it. */
     anchorTick: number | undefined = undefined;
+    /** True from a delayed play's anchor until its clock reaches it: the CSS
+     *  before-phase, whose end opens the active phase (`animationstart`). */
+    startOwed: boolean = false;
     pausedTime: number = 0;
     t: number = 0;
     iteration: number = 0;

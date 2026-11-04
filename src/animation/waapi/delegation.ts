@@ -60,8 +60,8 @@ export async function playWAAPI<V extends Vars>(
     // WAAPI handles the visuals. Rides the animation's own RAFPlayback
     // driver so `stop()` halts it uniformly with every other loop.
     // Keep the steady WAAPI shadow tick on RAFPlayback's synchronous fast path.
-    // `advanceTo` is thenable only for a genuinely asynchronous first tick; the
-    // old `async` callback forced every frame through a Promise/microtask hop.
+    // `advanceTo` is synchronous (a delay is a phase on the clock); the old
+    // `async` callback forced every frame through a Promise/microtask hop.
     // KFA-135 (X.KF.W13X.r4lib): the handles are public — DevTools, or
     // `el.getAnimations().forEach(a => a.pause())`, can pause one. That is a
     // pause of THIS animation, so the engine adopts it (its clock holds, and
@@ -84,7 +84,7 @@ export async function playWAAPI<V extends Vars>(
         return !animation.done;
     };
 
-    const shadowTick = (now: number): boolean | Promise<boolean> => {
+    const shadowTick = (now: number): boolean => {
         if (animation.done) return false;
         // LIVE reduced-motion on the DELEGATED lane (X.KF.W5 B-6 / G-PRM-FLIP).
         // The shadow loop is this lane's ONE per-tick observation point, so it
@@ -103,13 +103,7 @@ export async function playWAAPI<V extends Vars>(
             hooks.snapToReducedMotion();
             return false;
         }
-        const advanced = animation.advanceTo(now);
-        if (
-            advanced &&
-            typeof (advanced as Promise<number>).then === "function"
-        ) {
-            return (advanced as Promise<number>).then(reconcile);
-        }
+        animation.advanceTo(now);
         return reconcile();
     };
     animation.playback.loop(shadowTick);

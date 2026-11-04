@@ -60,7 +60,7 @@ function playFrom<V extends Vars>(seq: Sequence<V>, from: number): Promise<void>
     // Seed each child's absolute-clock anchor: advanceTo(clock) computes
     // local = clock − startTime, and we want local = masterClock − at, so
     // startTime := at. Pre-seeding `startTime` (and `started`) makes
-    // `advanceTo` skip its lazy `onStart` (no per-child `delay` sleep, no
+    // `advanceTo` skip its lazy `onStart` (no per-child `delay` phase, no
     // duplicate `animationstart`) while still honoring `onEnd` (rest-frame
     // paint + `animationend`) when the segment passes its duration.
     // (Sequence children carry no own `delay`; the `at` IS the offset.)

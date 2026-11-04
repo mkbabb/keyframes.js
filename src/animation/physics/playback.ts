@@ -151,11 +151,10 @@ export class RAFPlayback {
             // stepper: `SmoothProgress`/`SpringProgress`/`Draggable` return a
             // boolean from `tickDt`; and, since J.W6 S1, the steady
             // `Animation`/`AnimationGroup` `_frame`, whose `advanceTo` is sync
-            // past the first tick — ordering locked by proof:event-ordering)
+            // — ordering locked by proof:event-ordering)
             // reschedules INLINE — no `Promise.resolve`, no microtask hop. The
             // async branch is byte-unchanged for the genuinely-async frame (the
-            // first-tick delay sleep, the over-batch group yield, the WAAPI
-            // shadow tick): the `.then` callback body IS `reschedule`, so
+            // over-batch group yield): the `.then` callback body IS `reschedule`, so
             // behaviour is identical across both shapes. `typeof (result).then
             // === function` is the feature-detect (a thenable → async; a
             // boolean → sync), not a special-case — the async path remains the

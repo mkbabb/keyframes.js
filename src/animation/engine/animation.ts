@@ -416,15 +416,15 @@ export class KeyframesAnimation<V extends Vars = Vars> {
     // proof:standalone-zero-alloc / proof:engine / proof:event-ordering). The
     // authoritative per-verb docs live with the implementations in `./playback`.
 
-    onStart(): Promise<void> | undefined {
-        return playback.onStart(this);
+    onStart(): void {
+        playback.onStart(this);
     }
 
     onEnd() {
         playback.onEnd(this);
     }
 
-    advanceTo(t: number): number | Promise<number> {
+    advanceTo(t: number): number {
         return playback.advanceTo(this, t);
     }
 

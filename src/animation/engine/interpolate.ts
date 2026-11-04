@@ -138,18 +138,29 @@ export function interpFrames<V extends Vars>(
     transformFrames: boolean = false,
     out?: FlatAuthoredValues,
 ): FlatAuthoredValues {
+    // The before-phase (6.2.1): a negative local time is a delay not yet
+    // elapsed, decided by the fill contract as in CSS — backwards/both sample
+    // the iteration's first frame; none/forwards have NO active frame.
+    const before = t < 0;
+    if (before) t = 0;
+    const holdsBackwards =
+        anim.options.fillMode === "backwards" || anim.options.fillMode === "both";
+
     t = anim._playback.reversed ? anim.options.duration - t : t;
 
     const frames = anim.frames as CompiledAnimationFrame<V>[];
     const len = frames.length;
 
     // Binary search for the first frame containing t
-    const seedIdx = binarySearchRange(
-        frames,
-        t,
-        (f) => f.time.start,
-        (f) => f.time.stop,
-    );
+    const seedIdx =
+        before && !holdsBackwards
+            ? -1
+            : binarySearchRange(
+                  frames,
+                  t,
+                  (f) => f.time.start,
+                  (f) => f.time.stop,
+              );
 
     // No active frame: an explicit (reused) buffer is cleared in place via
     // the stable-key null-fill so it never carries a stale key; a fresh
