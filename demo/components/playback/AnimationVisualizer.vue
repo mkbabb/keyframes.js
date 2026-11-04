@@ -379,18 +379,17 @@ onScopeDispose(() => coastPlayback.stop());
    read the ONE definition's geometry and take this scene's accent through
    `--ball-tone`, the seam the idiom publishes for exactly this (a per-scene
    ANCESTOR sets it, so nothing is shadowed and every subject keeps its hue).
-   `--ball-size` is the 48px this scene's hit target and its projection math
-   already assume (`ballEl.clientWidth`), stated once here instead of as an
-   `h-12 w-12` pair 40 lines from the ball's own geometry. */
+   `--ball-size` is the disc this scene's hit target and its projection math
+   read (`ballEl.clientWidth`), stated once here instead of as a size pair 40
+   lines from the ball's own geometry.
+   value.js X §0hm D-29 — the discs and the ball sit on the ROW RHYTHM: the
+   control height every field above them wears (`--control-h-md`, which
+   glass floors to the touch target on a coarse pointer), not a 48 px slab
+   that out-weighed the rows. The short desktop rail (OD19-K4 · KF-C5-03,
+   `compact`: the ball is not drawn, the row is the two discs at the control
+   height) is the same size, so it carries only its block padding. */
 .visualizer-row {
     --ball-tone: var(--color-accent-kf);
-    --ball-size: 3rem;
-}
-
-/* OD19-K4 — the short desktop rail (KF-C5-03): the ball is not drawn there,
-   so the row is the two discs at the control height, the block size the
-   verb row it replaced took. */
-.visualizer-row--compact {
     --ball-size: var(--control-h-md);
 }
 

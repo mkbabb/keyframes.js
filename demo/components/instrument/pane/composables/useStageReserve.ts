@@ -49,6 +49,9 @@ const px = (v: string) => {
     const n = parseFloat(v);
     return Number.isFinite(n) ? n : 0;
 };
+/** An unregistered custom property's length (it computes to its token text, e.g. `1rem`). */
+const tokenPx = (v: string) =>
+    v.trim().endsWith("rem") ? px(v) * px(getComputedStyle(document.documentElement).fontSize) : px(v);
 
 /** The sheet's size at detent `t` on its own axis (px). */
 export const sheetRungSize = (el: HTMLElement | null, side: "bottom" | "right", t: number): number => {
@@ -103,6 +106,15 @@ export function useStageReserve(params: StageReserveParams) {
  * the first layer header and every row down to a whole row's foot, never below
  * glass's own floor. Returns the detent fraction, or null when the sheet has
  * not laid out yet.
+ *
+ * value.js X §0hm.1 D-28 (served re-read) — a row is seen through the sheet's
+ * SCROLL PORT, not the sheet's box: the port ends above the sheet's foot (the
+ * sheet's end padding and the region's own inset, 20.5 px at 390, where the
+ * former reserve counted the 12 px padding alone and the first field showed
+ * cut 9 px short), and while rows trail below, the port's end edge feathers
+ * over glass's `--fade-scroll-width` ramp. The foot reserve is read off the
+ * port: the sheet's foot minus the port's clip edge, plus that ramp, so a
+ * row's foot lands where it is drawn whole.
  */
 export const rowBoundaryPeek = (el: HTMLElement | null, rowSelector: string): number | null => {
     if (!el) return null;
@@ -110,13 +122,33 @@ export const rowBoundaryPeek = (el: HTMLElement | null, rowSelector: string): nu
     if (box.height === 0) return null;
     const cs = getComputedStyle(el);
     const floor = px(cs.minBlockSize);
-    const padEnd = px(cs.paddingBlockEnd);
+    const rows = [...el.querySelectorAll<HTMLElement>(rowSelector)].filter(
+        (r) => r.getBoundingClientRect().height > 0,
+    );
+    const [first] = rows;
+    if (!first) return null;
+    // The port: the TIGHTEST clipping box between the first row and the sheet
+    // (a content-sized `overflow: hidden` wrapper ends below it and cuts
+    // nothing at rest).
+    let reserve = px(cs.paddingBlockEnd);
+    let edge = box.bottom - reserve;
+    for (let p = first.parentElement; p && p !== el; p = p.parentElement) {
+        const ps = getComputedStyle(p);
+        if (ps.overflowY === "visible") continue;
+        const clip = p.getBoundingClientRect().bottom - px(ps.borderBottomWidth);
+        if (clip >= edge) continue;
+        edge = clip;
+        // A glass FadingScroll port feathers its end over the public
+        // `--fade-scroll-width` while rows trail below it, which at a resting
+        // PEEK they do. Read as the token, not the live ramp or the port's
+        // overflow: at mount neither has settled yet.
+        const ramp = p.matches(".fading-scroll") ? tokenPx(ps.getPropertyValue("--fade-scroll-width")) : 0;
+        reserve = box.bottom - clip + ramp;
+    }
     // Rows sit at fixed offsets from the sheet's top edge whatever its size
     // (the header and the body port stack from the top).
-    const feet = [...el.querySelectorAll<HTMLElement>(rowSelector)]
-        .map((r) => r.getBoundingClientRect())
-        .filter((r) => r.height > 0)
-        .map((r) => r.bottom - box.top + padEnd)
+    const feet = rows
+        .map((r) => r.getBoundingClientRect().bottom - box.top + reserve)
         .sort((a, b) => a - b);
     const foot = feet.find((f) => f >= floor - 0.5);
     if (foot === undefined) return null;

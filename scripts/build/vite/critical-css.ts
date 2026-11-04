@@ -22,7 +22,19 @@ export function criticalCSSPlugin(): Plugin {
                 if (!cssAsset || typeof cssAsset.source !== "string")
                     return html;
 
+                // value.js X §0hm D-29 — the inline sheet OUTLIVES first
+                // paint: it stays in <head> after the main stylesheet loads,
+                // so an UNLAYERED rule here outranks every layered rule
+                // there. Its universal `border-color: var(--border)` beat
+                // every `@layer components` border colour (glass's section
+                // card read `--configurator-divider-section`, a quiet
+                // Button's edge read transparent), painting the served
+                // build's card-in-card seam and the pill round the `layer`
+                // row that the dev server never showed. The reset lives in
+                // `@layer base`, as Tailwind's preflight does, under the
+                // same layer order the main sheet declares first.
                 const criticalCSS = `
+@layer properties, theme, base, components, utilities;
 :root {
     color-scheme: light;
     --background: hsl(0 0% 100%);
@@ -47,7 +59,9 @@ export function criticalCSSPlugin(): Plugin {
     --muted-foreground: hsl(215 20.2% 65.1%);
     --glass-highlight: inset 0 0.5px 0 0 hsl(0 0% 100% / 0.08);
 }
-*, *::before, *::after { box-sizing: border-box; border-color: var(--border); }
+@layer base {
+    *, *::before, *::after { box-sizing: border-box; border-color: var(--border); }
+}
 html, body {
     background-color: var(--background);
     color: var(--foreground);
