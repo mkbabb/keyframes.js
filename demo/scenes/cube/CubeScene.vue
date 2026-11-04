@@ -16,7 +16,7 @@
         <CubeTarget
             ref="cubeTargetRef"
             :is-playing="isPlaying"
-            :pp-mode="storedControls.ppMode ?? false"
+            :skin="cubeSkin"
             v-model:transform="transformSliderValues"
         />
     </div>
@@ -45,6 +45,7 @@ import MatrixEditor from "./matrix-editor/MatrixEditor.vue";
 import CubeTarget from "./CubeTarget.vue";
 
 import { getStoredAnimationGroupControlOptions, useSceneMachine } from "@state";
+import type { CubeSkin } from "@state";
 import { useSceneTransport } from "@composables/scene-runtime/useSceneTransport";
 import { facilityFromGroup } from "@composables/scene-facility";
 import { useTransformState } from "./matrix-editor/useTransformState";
@@ -56,7 +57,9 @@ import { useCubeTransform } from "./cubeTransformStore";
 const superKey = CUBE_SCENE_ID;
 
 const storedControls = getStoredAnimationGroupControlOptions(superKey);
-storedControls.ppMode ??= false;
+// The cube's skin: one reader here (handed to CubeTarget and to the Hover
+// channel's sway), one writer (MbabbMenu's radio group). Absent = crayon.
+const cubeSkin = computed<CubeSkin>(() => storedControls.cubeSkin ?? "crayon");
 
 // KFA-1 (X.KF.W13V.k; kf-CubeScene L-2/C-5 + kf-CubeTarget #34/#42) — ONE
 // PLAYING-STATE AUTHORITY. `isPlaying` had no writer and `isStarted` was written
@@ -89,6 +92,7 @@ const {
 const { animationGroup, setTargets } = useCubeDemo(
     matrix3dStart,
     matrix3dEnd,
+    cubeSkin,
 );
 
 // J.W2 S2 (DS-1) — the former scene-side watch that wrote

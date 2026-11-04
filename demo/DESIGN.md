@@ -60,6 +60,11 @@ Color is named by role, never by a new call-site literal.
   values are not theme signals to be casually retuned; an arm moves only for a
   measured ink failure, and the axis tokens (`--axis-x/y/z`) follow the same
   rule.
+  *Skins.* A cube skin (`data-cube-skin`) may redefine `--face-1…6` and
+  `--face-N-ink` as one block colocated in `CubeTarget.css`. The crayon skin
+  is the pinned default. The Daraksha skin is her register, opaque, hue-exact
+  to `register-oklch.mjs`. A skin carries no lighting and no motion CSS; its
+  motion is engine-authored (the library's `unfurl` and `garlandSway`).
 * **Lighting is flat (X-DS, value.js COHESION §0ej/§0ek).** The demo authors no
   lighting: no specular, sheen, veil, glow halo, coloured drop-glow or inset
   catch-light on chrome or subject. The `--specular`/`--shade` material register

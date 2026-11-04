@@ -82,7 +82,7 @@ describe("R-r-2 — the cube's first autoplay frame resolves var(--rotationX)", 
                         target.value = r as Exposed | null;
                     },
                     isPlaying: true,
-                    ppMode: false,
+                    skin: "crayon",
                     transform: transform.value,
                     "onUpdate:transform": (t: TransformState) => {
                         transform.value = t;
@@ -100,7 +100,7 @@ describe("R-r-2 — the cube's first autoplay frame resolves var(--rotationX)", 
         if (!cubeEl || !bobEl || !poseEl || !graphEl) throw new Error("CubeTarget exposed no elements");
 
         const [demo, demoApp] = withSetup(() =>
-            useCubeDemo(ref(createMatrix()), ref(createMatrix())),
+            useCubeDemo(ref(createMatrix()), ref(createMatrix()), ref("crayon")),
         );
         apps.push(demoApp);
         demo.setTargets({ cubeEl, bobEl, poseEl, graphEl });

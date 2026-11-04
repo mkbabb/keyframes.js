@@ -33,7 +33,11 @@
                          gives each writer its own node: the bob on `.cube-bob`,
                          the authored matrix pose on `.cube-pose`, the spin on
                          `.cube` — nested, so they COMPOSE (bob · pose · spin). -->
-                    <div ref="bobEl" class="cube-bob preserve-3d">
+                    <!-- The skin's attribute sits on the OUTERMOST skin-bearing
+                         element, `.cube-bob`: its face tokens inherit down to
+                         every face, and the Daraksha hinge (`transform-origin`)
+                         is a static property of the Hover channel's own node. -->
+                    <div ref="bobEl" class="cube-bob preserve-3d" :data-cube-skin="skin">
                         <div ref="poseEl" class="cube-pose preserve-3d">
                             <div
                                 ref="cubeEl"
@@ -63,7 +67,10 @@
                                          the orientation-coupled specular/veil are
                                          deleted; the one tonal step is FIXED per face
                                          (CubeTarget.css), never driven by rotation. -->
-                                    <template v-if="!ppMode">
+                                    <!-- Crayon and Daraksha share the face template;
+                                         a skin changes token values only
+                                         (CubeTarget.css), never the faces. -->
+                                    <template v-if="skin !== 'ppmycota'">
                                         <div
                                             :class="[
                                                 'face-fill h-full w-full font-bold',
@@ -109,10 +116,21 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onScopeDispose, reactive, ref, useTemplateRef } from "vue";
+import {
+    computed,
+    nextTick,
+    onMounted,
+    onScopeDispose,
+    reactive,
+    ref,
+    useTemplateRef,
+    watch,
+} from "vue";
 import type { CSSKeyframesAnimation, Vars } from "@mkbabb/keyframes.js";
-import { loadAnimationEngine } from "@mkbabb/keyframes.js";
+import { loadAnimationEngine, Sequence, stagger } from "@mkbabb/keyframes.js";
+import type { CubeSkin } from "@state";
 import { useDoubleTap } from "@composables/useDoubleTap";
+import { useSceneVisibilityPause } from "@composables/scene-runtime/useSceneVisibilityPause";
 import OrbitalDrag from "./orbital-drag/OrbitalDrag.vue";
 import type { TransformBounds, TransformState } from "./orbital-drag/transform";
 import type { OrbitFrame } from "./orbital-drag/composables/useOrbitalGesture";
@@ -128,7 +146,7 @@ import {
 
 const props = defineProps<{
     isPlaying: boolean;
-    ppMode: boolean;
+    skin: CubeSkin;
 }>();
 
 const transform = defineModel<TransformState>("transform", { required: true });
@@ -198,16 +216,108 @@ const orbitBounds: TransformBounds = { scale: [0.4, 3], stage: stageBox };
 // bold, so the large-text bar holds on size alone. No ratio is quoted here
 // (KF-SKEL-22); the rendered verdict with sheen and specular over it is KF.W9's,
 // and neither end closes this id alone.
+//
+// Each face's numeral ink is its own `--face-N-ink` token. In the crayon skin
+// only `--face-4-ink` is declared (X-DS pass 6, KF-C6-04: the one light crayon
+// in both themes carries the dark ink, style.css); the other five are
+// undeclared, so `color` falls back to inheritance (--foreground), exactly as
+// before. A skin (CubeTarget.css) declares all six.
 const cubeSides = [
-    { class: "front", content: "1", color: "var(--face-1)" },
-    { class: "right", content: "2", color: "var(--face-2)" },
-    { class: "back", content: "3", color: "var(--face-3)" },
-    // X-DS pass 6 (KF-C6-04) — the one light crayon in both themes carries
-    // the dark ink (`--face-4-ink`, style.css); the others inherit --foreground.
+    { class: "front", content: "1", color: "var(--face-1)", ink: "var(--face-1-ink)" },
+    { class: "right", content: "2", color: "var(--face-2)", ink: "var(--face-2-ink)" },
+    { class: "back", content: "3", color: "var(--face-3)", ink: "var(--face-3-ink)" },
     { class: "left", content: "4", color: "var(--face-4)", ink: "var(--face-4-ink)" },
-    { class: "top", content: "5", color: "var(--face-5)" },
-    { class: "bottom", content: "6", color: "var(--face-6)" },
+    { class: "top", content: "5", color: "var(--face-5)", ink: "var(--face-5-ink)" },
+    { class: "bottom", content: "6", color: "var(--face-6)", ink: "var(--face-6-ink)" },
 ];
+
+// ── THE DARAKSHA UNFURL ──────────────────────────────────────────────────────
+// Under the Daraksha skin the six faces open like marigold petals: each face's
+// `.face-fill` (the in-plane child of `.cube-side`, which no other writer
+// transforms) plays the library's `presets.unfurl` from its base, staggered
+// around the die and then the crown (front, right, back, left, top, bottom —
+// the `cubeSides` order). The face PLACEMENT (`.cube-side`'s translateZ) keeps
+// its one CSS owner. It plays when the skin is chosen and on mount when it is
+// already the stored skin; under reduced motion it does not play at all.
+//
+// The stagger is POSITIONS on one master clock (`Sequence`, at `stagger()`'s
+// offsets), not per-child `delay`s in an AnimationGroup: a child's delay is a
+// per-play sleep inside its advance, so the group's first frame would wait on
+// the longest one. On the master clock a petal not yet reached rests on its 0%
+// frame (closed) and a finished one on its 100% frame (open).
+//
+// On finish every fill's inline `transform` and `opacity` are REMOVED, so the
+// stylesheet owns the resting face again and no stale inline frame survives a
+// later layout change.
+const UNFURL_EACH_MS = 70;
+let unfurlSeq: Sequence | undefined;
+let unfurlFills: HTMLElement[] = [];
+
+const releaseFills = () => {
+    for (const fill of unfurlFills) {
+        fill.style.removeProperty("transform");
+        fill.style.removeProperty("opacity");
+    }
+    unfurlFills = [];
+};
+
+const stopUnfurl = () => {
+    unfurlSeq?.stop();
+    unfurlSeq = undefined;
+    releaseFills();
+};
+
+const prefersReducedMotion = () =>
+    typeof window !== "undefined" &&
+    window.matchMedia?.("(prefers-reduced-motion: reduce)").matches === true;
+
+const playUnfurl = async () => {
+    stopUnfurl();
+    if (prefersReducedMotion()) return;
+    // A skin swap from ppmycota mounts fresh face nodes on the next flush.
+    await nextTick();
+    const fills = Array.from(
+        cubeEl.value?.querySelectorAll<HTMLElement>(".cube-side > .face-fill") ?? [],
+    );
+    if (fills.length === 0) return;
+
+    const { presets } = await loadAnimationEngine();
+    if (props.skin !== "daraksha" || !fills.every((f) => f.isConnected)) return;
+
+    const at = stagger(fills.length, { each: UNFURL_EACH_MS });
+    const seq = new Sequence();
+    fills.forEach((fill, i) => {
+        seq.add(presets.unfurl().setTargets(fill), at(i));
+    });
+    unfurlSeq = seq;
+    unfurlFills = fills;
+
+    await seq.play();
+    if (unfurlSeq === seq) {
+        unfurlSeq = undefined;
+        releaseFills();
+    }
+};
+
+onMounted(() => {
+    if (props.skin === "daraksha") void playUnfurl();
+});
+
+watch(
+    () => props.skin,
+    (skin) => {
+        if (skin === "daraksha") void playUnfurl();
+        else stopUnfurl();
+    },
+);
+
+// The unfurl's own hidden-tab pause (the scene idiom: only resume what the hide
+// paused).
+useSceneVisibilityPause(
+    () => unfurlSeq?.playback.running ?? false,
+    () => unfurlSeq?.pause(),
+    () => unfurlSeq?.resume(),
+);
 
 // ── EASTER EGG — "the axis-lock reveal" (P.W5.S3) ─────────────────────────────
 // Hold X / Y / Z and OrbitalDrag CONSTRAINS the rotation to that single axis —
@@ -373,6 +483,7 @@ useDoubleTap({
 
 onScopeDispose(() => {
     rollAnim?.stop();
+    stopUnfurl();
 });
 </script>
 

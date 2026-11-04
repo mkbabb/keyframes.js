@@ -8,6 +8,10 @@ import {
 } from "./storeUtils";
 import type { SceneId } from "./sceneMachine";
 
+/** The cube's skins: the pinned crayon die, the ppmycota brand skin, and
+ *  Daraksha's register (her eight colours, CubeTarget.css). */
+export type CubeSkin = "crayon" | "ppmycota" | "daraksha";
+
 export type StoredAnimationGroupControlOptions = {
     selectedControl: string;
     // `null` is the honest "no animation selected" state (the clear/validate
@@ -22,7 +26,9 @@ export type StoredAnimationGroupControlOptions = {
         keyframes: string;
         addKeyframes: string;
     };
-    ppMode?: boolean;
+    /** The cube's skin (the `cube` bucket only); absent = `"crayon"`. One
+     *  writer (MbabbMenu's radio group), one reader (CubeScene → CubeTarget). */
+    cubeSkin?: CubeSkin;
     /** OA-61 — the ball preview's visibility (the one PreviewToggle eye),
      *  per scene; absent = shown. */
     ballPreview?: "shown" | "hidden";

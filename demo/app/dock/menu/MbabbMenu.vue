@@ -143,56 +143,71 @@
                      covers the whole ~272×44 row, so a scale on the child pointed
                      the affordance at the wrong object. The row's own hover chrome
                      is the affordance, as on every other row. -->
-                <!-- MM-5 — a persisted boolean is a CHECKBOX row: `menuitemcheckbox` +
-                     `aria-checked` + the indicator seat, from the design system's own
-                     `DropdownMenuCheckboxItem` (the exported seam; no copied selector).
+                <!-- The cube's SKIN — one persisted choice of three, so a RADIO group
+                     (the design system's `DropdownMenuRadioGroup`/`RadioItem`:
+                     `menuitemradio` + `aria-checked` + the indicator seat).
                      `@select.prevent` keeps the menu open, so the mark IS the feedback.
                      MM-1/MM-6 (≡ KF-APP-1 · kf-CubeScene C-14) — the ONE writer binds the
-                     plain store bucket directly (no `.value` off a non-ref: the old
-                     `togglePpMode` threw on every click), and it binds the `cube` bucket —
-                     the only reader (`CubeScene` → `CubeTarget :pp-mode`) keys by
-                     `CUBE_SCENE_ID` on every scene, home included, so writing the ACTIVE
-                     scene's bucket was inert on 6 of 7 scenes. CubeScene's `setPPMode`
-                     twin died with the unmounted header render fn (KF-APP-17, delete arm). -->
-                <DropdownMenuCheckboxItem :model-value="cubeControls.ppMode ?? false" @update:model-value="(checked: boolean) => (cubeControls.ppMode = checked)" @select.prevent text-value="ppmycota" class="gap-2.5 px-1.5 py-1 cursor-pointer">
-                    <div class="ppmycota-logo-sm w-7 h-7 shrink-0"></div>
-                    <div class="flex-1 min-w-0">
-                        <!-- MM-21 — the brand colour is a UTILITY, and the old
-                             five-line case for an inline style was mechanically
-                             false: `--ppmycota-primary` is a `:root` global, so it
-                             inherits into the portal like every other token this
-                             content reads through a utility. `text-[var(…)]` emits
-                             `color:` on the span itself (no MM-4 layer contest —
-                             the unlayered rule is on the ITEM, and a declared
-                             colour on the child beats inheritance), and unlike the
-                             highest-priority inline style it can be re-tinted.
+                     plain `cube` store bucket directly: the only reader (`CubeScene` →
+                     `CubeTarget :skin`) keys by `CUBE_SCENE_ID` on every scene, home
+                     included. (The former ppmycota checkbox is this group's
+                     ppmycota row.) -->
+                <DropdownMenuRadioGroup :model-value="cubeControls.cubeSkin ?? 'crayon'" @update:model-value="setCubeSkin">
+                    <DropdownMenuRadioItem value="crayon" @select.prevent text-value="Crayon" class="gap-2.5 px-1.5 py-1 cursor-pointer">
+                        <span class="w-7 shrink-0 flex justify-center"><Box class="w-5 h-5" aria-hidden="true" /></span>
+                        <div class="flex-1 min-w-0">
+                            <span class="text-small text-foreground">Crayon</span>
+                        </div>
+                    </DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="ppmycota" @select.prevent text-value="ppmycota" class="gap-2.5 px-1.5 py-1 cursor-pointer">
+                        <div class="ppmycota-logo-sm w-7 h-7 shrink-0"></div>
+                        <div class="flex-1 min-w-0">
+                            <!-- MM-21 — the brand colour is a UTILITY, and the old
+                                 five-line case for an inline style was mechanically
+                                 false: `--ppmycota-primary` is a `:root` global, so it
+                                 inherits into the portal like every other token this
+                                 content reads through a utility. `text-[var(…)]` emits
+                                 `color:` on the span itself (no MM-4 layer contest —
+                                 the unlayered rule is on the ITEM, and a declared
+                                 colour on the child beats inheritance), and unlike the
+                                 highest-priority inline style it can be re-tinted.
 
-                             MM-12, RECORDED HERE AND CURED NOWHERE IN THIS WAVE
-                             (bounds, not oversight). This label follows the theme —
-                             `--ppmycota-primary` is `--accent-kf`, a `light-dark()`
-                             pair — while the MARK beside it is repainted by
-                             `--filter-brand-color`, a single static filter chain
-                             (`brand.css:30` reads it; `style.css:178` declares it)
-                             with NO `.dark` arm: `.dark` re-declares only
-                             `--accent-red`, `--accent-red-foreground` and
-                             `--primary`. So mark and label diverge in dark mode BY
-                             CONSTRUCTION. The two lawful cures both live outside
-                             every writable set in this wave's plan — a `.dark`
-                             `--filter-brand-color` arm in `style.css`, or a
-                             mask/inline-SVG mark on `currentColor` in `brand.css` —
-                             and inventing a filter chain at this call site would be
-                             a third, worse dialect. Declared, never silently
-                             dropped; perceptual magnitude is SS-13's. -->
-                        <span class="text-small text-[var(--ppmycota-primary)]">ppmycota</span>
-                    </div>
-                    <!-- UIA-KF-138 · UIA-KF-246 — the site is a trailing glyph, not a
-                         second line (the one subtitle left in this menu is Clear all's).
-                         A2-KE-L2-14 — the link's target is the row's own height and a
-                         44 px inline slot (it was the bare 16 x 16 px glyph): the anchor
-                         stretches over the row's block padding and its end padding, and
-                         the glyph stays 16 px, centred in it. -->
-                    <a href="https://ppmycota.com" target="_blank" rel="noopener noreferrer" aria-label="ppmycota.com" title="ppmycota.com" class="self-stretch inline-flex items-center justify-center min-w-11 -my-1 -mr-1.5 text-muted-foreground hover:text-foreground" @click.stop><ExternalLink class="w-4 h-4" aria-hidden="true" /></a>
-                </DropdownMenuCheckboxItem>
+                                 MM-12, RECORDED HERE AND CURED NOWHERE IN THIS WAVE
+                                 (bounds, not oversight). This label follows the theme —
+                                 `--ppmycota-primary` is `--accent-kf`, a `light-dark()`
+                                 pair — while the MARK beside it is repainted by
+                                 `--filter-brand-color`, a single static filter chain
+                                 (`brand.css:30` reads it; `style.css:178` declares it)
+                                 with NO `.dark` arm: `.dark` re-declares only
+                                 `--accent-red`, `--accent-red-foreground` and
+                                 `--primary`. So mark and label diverge in dark mode BY
+                                 CONSTRUCTION. The two lawful cures both live outside
+                                 every writable set in this wave's plan — a `.dark`
+                                 `--filter-brand-color` arm in `style.css`, or a
+                                 mask/inline-SVG mark on `currentColor` in `brand.css` —
+                                 and inventing a filter chain at this call site would be
+                                 a third, worse dialect. Declared, never silently
+                                 dropped; perceptual magnitude is SS-13's. -->
+                            <span class="text-small text-[var(--ppmycota-primary)]">ppmycota</span>
+                        </div>
+                        <!-- UIA-KF-138 · UIA-KF-246 — the site is a trailing glyph, not a
+                             second line (the one subtitle left in this menu is Clear all's).
+                             A2-KE-L2-14 — the link's target is the row's own height and a
+                             44 px inline slot (it was the bare 16 x 16 px glyph): the anchor
+                             stretches over the row's block padding and its end padding, and
+                             the glyph stays 16 px, centred in it. -->
+                        <a href="https://ppmycota.com" target="_blank" rel="noopener noreferrer" aria-label="ppmycota.com" title="ppmycota.com" class="self-stretch inline-flex items-center justify-center min-w-11 -my-1 -mr-1.5 text-muted-foreground hover:text-foreground" @click.stop><ExternalLink class="w-4 h-4" aria-hidden="true" /></a>
+                    </DropdownMenuRadioItem>
+                    <!-- Daraksha — her register on the die. The mark is a disc of
+                         her canonical gradient (efflorescence → gulabi → haldi →
+                         zari → tulsi), the menu's only gradient and no image. -->
+                    <DropdownMenuRadioItem value="daraksha" @select.prevent text-value="Daraksha" class="gap-2.5 px-1.5 py-1 cursor-pointer">
+                        <span class="daraksha-mark w-7 h-7 shrink-0 rounded-full" aria-hidden="true"></span>
+                        <div class="flex-1 min-w-0">
+                            <span class="text-small text-foreground">Daraksha</span>
+                        </div>
+                    </DropdownMenuRadioItem>
+                </DropdownMenuRadioGroup>
 
                 <DropdownMenuSeparator />
             </template>
@@ -304,13 +319,14 @@ import SharePopover from "./SharePopover.vue";
 import { Avatar, AvatarFallback, AvatarImage } from "@mkbabb/glass-ui";
 import { Button } from "@mkbabb/glass-ui/button";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@mkbabb/glass-ui/dialog";
-import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuShortcut } from "@mkbabb/glass-ui/menu";
+import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuShortcut } from "@mkbabb/glass-ui/menu";
 import { useGlobalDark } from "@mkbabb/glass-ui/dark";
 import { DockTrigger, useOptionalDockContext } from "@mkbabb/glass-ui/dock";
-import { ExternalLink, Keyboard, Moon, Share2, Trash } from "@lucide/vue";
+import { Box, ExternalLink, Keyboard, Moon, Share2, Trash } from "@lucide/vue";
 import { registerShortcut } from "@mkbabb/glass-ui/keyboard";
 import KeyboardShortcutsModal from "./KeyboardShortcutsModal.vue";
 import { getStoredAnimationGroupControlOptions, resetAllStores } from "@state";
+import type { CubeSkin } from "@state";
 import { CUBE_SCENE_ID } from "../../../scenes/cube/cubeKeys";
 import { useDockEdgeOffset } from "@composables/dockEdge";
 defineProps<{
@@ -370,12 +386,17 @@ onBeforeUnmount(() => {
     dock?.release();
 });
 
-// MM-1/MM-6 — the ppmycota flag's ONE writer (the CheckboxItem's v-model above).
+// MM-1/MM-6 — the cube skin's ONE writer (the RadioGroup's v-model above).
 // The store returns the bucket itself (a reactive member of the persisted
 // `useStorage` record), not a ref; and the bucket is the CUBE scene's, because
 // the flag's only reader is CubeScene, which keys by `CUBE_SCENE_ID` wherever it
 // mounts (home's backdrop included) — C-14's split resolved at the writer.
 const cubeControls = getStoredAnimationGroupControlOptions(CUBE_SCENE_ID);
+const CUBE_SKINS: readonly CubeSkin[] = ["crayon", "ppmycota", "daraksha"];
+function setCubeSkin(value: unknown): void {
+    const skin = CUBE_SKINS.find((s) => s === value);
+    if (skin) cubeControls.cubeSkin = skin;
+}
 
 // A2-KE-L2-17 — the short layout (see the template), the controls pane's own query.
 const isShortLayout = useMediaQuery("(max-width: 1023px) and (max-height: 500px)");
@@ -441,3 +462,17 @@ function clearAllAndReload(): void {
 }
 
 </script>
+
+<style scoped>
+/* Daraksha's mark: her canonical gradient, hue-exact to her register. */
+.daraksha-mark {
+    background-image: linear-gradient(
+        in oklch 135deg,
+        oklch(73% 0.185 2),
+        oklch(90% 0.055 18),
+        oklch(82% 0.145 76),
+        oklch(72% 0.12 88),
+        oklch(72% 0.055 145)
+    );
+}
+</style>

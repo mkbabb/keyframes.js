@@ -409,7 +409,7 @@ describe("the Roll stack — #1 trigger · #2 paint · #5 continuity · #6 arbit
             props: {
                 isPlaying: false,
                 isStarted: false,
-                ppMode: false,
+                skin: "crayon",
                 transform: restTransform(),
             },
         });

@@ -78,7 +78,7 @@ const userReversed = ref(false);
 // OA-10 (§0ao.1) + ESC-e-1 (§0ar) — the ball preview's hide toggle is this
 // scene's VIEW STATE, so it lives where the scene's other view state lives: its
 // bucket in the control-options store (beside `isControlsPanelOpen`, and cube's
-// `ppMode`), persisted with the bucket's expiry, reset and share semantics. The
+// `cubeSkin`), persisted with the bucket's expiry, reset and share semantics. The
 // ribbon reads it on every render (an absent field is the default, shown) and
 // its `update:preview` writes it back; nothing scene-local holds a copy.
 const storedControls = getStoredAnimationGroupControlOptions(EASING_SCENE_ID);

@@ -197,3 +197,46 @@
    verdict #1). The fixed per-face tonal step carries the depth; no
    compensating ancestor shadow is re-introduced (any ancestor in the 3D chain
    re-flattens). */
+
+/* THE DARAKSHA SKIN — her register (hue-exact to the palette's source,
+   `register-oklch.mjs`), OPAQUE in both themes so her colours stay true and
+   each numeral's ink ratio is exact rather than composited. Efflorescence
+   faces the viewer; sheesham, the wood, sits at the base. The skin redefines
+   the tokens the faces already read and nothing else: no lighting, and no
+   motion CSS — the unfurl and the sway are engine-authored (CubeTarget.vue,
+   useCubeDemo). The attribute rides `.cube-bob`, so the tokens inherit to
+   every face and the hinge is a static property of the Hover channel's node.
+
+   Ink (value.js contrastRatio, all ≥ the 3:1 large-text floor):
+   1 jamun 3.89 · 2 jamun 5.70 · 3 curry-leaf 3.20 · 4 jamun 4.07 ·
+   5 jamun 7.38 · 6 gulabi 3.63. */
+.cube-bob[data-cube-skin="daraksha"] {
+    --face-1: oklch(73% 0.185 2); /* front  — efflorescence */
+    --face-2: oklch(82% 0.145 76); /* right  — haldi */
+    --face-3: oklch(72% 0.055 145); /* back   — tulsi */
+    --face-4: oklch(72% 0.12 88); /* left   — zari */
+    --face-5: oklch(90% 0.055 18); /* top    — gulabi */
+    --face-6: oklch(55% 0.085 56); /* bottom — sheesham */
+    --face-1-ink: oklch(39% 0.1 356); /* jamun */
+    --face-2-ink: oklch(39% 0.1 356); /* jamun */
+    --face-3-ink: oklch(43% 0.085 152); /* curry-leaf */
+    --face-4-ink: oklch(39% 0.1 356); /* jamun */
+    --face-5-ink: oklch(39% 0.1 356); /* jamun */
+    --face-6-ink: oklch(90% 0.055 18); /* gulabi */
+
+    /* The garland's hinge, above the die (the Hover channel sways from here). */
+    transform-origin: 50% -40%;
+
+    /* Her faces are opaque, so the page-ground plate under each face (KFA-142,
+       there for the crayons' 0.8 alpha) has nothing to back. Cleared, it
+       cannot show as a dark tile while a petal is still closed: the die
+       flowers out of empty space. */
+    & .cube-side {
+        background-color: transparent;
+    }
+
+    /* Each petal opens from its base. */
+    & .face-fill {
+        transform-origin: 50% 100%;
+    }
+}

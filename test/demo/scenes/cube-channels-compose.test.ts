@@ -38,7 +38,7 @@ describe("KF.W13U.w — the cube's channels compose on their own elements", () =
 
     it("spin, pose and bob each write their own element across the timeline", () => {
         const [demo] = withSetup(() =>
-            useCubeDemo(ref(createMatrix()), ref(createMatrix())),
+            useCubeDemo(ref(createMatrix()), ref(createMatrix()), ref("crayon")),
         );
         const graphEl = el(document.body, "graph");
         const bobEl = el(graphEl, "cube-bob");

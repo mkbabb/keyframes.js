@@ -1,5 +1,6 @@
 import { markRaw, shallowRef, watch } from "vue";
 import type { Ref } from "vue";
+import type { CubeSkin } from "@state";
 import { kfEngine } from "@kf-engine";
 import { getStoredAnimationOptions } from "@state";
 import { useSceneVisibilityPause } from "@composables/scene-runtime/useSceneVisibilityPause";
@@ -24,6 +25,7 @@ export interface CubeTargets {
 export function useCubeDemo(
     matrix3dStart: Ref<Matrix3dCall>,
     matrix3dEnd: Ref<Matrix3dCall>,
+    skin: Readonly<Ref<CubeSkin>>,
 ) {
     // HEAVY surface from the warmed engine (kfEngine(), L.W8 S1 dogfood inversion)
     // — synchronous, since the warm resolves before any scene mounts. `presets`
@@ -81,11 +83,28 @@ export function useCubeDemo(
         CUBE_SCENE_ID,
     );
 
-    const hoverAnim = shallowRef(
-        markRaw(presets.hover(hoverAnimationOptions.animationOptions)),
-    );
+    // The Hover channel's motion follows the skin: the crayon bob, or under
+    // Daraksha the library's `garlandSway` (a pendulum from the hinge the skin
+    // block sets on `.cube-bob`). Same channel, same element, same options —
+    // the swap RE-KEYS it (`adoptCompiled`, the Matrix channel's verb), so
+    // `.cube-bob` keeps one writer and the group keeps three children. The
+    // sway rides the channel's own stored options, so the engine's
+    // reduced-motion gate that governs the bob governs the sway.
+    const compileHoverAnimation = (s: CubeSkin) =>
+        s === "daraksha"
+            ? presets.garlandSway(hoverAnimationOptions.animationOptions)
+            : presets.hover(hoverAnimationOptions.animationOptions);
+
+    const hoverAnim = shallowRef(markRaw(compileHoverAnimation(skin.value)));
     hoverAnim.value.name = CUBE_ANIMATION_NAMES.Hover;
     hoverAnim.value.superKey = CUBE_SCENE_ID;
+
+    watch(skin, (s, prev) => {
+        if ((s === "daraksha") === (prev === "daraksha")) return;
+        hoverAnim.value.adoptCompiled(compileHoverAnimation(s));
+        const group = animationGroup.value;
+        if (group.started && group.paused) group.render();
+    });
 
     const animationGroup = shallowRef(
         markRaw(

@@ -17,7 +17,7 @@ describe("KFA-89 · KFA-144 — the die hosts no spinner in its 3D chain", () =>
             matrix: mat4.create(),
         };
         const w = mount(CubeTarget, {
-            props: { isPlaying: false, ppMode: false, transform },
+            props: { isPlaying: false, skin: "crayon", transform },
             attrs: { showLoader: true },
         });
         await nextTick();

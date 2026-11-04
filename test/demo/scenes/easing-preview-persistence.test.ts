@@ -4,7 +4,7 @@
  *
  * The scene's view state lives in its bucket of the control-options store
  * (`animation-groups-control-options-store` in localStorage, keyed by the
- * registry `SceneId`), beside `isControlsPanelOpen` and cube's `ppMode`. The
+ * registry `SceneId`), beside `isControlsPanelOpen` and cube's `cubeSkin`. The
  * toggle's state is the bucket's `ballPreview` field, read by `EasingScene`
  * through `getStoredAnimationGroupControlOptions(EASING_SCENE_ID)`.
  *
