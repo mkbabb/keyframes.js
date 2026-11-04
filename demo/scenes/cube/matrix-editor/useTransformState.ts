@@ -88,12 +88,16 @@ export function useTransformState(
             ? {
                   translate: { ...initialTransform.translate },
                   rotate: { ...initialTransform.rotate },
+                  ...(initialTransform.quaternion
+                      ? { quaternion: [...initialTransform.quaternion] as [number, number, number, number] }
+                      : {}),
                   scale: { ...initialTransform.scale },
                   matrix: mat4.clone(initialTransform.matrix ?? mat4.create()),
               }
             : {
                   translate: { x: 0, y: 0, z: 0 },
                   rotate: { x: 0, y: 0, z: 0 },
+                  quaternion: [0, 0, 0, 1],
                   scale: { x: 1, y: 1, z: 1 },
                   matrix: mat4.create(),
               },
@@ -215,6 +219,9 @@ export function useTransformState(
                 slider.rotate.x = 0;
                 slider.rotate.y = 0;
                 slider.rotate.z = 0;
+                // KF-M2 — the attitude is the truth: Reset writes the identity
+                // quaternion with its Y·X·Z readout (0, 0, 0).
+                slider.quaternion = [0, 0, 0, 1];
                 slider.scale.x = 1;
                 slider.scale.y = 1;
                 slider.scale.z = 1;

@@ -109,11 +109,8 @@ describe("orbital-rotate3d — the rotation OUTPUT renders as native rotate3d (G
 
     /** The orientation the component holds for an Euler triple — its own
      *  `eulerDegreesToQuaternion` seed, the authority the render must reproduce. */
-    const seeded = (r: { x: number; y: number; z: number }): quat => {
-        const q = quat.create();
-        eulerDegreesToQuaternion(q, r.x, r.y, r.z);
-        return q;
-    };
+    const seeded = (r: { x: number; y: number; z: number }): quat =>
+        quat.fromValues(...eulerDegreesToQuaternion(r.x, r.y, r.z));
 
     it("clause (a) FORM LOCK — the MOUNTED component renders rotate3d( and no rotateX/Y/Z", async () => {
         const transform = await renderedTransform({ x: -20, y: 20, z: 0 });

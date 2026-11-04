@@ -67,3 +67,21 @@ export function rotateByAttitude(
         v[2] * c + crossZ * s + kz * dot * (1 - c),
     ];
 }
+
+/**
+ * KF-M2 — the attitude as a unit quaternion `[x, y, z, w]` (f64), built from
+ * the one GRAPH_ATTITUDE so the orbit's screen↔container conjugation never
+ * re-spells it. The orbit stores its own attitude Q inside this frame; the
+ * world attitude is G·Q, a screen-frame drag reaches Q as G⁻¹·q·G, and a
+ * screen-px pan renders as translate3d(G⁻¹·t).
+ */
+export function attitudeQuat(
+    attitude: GraphAttitude = GRAPH_ATTITUDE,
+): [number, number, number, number] {
+    const [ax, ay, az] = attitude.axis;
+    const m = Math.hypot(ax, ay, az);
+    if (m === 0 || attitude.angleDeg === 0) return [0, 0, 0, 1];
+    const half = (attitude.angleDeg * DEG) / 2;
+    const s = Math.sin(half) / m;
+    return [ax * s, ay * s, az * s, Math.cos(half)];
+}

@@ -7,10 +7,8 @@ import { quat, vec3 } from "gl-matrix";
 import OrbitalDrag from "../../../demo/scenes/cube/orbital-drag/OrbitalDrag.vue";
 
 import { useOrbitalInertia } from "../../../demo/scenes/cube/orbital-drag/composables/useOrbitalInertia";
-import {
-    defaultTransformState,
-    defaultVelocityState,
-} from "../../../demo/scenes/cube/orbital-drag/transform";
+import { DEFAULT_INERTIA_FACTOR } from "../../../demo/scenes/cube/orbital-drag/composables/inertiaDecay";
+import { defaultTransformState } from "../../../demo/scenes/cube/orbital-drag/transform";
 
 /**
  * X.KF.W13X `.cube` · KFA-83 — the orbit coast is frame-rate invariant.
@@ -42,28 +40,21 @@ afterEach(() => {
     vi.unstubAllGlobals();
 });
 
+// KF-M2 — the coast is the closed form sampled at elapsed time, so it is
+// rad/s-exact at any frame rate (the release ω is per unit time).
 const coast = (hz: number, ms: number) => {
     let total = 0;
-    const isDragging = ref(true);
     const scope = effectScope();
-    scope.run(() =>
-        useOrbitalInertia({
-            model: ref(structuredClone(defaultTransformState)),
-            velocity: ref(structuredClone(defaultVelocityState)),
-            isDragging,
-            isTouching: ref(false),
-            isWheeling: ref(false),
-            inertiaFactor: 0.95,
-            // The fling's speed in the composable's own unit: radians per 60 Hz frame.
-            angularVelocitySpeed: ref(0.05),
-            applyRotation: (_axis, angle) => void (total += angle),
-            angularVelocityAxis: vec3.fromValues(0, 1, 0),
-            updateLinearTransform: () => {},
-        }),
-    );
+    scope.run(() => {
+        const inertia = useOrbitalInertia({
+            inertiaFactor: DEFAULT_INERTIA_FACTOR,
+            rotateBy: (_axis, angle) => void (total += angle),
+        });
+        // A release at 3 rad/s about +y.
+        inertia.start([0, 3, 0]);
+    });
     return {
         run: async () => {
-            isDragging.value = false; // the release resumes the coast loop
             await Promise.resolve();
             const dt = 1000 / hz;
             for (let t = 0; t < ms; t += dt) {
@@ -82,8 +73,8 @@ describe("KFA-83 — the coast covers the same angle at 60 Hz and 120 Hz", () =>
     it("total coast angle agrees within 5 %", async () => {
         const at60 = await coast(60, 2000).run();
         const at120 = await coast(120, 2000).run();
-        expect(at60).toBeGreaterThan(0.2);
-        expect(Math.abs(at120 - at60) / at60).toBeLessThan(0.05);
+        expect(at60).toBeGreaterThan(0.1);
+        expect(Math.abs(at120 - at60) / at60).toBeLessThan(0.01);
     });
 });
 

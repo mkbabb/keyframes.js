@@ -25,11 +25,13 @@
  * that greps its subject proves only that the grep ran.
  */
 import { afterEach, describe, expect, it } from "vitest";
-import { createApp, effectScope, h, nextTick, reactive, ref, shallowRef } from "vue";
+import { createApp, effectScope, h, nextTick, reactive, shallowRef } from "vue";
 import { vec3 } from "gl-matrix";
 import CubeAxisLines from "../../../demo/scenes/cube/CubeAxisLines.vue";
 import OrbitalDrag from "../../../demo/scenes/cube/orbital-drag/OrbitalDrag.vue";
-import { useOrbitalPointer } from "../../../demo/scenes/cube/orbital-drag/composables/useOrbitalPointer";
+import { useOrbitalGesture } from "../../../demo/scenes/cube/orbital-drag/composables/useOrbitalGesture";
+import type { OrbitState } from "../../../demo/scenes/cube/orbital-drag/composables/useOrbitalGesture";
+import { quatToAxisAngle, type Quat } from "../../../demo/scenes/cube/orbital-drag/arcball";
 import {
     axes,
     defaultTransformState,
@@ -37,6 +39,7 @@ import {
     type TransformState,
 } from "../../../demo/scenes/cube/orbital-drag";
 import {
+    attitudeQuat,
     GRAPH_ATTITUDE,
     rotateByAttitude,
     type GraphAttitude,
@@ -223,67 +226,81 @@ describe("the reveal, on the ONE registry (KF-AX-1 consumer half · KF-AX-2)", (
     });
 });
 
-describe("KF-AX-2 — the latch gates the FIRST branch of BOTH gesture paths", () => {
-    /** The pointer reader with counting stubs in place of the transform appliers. */
+describe("KF-AX-2 — the latch gates BOTH gesture paths (the one reader, KF-M2)", () => {
+    const G = attitudeQuat();
+
+    /** The one reader with a recording host; the frame centres at the origin. */
     function harness() {
-        const calls = { axisSpecific: 0, rotation: 0, translation: 0, scale: 0 };
+        const container = document.createElement("div");
+        document.body.append(container);
+        const state: OrbitState = { q: [0, 0, 0, 1], t: { x: 0, y: 0 }, s: 1 };
         const scope = effectScope();
-        const pointer = scope.run(() =>
-            useOrbitalPointer({
-                sensitivity: 1,
-                touchSensitivity: 1,
-                containerRef: shallowRef<HTMLElement | null>(document.createElement("div")),
-                updateRotation: () => void calls.rotation++,
-                applyRotation: () => {},
-                updateTranslation: () => void calls.translation++,
-                updateScale: () => void calls.scale++,
-                handleAxisSpecificInput: () => void calls.axisSpecific++,
-                angularVelocityAxis: vec3.create(),
-                angularVelocitySpeed: ref(0),
+        const gesture = scope.run(() =>
+            useOrbitalGesture({
+                containerRef: shallowRef<HTMLElement | null>(container),
+                G,
+                state,
+                frame: () => ({ centre: { x: 0, y: 0 }, side: 200, fit: 1, stage: null }),
+                scaleRange: [0.4, 3],
+                requestCommit: () => {},
+                onGestureStart: () => {},
+                onGestureEnd: () => {},
             }),
         )!;
-        return { pointer, calls, dispose: () => scope.stop() };
+        return {
+            gesture,
+            state,
+            dispose: () => {
+                scope.stop();
+                container.remove();
+            },
+        };
     }
+
+    /** The axis (container frame) the attitude turned about since identity. */
+    const turnedAbout = (q: Quat) => quatToAxisAngle(q).axis;
 
     const pointerEvent = (type: string, clientX: number, clientY: number) =>
         new PointerEvent(type, { clientX, clientY, pointerId: 1, pointerType: "mouse" });
 
-    it("DRAG: unlatched it rotates; latched it is constrained — same gesture", () => {
-        const { pointer, calls, dispose } = harness();
-        pointer.startDrag(pointerEvent("pointerdown", 0, 0));
-        pointer.drag(pointerEvent("pointermove", 20, 20));
-        expect(calls.rotation).toBe(1);
-        expect(calls.axisSpecific).toBe(0);
+    it("DRAG: unlatched it orbits freely; latched it turns about the latched axis only", () => {
+        const free = harness();
+        free.gesture.onPointerDown(pointerEvent("pointerdown", 0, 0));
+        document.dispatchEvent(pointerEvent("pointermove", 30, 50));
+        const freeAxis = turnedAbout(free.state.q);
+        expect(Math.abs(freeAxis[1])).toBeLessThan(0.99);
+        document.dispatchEvent(pointerEvent("pointerup", 30, 50));
+        free.dispose();
 
-        // Exactly what the registry's keydown binding calls (OrbitalDrag's
-        // `registerShortcut(code, () => pointer.setAxisLatch(axis, true))`).
-        pointer.setAxisLatch("y", true);
-        pointer.drag(pointerEvent("pointermove", 40, 40));
-        expect(calls.axisSpecific).toBe(1);
-        expect(calls.rotation).toBe(1);
-        dispose();
+        // Exactly what the registry's keydown binding calls.
+        const latched = harness();
+        latched.gesture.setAxisLatch("y", true);
+        latched.gesture.onPointerDown(pointerEvent("pointerdown", 10, 0));
+        document.dispatchEvent(pointerEvent("pointermove", 40, 50));
+        const axis = turnedAbout(latched.state.q);
+        expect(Math.abs(axis[1])).toBeCloseTo(1, 9);
+        document.dispatchEvent(pointerEvent("pointerup", 40, 50));
+        latched.dispose();
     });
 
-    it("WHEEL: the sixth operation reads the SAME latch — 'single-axis rotation' was false", () => {
-        const { pointer, calls, dispose } = harness();
-        pointer.handleWheel(new WheelEvent("wheel", { deltaX: 40, deltaY: 40 }));
-        expect(calls.rotation).toBe(1);
-        expect(calls.axisSpecific).toBe(0);
+    it("WHEEL: the wheel reads the SAME latch", () => {
+        const { gesture, state, dispose } = harness();
+        gesture.handleWheel(new WheelEvent("wheel", { deltaX: 40, deltaY: 40 }));
+        expect(Math.abs(turnedAbout(state.q)[2])).toBeLessThan(0.99);
 
-        pointer.setAxisLatch("z", true);
-        pointer.handleWheel(new WheelEvent("wheel", { deltaX: 40, deltaY: 40 }));
-        expect(calls.axisSpecific).toBe(1);
-        expect(calls.rotation).toBe(1);
+        state.q = [0, 0, 0, 1];
+        gesture.setAxisLatch("z", true);
+        gesture.handleWheel(new WheelEvent("wheel", { deltaX: 40, deltaY: 40 }));
+        expect(Math.abs(turnedAbout(state.q)[2])).toBeCloseTo(1, 9);
         dispose();
     });
 
     it("the latch is ARMED with no gesture in flight — the reveal's real meaning", () => {
-        const { pointer, calls, dispose } = harness();
-        pointer.setAxisLatch("x", true);
-        expect(pointer.pressedKeys.value.x).toBe(true);
-        // Nothing has been dragged, wheeled or rotated: the tell is an arming
-        // tell, and the prose now says so.
-        expect(calls).toEqual({ axisSpecific: 0, rotation: 0, translation: 0, scale: 0 });
+        const { gesture, state, dispose } = harness();
+        gesture.setAxisLatch("x", true);
+        expect(gesture.pressedKeys.value.x).toBe(true);
+        // Nothing has been dragged or wheeled: the tell is an arming tell.
+        expect(state.q).toEqual([0, 0, 0, 1]);
         dispose();
     });
 });

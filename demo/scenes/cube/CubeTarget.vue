@@ -13,6 +13,8 @@
                 class="preserve-3d relative flex items-center justify-center justify-items-center select-none"
                 v-model="transform"
                 apply-transform-to-container
+                :frame="orbitFrame"
+                :bounds="orbitBounds"
                 @pressed-keys="onPressedKeys"
             >
                 <div
@@ -112,7 +114,9 @@ import type { CSSKeyframesAnimation, Vars } from "@mkbabb/keyframes.js";
 import { loadAnimationEngine } from "@mkbabb/keyframes.js";
 import { useDoubleTap } from "@composables/useDoubleTap";
 import OrbitalDrag from "./orbital-drag/OrbitalDrag.vue";
-import type { TransformState } from "./orbital-drag/transform";
+import type { TransformBounds, TransformState } from "./orbital-drag/transform";
+import type { OrbitFrame } from "./orbital-drag/composables/useOrbitalGesture";
+import type { Box } from "./orbital-drag/similarity";
 import type { PressedKeys } from "./orbital-drag/types";
 import CubeAxisLines from "./CubeAxisLines.vue";
 import { CUBE_SPIN_VARS } from "./cubeMotion";
@@ -139,6 +143,40 @@ const rollEl = useTemplateRef<HTMLElement>("rollEl");
 const orbitalRef = useTemplateRef<InstanceType<typeof OrbitalDrag>>("orbitalRef");
 
 defineExpose({ cubeEl, bobEl, poseEl, graphEl });
+
+// ── KF-M2 · KF-M1 — what the orbit anchors on (read once per gesture) ───────
+// The projected centre is `.graph`'s (the parked stage, rotated by G only);
+// the side is the die's LAYOUT size (transforms excluded); the fit is the
+// stage glide's live scale (`.stage-glide`, AnimationControlsGroup: the OPEN
+// rung shrinks the subject into the region above the sheet); and the stage is
+// the visible-stage box V — the `.stage-cell` content box, whose padding IS
+// the reserve (top band, transport band + the sheet's settled peek).
+const stageBox = (): Box | null => {
+    const cell = graphEl.value?.closest<HTMLElement>(".stage-cell");
+    if (!cell) return null;
+    const r = cell.getBoundingClientRect();
+    const cs = getComputedStyle(cell);
+    return {
+        left: r.left + parseFloat(cs.paddingLeft),
+        top: r.top + parseFloat(cs.paddingTop),
+        right: r.right - parseFloat(cs.paddingRight),
+        bottom: r.bottom - parseFloat(cs.paddingBottom),
+    };
+};
+
+const orbitFrame = (): OrbitFrame => {
+    const g = graphEl.value?.getBoundingClientRect();
+    const glide = graphEl.value?.closest<HTMLElement>(".stage-glide");
+    const fit = glide && glide.offsetWidth > 0 ? glide.getBoundingClientRect().width / glide.offsetWidth : 1;
+    return {
+        centre: g ? { x: g.left + g.width / 2, y: g.top + g.height / 2 } : { x: 0, y: 0 },
+        side: cubeEl.value?.offsetWidth ?? 0,
+        fit,
+        stage: null,
+    };
+};
+
+const orbitBounds: TransformBounds = { scale: [0.4, 3], stage: stageBox };
 
 // L.W11.S2 — the six crayon facets are KEPT, every hue intact; the raw rgba
 // literals are HOISTED one-for-one into named --face-1…6 tokens (proof:crayon-

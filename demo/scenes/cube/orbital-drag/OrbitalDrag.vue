@@ -1,45 +1,73 @@
 <template>
     <div ref="containerRef" :style="containerStyle">
         <!-- P.W5.S3 — the axis-lock-reveal egg seam: expose `pressedKeys` (the
-             X/Y/Z/modifier latch this component already owns) as a scoped slot
-             prop so the cube can light the locked axis line. Reactive, no new
-             rAF — the same ref the gesture readers mutate. -->
-        <slot :pressed-keys="pointer.pressedKeys.value"></slot>
+             X/Y/Z/modifier latch this component owns) as a scoped slot prop so
+             the cube can light the locked axis line. Reactive, no new rAF. -->
+        <slot :pressed-keys="gesture.pressedKeys.value"></slot>
     </div>
 </template>
 
 <script setup lang="ts">
-import { clamp } from "@mkbabb/value.js/math";
+// SERVED MODEL: claude-opus-5-5
 import { registerShortcut } from "@mkbabb/glass-ui/keyboard";
 import { useEventListener } from "@vueuse/core";
-import { quat, vec3 } from "gl-matrix";
-import { computed, onMounted, onUnmounted, ref, useTemplateRef, watch } from "vue";
-import type { TransformBounds, TransformState, VelocityState } from "./transform";
+import { computed, onMounted, onUnmounted, shallowRef, useTemplateRef, watch } from "vue";
+import { attitudeQuat } from "../graphAttitude";
+import {
+    quatCanonical,
+    quatConjugate,
+    quatDot,
+    quatFromAxisAngle,
+    quatMultiply,
+    quatToAxisAngle,
+    rotateVec,
+} from "./arcball";
+import type { Quat, Vec3 } from "./arcball";
+import type { TransformBounds, TransformState } from "./transform";
 import type { PressedKeys } from "./types";
-import { axes, defaultTransformBounds, defaultTransformState, defaultVelocityState } from "./transform";
+import { defaultTransformBounds, defaultTransformState } from "./transform";
+import { useOrbitalGesture } from "./composables/useOrbitalGesture";
+import type { OrbitFrame, OrbitState } from "./composables/useOrbitalGesture";
 import { useOrbitalInertia } from "./composables/useOrbitalInertia";
-import { useOrbitalPinch } from "./composables/useOrbitalPinch";
-import { useOrbitalPointer } from "./composables/useOrbitalPointer";
-import { eulerDegreesToQuaternion, quaternionToEulerDegrees } from "./quaternionEuler";
-import { TARGET_DT, perTargetFrame } from "./composables/inertiaDecay";
+import { DEFAULT_INERTIA_FACTOR } from "./composables/inertiaDecay";
+import {
+    eulerDegreesToQuaternion,
+    foldEulerDegrees,
+    quaternionToEulerDegrees,
+} from "./quaternionEuler";
 
-const props = defineProps<{
-    sensitivity?: number;
-    translationFactor?: number;
-    inertiaFactor?: number;
-    scaleFactor?: number;
-    bounds?: TransformBounds;
-    applyTransformToContainer?: boolean;
-}>();
+/**
+ * THE ORBIT (KF-M2, COHESION §0hm). One reader, one state, one render.
+ *
+ *  · The stored truth is the container-local attitude Q (`model.quaternion`),
+ *    kept unit and in the w ≥ 0 hemisphere. The rendered world attitude is
+ *    G·Q, G the stage attitude `.graph` is parked at (graphAttitude.ts).
+ *  · A screen-frame rotation q_s reaches Q conjugated, Q' = (G⁻¹·q_s·G)·Q₀, so
+ *    a drag turns the die about the axis the hand sees (the former local-frame
+ *    axis skewed it up to 30°).
+ *  · The pan is in SCREEN px and renders as translate3d(G⁻¹·t): G·G⁻¹·t = t,
+ *    no depth, no perspective magnification (the former 1.43×, D-13).
+ *  · The Euler triple is a READOUT (Y·X·Z, continuous, quaternionEuler.ts).
+ *  · Gesture moves write the state; ONE commit per frame writes the model,
+ *    emits, and ticks the render (no Euler-triple render dependency).
+ */
+const props = withDefaults(
+    defineProps<{
+        inertiaFactor?: number;
+        bounds?: TransformBounds;
+        /** The subject's projected centre, layout side, live fit and the
+         *  visible stage — read once per gesture anchor. */
+        frame?: () => OrbitFrame;
+        applyTransformToContainer?: boolean;
+    }>(),
+    { inertiaFactor: DEFAULT_INERTIA_FACTOR },
+);
 
 const emit = defineEmits<{
     (e: "rotate", state: TransformState["rotate"]): void;
     (e: "translate", state: TransformState["translate"]): void;
     (e: "scale", scale: TransformState["scale"]): void;
-    // P.W5.S3 — the axis-lock-reveal egg: emit the X/Y/Z/modifier latch whenever
-    // it changes so a parent (the cube) can light the locked axis line. Reactive,
-    // no rAF — fired from a deep watch over the owned `pressedKeys`, which the
-    // registry's axis bindings and `syncModifiers` are the only writers of.
+    // P.W5.S3 — the X/Y/Z/modifier latch, whenever it changes.
     (e: "pressedKeys", keys: PressedKeys): void;
 }>();
 
@@ -48,246 +76,137 @@ const model = defineModel<TransformState>({
 });
 
 if (Object.keys(model.value).length === 0) {
-    Object.assign(model.value, defaultTransformState);
+    Object.assign(model.value, structuredClone(defaultTransformState));
 }
 
 const containerRef = useTemplateRef<HTMLElement>("containerRef");
-
-const sensitivity = props.sensitivity ?? 0.5;
-const touchSensitivity = sensitivity * 0.5;
-const translationFactor = props.translationFactor ?? 0.8;
-const inertiaFactor = props.inertiaFactor ?? 0.95;
-const scaleFactor = props.scaleFactor ?? 0.02;
 const bounds = props.bounds ?? defaultTransformBounds;
+const G: Quat = attitudeQuat();
+const Ginv: Quat = quatConjugate(G);
 
-const velocity = ref<VelocityState>(structuredClone(defaultVelocityState));
-const renderAxis = vec3.create(); // reused getAxisAngle out-param (zero-alloc)
+const seedQuaternion = (): Quat => {
+    const stored = model.value.quaternion;
+    if (stored && stored.length === 4) return quatCanonical(stored);
+    const { x, y, z } = model.value.rotate;
+    return quatCanonical(eulerDegreesToQuaternion(x, y, z));
+};
+
+const state: OrbitState = {
+    q: seedQuaternion(),
+    t: { x: model.value.translate.x, y: model.value.translate.y },
+    s: model.value.scale.x,
+};
+
+// ── The render ──────────────────────────────────────────────────────
+// The version tick is the render's ONE dependency for the attitude (bumped
+// once per commit), replacing the `void rotate.x/y/z` read of the readout.
+const version = shallowRef(0);
 
 const containerStyle = computed(() => {
     if (!props.applyTransformToContainer) return {};
-    // The Euler triple is the reactive dep (syncRotationToModel writes it per
-    // rotation) so the computed re-runs, then renders ONE rotate3d() off the
-    // quaternion's NATIVE axis-angle — no Euler decompose, no Rx·Ry·Rz, no gimbal.
-    // All THREE components (KFA-33, X.KF.W13V.k): a pure yaw moves y/z and
-    // leaves x at 0, so an x-only dep froze the container through a horizontal
-    // drag and snapped it when the decomposition next flipped x.
-    const { rotate } = model.value;
-    void [rotate.x, rotate.y, rotate.z];
+    void version.value;
     const { translate, scale: s } = model.value;
-    const angleDeg = quat.getAxisAngle(renderAxis, currentQuaternion) * (180 / Math.PI);
+    const tl = rotateVec(Ginv, [translate.x, translate.y, translate.z]);
+    const { axis, angle } = quatToAxisAngle(state.q);
     return {
-        transformStyle: 'preserve-3d' as const,
-        willChange: 'transform' as const,
-        transform: `translate3d(${translate.x}px, ${translate.y}px, ${translate.z}px) rotate3d(${renderAxis[0]}, ${renderAxis[1]}, ${renderAxis[2]}, ${angleDeg}deg) scale3d(${s.x}, ${s.y}, ${s.z})`,
+        transformStyle: "preserve-3d" as const,
+        willChange: "transform" as const,
+        transform: `translate3d(${tl[0]}px, ${tl[1]}px, ${tl[2]}px) rotate3d(${axis[0]}, ${axis[1]}, ${axis[2]}, ${angle * (180 / Math.PI)}deg) scale3d(${s.x}, ${s.y}, ${s.z})`,
     };
 });
 
-// ── Quaternion core — the rotation source of truth ──────────────────
-// Never reconstructed from Euler angles; only multiplied by delta quaternions.
-const currentQuaternion = quat.create();
-
-// Angular velocity for inertia: axis + speed, not per-Euler-component.
-const angularVelocityAxis = vec3.fromValues(0, 1, 0);
-const angularVelocitySpeed = ref(0);
-
-/** Set by gesture composables during active interaction to suppress emit overhead. */
-let isInteracting = false;
-
-const syncRotationToModel = () => {
-    const angles = quaternionToEulerDegrees(currentQuaternion);
-    model.value.rotate.x = angles.x;
-    model.value.rotate.y = angles.y;
-    model.value.rotate.z = angles.z;
-    // Skip emit during active interaction to reduce reactivity cascade on iOS
-    if (!isInteracting) {
-        emit("rotate", { ...model.value.rotate });
+// ── The commit: one model write, one emit, one tick per frame ───────
+const writeModel = (fold = false) => {
+    const m = model.value;
+    const readout = quaternionToEulerDegrees(state.q, m.rotate);
+    const r = fold ? foldEulerDegrees(readout) : readout;
+    m.rotate.x = r.x;
+    m.rotate.y = r.y;
+    m.rotate.z = r.z;
+    m.quaternion = [state.q[0], state.q[1], state.q[2], state.q[3]];
+    if (m.translate.x !== state.t.x || m.translate.y !== state.t.y) {
+        m.translate.x = state.t.x;
+        m.translate.y = state.t.y;
+        emit("translate", { ...m.translate });
     }
-};
-
-// Re-seed the quaternion source-of-truth FROM the Euler v-model — the reverse
-// path. The forward path (drag) mutates `currentQuaternion` directly and DERIVES
-// the Euler triple from it (syncRotationToModel); but the v-model is two-way, so
-// an EXTERNAL write to `model.value.rotate` (the matrix-editor Reset, a slider,
-// a restored share-hash) must re-seed the quaternion the render reads — otherwise
-// the container renders the stale dragged orientation. Same `Rx·Ry·Rz`
-// construction onMounted uses (the convention useTransformState consumes).
-const rebuildQuaternionFromEuler = () => {
-    const { x, y, z } = model.value.rotate;
-    eulerDegreesToQuaternion(currentQuaternion, x, y, z);
-};
-
-const applyRotation = (axis: vec3, angle: number) => {
-    if (Math.abs(angle) < 1e-10) return;
-
-    const deltaQuat = quat.create();
-    quat.setAxisAngle(deltaQuat, axis, angle);
-    quat.multiply(currentQuaternion, deltaQuat, currentQuaternion);
-    quat.normalize(currentQuaternion, currentQuaternion);
-
-    syncRotationToModel();
-};
-
-const updateRotation = (deltaX: number, deltaY: number, isTouch = false, eventDtMs = TARGET_DT) => {
-    const axis = vec3.fromValues(-deltaY, deltaX, 0);
-    const magnitude = vec3.length(axis);
-    if (magnitude < 1e-6) return;
-
-    vec3.normalize(axis, axis);
-    const s = isTouch ? touchSensitivity : sensitivity;
-    const angle = (magnitude * s) / 25;
-
-    applyRotation(axis, angle);
-
-    // EMA-smoothed angular velocity for inertia — per unit time (KFA-83): the
-    // event's angle over its own delta, per TARGET_DT frame, never per event.
-    const alpha = 0.3;
-    vec3.lerp(angularVelocityAxis, angularVelocityAxis, axis, alpha);
-    vec3.normalize(angularVelocityAxis, angularVelocityAxis);
-    angularVelocitySpeed.value =
-        alpha * perTargetFrame(angle, eventDtMs) + (1 - alpha) * angularVelocitySpeed.value;
-};
-
-const updateAxisRotation = (constrainedAxes: (typeof axes)[number][], deltaX: number, deltaY: number, isTouch = false, eventDtMs = TARGET_DT) => {
-    const magnitude = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-    if (magnitude < 1e-6) return;
-
-    const s = isTouch ? touchSensitivity : sensitivity;
-    const angle = (magnitude * s) / 25;
-
-    for (const a of constrainedAxes) {
-        const axis = vec3.fromValues(
-            a === "x" ? 1 : 0,
-            a === "y" ? 1 : 0,
-            a === "z" ? 1 : 0,
-        );
-        applyRotation(axis, angle * Math.sign(a === "x" ? -deltaY : deltaX));
+    if (m.scale.x !== state.s || m.scale.y !== state.s || m.scale.z !== state.s) {
+        m.scale.x = m.scale.y = m.scale.z = state.s;
+        emit("scale", { ...m.scale });
     }
-
-    angularVelocitySpeed.value = perTargetFrame(angle, eventDtMs);
+    emit("rotate", { ...m.rotate });
+    version.value++;
 };
 
-// ── Linear transform appliers ───────────────────────────────────────
-// The translate/scale counterparts of the rotation appliers above — they
-// mutate the `model`/`velocity` this component owns and emit the category,
-// so they belong here beside `applyRotation`, NOT in the pointer reader.
-// `useOrbitalPointer` receives them as callbacks (symmetric with rotation).
-
-const updateLinearTransform = (
-    category: "translate" | "scale",
-    axis: (typeof axes)[number],
-    value: number,
-    velocityValue: number,
-) => {
-    (model.value[category] as Record<string, number>)[axis] = value;
-    (velocity.value[category] as Record<string, number>)[axis] = velocityValue;
-
-    const categoryBounds = (bounds as unknown as Record<string, Record<string, [number, number]>>)[category]!;
-    for (const [k, v] of Object.entries(model.value[category] as Record<string, number>)) {
-        const [min, max] = categoryBounds[k]!;
-        (model.value[category] as unknown as Record<string, number>)[k] = clamp(v, min, max);
-    }
-
-    if (category === "translate") emit("translate", { ...model.value.translate });
-    else emit("scale", { ...model.value.scale });
+let commitHandle = 0;
+const commitNow = () => {
+    if (commitHandle) cancelAnimationFrame(commitHandle);
+    commitHandle = 0;
+    writeModel();
+};
+const requestCommit = () => {
+    if (commitHandle) return;
+    commitHandle = requestAnimationFrame(() => {
+        commitHandle = 0;
+        writeModel();
+    });
 };
 
-const updateTranslation = (axis: (typeof axes)[number], delta: number) => {
-    updateLinearTransform("translate", axis, model.value.translate[axis] + delta * translationFactor, delta * translationFactor);
+// ── The frame the reader anchors on ─────────────────────────────────
+const defaultFrame = (): OrbitFrame => {
+    const el = containerRef.value;
+    const r = el?.getBoundingClientRect();
+    return {
+        centre: r ? { x: r.left + r.width / 2, y: r.top + r.height / 2 } : { x: 0, y: 0 },
+        side: el?.offsetWidth ?? 0,
+        fit: 1,
+        stage: null,
+    };
+};
+const readFrame = (): OrbitFrame => {
+    const f = props.frame?.() ?? defaultFrame();
+    return { ...f, fit: f.fit > 0 ? f.fit : 1, stage: bounds.stage?.() ?? f.stage };
 };
 
-const updateScale = (axis: (typeof axes)[number], delta: number) => {
-    updateLinearTransform("scale", axis, model.value.scale[axis] + delta * scaleFactor, delta * scaleFactor);
-};
+const reducedMotion = () =>
+    typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-const handleAxisSpecificInput = (deltaX: number, deltaY: number, isTouch = false, eventDtMs = TARGET_DT) => {
-    const keys = pointer.pressedKeys.value;
-    const delta = Math.abs(deltaX) > Math.abs(deltaY) ? deltaX : deltaY;
-
-    if (keys.x) {
-        if (keys.shift) updateTranslation("x", delta);
-        else if (keys.ctrl || keys.meta) updateScale("x", delta);
-        else updateAxisRotation(["x"], deltaX, deltaY, isTouch, eventDtMs);
-    }
-    if (keys.y) {
-        if (keys.shift) updateTranslation("y", delta);
-        else if (keys.ctrl || keys.meta) updateScale("y", delta);
-        else updateAxisRotation(["y"], deltaX, deltaY, isTouch, eventDtMs);
-    }
-    if (keys.z) {
-        if (keys.shift) updateTranslation("z", delta);
-        else if (keys.ctrl || keys.meta) updateScale("z", delta);
-        else updateAxisRotation(["z"], deltaX, deltaY, isTouch, eventDtMs);
-    }
-};
-
-// ── Compose gesture handling ────────────────────────────────────────
-
-// Pinch must be created before pointer so we can pass resetPinchDistance as onStopDrag.
-// Use a late-binding wrapper since pinch isn't assigned yet at pointer creation time.
-let pinchResetFn: (() => void) | undefined;
-
-const pointer = useOrbitalPointer({
-    sensitivity,
-    touchSensitivity,
-    containerRef,
-    updateRotation,
-    applyRotation,
-    updateTranslation,
-    updateScale,
-    handleAxisSpecificInput,
-    angularVelocityAxis,
-    angularVelocitySpeed,
-    onStopDrag: () => pinchResetFn?.(),
-});
-
-const pinch = useOrbitalPinch({
-    model,
-    isTouching: pointer.isTouching,
-    isWheeling: pointer.isWheeling,
-    scaleFactor,
-    updateTranslation,
-    updateScale,
-    applyRotation,
-    angularVelocityAxis,
-    angularVelocitySpeed,
-});
-
-pinchResetFn = pinch.resetPinchDistance;
-
+// ── The coast (rotation only) ───────────────────────────────────────
 const inertia = useOrbitalInertia({
-    model,
-    velocity,
-    isDragging: pointer.isDragging,
-    isTouching: pointer.isTouching,
-    isWheeling: pointer.isWheeling,
-    inertiaFactor,
-    angularVelocitySpeed,
-    applyRotation,
-    angularVelocityAxis,
-    updateLinearTransform,
+    inertiaFactor: props.inertiaFactor,
+    reducedMotion,
+    rotateBy: (axis: Vec3, angle: number) => {
+        state.q = quatCanonical(quatMultiply(quatFromAxisAngle(axis, angle), state.q));
+        writeModel();
+    },
+    onRest: () => writeModel(true),
+});
+
+// ── The reader ──────────────────────────────────────────────────────
+const gesture = useOrbitalGesture({
+    containerRef,
+    G,
+    state,
+    frame: readFrame,
+    scaleRange: bounds.scale,
+    requestCommit,
+    onGestureStart: () => {
+        inertia.stop();
+        // A gesture opens on the model as it stands (an external write since
+        // the last commit is honoured).
+        state.t = { x: model.value.translate.x, y: model.value.translate.y };
+        state.s = model.value.scale.x;
+    },
+    onGestureEnd: (omega) => {
+        commitNow();
+        if (inertia.start(omega) === 0) writeModel(true);
+    },
 });
 
 // ── The axis latch — KF-AX-1 ≡ OD-3/OD-4/OD-5/OD-6/OD-25/OD-31 ──────
-//
-// THE ONE REGISTRY. Holding X, Y or Z constrains the orbit to that single axis.
-// That latch used to be a pair of raw `window` keydown/keyup listeners — a
-// SECOND keyboard authority beside the demo's one `registerShortcut` registry,
-// and it carried every defect the registry already solves:
-//
-//  · no editable-target guard — typing an `x` into any field in the app latched
-//    the axis (the registry skips input/textarea/contenteditable by default);
-//  · no modifier discipline — the app's own ⌘Z / ⌘⇧Z registrations latched the
-//    Z axis and lit the axis line on every Undo and Redo (a bare combo matches
-//    only with NO modifiers held, so the collision is now structural);
-//  · `event.key`-only matching — the binding is SPATIAL, so it is registered by
-//    `event.code` and a non-Latin layout reaches the same physical keys;
-//  · invisible — the ten-mode gesture vocabulary registered nothing anywhere, so
-//    nothing could teach it. Labelled registrations appear in the derived
-//    shortcuts modal (OD-6), which is the only surface that ever will.
-//
-// LAW A census, run before the deletion: `pointer.updatePressedKeys` had exactly
-// TWO readers tree-wide — the two window listeners replaced here — and no other
-// consumer of any kind, so the decoder dies with them.
+// THE ONE REGISTRY. Holding X, Y or Z constrains the orbit to that axis. The
+// binding is SPATIAL (`event.code`), the registry skips editable targets and
+// a bare combo matches only with no modifiers held (so ⌘Z never latches Z),
+// and the labelled registrations teach the gesture in the shortcuts map.
 const AXIS_KEYS = [
     { axis: "x", code: "KeyX" },
     { axis: "y", code: "KeyY" },
@@ -295,122 +214,78 @@ const AXIS_KEYS = [
 ] as const;
 
 for (const { axis, code } of AXIS_KEYS) {
-    // X-DS pass 5 (KF-C5-08) — one line in the shortcuts map ("Constrain
-    // orbit to the X axis (hold)" wrapped to two in its column).
     const label = `Orbit on ${axis.toUpperCase()} axis (hold)`;
-    registerShortcut(code, () => pointer.setAxisLatch(axis, true), {
+    registerShortcut(code, () => gesture.setAxisLatch(axis, true), {
         label,
         group: "Cube",
     });
-    registerShortcut(code, () => pointer.setAxisLatch(axis, false), {
+    registerShortcut(code, () => gesture.setAxisLatch(axis, false), {
         event: "keyup",
         group: "Cube",
     });
 }
 
-// OD-5 — the latch has a matching keyup, which a window blur or an app switch
-// never delivers: the lock stranded silently and the FIRST branch of both `drag`
-// and `handleWheel` reads it, so every later gesture was single-axis with no
-// visible cause. Clear it whenever the window stops owning the keyboard.
-useEventListener(window, "blur", () => pointer.resetPressedKeys());
+// OD-5 — a blur or an app switch never delivers the latch's keyup; clear it.
+useEventListener(window, "blur", () => gesture.resetPressedKeys());
 useEventListener(document, "visibilitychange", () => {
-    if (document.visibilityState === "hidden") pointer.resetPressedKeys();
+    if (document.visibilityState === "hidden") gesture.resetPressedKeys();
 });
 
-// ── Lifecycle ───────────────────────────────────────────────────────
-
 onMounted(() => {
-    // Initialize the quaternion source-of-truth from the model's initial Euler.
-    rebuildQuaternionFromEuler();
-
-    useEventListener(
-        containerRef,
-        "wheel",
-        (event) => {
-            pointer.handleWheel(event as WheelEvent);
-        },
-        { passive: false },
-    );
-
-    // Pointer Events on container -- the reader owns its own document listeners
-    useEventListener(containerRef, "pointerdown", pointer.onPointerDown);
-
-    // Touch events on container only -- for multi-touch pinch (2+ fingers)
-    useEventListener(containerRef, "touchstart", pinch.startTouchPinch, { passive: false });
-    useEventListener(containerRef, "touchmove", pinch.handleTouchPinch, { passive: false });
-    useEventListener(containerRef, "touchend", pinch.stopTouchPinch);
-
-    // Safari gesture events: start on container, change/end on window with isTouching guard
-    useEventListener(containerRef, "gesturestart", pinch.startGesture as (event: Event) => void, { passive: false });
-    useEventListener(window, "gesturechange", pinch.gesture as (event: Event) => void, { passive: false });
-    useEventListener(window, "gestureend", pinch.stopGesture);
-
+    useEventListener(containerRef, "wheel", (event) => gesture.handleWheel(event as WheelEvent), {
+        passive: false,
+    });
+    useEventListener(containerRef, "pointerdown", gesture.onPointerDown);
+    // Safari gesture*: page-zoom suppression while fingers are down, and the
+    // desktop trackpad pinch when none are.
+    useEventListener(containerRef, "gesturestart", gesture.onGestureStartEvent, { passive: false });
+    useEventListener(window, "gesturechange", gesture.onGestureChange, { passive: false });
+    useEventListener(window, "gestureend", gesture.onGestureEndEvent, { passive: false });
 });
 
 onUnmounted(() => {
-    inertia.pause();
+    inertia.stop();
+    if (commitHandle) cancelAnimationFrame(commitHandle);
 });
 
-// kf-CubeTarget #1 — THE CAPTURE SURFACE, published. `onPointerDown` takes
-// pointer capture on `containerRef`, and Pointer Events dispatches every later
-// event for that pointer AT the capture element (propagating to its ANCESTORS).
-// A consumer that recognizes its own gesture on a DESCENDANT of this element —
-// the cube's double-tap-to-roll did, on `.cube` — never sees a `pointermove` or
-// a `pointerup` again once a drag begins. Publishing the surface lets a consumer
-// listen where the events are actually delivered, instead of the component
-// silently swallowing them.
-// OD-5's escape hatch rides with it: a consumer (or a gate) can clear a
-// stranded axis lock without synthesising a keyup.
-defineExpose({ containerRef, resetPressedKeys: pointer.resetPressedKeys });
+// kf-CubeTarget #1 — THE CAPTURE SURFACE, published (a consumer recognising its
+// own gesture listens where the captured events are delivered), with OD-5's
+// escape hatch.
+defineExpose({ containerRef, resetPressedKeys: gesture.resetPressedKeys });
 
-// The reverse path (external Euler → quaternion). The forward path writes
-// `model.value.rotate` as EXACTLY `quaternionToEulerDegrees(currentQuaternion)`,
-// so an echo of our own write is byte-identical to the quaternion's current
-// Euler — skip it. Any OTHER value is an external write (Reset / slider / share)
-// and must re-seed the quaternion the render reads, or the container would render
-// the stale dragged orientation. `flush: 'pre'` re-seeds before the render reads
-// `currentQuaternion` through `containerStyle`'s `void model.value.rotate.x` dep.
+// The reverse path: an EXTERNAL write to the readout (Reset, a slider, a
+// restored state) re-seeds the attitude. The test is by ROTATION, not by
+// bytes — the readout is unwrapped and folded, so its numbers drift from any
+// fresh extraction while naming the same attitude; only a write that names a
+// different rotation is external.
 watch(
-    () => [model.value.rotate.x, model.value.rotate.y, model.value.rotate.z],
+    () => [model.value.rotate.x, model.value.rotate.y, model.value.rotate.z] as const,
     ([x, y, z]) => {
-        const echo = quaternionToEulerDegrees(currentQuaternion);
-        if (x === echo.x && y === echo.y && z === echo.z) return;
-        rebuildQuaternionFromEuler();
+        const q = eulerDegreesToQuaternion(x, y, z);
+        if (Math.abs(quatDot(q, state.q)) >= 1 - 1e-12) return;
+        inertia.stop();
+        state.q = quatCanonical(q);
+        model.value.quaternion = [state.q[0], state.q[1], state.q[2], state.q[3]];
+        version.value++;
     },
 );
 
-// P.W5.S3 — the axis-lock-reveal egg: surface the X/Y/Z latch to the parent the
-// moment it changes (the registry's axis bindings mutate `pointer.pressedKeys`
-// in place, so a deep watch catches each toggle). The cube reads this to light
-// the locked axis.
+// The same for an external write of the attitude itself.
 watch(
-    () => pointer.pressedKeys.value,
+    () => model.value.quaternion,
+    (q) => {
+        if (!q || Math.abs(quatDot(q, state.q)) >= 1 - 1e-12) return;
+        inertia.stop();
+        state.q = quatCanonical(q);
+        version.value++;
+    },
+);
+
+// P.W5.S3 — surface the latch to the parent the moment it changes.
+watch(
+    () => gesture.pressedKeys.value,
     (keys) => emit("pressedKeys", { ...keys }),
     { deep: true },
-);
-
-// Dampen velocities on release of drag/touch/wheel + emit deferred rotation
-watch(
-    () => pointer.isDragging.value || pointer.isTouching.value || pointer.isWheeling.value,
-    (active) => {
-        isInteracting = active;
-        if (active) return;
-
-        // Emit final rotation now that interaction ended
-        emit("rotate", { ...model.value.rotate });
-
-        // Gentle initial velocity dampen on release — preserves most of the
-        // momentum for a smooth handoff to the inertia decay loop.
-        angularVelocitySpeed.value *= 0.8;
-
-        for (const category of ["translate", "scale"] as const) {
-            for (const k of Object.keys(
-                velocity.value[category],
-            ) as (keyof VelocityState["translate"])[]) {
-                velocity.value[category][k] *= 0.8;
-            }
-        }
-    },
 );
 </script>
 

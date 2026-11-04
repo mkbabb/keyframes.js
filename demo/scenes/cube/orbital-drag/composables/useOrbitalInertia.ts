@@ -1,149 +1,87 @@
-import type { vec3 } from "gl-matrix";
 import { useRafFn } from "@vueuse/core";
-import type { Ref } from "vue";
-import { watch } from "vue";
-import type { TransformState, VelocityState } from "../transform";
-import { axes } from "../transform";
-// inv ζ (orchestration analogue, F.W10.S1): the orbital inertia consumes the
-// engine's SHIPPED analytic `decay()` closed form — it no longer hand-rolls the
-// `Math.pow(inertiaFactor, dt/TARGET_DT)` discrete Euler decay the engine now
-// owns. `decay` is the light surface (zero value.js edge), imported from the
-// published barrel `@mkbabb/keyframes.js` like every other demo engine consumer
-// (L.W8 ED-3 dogfood inversion — the demo consumes the published surface, not
-// deep `@src/animation/*` paths).
+// inv ζ (F.W10.S1): the coast consumes the engine's SHIPPED analytic `decay()`
+// closed form from the published barrel, like every other demo engine consumer.
 import { decay } from "@mkbabb/keyframes.js";
-// The Vue-free measure-first mapping (k from inertiaFactor) + TARGET_DT, kept in
-// a pure module so the inertia-parity gate imports it without the .vue graph.
-import { TARGET_DT, inertiaFactorToFriction } from "./inertiaDecay";
+import type { DecaySample } from "@mkbabb/keyframes.js";
+import { norm3 } from "../arcball";
+import type { Vec3 } from "../arcball";
+import { COAST_REST_FRACTION, coastRate, inertiaFactorToFriction } from "./inertiaDecay";
 
 interface OrbitalInertiaParams {
-    model: Ref<TransformState>;
-    velocity: Ref<VelocityState>;
-    isDragging: Ref<boolean>;
-    isTouching: Ref<boolean>;
-    isWheeling: Ref<boolean>;
     inertiaFactor: number;
-    angularVelocitySpeed: Ref<number>;
-    // Callbacks into the quaternion core and pointer layer
-    applyRotation: (axis: vec3, angle: number) => void;
-    angularVelocityAxis: vec3;
-    updateLinearTransform: (
-        category: "translate" | "scale",
-        axis: (typeof axes)[number],
-        value: number,
-        velocityValue: number,
-    ) => void;
+    /** Turn the stored attitude by `angle` (rad) about `axis` (unit, in the
+     *  frame the attitude is stored in), and commit the frame. */
+    rotateBy: (axis: Vec3, angle: number) => void;
+    /** The coast's settle (the readout folds there). */
+    onRest?: () => void;
+    reducedMotion?: () => boolean;
 }
 
+/**
+ * The release coast — ROTATION ONLY (KF-M2, D-15). Pan and zoom are
+ * positional and clamped; they never coast.
+ *
+ * The coast is the closed form, sampled at elapsed time: angle(t) =
+ * |ω₀|/k·(1 − e^{−kt}), so the path is identical at 30, 60 and 120 Hz (each
+ * frame applies angle(t) − angle(t_prev), never a per-frame step). It starts at
+ * ω₀ = min(COAST_GAIN·|ω|, 2π) about ω̂ and stops once |ω| < 1% of ω₀. Under
+ * reduced motion ω₀ = 0: the gesture stays 1:1 and nothing coasts.
+ */
 export function useOrbitalInertia(params: OrbitalInertiaParams) {
-    const {
-        model,
-        velocity,
-        isDragging,
-        isTouching,
-        isWheeling,
-        inertiaFactor,
-        angularVelocitySpeed,
-        applyRotation,
-        angularVelocityAxis,
-        updateLinearTransform,
-    } = params;
-
-    const hasVelocity = () => {
-        if (Math.abs(angularVelocitySpeed.value) > 1e-4) return true;
-        for (const category of ["translate", "scale"] as const) {
-            for (const v of Object.values(velocity.value[category])) {
-                if (Math.abs(v as number) > 0.01) return true;
-            }
-        }
-        return false;
-    };
-
-    // The friction `k` the analytic glide bleeds velocity at — derived ONCE so
-    // the felt decay-rate matches the legacy per-frame form (the parity gate).
+    const { inertiaFactor, rotateBy, onRest, reducedMotion } = params;
     const friction = inertiaFactorToFriction(inertiaFactor);
 
-    // The engine's analytic decay sampler, seeded ONCE with unit velocity so
-    // `unitDecay(t_s).velocity` IS the multiplicative factor e^(−k·t_s) — the
-    // ratio v(t+dt)/v(t) over a frame. The closure is captured once (decay() is
-    // allocation-free per call), so the hot loop only reads it. This is the
-    // genuine dogfood: the per-frame factor comes from the SHIPPED `decay()`
-    // closed form, NOT a hand-rolled `Math.pow`.
-    const unitDecay = decay({ velocity: 1, friction });
+    let axis: Vec3 = [0, 1, 0];
+    let rate0 = 0;
+    let sample: ((t: number) => DecaySample) | null = null;
+    let startedAt = -1;
+    let travelled = 0;
 
-    // The analytic velocity-decay factor over a frame of `dtMs` ms. The
-    // per-frame integration structure is preserved (position += current
-    // velocity), so the swap is isomorphism-restoring: same trajectory,
-    // frame-rate-exact (no Euler drift).
-    const decayFactorOver = (dtMs: number): number =>
-        unitDecay(dtMs / 1000).velocity;
-
-    let lastInertiaTime = 0;
-
-    const applyInertia = () => {
-        if (isDragging.value || isTouching.value || isWheeling.value) return;
-
-        // Frame-rate-independent decay: the analytic factor over the actual
-        // frame delta (the closed form is frame-rate-exact by construction).
-        const now = performance.now();
-        const dt =
-            lastInertiaTime > 0
-                ? Math.min(now - lastInertiaTime, 100)
-                : TARGET_DT;
-        lastInertiaTime = now;
-        const factor = decayFactorOver(dt);
-        // KFA-83 — the STEP is frame-rate invariant too. The speeds are in the
-        // composable's unit, per TARGET_DT frame; a frame of `dt` ms advances by
-        // speed · dt / TARGET_DT. Stepping the whole speed on every frame coasted
-        // a 120 Hz display ~1.9× as far as a 60 Hz one.
-        const frames = dt / TARGET_DT;
-
-        // Rotational inertia via persistent quaternion
-        if (Math.abs(angularVelocitySpeed.value) > 1e-4) {
-            applyRotation(angularVelocityAxis, angularVelocitySpeed.value * frames);
-            angularVelocitySpeed.value *= factor;
-        } else {
-            angularVelocitySpeed.value = 0;
-        }
-
-        // Linear inertia (translate + scale)
-        for (const category of ["translate", "scale"] as const) {
-            for (const [k, v] of Object.entries(velocity.value[category])) {
-                if (Math.abs(v) > 0.01) {
-                    updateLinearTransform(
-                        category,
-                        k as (typeof axes)[number],
-                        (model.value[category] as Record<string, number>)[
-                            k
-                        ]! + v * frames,
-                        v * factor,
-                    );
-                } else {
-                    (
-                        velocity.value[category] as Record<string, number>
-                    )[k] = 0;
-                }
-            }
-        }
-
-        // Auto-pause when all velocities have decayed to zero
-        if (!hasVelocity()) {
-            lastInertiaTime = 0;
-            pause();
-        }
+    const stop = () => {
+        const wasCoasting = sample !== null;
+        sample = null;
+        startedAt = -1;
+        travelled = 0;
+        pause();
+        if (wasCoasting) onRest?.();
     };
 
-    const { pause, resume } = useRafFn(applyInertia, { immediate: false });
+    /** Advance the coast to `now` (ms). Returns whether it is still coasting. */
+    const advance = (now: number): boolean => {
+        if (!sample) return false;
+        if (startedAt < 0) startedAt = now;
+        const s = sample((now - startedAt) / 1000);
+        const step = s.value - travelled;
+        travelled = s.value;
+        if (step !== 0) rotateBy(axis, step);
+        if (s.velocity < COAST_REST_FRACTION * rate0) {
+            stop();
+            return false;
+        }
+        return true;
+    };
 
-    // Auto-resume the inertia loop when a gesture ends with residual velocity
-    watch(
-        () => isDragging.value || isTouching.value || isWheeling.value,
-        (active) => {
-            if (!active && hasVelocity()) {
-                resume();
-            }
-        },
-    );
+    const { pause, resume } = useRafFn(({ timestamp }) => void advance(timestamp), {
+        immediate: false,
+    });
 
-    return { pause, resume };
+    /**
+     * Start a coast from the release's angular velocity `omega` (rad/s, an
+     * axis·rate vector in the attitude's frame). Returns the starting rate.
+     */
+    const start = (omega: Vec3, now?: number): number => {
+        stop();
+        const rate = norm3(omega);
+        const r0 = coastRate(rate, reducedMotion?.() ?? false);
+        if (r0 <= 0 || rate === 0) return 0;
+        axis = [omega[0] / rate, omega[1] / rate, omega[2] / rate];
+        rate0 = r0;
+        sample = decay({ velocity: r0, friction });
+        startedAt = now ?? -1;
+        travelled = 0;
+        resume();
+        return r0;
+    };
+
+    return { start, stop, advance, friction };
 }

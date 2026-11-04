@@ -13,6 +13,8 @@ import type { TransformState } from "./orbital-drag/transform";
 export const useCubeTransform = createGlobalState(() =>
     ref<TransformState>({
         rotate: { x: 0, y: 0, z: 0 },
+        // KF-M2 — the attitude itself rides home ↔ cube (no lossy Euler hop).
+        quaternion: [0, 0, 0, 1],
         translate: { x: 0, y: 0, z: 0 },
         scale: { x: 1, y: 1, z: 1 },
         matrix: mat4.create(),

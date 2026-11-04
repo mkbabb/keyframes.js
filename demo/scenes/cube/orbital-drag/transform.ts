@@ -1,18 +1,29 @@
 // SERVED MODEL: claude-opus-5-5
-// The orbital transform model: the axis tuple, the transform / bounds / velocity
-// shapes and their defaults. A leaf module: OrbitalDrag.vue and its composables
-// import it directly and never import their own barrel (index.ts), which
-// re-exports it beside the SFC.
+// The orbital transform model: the axis tuple, the transform and bounds shapes
+// and their defaults. A leaf module: OrbitalDrag.vue and its composables import
+// it directly and never import their own barrel (index.ts), which re-exports it
+// beside the SFC.
 import { mat4 } from "gl-matrix";
+import type { Quat } from "./arcball";
+import type { Box } from "./similarity";
 
 export const axes = ["x", "y", "z"] as const;
 
 export interface TransformState {
+    /** The Y·X·Z Euler READOUT of `quaternion` (degrees, unwrapped through a
+     *  gesture). An external write here is re-seeded into the quaternion. */
     rotate: {
         x: number;
         y: number;
         z: number;
     };
+    /** KF-M2 — the attitude itself, `[x, y, z, w]`, the stored truth. The
+     *  readout is derived from it, never the other way, and home ↔ cube carries
+     *  it whole (no lossy Euler hop). Optional so a hand-built state without it
+     *  re-seeds from `rotate`. */
+    quaternion?: Quat;
+    /** The pan, in SCREEN px (rendered as translate3d(G⁻¹·t), so the subject
+     *  moves exactly as far as the hand on screen). */
     translate: {
         x: number;
         y: number;
@@ -26,40 +37,14 @@ export interface TransformState {
     matrix: mat4;
 }
 
+/**
+ * What the orbit may reach: the zoom range, and the visible-stage box V the
+ * subject's projected centre stays inside (KF-M1). `stage` is read once per
+ * gesture anchor, never per frame.
+ */
 export interface TransformBounds {
-    rotate: {
-        x: [number, number];
-        y: [number, number];
-        z: [number, number];
-    };
-    translate: {
-        x: [number, number];
-        y: [number, number];
-        z: [number, number];
-    };
-    scale: {
-        x: [number, number];
-        y: [number, number];
-        z: [number, number];
-    };
-}
-
-export interface VelocityState {
-    rotate: {
-        x: number;
-        y: number;
-        z: number;
-    };
-    translate: {
-        x: number;
-        y: number;
-        z: number;
-    };
-    scale: {
-        x: number;
-        y: number;
-        z: number;
-    };
+    scale: [number, number];
+    stage?: () => Box | null;
 }
 
 export const defaultTransformState: TransformState = {
@@ -68,6 +53,7 @@ export const defaultTransformState: TransformState = {
         y: 0,
         z: 0,
     },
+    quaternion: [0, 0, 0, 1],
     translate: {
         x: 0,
         y: 0,
@@ -81,38 +67,6 @@ export const defaultTransformState: TransformState = {
     matrix: mat4.create(),
 };
 
-export const defaultTransformBounds = {
-    rotate: {
-        x: [-Infinity, Infinity],
-        y: [-Infinity, Infinity],
-        z: [-Infinity, Infinity],
-    },
-    translate: {
-        x: [-Infinity, Infinity],
-        y: [-Infinity, Infinity],
-        z: [-Infinity, Infinity],
-    },
-    scale: {
-        x: [0.1, Infinity],
-        y: [0.1, Infinity],
-        z: [0.1, Infinity],
-    },
-};
-
-export const defaultVelocityState: VelocityState = {
-    rotate: {
-        x: 0,
-        y: 0,
-        z: 0,
-    },
-    translate: {
-        x: 0,
-        y: 0,
-        z: 0,
-    },
-    scale: {
-        x: 0,
-        y: 0,
-        z: 0,
-    },
+export const defaultTransformBounds: TransformBounds = {
+    scale: [0.4, 3],
 };

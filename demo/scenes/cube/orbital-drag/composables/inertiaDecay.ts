@@ -1,47 +1,52 @@
 /**
  * inertiaDecay — the pure (Vue-free) bridge between the orbital-drag's
- * legacy per-frame friction knob and the engine's analytic `decay()` closed
- * form (F.W10.S1).
+ * per-frame friction knob and the engine's analytic `decay()` closed form
+ * (F.W10.S1), and the coast's release law (KF-M2, COHESION §0hm D-15).
  *
- * `useOrbitalInertia` USED to hand-roll the frictional glide as a per-frame
- * `Math.pow(inertiaFactor, dt/TARGET_DT)` velocity multiply — the discrete
- * forward-Euler form of EXACTLY the `decay.ts` analytic closed form the engine
- * now exports. This module holds the ONE measure-first fact the swap rests on
- * (the `k`-from-`inertiaFactor` mapping), kept Vue-free so the inertia-parity
+ * The knob is `inertiaFactor`, the velocity kept per 60 Hz frame; the engine
+ * wants a friction `k` in 1/s. The mapping between them is the one
+ * measure-first fact the swap rests on, kept Vue-free so the inertia-parity
  * gate can import it without pulling the demo's `.vue` graph.
  */
 
-/** Target frame interval the legacy per-frame decay was tuned at (ms). */
+/** The frame interval the friction knob is expressed per (ms). */
 export const TARGET_DT = 1000 / 60;
 
 /**
  * The friction coefficient `k` (1/s) that makes the engine's analytic
- * `decay()` felt-IDENTICAL to the legacy per-frame `Math.pow(inertiaFactor,
- * dt/TARGET_DT)` decay. The legacy form bleeds velocity by `inertiaFactor` each
- * `TARGET_DT` ms, so after `t` ms it has multiplied velocity by
- * `inertiaFactor^(t/TARGET_DT)`. The analytic form is `v0·e^(−k·t_s)` with
- * `t_s` in SECONDS. Equating the two exponentials and solving for `k`:
+ * `decay()` felt-IDENTICAL to the per-frame `Math.pow(inertiaFactor,
+ * dt/TARGET_DT)` decay. Equating the two exponentials:
  *
  *   inertiaFactor^(t_ms/TARGET_DT) = e^(−k · t_ms/1000)
  *   ⇒ k = −ln(inertiaFactor) · (1000 / TARGET_DT)   (= −ln(inertiaFactor)·60)
  *
- * This is the MEASURE-FIRST mapping the inertia-parity test locks: the analytic
- * trajectory matches the discrete one within epsilon at 60fps AND is frame-rate
- * INVARIANT (the discrete form only approximates that). `inertiaFactor` is a
- * decay-per-frame fraction in (0, 1), so `ln(inertiaFactor) < 0` and `k > 0`.
+ * `inertiaFactor` is a decay-per-frame fraction in (0, 1), so `k > 0`.
  */
 export const inertiaFactorToFriction = (inertiaFactor: number): number =>
     -Math.log(inertiaFactor) * (1000 / TARGET_DT);
 
 /**
- * KFA-83 — a gesture amount measured over one pointer event, re-expressed per
- * TARGET_DT frame (the unit the fling speed and the coast step share), so the
- * fling reads the hand's speed per unit time whatever the event rate. The event
- * delta is clamped: coalesced events a millisecond apart must not spike it, and
- * a move after a long pause must not read as near-zero-dt.
+ * KF-M2 (D-15) — the default knob: k = 9/s, τ = 111 ms, |ω| under 5% in
+ * ~333 ms and under 1% in ~512 ms. The former 0.95 (k ≈ 3.1/s, τ ≈ 325 ms)
+ * with an un-gained release coasted a 120 px flick ~2× its own gesture, like
+ * a slot machine. This is a short, soft exhale.
  */
-export const MIN_EVENT_DT = 4;
-export const MAX_EVENT_DT = 100;
-export const perTargetFrame = (amount: number, eventDtMs: number): number =>
-    (amount * TARGET_DT) /
-    Math.min(Math.max(eventDtMs, MIN_EVENT_DT), MAX_EVENT_DT);
+export const DEFAULT_INERTIA_FACTOR = Math.exp(-9 / 60);
+
+/**
+ * The release gain: the coast starts at half the hand's angular speed. With
+ * k = 9/s a flick of duration T coasts COAST_GAIN/(k·T) of its own angle: a
+ * 120 px flick in 120 ms coasts 0.46× the gesture (100 ms → 0.56×, 160 ms →
+ * 0.35×), inside the 0.3–0.6 band.
+ */
+export const COAST_GAIN = 0.5;
+
+/** The coast's starting rate is capped at one turn per second. */
+export const MAX_COAST_RATE = 2 * Math.PI;
+
+/** The coast stops once |ω| has bled to 1% of its start. */
+export const COAST_REST_FRACTION = 0.01;
+
+/** The coast's starting rate (rad/s) from the hand's release rate (rad/s). */
+export const coastRate = (releaseRate: number, reducedMotion = false): number =>
+    reducedMotion ? 0 : Math.min(COAST_GAIN * Math.abs(releaseRate), MAX_COAST_RATE);
