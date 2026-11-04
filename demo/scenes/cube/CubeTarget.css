@@ -92,9 +92,15 @@
     will-change: transform;
 }
 
+/* KF-M1 (value.js COHESION §0hm) — on a phone the die sizes off the
+   visible-stage box V (the mobile `.stage-cell` is `container: stage / size`),
+   not the viewport: its projected footprint (the √3 space diagonal × the
+   stage perspective's ~1.15 magnification, plus a margin) fits min(V) / 2.2,
+   capped at the desktop rung. The former min(50vh, 50vw) sized it off a
+   viewport the resting sheet half-covered. */
 @media (max-width: 1023px) {
     .cube {
-        --side-size: min(50vh, 50vw, 18rem);
+        --side-size: min(18rem, calc(min(100cqi, 100cqb) / 2.2));
     }
 }
 

@@ -494,14 +494,11 @@ const { sceneSwapStyle, onSceneFallback, onSceneResolve } = useSceneSwap(
     view-transition-name: scene-subject;
 }
 
-/* X.KF.W13W.m (OA-64) — below lg the stage sits on the page gutter HERE, at the
-   one host every scene mounts in, so no scene carries its own inline offset
-   (layout.css `--page-gutter`). The desktop stage keeps its grid column. */
-@media (max-width: 1023px) {
-    .scene-host {
-        padding-inline: var(--page-gutter);
-    }
-}
+/* X.KF.W13W.m (OA-64) · KF-M1 — below lg the stage sits on the page gutter at
+   ONE place: the mobile `.stage-cell` (AnimationControlsGroup.css), whose
+   content box is the visible-stage box V every scene mounts in. The gutter
+   was spelled here as well, which the stage box would have counted twice; no
+   scene carries its own inline offset (layout.css `--page-gutter`). */
 
 /* The host is `tabindex="-1"` solely to receive PROGRAMMATIC focus after the
    transition (the a11y route); it is not a keyboard tab-stop, so suppress its

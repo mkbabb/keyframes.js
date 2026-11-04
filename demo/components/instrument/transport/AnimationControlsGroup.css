@@ -188,18 +188,54 @@
            clause (b)). The stable token only ever grows, so the frame holds still;
            the sheet anchor (ControlsPaneWrapper) keeps the live token so it still
            clears the menubar the user sees (proof:live-session-mobile). */
-        padding-block: var(--dock-top-band-reserve-stable);
-        /* X-DS pass 3 · KF-C3-10 — the cell IS the viewport here, so the
-           block-end is the transport band whole: the resting sheet's lip sits
-           at that inset, and the plates' last row (the square's caption, the
-           spring's time axis) rode on it. */
-        padding-block-end: max(
-            var(--dock-top-band-reserve-stable),
-            var(--transport-band)
-        );
+        /* KF-M1 (value.js COHESION §0hm D-2 · D-3) — THE VISIBLE-STAGE BOX V.
+           The cell's content box IS what the phone can see of the stage: the
+           viewport minus the stable top band, minus the transport band AND the
+           resting sheet's settled PEEK reserve on the block axis (portrait),
+           minus the page gutter and the side sheet's reserve on the inline
+           axis (short landscape). Every scene centres and sizes in it and
+           nowhere else (`container: stage / size` publishes it to them). The
+           former symmetric max() centred every scene in the full host, so the
+           resting sheet hid the lower 27% of the stage at 390 (the cube sat
+           81 px below the visible centre) and 268 px of it at 844x390.
+           The reserve is the PEEK size at every rung (useStageReserve), so the
+           rect holds still through peek → open → peek (J.WZ clause b); the
+           OPEN rung is answered by the glide below, on the compositor. The
+           inline gutter is spelled ONCE, here (it was the scene host's). Safe
+           areas are already folded into --page-gutter and the dock tokens. */
+        /* The sheet rests on the transport's bottom inset, and the transport
+           band is that inset plus the dock's own gap, so the subject keeps
+           that gap above the resting sheet's top edge too. */
+        padding-block: var(--dock-top-band-reserve-stable)
+            calc(var(--transport-band) + var(--stage-sheet-reserve-block, 0px));
+        padding-inline: var(--page-gutter)
+            calc(var(--page-gutter) + var(--stage-sheet-reserve-inline, 0px));
+        container: stage / size;
         /* The orbit surface keeps `touch-action: none` (OrbitalDrag/AmigaScene
            own it on their own roots); this cell is a passive frame, so the swipe
            is owned by the sheet GRAB HANDLE — spatially disjoint (BLK-6). */
+    }
+}
+
+/* KF-M1 — THE STAGE GLIDE (phone only). At the OPEN rung the sheet reaches
+   `--stage-sheet-lift-*` past its resting reserve; the subject rises by half of
+   it and fits the region above (`--stage-sheet-fit`), so it is never buried and
+   never re-laid-out. It rides the sheet's own spring token, and stands still
+   under reduced motion. Desktop sets none of the tokens: translate 0, scale 1,
+   and no transform property at all (the rule is phone-scoped). */
+@media (max-width: 1023px) {
+    .stage-glide {
+        translate: calc(-0.5 * var(--stage-sheet-lift-inline, 0px))
+            calc(-0.5 * var(--stage-sheet-lift-block, 0px));
+        scale: var(--stage-sheet-fit, 1);
+        transition:
+            translate var(--spring-dock-duration) var(--spring-dock),
+            scale var(--spring-dock-duration) var(--spring-dock);
+    }
+}
+@media (max-width: 1023px) and (prefers-reduced-motion: reduce) {
+    .stage-glide {
+        transition: none;
     }
 }
 

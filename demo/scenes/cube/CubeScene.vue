@@ -1,8 +1,9 @@
 <template>
     <!-- On the HOME landing (hideLoader === the start screen is up) below lg
-         the cube is centred in the STAGE (X.KF.W13V.s, OA-39): the
-         `cube-stage--hero-recede` rule centres it between the top dock band
-         and the transport band and steps it down one sizing rung; the
+         the cube is centred in the STAGE (X.KF.W13V.s, OA-39; KF-M1: the stage
+         cell's content box is the visible stage V, between the top dock band
+         and the transport band) and `cube-stage--hero-recede` steps it down
+         one sizing rung; the
          headline and deck stack above and below it (EditorStartScreen reads
          the same layout.css tokens), so text and cube never share pixels.
          Desktop and the cube scene proper are byte-identical. -->
@@ -154,6 +155,7 @@ onBeforeUnmount(() => {
     const t = transformSliderValues.value;
     useCubeTransform().value = {
         rotate: { ...t.rotate },
+        ...(t.quaternion ? { quaternion: [...t.quaternion] as [number, number, number, number] } : {}),
         translate: { ...t.translate },
         scale: { ...t.scale },
         matrix: t.matrix,
@@ -195,9 +197,9 @@ defineExpose({
 <style scoped>
 /* X.KF.W13V.s (OA-39) — the landing's phone column (mobile only). The scene
    host spans the stage cell's symmetric padding box; the stage the owner sees
-   ends at the TRANSPORT band, which sits higher than the top band's mirror, so
-   the host's lower edge is lifted by exactly that difference and the cube
-   centres in the stage region itself. The receded cube steps down one sizing
+   ends at the TRANSPORT band; KF-M1 made the stage cell's content box that
+   region (V), so the cube centres in it with no lift of its own. The receded
+   cube steps down one sizing
    rung (--home-cube-side, shared with the start screen's text rows). Desktop
    (≥lg) is untouched. */
 /* UIA-KF-259 — the home hero keeps the desktop rung its headline is composed
@@ -208,11 +210,10 @@ defineExpose({
     }
 }
 @media (max-width: 1023px) {
-    .cube-stage--hero-recede {
-        padding-block-end: calc(
-            var(--stage-bottom-inset) - var(--stage-top-inset)
-        );
-    }
+    /* KF-M1 — the lift that stood here (padding-block-end: bottom inset − top
+       inset) is DELETED: the stage cell's content box is now the visible
+       stage V itself, so the cube centres in it with no offset of its own,
+       and the lift counted the band twice. */
     .cube-stage--hero-recede :deep(.cube) {
         --side-size: var(--home-cube-side);
     }

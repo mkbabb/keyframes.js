@@ -24,6 +24,7 @@
             storedControls.isControlsPanelOpen ? 'controls-layout--open' : 'controls-layout--closed',
             hasControlSurfaces || scenePending ? '' : 'controls-layout--railless',
         ]"
+        :style="stageReserveVars"
         v-bind="$attrs"
     >
         <!-- SQ-T3 (T.B4 / lane 04 rec 3) — no chrome without content: the pane
@@ -47,6 +48,8 @@
             @scrub-start="onScrubStart"
             @scrub-end="onScrubEnd"
             @set-controls-panel-open="(open) => { storedControls.isControlsPanelOpen = open; }"
+            @stage-reserve="onStageReserve"
+            @vue:unmounted="onStageReserve(NO_STAGE_RESERVE)"
         >
             <template #tabs-content="slotProps">
                 <slot name="tabs-content" v-bind="slotProps"></slot>
@@ -69,9 +72,16 @@
              the stage reflows to fill the freed width. The proof:stage-not-clipped
              gate's "cube half-clipped" invariant is the subject. -->
         <div
+            ref="stageCellEl"
             class="stage-cell justify-self-stretch self-center min-h-0 h-full overflow-visible overscroll-contain"
         >
-            <slot name="animation-content"></slot>
+            <!-- KF-M1 — the stage GLIDE: at the OPEN rung the subject rises with
+                 the sheet and fits the region above it, on the compositor
+                 (translate + scale, AnimationControlsGroup.css), so the cell's
+                 layout rect never moves (J.WZ). Inert on desktop. -->
+            <div class="stage-glide h-full w-full">
+                <slot name="animation-content"></slot>
+            </div>
         </div>
 
         <!-- X-DS r6 pass 6 (KF-C6-01) — the expanded timeline cell is
@@ -110,7 +120,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, provide, useTemplateRef, watchEffect } from "vue";
+import { computed, nextTick, onMounted, provide, shallowRef, useTemplateRef, watchEffect } from "vue";
+import { NO_STAGE_RESERVE } from "./transportSource";
+import type { StageReserve } from "./transportSource";
 import { CHANNEL_COMMANDS_KEY, createChannelCommandSeat } from "./injectionKeys";
 
 import { clamp } from "@mkbabb/value.js/math";
@@ -289,6 +301,44 @@ onMounted(() => {
 });
 
 const transportDockRef = useTemplateRef<InstanceType<typeof TransportDock>>("transportDockRef");
+
+// ── KF-M1 — the visible-stage box V (D-2 · D-3) ─────────────────────────────
+// The phone sheet publishes its settled PEEK reserve and its OPEN lift
+// (useStageReserve); the cell's padding reserves the PEEK (layout, written once
+// per rung commit, the same at every rung), and the glide answers the lift with
+// a translate and a fit scale (compositor). The fit is the share of V's block
+// (or, beside a side sheet, inline) extent left above the opened sheet, read
+// off the cell's own content box after the reserve lands. Desktop and home
+// publish nothing: every token resolves to 0 and the fit to 1.
+const stageCellEl = useTemplateRef<HTMLElement>("stageCellEl");
+const stageReserve = shallowRef<StageReserve>(NO_STAGE_RESERVE);
+const stageFit = shallowRef(1);
+const onStageReserve = (r: StageReserve) => {
+    stageReserve.value = r;
+    void nextTick(() => {
+        const cell = stageCellEl.value;
+        if (!cell || (r.liftBlock === 0 && r.liftInline === 0)) {
+            stageFit.value = 1;
+            return;
+        }
+        const cs = getComputedStyle(cell);
+        const vb = cell.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+        const vi = cell.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+        const fb = vb > 0 ? (vb - r.liftBlock) / vb : 1;
+        const fi = vi > 0 ? (vi - r.liftInline) / vi : 1;
+        stageFit.value = Math.max(0.2, Math.min(1, fb, fi));
+    });
+};
+const stageReserveVars = computed(() => {
+    const r = stageReserve.value;
+    return {
+        "--stage-sheet-reserve-block": `${r.block}px`,
+        "--stage-sheet-reserve-inline": `${r.inline}px`,
+        "--stage-sheet-lift-block": `${r.liftBlock}px`,
+        "--stage-sheet-lift-inline": `${r.liftInline}px`,
+        "--stage-sheet-fit": String(stageFit.value),
+    };
+});
 
 // The group-mutation action helpers (layer-config / keyframes-edit invalidate /
 // reset / clear) live in the colocated useAnimationGroupActions composable (the

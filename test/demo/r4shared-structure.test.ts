@@ -134,6 +134,7 @@ describe("limb (a) — the pane is instrument/pane; transport/ keeps the dock an
             "useControlsLayout.ts",
             "useFoldLanding.ts",
             "usePaneHover.ts",
+            "useStageReserve.ts",
         ]);
     });
 

@@ -300,11 +300,13 @@ import {
     useTemplateRef,
     watch,
 } from "vue";
-import type { TransportChannel } from "../transport/transportSource";
+import type { StageReserve, TransportChannel } from "../transport/transportSource";
 import ChannelControls from "./channel-controls/ChannelControls.vue";
 import RibbonBar from "./RibbonBar.vue";
 import SequenceTimeline from "../timeline/SequenceTimeline.vue";
 import { useControlsLayout } from "./composables/useControlsLayout";
+import { rowBoundaryPeek, useStageReserve } from "./composables/useStageReserve";
+import type { SheetRung } from "./composables/useStageReserve";
 import { FOLD_EDGES_KEY, useFoldLanding } from "./composables/useFoldLanding";
 // The sheet's bottom lift above the menubar is the `bottom` style set on
 // `<SheetContent>` in the template (D-B1; glass 10's sheet pins `bottom: 0` at
@@ -357,6 +359,8 @@ const emit = defineEmits<{
     // A2-KE-L1-23: the channel-controls registry emit is gone; the selected
     // host publishes its typed commands into the owner's seat itself.)
     (e: "setControlsPanelOpen", open: boolean): void;
+    // KF-M1 — the sheet's settled reserve on the stage (useStageReserve).
+    (e: "stageReserve", reserve: StageReserve): void;
 }>();
 
 // ── T.B1-β STAGE 1 — the host axis ───────────────────────────────────────────
@@ -534,7 +538,11 @@ if (isMobileLayout.value) {
 // FULL 0.6 is the editing room.
 const isShortLayout = useMediaQuery("(max-width: 1023px) and (max-height: 500px)");
 const sheetSide = computed(() => (isShortLayout.value ? "right" : "bottom"));
-const PEEK_SNAP = computed(() => (isShortLayout.value ? 0.36 : 0.12));
+// D-28 — the portrait PEEK lands on a row boundary, measured once per scene
+// mount (useStageReserve's `rowBoundaryPeek`); 0.12 is its seed before the
+// sheet has laid out (glass's floor holds it at header height meanwhile).
+const measuredPeek = shallowRef<number | null>(null);
+const PEEK_SNAP = computed(() => (isShortLayout.value ? 0.36 : (measuredPeek.value ?? 0.12)));
 const OPEN_SNAP = computed(() => (isShortLayout.value ? 0.46 : 0.36));
 const FULL_SNAP = computed(() => (isShortLayout.value ? 0.6 : 1));
 const snapPoints = computed(() => [PEEK_SNAP.value, OPEN_SNAP.value, FULL_SNAP.value]);
@@ -590,6 +598,36 @@ const activeSnap = computed<number | null>({
 // so its headers keep their own toggle. (The sheet's position is glass's:
 // since 10.1.1 (G-1) `SheetContent` carries the `fixed` utility, curing the
 // SHEET-POSITION row held on O-87/O-88; nothing here overrides it.)
+// ── KF-M1 — the visible-stage reserve (D-2 · D-3 · D-28) ──────────────
+// The sheet is portalled to <body>, so it is found by its own class.
+const sheetEl = () => document.querySelector<HTMLElement>(".controls-drawer-content");
+const rung = computed<SheetRung>(() =>
+    !props.storedControls.isControlsPanelOpen ? "peek" : atFull.value ? "full" : "open",
+);
+// A row is a whole control line: the first layer's header, then each field.
+const PEEK_ROWS = '[data-slot="configurator-layer-trigger"], [data-slot="labeled-field"], .param-row';
+const measurePeek = () => {
+    if (!isMobileLayout.value || isShortLayout.value) return;
+    const t = rowBoundaryPeek(sheetEl(), PEEK_ROWS);
+    if (t !== null && t < OPEN_SNAP.value) measuredPeek.value = t;
+};
+watch(
+    () => [isMobileLayout.value && showSheet.value, props.storedControls.selectedAnimation] as const,
+    ([on]) => {
+        if (on) void nextTick(() => requestAnimationFrame(measurePeek));
+    },
+    { immediate: true, flush: "post" },
+);
+useStageReserve({
+    active: computed(() => isMobileLayout.value && showSheet.value),
+    side: sheetSide,
+    rung,
+    peek: PEEK_SNAP,
+    open: OPEN_SNAP,
+    sheetEl,
+    publish: (r) => emit("stageReserve", r),
+});
+
 const onParkedHeaderPress = (e: MouseEvent) => {
     if (props.storedControls.isControlsPanelOpen || sheetSide.value !== "bottom") return;
     const sheet = e.currentTarget;

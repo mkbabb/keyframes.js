@@ -251,6 +251,18 @@ function readOrbit() {
         front: f && { x: f.left + f.width / 2, y: f.top + f.height / 2 },
         centre: { x: g.left + g.width / 2, y: g.top + g.height / 2 },
         die: { x: k.left + k.width / 2, y: k.top + k.height / 2 },
+        // The orbit's pan on screen: translate3d(G⁻¹·t) carried back by G
+        // (G = rotate3d(-1, 1, 0, 30deg), graphAttitude.ts).
+        screenT: (() => {
+            const m = /translate3d\(([-\d.e]+)px, ([-\d.e]+)px, ([-\d.e]+)px\)/.exec(c.style.transform);
+            if (!m) return null;
+            const v = [+m[1], +m[2], +m[3]];
+            const k2 = [-Math.SQRT1_2, Math.SQRT1_2, 0];
+            const a = Math.PI / 6, co = Math.cos(a), si = Math.sin(a);
+            const d = k2[0] * v[0] + k2[1] * v[1] + k2[2] * v[2];
+            const cr = [k2[1] * v[2] - k2[2] * v[1], k2[2] * v[0] - k2[0] * v[2], k2[0] * v[1] - k2[1] * v[0]];
+            return [0, 1, 2].map((i) => v[i] * co + cr[i] * si + k2[i] * d * (1 - co));
+        })(),
         transform: c.style.transform,
     };
 }
@@ -319,6 +331,17 @@ async function orbitCells(browser, out) {
             const after = await page.evaluate(readOrbit);
             cell.faceTrack40 = after.front && before.front ? Math.hypot(after.front.x - before.front.x, after.front.y - before.front.y) : null;
             cell.faceTrackDir = after.front && before.front ? after.front.x - before.front.x : null;
+            // The arcball's own rate: with R = 2h a drag of d px turns the die by
+            // 2·asin(d/2h) ≈ d/h, so the surface under the finger (depth h at a
+            // frontal face) moves d. The face-centre reading above is that
+            // motion × the face's own cos β at the pose it rests in (the
+            // matrix channel's authored pose tilts every face off the view
+            // axis), so the RATE is the pose-independent gate.
+            const nrm = (m) => Math.hypot(m[0], m[1], m[2]);
+            const dotR = before.m.slice(0, 9).reduce((a, v, i) => a + v * after.m[i], 0) / (nrm(before.m) * nrm(after.m));
+            const theta = Math.acos(Math.max(-1, Math.min(1, (dotR - 1) / 2)));
+            const half = await page.evaluate(() => document.querySelector(".cube").offsetWidth / 2);
+            cell.faceTrackRate = (theta * half) / 40; // 1 = the surface moves 1:1
 
             if (vp.touch) {
                 const readScale = async () => {
@@ -336,14 +359,19 @@ async function orbitCells(browser, out) {
                 await twoFinger([cx - 80, cy], [cx + 80, cy], [cx - 40, cy], [cx + 40, cy]);
                 // G2.3 (c) — a two-finger 100 px drag pans 100 ± 1.
                 const p0 = await page.evaluate(readOrbit);
-                await twoFinger([cx - 30, cy - 100], [cx + 30, cy - 100], [cx - 30, cy], [cx + 30, cy]);
+                // Both fingers land ON the die (a press beside it is the stage's, not the orbit's).
+                await twoFinger([cx - 30, cy - 50], [cx + 30, cy - 50], [cx - 30, cy + 50], [cx + 30, cy + 50]);
                 const p1 = await page.evaluate(readOrbit);
-                cell.pan100 = p1.die.y - p0.die.y;
+                cell.pan100 = p1.screenT[1] - p0.screenT[1];
+                cell.panScreenZ = p1.screenT[2];
                 // G2.3 (b) — a 90° twist rolls 90° ± 0.5.
                 const t0 = await page.evaluate(readOrbit);
+                // About the die where the pan left it.
+                const ox = t0.die.x;
+                const oy = t0.die.y;
                 const ring = (a) => [
-                    [cx - 60 * Math.cos(a), cy - 60 * Math.sin(a)],
-                    [cx + 60 * Math.cos(a), cy + 60 * Math.sin(a)],
+                    [ox - 50 * Math.cos(a), oy - 50 * Math.sin(a)],
+                    [ox + 50 * Math.cos(a), oy + 50 * Math.sin(a)],
                 ];
                 await touch("touchStart", ring(0));
                 for (let i = 1; i <= 30; i++) await touch("touchMove", ring((Math.PI / 2) * (i / 30)));
@@ -401,7 +429,7 @@ for (const c of out) {
         if (c.open.sheetOverlap > 0) fails.push(`M1.2 ${c.cell} OPEN subject∩sheet ${c.open.sheetOverlap.toFixed(0)} px²`);
     }
     if (c.closedSquareMaxDm !== undefined && !(c.closedSquareMaxDm < 1e-4)) fails.push(`G2.1 ${c.cell} closed square Δm ${c.closedSquareMaxDm}`);
-    if (c.faceTrack40 !== undefined && !(Math.abs(c.faceTrack40 - 40) <= 6)) fails.push(`G2.6 ${c.cell} front face moved ${c.faceTrack40}`);
+    if (c.faceTrackRate !== undefined && !(Math.abs(c.faceTrackRate - 1) <= 0.15)) fails.push(`G2.6 ${c.cell} surface rate ${c.faceTrackRate} (face centre moved ${c.faceTrack40})`);
     if (c.pinchRatio !== undefined && !(Math.abs(c.pinchRatio - 2) <= 0.01)) fails.push(`G2.3a ${c.cell} pinch ratio ${c.pinchRatio}`);
     if (c.pan100 !== undefined && !(Math.abs(c.pan100 - 100) <= 1)) fails.push(`G2.3c ${c.cell} pan ${c.pan100}`);
     if (c.twistDeg !== undefined && !(Math.abs(c.twistDeg - 90) <= 0.5)) fails.push(`G2.3b ${c.cell} twist ${c.twistDeg}°`);

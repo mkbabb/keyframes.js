@@ -354,8 +354,12 @@ h1.hero-display {
        and the deck + hint centred in the space below it. Never over the cube,
        never left-ragged beside it. */
     .hero-band {
+        /* KF-M1 — the band spans home's visible stage V exactly: the same
+           top band and TRANSPORT band the stage cell reserves, so the cube's
+           footprint row sits on the cube (the former bottom inset omitted
+           the transport's own gap, a half-gap off the cube's centre). */
         top: var(--stage-top-inset);
-        bottom: var(--stage-bottom-inset);
+        bottom: var(--transport-band);
         max-block-size: none;
         display: grid;
         grid-template-rows: minmax(0, 1fr) var(--home-cube-extent) minmax(0, 1fr);
@@ -399,7 +403,8 @@ h1.hero-display {
     .hero-band {
         grid-template-rows: minmax(0, 1fr);
         grid-template-columns: minmax(0, 1fr) var(--home-cube-extent) minmax(0, 1fr);
-        column-gap: 0.5rem;
+        /* KF-M1 — the die and both text columns keep the body step apart. */
+        column-gap: var(--space-body);
     }
     .hero-display {
         grid-row: 1;

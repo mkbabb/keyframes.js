@@ -38,3 +38,21 @@ export type TransportChannel = Pick<
  *  every frame the group paints. Returns the unsubscribe. */
 export type ObserveGroupPaints = (listener: () => void) => () => void;
 export const GROUP_PAINTS_KEY: InjectionKey<ObserveGroupPaints> = Symbol("groupPaints");
+
+/**
+ * KF-M1 (value.js COHESION §0hm) — the phone sheet's reserve on the stage,
+ * published by the pane (useStageReserve) and bound by the controls group on
+ * `.controls-layout` (AnimationControlsGroup).
+ *  · `block` / `inline` — the sheet's settled PEEK size on the axis it rests
+ *    on; the stage cell reserves it in layout, the same at every rung.
+ *  · `liftBlock` / `liftInline` — how much further it reaches at OPEN (0 at
+ *    PEEK and FULL); the stage answers it on the compositor.
+ */
+export interface StageReserve {
+    block: number;
+    inline: number;
+    liftBlock: number;
+    liftInline: number;
+}
+
+export const NO_STAGE_RESERVE: StageReserve = { block: 0, inline: 0, liftBlock: 0, liftInline: 0 };

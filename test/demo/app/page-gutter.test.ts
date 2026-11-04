@@ -7,8 +7,9 @@
  * (1) layout.css declares `--page-gutter` inside the phone query, derived from
  *     the Sheet's own inset (glass `--space-family`) + the pane body's 1rem
  *     shadow reserve;
- * (2) App.vue's `.scene-host` takes `padding-inline: var(--page-gutter)` below
- *     lg — the stage's panes sit on the gutter at the root;
+ * (2) the mobile `.stage-cell` takes `padding-inline: var(--page-gutter)` below
+ *     lg — the stage's panes sit on the gutter at the root (KF-M1: it moved
+ *     there from App.vue's `.scene-host`, spelled once);
  * (3) no scene frame (the non-Card root of a `*Scene.vue` / `*Target.vue`)
  *     carries its own phone inline offset (an unprefixed px-/pl-/pr- class):
  *     no per-scene offsets (before: spring and sequence `px-6`, the rest 0);
@@ -52,10 +53,15 @@ describe("OA-64 — one page gutter for the phone controls and panes", () => {
         expect(decl![1]).toMatch(/var\(--space-family\)/);
     });
 
-    it("(2) the scene host sits on the gutter below lg", () => {
+    // KF-M1 (value.js COHESION §0hm) — the gutter moved from the scene host to
+    // the mobile stage cell, whose content box is the visible-stage box V; it
+    // is spelled ONCE (the host's copy would count it twice inside V).
+    it("(2) the stage cell sits on the gutter below lg, and only it", () => {
+        const css = stripComments(read("demo/components/instrument/transport/AnimationControlsGroup.css"));
+        const phone = phoneBlocks(css).join("\n");
+        expect(phone).toMatch(/\.stage-cell\s*\{[^}]*padding-inline:\s*var\(--page-gutter\)/);
         const style = stripComments(read("demo/app/App.vue").split("<style")[1] ?? "");
-        const phone = phoneBlocks(style).join("\n");
-        expect(phone).toMatch(/\.scene-host\s*\{[^}]*padding-inline:\s*var\(--page-gutter\)/);
+        expect(phoneBlocks(style).join("\n")).not.toMatch(/\.scene-host\s*\{[^}]*padding-inline/);
     });
 
     it("(3) no scene frame carries its own phone inline offset", () => {

@@ -226,6 +226,11 @@ async function dragGlassHandle(page, dir, dyPx = 340) {
 // the T.H3-ADOPT Drawer-era visible-fraction cut (expanded > 0.35, peek < 0.30)
 // read a parked sheet as OPEN and could never read it as closed. OPEN is the
 // rung fact AND the old geometry floor; CLOSED is the PEEK rung.
+// KF-M1 (value.js COHESION §0hm D-28) — PEEK is no longer a constant: it is
+// measured per scene mount onto a ROW BOUNDARY (ControlsPaneWrapper's
+// rowBoundaryPeek; 0.12 is only its seed, the cube's lands ~0.24). The ladder
+// keeps ONE rung below OPEN, so CLOSED is any settled rung beneath OPEN and at
+// or above the seed.
 const SHEET_PEEK_T = 0.12;
 const SHEET_OPEN_T = 0.36;
 const readGeometry = (page) =>
@@ -242,7 +247,8 @@ const readGeometry = (page) =>
         };
         // T.H3-ADOPT — the mobile sheet is glass-ui's <SheetContent> ([data-slot=sheet-content]; the 7.0.0 <Drawer>).
         // "open" = the live rung (--detent-t) at OPEN or above AND a visible
-        // fraction > 0.35; "closed" = the PEEK rung (see SHEET_PEEK_T above);
+        // fraction > 0.35; "closed" = the PEEK rung, the one below OPEN (see
+        // SHEET_PEEK_T above);
         // sheetT is --detent-t; the handle is [data-slot=sheet-detent-handle].
         const wrapper = document.querySelector('[data-slot="sheet-content"]');
         const vh = window.innerHeight;
@@ -254,7 +260,7 @@ const readGeometry = (page) =>
             : NaN;
         return {
             open: !!wrapper && t >= openT - 1e-3 && visFrac > 0.35,
-            closed: !!wrapper && Math.abs(t - peekT) < 1e-3,
+            closed: !!wrapper && t >= peekT - 1e-3 && t < openT - 1e-3,
             visFrac: Math.round(visFrac * 1000) / 1000,
             sheetT: wrapper
                 ? getComputedStyle(wrapper).getPropertyValue("--detent-t").trim()

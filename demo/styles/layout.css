@@ -44,7 +44,14 @@
        --home-cube-side is the receded cube's sizing rung; --home-cube-extent is
        the idle pose's projected footprint (a rotated die projects past its
        side), the band the text rows keep clear of. The stage insets are the
-       mobile stage cell's own (the stable top band; the transport band). */
+       mobile stage cell's own (the stable top band; the transport band).
+       KF-M1 — home has no sheet, so its visible-stage box V is exactly the
+       band between --stage-top-inset and --transport-band (the cell's block
+       padding, AnimationControlsGroup.css); the side is bounded by THAT band,
+       and the start screen's rows span the same one. The sheet's own reserve
+       tokens (--stage-sheet-reserve-block/-inline, --stage-sheet-lift-*,
+       --stage-sheet-fit) are bound on `.controls-layout` by the controls
+       group and are 0 / 1 wherever no sheet rests. */
     /* X.KF.W13X.mobile (A2-KE-L2-4) — the side is also bounded by the stage
        band's block size (its footprint, x1.3, must fit between the two dock
        bands): at 844x390 the band is 155px and the unbounded 203px footprint
@@ -53,7 +60,7 @@
         40vh,
         40vw,
         16rem,
-        calc((100dvh - var(--stage-top-inset) - var(--stage-bottom-inset)) / 1.3)
+        calc((100dvh - var(--stage-top-inset) - var(--transport-band)) / 1.3)
     );
     --home-cube-extent: calc(var(--home-cube-side) * 1.3);
     --stage-top-inset: var(--dock-top-band-reserve-stable, var(--dock-top-band-reserve));
