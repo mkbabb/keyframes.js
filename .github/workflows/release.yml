@@ -30,6 +30,13 @@ jobs:
               with:
                   node-version: 24
                   registry-url: "https://registry.npmjs.org"
+            # npm trusted publishing (OIDC) needs npm >= 11.5. With a trusted
+            # publisher registered for this package + release.yml, npm publish
+            # exchanges the job's id-token for a short-lived publish credential
+            # and NODE_AUTH_TOKEN goes unused; the token stays only until that
+            # trust is verified (npm trust list), then it is removed.
+            - name: npm for trusted publishing
+              run: npm install -g npm@11.12.1
             - run: npm ci
             - name: assert release tag matches package version
               run: |
