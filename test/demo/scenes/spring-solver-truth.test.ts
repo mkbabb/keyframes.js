@@ -131,11 +131,14 @@ describe("(5) A2-KE-L3-12 + KF-C24-03 — the preset readout never overflows its
     it("the params line is one fitted run; each value keeps its unit; below the floor the values stack without the separator", () => {
         const src = sfc("SpringPhysicsFacet.vue");
         const item = src.slice(src.indexOf("<ToggleGroupItem"), src.indexOf("</ToggleGroupItem>"));
-        const line = item.match(/<span class="(preset-values[^"]*tabular-nums[^"]*)">([\s\S]*?)<\/span><\/span>/);
+        const line = item.match(/<span class="(preset-values[^"]*)">([\s\S]*?)<\/span><\/span>/);
         expect(line?.[1], "the params line").toBeTruthy();
-        expect(item).toMatch(/<span>\{\{\s*t\.preset\.response\s*\}\}\s*s<\/span>/);
-        expect(item).toMatch(/<span>ζ\s*\{\{\s*t\.preset\.dampingFraction\s*\}\}<\/span>/);
-        expect(item).toMatch(/<span class="preset-sep" aria-hidden="true"> · <\/span>/);
+        // KF-CENSUS 2026-11-03 — each value is its own tabular data leaf (the
+        // register census matches the leaf itself, never by descent), and the
+        // join is the run's decoration, not a mono text node.
+        expect(item).toMatch(/<span class="tabular-nums">\{\{\s*t\.preset\.response\s*\}\}\s*s<\/span>/);
+        expect(item).toMatch(/<span class="tabular-nums">ζ\s*\{\{\s*t\.preset\.dampingFraction\s*\}\}<\/span>/);
+        expect(item).not.toMatch(/preset-sep/);
         const style = src.slice(src.indexOf("<style"));
         const values = style.match(/\.preset-values\s*\{([^}]*)\}/)?.[1] ?? "";
         expect(values).toMatch(/white-space:\s*nowrap/);
@@ -143,7 +146,8 @@ describe("(5) A2-KE-L3-12 + KF-C24-03 — the preset readout never overflows its
         expect(style).toMatch(/\.preset-cell\s*\{[^}]*container-type:\s*inline-size/);
         const narrow = style.match(/@container \(inline-size < [\d.]+rem\)\s*\{([\s\S]*?)\n\}/)?.[1] ?? "";
         expect(narrow).toMatch(/\.preset-values\s*\{[^}]*flex-direction:\s*column/);
-        expect(narrow).toMatch(/\.preset-sep\s*\{[^}]*display:\s*none/);
+        expect(style).toMatch(/\.preset-values > \* \+ \*::before\s*\{[^}]*content:\s*" · " \/ ""/);
+        expect(narrow).toMatch(/\.preset-values > \* \+ \*::before\s*\{[^}]*content:\s*none/);
         // A wrapped tile and an unwrapped one share a row height (the track's
         // own align-items would otherwise centre the shorter tile).
         const grid = src.match(/class="(preset-grid[^"]*)"/)?.[1] ?? "";

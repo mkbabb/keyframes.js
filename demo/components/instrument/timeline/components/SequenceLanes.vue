@@ -26,7 +26,11 @@
         @scrub-end="source.setScrubbing(false)"
     >
         <template #scrub-label>
-            <span class="seq-lane-label text-mono-caption text-muted-foreground">clock</span>
+            <!-- KF-CENSUS 2026-11-03 — "clock" is a WORD label, not data: it
+                 takes the sans caption, as the stage readout's own "clock"
+                 label does (`.stage-readout > :first-child`); the lane rows'
+                 index @ offset stay the mono data caption (T.D4). -->
+            <span class="seq-lane-label text-caption text-muted-foreground">clock</span>
         </template>
         <template #scrub>
             <!-- The clock's own row: its rail and its ball, at the playhead. -->

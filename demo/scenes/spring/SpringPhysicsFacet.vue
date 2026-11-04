@@ -173,8 +173,13 @@
                              the tile (`.preset-values`, below): it broke at its
                              ' · ' join in a narrow rail, a dangling middot ending
                              line one and the tile three lines tall. Below the fit
-                             floor the two values stack, the middot gone. -->
-                        <span class="preset-values text-mono-small text-muted-foreground tabular-nums"><span>{{ t.preset.response }} s</span><span class="preset-sep" aria-hidden="true"> · </span><span>ζ {{ t.preset.dampingFraction }}</span></span>
+                             floor the two values stack, the middot gone.
+                             KF-CENSUS 2026-11-03 — each value is its OWN tabular
+                             data leaf (T.D4 clause (b), matched by the leaf itself,
+                             never by descent from the run), and the join is the
+                             run's decoration (`.preset-values > * + *::before`),
+                             not a mono text node. -->
+                        <span class="preset-values text-mono-small text-muted-foreground"><span class="tabular-nums">{{ t.preset.response }} s</span><span class="tabular-nums">ζ {{ t.preset.dampingFraction }}</span></span>
                     </ToggleGroupItem>
                 </ToggleGroup>
                 <Separator />
@@ -336,14 +341,19 @@ const onPresetSelect = (
     white-space: nowrap;
     font-size: min(var(--type-small), 100cqi / 9.5);
 }
+/* The middot join: decoration, out of the accessibility tree (the `/ ""`
+   alternative text), as the aria-hidden span it replaces was. */
+.preset-values > * + *::before {
+    content: " · " / "";
+}
 @container (inline-size < 7.25rem) {
     .preset-values {
         display: flex;
         flex-direction: column;
         font-size: var(--type-small);
     }
-    .preset-sep {
-        display: none;
+    .preset-values > * + *::before {
+        content: none;
     }
 }
 .preset-cell:hover {

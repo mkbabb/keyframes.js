@@ -354,14 +354,6 @@
         font-style: normal;
     }
 
-    /* glass-ui binds .labeled-field-label to font-family:var(--font-display) at the
-       body rung — under the demo's Instrument swap that became a serif control
-       label. Field labels are CONTROLS → the body register at medium. */
-    .labeled-field-label {
-        font-family: var(--font-text);
-        font-weight: 500;
-    }
-
     /* The mobile dock-band width fit. glass-ui's dock pill caps at (viewport − inset)
        and its .dock-layers band is FIXED at that cap; the re-adopted Jakarta at the
        label rung runs ~10% wider than the condensed serif and clipped the right-edge
