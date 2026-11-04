@@ -5,10 +5,24 @@ import { describe, expect, it } from "vitest";
 // derive every envelope assertion from the pinned artifact). Retired at
 // X.KF.W4 `.d`: one surface, one artefact, one assertion.
 import { decay } from "@mkbabb/keyframes.js";
+import { afterEach, beforeEach, vi } from "vitest";
+import { effectScope } from "vue";
 import {
+    COAST_GAIN,
+    DEFAULT_INERTIA_FACTOR,
     TARGET_DT,
+    coastRate,
     inertiaFactorToFriction,
 } from "../../../demo/scenes/cube/orbital-drag/composables/inertiaDecay";
+import { useOrbitalInertia } from "../../../demo/scenes/cube/orbital-drag/composables/useOrbitalInertia";
+import {
+    angularVelocityFromSamples,
+    quatToAxisAngle,
+    shoemakeArc,
+    sphereMap,
+    type AttitudeSample,
+    type Vec3,
+} from "../../../demo/scenes/cube/orbital-drag/arcball";
 
 /**
  * F.W10.S1 — the inertia-parity gate (MEASURE-FIRST felt-equivalence).
@@ -38,7 +52,9 @@ import {
 // proved parity for a coefficient the demo never runs. The constant is the
 // single home the eight uses read, so the recalibration reaches all NINE
 // coordinates at once.
-const INERTIA_FACTOR = 0.95;
+// KF-M2 (§0hm D-15) — the shipped default is k = 9/s (e^(−9/60) per frame);
+// the parity below holds for any knob, and is proved for the one the demo runs.
+const INERTIA_FACTOR = DEFAULT_INERTIA_FACTOR;
 
 /** The LEGACY hand-rolled velocity trajectory: multiply by the per-frame
  *  `Math.pow(inertiaFactor, dt/TARGET_DT)` factor, stepping `dtMs` per frame. */
@@ -173,5 +189,122 @@ describe("orbital inertia parity — the decay() swap is felt-equivalent (F.W10.
                 9,
             );
         }
+    });
+});
+
+// ── KF-M2 · G2.5 — the release coast (value.js COHESION §0hm D-15) ──────────
+// Born RED: at the pre-cure bytes the default is 0.95 (k ≈ 3.1/s), there is no
+// release gain, and a 120 px flick coasts ≈ 2× its own gesture.
+
+describe("G2.5 — the coast is a short exhale, not a slot machine", () => {
+    beforeEach(() => {
+        vi.stubGlobal("requestAnimationFrame", () => 1);
+        vi.stubGlobal("cancelAnimationFrame", () => {});
+    });
+    afterEach(() => vi.unstubAllGlobals());
+
+    it("the shipped default is k = 9/s and the release gain is 0.5", () => {
+        expect(inertiaFactorToFriction(DEFAULT_INERTIA_FACTOR)).toBeCloseTo(9, 12);
+        expect(DEFAULT_INERTIA_FACTOR).toBeCloseTo(0.8607, 4);
+        expect(COAST_GAIN).toBe(0.5);
+    });
+
+    /** A uniform 120 px flick over `ms`, sampled at 60 Hz on an arcball of
+     *  R = 2h; returns its angle and its release ω. */
+    const flick = (ms: number, h = 144) => {
+        const R = 2 * h;
+        const v0 = sphereMap(0, 0);
+        const samples: AttitudeSample[] = [];
+        let angle = 0;
+        for (let t = 0; t <= ms + 1e-9; t += 1000 / 60) {
+            const x = (120 * Math.min(t, ms)) / ms;
+            const q = shoemakeArc(v0, sphereMap(x / R, 0));
+            samples.push({ t, q });
+            angle = quatToAxisAngle(q).angle;
+        }
+        return { angle, omega: angularVelocityFromSamples(samples, samples[samples.length - 1]!.t + 4) };
+    };
+
+    /** Run a coast frame-stepped at `hz`; returns its total angle and its
+     *  duration (ms). */
+    const coast = (omega: Vec3, hz: number, reduced = false) => {
+        let total = 0;
+        const scope = effectScope();
+        const inertia = scope.run(() =>
+            useOrbitalInertia({
+                inertiaFactor: DEFAULT_INERTIA_FACTOR,
+                rotateBy: (_axis, a) => void (total += a),
+                reducedMotion: () => reduced,
+            }),
+        )!;
+        inertia.start(omega, 0);
+        let t = 0;
+        let alive = inertia.advance(0);
+        while (alive && t < 5000) {
+            t += 1000 / hz;
+            alive = inertia.advance(t);
+        }
+        scope.stop();
+        return { total, ms: t };
+    };
+
+    it("a 120 px flick over 100 / 120 / 160 ms coasts 0.56 / 0.46 / 0.35 × the gesture", () => {
+        for (const [ms, want] of [
+            [100, 0.556],
+            [120, 0.463],
+            [160, 0.347],
+        ] as const) {
+            const f = flick(ms);
+            const ratio = coast(f.omega, 60).total / f.angle;
+            expect(ratio).toBeGreaterThanOrEqual(0.3);
+            expect(ratio).toBeLessThanOrEqual(0.6);
+            expect(Math.abs(ratio - want) / want).toBeLessThan(0.12);
+        }
+    });
+
+    it("|ω| falls under 1% of ω₀ within 520 ms", () => {
+        const f = flick(120);
+        expect(coast(f.omega, 120).ms).toBeLessThanOrEqual(520);
+    });
+
+    it("30, 60 and 120 Hz coast the same angle within 1%", () => {
+        const f = flick(120);
+        const at60 = coast(f.omega, 60).total;
+        for (const hz of [30, 120]) {
+            expect(Math.abs(coast(f.omega, hz).total - at60) / at60).toBeLessThan(0.01);
+        }
+    });
+
+    it("KFA-82 — a hold ≥ 64 ms before release coasts 0", () => {
+        const q = shoemakeArc(sphereMap(0, 0), sphereMap(0.3, 0));
+        const samples: AttitudeSample[] = [
+            { t: 0, q: [0, 0, 0, 1] },
+            { t: 16, q },
+        ];
+        expect(angularVelocityFromSamples(samples, 16 + 65)).toEqual([0, 0, 0]);
+        expect(angularVelocityFromSamples(samples, 16 + 10)).not.toEqual([0, 0, 0]);
+    });
+
+    it("D-15 — a twist's ω is per unit time: 2 events or 8 read the same rate within 2%", () => {
+        const twist = (events: number) => {
+            const samples: AttitudeSample[] = [{ t: 0, q: [0, 0, 0, 1] }];
+            for (let i = 1; i <= events; i++) {
+                const a = ((30 * Math.PI) / 180) * (i / events);
+                samples.push({ t: (64 * i) / events, q: [0, 0, Math.sin(a / 2), Math.cos(a / 2)] });
+            }
+            const w = angularVelocityFromSamples(samples, 66);
+            return Math.hypot(...w);
+        };
+        expect(Math.abs(twist(2) - twist(8)) / twist(8)).toBeLessThan(0.02);
+    });
+
+    it("under reduced motion nothing coasts (ω₀ = 0)", () => {
+        expect(coastRate(10, true)).toBe(0);
+        const f = flick(120);
+        expect(coast(f.omega, 60, true).total).toBe(0);
+    });
+
+    it("the coast's start is capped at one turn per second", () => {
+        expect(coastRate(1000)).toBeCloseTo(2 * Math.PI, 12);
     });
 });

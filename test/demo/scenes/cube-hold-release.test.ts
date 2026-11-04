@@ -1,14 +1,18 @@
 // SERVED MODEL: claude-opus-5-5
 import { describe, expect, it } from "vitest";
-import { effectScope, ref, shallowRef } from "vue";
-import { vec3 } from "gl-matrix";
+import { effectScope, shallowRef } from "vue";
 
-import { useOrbitalPointer } from "../../../demo/scenes/cube/orbital-drag/composables/useOrbitalPointer";
+import { useOrbitalGesture } from "../../../demo/scenes/cube/orbital-drag/composables/useOrbitalGesture";
+import type { OrbitState } from "../../../demo/scenes/cube/orbital-drag/composables/useOrbitalGesture";
+import type { Vec3 } from "../../../demo/scenes/cube/orbital-drag/arcball";
+import { attitudeQuat } from "../../../demo/scenes/cube/graphAttitude";
 
 /**
- * X.KF.W13X `.cube` · KFA-82 — the unit half of the hold-release row. The
- * served half is read by the committed probe
- * `docs/tranches/X/keyframes/evidence/W13X/cube/cube.mjs` in value.js.
+ * X.KF.W13X `.cube` · KFA-82 — a HELD pointer releases with no fling, now
+ * against the ONE reader (KF-M2): the release ω is read off the last 80 ms of
+ * attitude samples, and a release more than 64 ms after the last move is a
+ * hold. The served half is read by the committed probe
+ * `scripts/probe/kf-stage-and-orbit.mjs`.
  */
 
 const at = (type: string, x: number, y: number, timeStamp: number) => {
@@ -19,42 +23,51 @@ const at = (type: string, x: number, y: number, timeStamp: number) => {
 
 describe("KFA-82 — a held pointer releases with no fling", () => {
     const harness = () => {
-        const speed = ref(0);
+        const released: Vec3[] = [];
+        const container = document.createElement("div");
+        document.body.append(container);
+        const state: OrbitState = { q: [0, 0, 0, 1], t: { x: 0, y: 0 }, s: 1 };
         const scope = effectScope();
-        const pointer = scope.run(() =>
-            useOrbitalPointer({
-                sensitivity: 1,
-                touchSensitivity: 1,
-                containerRef: shallowRef<HTMLElement | null>(document.createElement("div")),
-                // The fling's EMA lives in OrbitalDrag; the stub stands in for it.
-                updateRotation: () => void (speed.value = 5),
-                applyRotation: () => {},
-                updateTranslation: () => {},
-                updateScale: () => {},
-                handleAxisSpecificInput: () => {},
-                angularVelocityAxis: vec3.create(),
-                angularVelocitySpeed: speed,
+        const gesture = scope.run(() =>
+            useOrbitalGesture({
+                containerRef: shallowRef<HTMLElement | null>(container),
+                G: attitudeQuat(),
+                state,
+                frame: () => ({ centre: { x: 0, y: 0 }, side: 200, fit: 1, stage: null }),
+                scaleRange: [0.4, 3],
+                requestCommit: () => {},
+                onGestureStart: () => {},
+                onGestureEnd: (omega) => void released.push(omega),
             }),
         )!;
-        return { pointer, speed, dispose: () => scope.stop() };
+        return {
+            gesture,
+            released,
+            dispose: () => {
+                scope.stop();
+                container.remove();
+            },
+        };
     };
 
-    it("release 400 ms after the last move zeroes the speed", () => {
-        const { pointer, speed, dispose } = harness();
-        pointer.startDrag(at("pointerdown", 0, 0, 0));
-        pointer.drag(at("pointermove", 30, 10, 16));
-        expect(speed.value).toBe(5);
-        pointer.stopDrag(at("pointerup", 30, 10, 416));
-        expect(speed.value).toBe(0);
+    it("release 400 ms after the last move reads ω = 0", () => {
+        const { gesture, released, dispose } = harness();
+        gesture.onPointerDown(at("pointerdown", 0, 0, 0));
+        document.dispatchEvent(at("pointermove", 30, 10, 16));
+        document.dispatchEvent(at("pointermove", 60, 20, 32));
+        document.dispatchEvent(at("pointerup", 60, 20, 432));
+        expect(released).toEqual([[0, 0, 0]]);
         dispose();
     });
 
     it("release in the move's own frame keeps the fling", () => {
-        const { pointer, speed, dispose } = harness();
-        pointer.startDrag(at("pointerdown", 0, 0, 0));
-        pointer.drag(at("pointermove", 30, 10, 16));
-        pointer.stopDrag(at("pointerup", 30, 10, 32));
-        expect(speed.value).toBe(5);
+        const { gesture, released, dispose } = harness();
+        gesture.onPointerDown(at("pointerdown", 0, 0, 0));
+        document.dispatchEvent(at("pointermove", 30, 10, 16));
+        document.dispatchEvent(at("pointermove", 60, 20, 32));
+        document.dispatchEvent(at("pointerup", 60, 20, 40));
+        expect(released).toHaveLength(1);
+        expect(Math.hypot(...released[0]!)).toBeGreaterThan(1);
         dispose();
     });
 });
