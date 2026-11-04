@@ -126,8 +126,8 @@ import {
     useTemplateRef,
     watch,
 } from "vue";
-import type { CSSKeyframesAnimation, Vars } from "@mkbabb/keyframes.js";
-import { loadAnimationEngine, Sequence, stagger } from "@mkbabb/keyframes.js";
+import type { AnimationGroup, CSSKeyframesAnimation, Vars } from "@mkbabb/keyframes.js";
+import { loadAnimationEngine, stagger } from "@mkbabb/keyframes.js";
 import type { CubeSkin } from "@state";
 import { useDoubleTap } from "@composables/useDoubleTap";
 import { useSceneVisibilityPause } from "@composables/scene-runtime/useSceneVisibilityPause";
@@ -240,17 +240,16 @@ const cubeSides = [
 // its one CSS owner. It plays when the skin is chosen and on mount when it is
 // already the stored skin; under reduced motion it does not play at all.
 //
-// The stagger is POSITIONS on one master clock (`Sequence`, at `stagger()`'s
-// offsets), not per-child `delay`s in an AnimationGroup: a child's delay is a
-// per-play sleep inside its advance, so the group's first frame would wait on
-// the longest one. On the master clock a petal not yet reached rests on its 0%
-// frame (closed) and a finished one on its 100% frame (open).
+// The stagger is each petal's own `delay` (`stagger()`), in one AnimationGroup:
+// a child's delay is a phase on the group's master clock (6.2.1), so with
+// `fillMode: "both"` a petal not yet reached rests on its 0% frame (closed) and
+// a finished one holds its 100% frame (open) until the last petal lands.
 //
 // On finish every fill's inline `transform` and `opacity` are REMOVED, so the
 // stylesheet owns the resting face again and no stale inline frame survives a
 // later layout change.
 const UNFURL_EACH_MS = 70;
-let unfurlSeq: Sequence | undefined;
+let unfurlGroup: AnimationGroup<Vars> | undefined;
 let unfurlFills: HTMLElement[] = [];
 
 const releaseFills = () => {
@@ -262,8 +261,8 @@ const releaseFills = () => {
 };
 
 const stopUnfurl = () => {
-    unfurlSeq?.stop();
-    unfurlSeq = undefined;
+    unfurlGroup?.stop();
+    unfurlGroup = undefined;
     releaseFills();
 };
 
@@ -281,20 +280,23 @@ const playUnfurl = async () => {
     );
     if (fills.length === 0) return;
 
-    const { presets } = await loadAnimationEngine();
+    const { presets, AnimationGroup } = await loadAnimationEngine();
     if (props.skin !== "daraksha" || !fills.every((f) => f.isConnected)) return;
 
-    const at = stagger(fills.length, { each: UNFURL_EACH_MS });
-    const seq = new Sequence();
-    fills.forEach((fill, i) => {
-        seq.add(presets.unfurl().setTargets(fill), at(i));
-    });
-    unfurlSeq = seq;
+    const delay = stagger(fills.length, { each: UNFURL_EACH_MS });
+    const group = new AnimationGroup<Vars>(
+        ...fills.map((fill, i) =>
+            presets
+                .unfurl({ delay: delay(i, fills.length), fillMode: "both" })
+                .setTargets(fill),
+        ),
+    );
+    unfurlGroup = group;
     unfurlFills = fills;
 
-    await seq.play();
-    if (unfurlSeq === seq) {
-        unfurlSeq = undefined;
+    await group.play();
+    if (unfurlGroup === group) {
+        unfurlGroup = undefined;
         releaseFills();
     }
 };
@@ -314,9 +316,9 @@ watch(
 // The unfurl's own hidden-tab pause (the scene idiom: only resume what the hide
 // paused).
 useSceneVisibilityPause(
-    () => unfurlSeq?.playback.running ?? false,
-    () => unfurlSeq?.pause(),
-    () => unfurlSeq?.resume(),
+    () => unfurlGroup?.playing() ?? false,
+    () => unfurlGroup?.pause(),
+    () => unfurlGroup?.resume(),
 );
 
 // ── EASTER EGG — "the axis-lock reveal" (P.W5.S3) ─────────────────────────────

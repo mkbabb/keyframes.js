@@ -12,14 +12,17 @@
  * value.js's node_modules (keyframes.js does not depend on it). The default
  * headless shell; no window capture.
  *
- * Cells: 1440x900 and 390x844, each in light and dark. Per cell: select
- * Daraksha in the menu, read `data-cube-skin`, the six face fills' computed
- * background and ink, every fill's inline style mid-unfurl and at rest, and
- * the `.cube-bob` transform over time (the sway). `--deeplink` also opens a
- * fresh context on the `?state=` share link that seeds the skin.
+ * Cells: 1440x900 and 390x844, each in light and dark, plus both widths under
+ * `prefers-reduced-motion: reduce`. Per cell: select Daraksha in the menu,
+ * read `data-cube-skin`, the six face fills' computed background (ΔE_OK
+ * against her declared register, ≤ 0.01) and ink, every fill's inline style
+ * mid-unfurl and at rest, and the `.cube-bob` transform over time (the sway;
+ * under reduced motion its rest pose: 0°, no offset). `--deeplink` also opens
+ * a fresh context on the `?state=` share link that seeds the skin.
  */
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
+import { deltaEOK, parseCssColor } from "@mkbabb/value.js/color";
 
 const arg = (name, dflt) => {
     const i = process.argv.indexOf(`--${name}`);
@@ -33,15 +36,42 @@ const { chromium } = await import(PW);
 
 const ONLY = arg("only", null);
 const CELLS_ALL = [
-    { w: 1440, h: 900, scheme: "light" },
-    { w: 1440, h: 900, scheme: "dark" },
-    { w: 390, h: 844, scheme: "light" },
-    { w: 390, h: 844, scheme: "dark" },
+    { w: 1440, h: 900, scheme: "light", reduce: false },
+    { w: 1440, h: 900, scheme: "dark", reduce: false },
+    { w: 390, h: 844, scheme: "light", reduce: false },
+    { w: 390, h: 844, scheme: "dark", reduce: false },
+    { w: 1440, h: 900, scheme: "light", reduce: true },
+    { w: 390, h: 844, scheme: "dark", reduce: true },
 ];
-const CELLS = ONLY ? CELLS_ALL.filter((c) => `${c.w}x${c.h}-${c.scheme}` === ONLY) : CELLS_ALL;
+const cellTag = (c) => `${c.w}x${c.h}-${c.scheme}${c.reduce ? "-prm" : ""}`;
+const CELLS = ONLY ? CELLS_ALL.filter((c) => cellTag(c) === ONLY) : CELLS_ALL;
 
 /** The skin's register, face order front..bottom (CubeTarget.css). */
 const EXPECT_FACES = ["efflorescence", "haldi", "tulsi", "zari", "gulabi", "sheesham"];
+const REGISTER = {
+    efflorescence: "oklch(73% 0.185 2)",
+    haldi: "oklch(82% 0.145 76)",
+    tulsi: "oklch(72% 0.055 145)",
+    zari: "oklch(72% 0.12 88)",
+    gulabi: "oklch(90% 0.055 18)",
+    sheesham: "oklch(55% 0.085 56)",
+};
+const deltaToRegister = (css, name) => {
+    const a = parseCssColor(css);
+    const b = parseCssColor(REGISTER[name]);
+    if (!a.ok || !b.ok) return null;
+    const d = deltaEOK(a.value, b.value);
+    return d.ok ? Number(d.value.toFixed(4)) : null;
+};
+/** A 2D/3D computed matrix → its in-plane rotation (deg) and translation (px). */
+const poseOf = (m) => {
+    if (!m || m === "none") return { deg: 0, tx: 0, ty: 0 };
+    const v = m.replace(/^matrix(3d)?\(|\)$/g, "").split(",").map(Number);
+    const is3d = m.startsWith("matrix3d");
+    const [a, b] = [v[0], v[1]];
+    const [tx, ty] = is3d ? [v[12], v[13]] : [v[4], v[5]];
+    return { deg: Number(((Math.atan2(b, a) * 180) / Math.PI).toFixed(3)), tx: Number(tx.toFixed(2)), ty: Number(ty.toFixed(2)) };
+};
 
 /** The share-link state that seeds the cube bucket's skin (hashSharing.ts). */
 export const deepLinkState = () =>
@@ -69,6 +99,18 @@ function readDie() {
         }),
         sideInline: sides.map((s) => s.style.transform),
         frontToken: bob ? getComputedStyle(bob).getPropertyValue("--face-1").trim() : null,
+        // The die's projected centre against its untransformed host's centre.
+        dieOffset: (() => {
+            const die = document.querySelector(".cube");
+            const host = bob?.parentElement;
+            if (!die || !host) return null;
+            const d = die.getBoundingClientRect();
+            const h = host.getBoundingClientRect();
+            return {
+                dx: Number((d.x + d.width / 2 - (h.x + h.width / 2)).toFixed(2)),
+                dy: Number((d.y + d.height / 2 - (h.y + h.height / 2)).toFixed(2)),
+            };
+        })(),
     };
 }
 
@@ -107,6 +149,7 @@ try {
         const ctx = await browser.newContext({
             viewport: { width: cell.w, height: cell.h },
             colorScheme: cell.scheme,
+            reducedMotion: cell.reduce ? "reduce" : "no-preference",
         });
         const errors = [];
         try {
@@ -123,7 +166,7 @@ try {
             const checked = await chooseDaraksha(page);
             await page.waitForTimeout(120);
             const mid = await page.evaluate(readDie);
-            const tag = `${cell.w}x${cell.h}-${cell.scheme}`;
+            const tag = cellTag(cell);
             if (SHOTS) await page.screenshot({ path: join(SHOTS, `unfurl-mid-${tag}.png`) });
             await page.waitForTimeout(2200);
             const rest = await page.evaluate(readDie);
@@ -141,7 +184,16 @@ try {
                 skin: rest.skin,
                 frontToken: rest.frontToken,
                 restFrontBg,
-                faces: rest.faces.map((f, i) => ({ name: EXPECT_FACES[i], bg: f.bg, ink: f.ink })),
+                faces: rest.faces.map((f, i) => ({
+                    name: EXPECT_FACES[i],
+                    bg: f.bg,
+                    ink: f.ink,
+                    dE: deltaToRegister(f.bg, EXPECT_FACES[i]),
+                })),
+                maxFaceDE: Math.max(...rest.faces.map((f, i) => deltaToRegister(f.bg, EXPECT_FACES[i]) ?? Infinity)),
+                reduce: cell.reduce,
+                bobPose: poseOf(rest.bobTransform),
+                dieOffset: rest.dieOffset,
                 midInlineFills: mid.faces.filter((f) => f.inlineTransform !== "").length,
                 restInlineFills: rest.faces.filter((f) => f.inlineTransform !== "" || f.inlineOpacity !== "").length,
                 sideInlineWrites: rest.sideInline.filter((t) => t !== "").length,

@@ -202,9 +202,11 @@
    `register-oklch.mjs`), OPAQUE in both themes so her colours stay true and
    each numeral's ink ratio is exact rather than composited. Efflorescence
    faces the viewer; sheesham, the wood, sits at the base. The skin redefines
-   the tokens the faces already read and nothing else: no lighting, and no
-   motion CSS — the unfurl and the sway are engine-authored (CubeTarget.vue,
-   useCubeDemo). The attribute rides `.cube-bob`, so the tokens inherit to
+   the tokens the faces already read, and zeroes the crayon die's fixed tonal
+   step (DESIGN.md §2, Skins): every face paints her declared colour exactly.
+   The die still reads as a solid from her six colours meeting at its edges
+   (L 55–90 %, six hues). No lighting, and no motion CSS — the unfurl and the
+   sway are engine-authored (CubeTarget.vue, useCubeDemo). The attribute rides `.cube-bob`, so the tokens inherit to
    every face and the hinge is a static property of the Hover channel's node.
 
    Ink (value.js contrastRatio, all ≥ the 3:1 large-text floor):
@@ -233,6 +235,9 @@
        flowers out of empty space. */
     & .cube-side {
         background-color: transparent;
+        /* Her colours are the point: no tonal step on any face. The selector
+           outranks the per-face steps above (.cube-side.top/.bottom/…). */
+        --face-step: 0%;
     }
 
     /* Each petal opens from its base. */

@@ -4,11 +4,14 @@
  * channel).
  *
  *  · Palette exactness and the ink floor red on one changed digit.
+ *  · Each face PAINTS her declared colour: the fill's color-mix under the
+ *    skin's resolved tonal step lands within ΔE_OK 0.01 (DESIGN.md §2, Skins).
  *  · Engine only: the skin block authors no motion CSS.
  *  · One writer: the unfurl paints `.face-fill` only, never the placed face;
  *    the sway re-keys the Hover channel (still three channels).
  *  · Release: no stale inline frame survives the unfurl.
- *  · Reduced motion: no unfurl, no inline style.
+ *  · Reduced motion: no unfurl, no inline style; the sway rests at the
+ *    neutral hang (0°, centred), never at its arc's extreme.
  *  · The enum migration: `ppMode` is gone; `cubeSkin` has one writer.
  *
  * Source assertions strip comments first (the cube-scene.test.ts idiom).
@@ -21,6 +24,8 @@ import { join, resolve } from "node:path";
 import { mat4 } from "gl-matrix";
 import {
     contrastRatio,
+    deltaEOK,
+    mixColors,
     parseCssColor,
     serializeCssColor,
 } from "@mkbabb/value.js/color";
@@ -119,6 +124,43 @@ describe("the Daraksha skin's palette (CubeTarget.css)", () => {
             if (!r.ok) throw new Error(`contrast unreadable on face ${n}`);
             expect(r.value, `face ${n}`).toBeGreaterThanOrEqual(3.0);
         }
+    });
+
+    it("every face PAINTS her declared colour: ΔE_OK ≤ 0.01 under the resolved tonal step", () => {
+        const css = stripComments(readFileSync(resolve(CUBE, "CubeTarget.css"), "utf8"));
+        // The fill's paint: color-mix(in oklab, face, step-ink step%).
+        const fill = /\.face-fill\s*\{[^}]*background-color:\s*color-mix\(\s*in oklab,\s*var\(--face-crayon\),\s*var\(--face-step-ink,\s*(\w+)\)\s*var\(--face-step,\s*([\d.]+)%\)\s*\)/.exec(css);
+        expect(fill, "the .face-fill color-mix").not.toBeNull();
+        const [, defaultInk, defaultStep] = fill!;
+
+        // The crayon die's per-face steps (.cube-side.<face> rules, (0,2,0)).
+        const crayon = (face: string, prop: string) => {
+            for (const m of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+                const sels = m[1]!.split(",").map((x) => x.trim());
+                if (!sels.includes(`.cube-side.${face}`)) continue;
+                const d = new RegExp(`${prop}\\s*:\\s*([^;]+);`).exec(m[2]!);
+                if (d) return d[1]!.trim();
+            }
+            return undefined;
+        };
+        // The skin's nested `& .cube-side` rule ((0,3,0): outranks every crayon step).
+        const nested = /&\s*\.cube-side\s*\{([^}]*)\}/.exec(body);
+        expect(nested, "the skin's .cube-side rule").not.toBeNull();
+        const skinDecl = (prop: string) =>
+            new RegExp(`${prop}\\s*:\\s*([^;]+);`).exec(nested![1]!)?.[1]?.trim();
+
+        const SIDES = ["front", "right", "back", "left", "top", "bottom"];
+        FACES.forEach(([face], i) => {
+            const side = SIDES[i]!;
+            const step = skinDecl("--face-step") ?? crayon(side, "--face-step") ?? `${defaultStep}%`;
+            const ink = skinDecl("--face-step-ink") ?? crayon(side, "--face-step-ink") ?? defaultInk!;
+            const declared = parse(decls.get(`--face-${i + 1}`)!);
+            const painted = mixColors(declared, parse(ink), parseFloat(step) / 100, { space: "oklab" });
+            if (!painted.ok) throw new Error(`unmixable face ${side}`);
+            const dE = deltaEOK(painted.value, parse(REGISTER[face]));
+            if (!dE.ok) throw new Error(`ΔE unreadable on ${side}`);
+            expect(dE.value, `${side} (${face}) at step ${step} of ${ink}`).toBeLessThanOrEqual(0.01);
+        });
     });
 
     it("is engine-only: no @keyframes, animation, or transform/opacity transition", () => {
@@ -316,6 +358,36 @@ describe("the sway — the Hover channel re-keyed, not a fourth channel", () => 
         expect(demo.hoverAnim.value).toBe(hover);
         expect(childCount()).toBe(3);
         expect(sampled()).toMatch(/^translateY\(/);
+    });
+});
+
+describe("reduced motion — the die hangs straight", () => {
+    beforeAll(async () => {
+        await warmKfEngine();
+    });
+
+    it("the reduced-motion snap rests the garland at the neutral hang (0°, centred)", async () => {
+        stubReducedMotion(true);
+        const [demo] = withSetup(() =>
+            useCubeDemo(ref(createMatrix()), ref(createMatrix()), ref<CubeSkin>("daraksha")),
+        );
+        // The mounted die declares the spin's --rotationX on its own node.
+        const w = mountDie("daraksha");
+        const node = (sel: string) => w.find(sel).element as HTMLElement;
+        const bobEl = node(".cube-bob");
+        demo.setTargets({ cubeEl: node(".cube"), bobEl, poseEl: node(".cube-pose"), graphEl: node(".graph") });
+
+        await demo.animationGroup.value.play();
+
+        // The engine's reduced-motion gate snaps every channel to its rest
+        // (final) frame. The garland's rest is the identity; 6.2.0 rested at
+        // the arc's extreme, rotateZ(-2.5deg) about the 50% -40% hinge, which
+        // hung the die tilted and up to 9.9 px off the stage centre.
+        const t = bobEl.style.transform;
+        expect(t).toMatch(/rotateZ\(0(deg)?\)/);
+        expect(t).toMatch(/translateY\(0(px)?\)/);
+        expect(t).not.toMatch(/rotateZ\(-?[1-9]/);
+        w.unmount();
     });
 });
 

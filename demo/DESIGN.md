@@ -65,6 +65,12 @@ Color is named by role, never by a new call-site literal.
   is the pinned default. The Daraksha skin is her register, opaque, hue-exact
   to `register-oklch.mjs`. A skin carries no lighting and no motion CSS; its
   motion is engine-authored (the library's `unfurl` and `garlandSway`).
+  *The tonal step is a skin property.* The crayon die's fixed per-face step
+  (`--face-step`: top +8 % white, bottom 8 % and sides 4 % black) is how the
+  crayon skin reads as a solid. The Daraksha skin sets it to `0%`: every face
+  paints her declared colour (ΔE_OK ≤ 0.01, `cube-daraksha-skin.test.ts`), and
+  the die's depth comes from her six colours meeting at its edges, which
+  already span L 55–90 % and six hues. A future skin states its step here.
 * **Lighting is flat (X-DS, value.js COHESION §0ej/§0ek).** The demo authors no
   lighting: no specular, sheen, veil, glow halo, coloured drop-glow or inset
   catch-light on chrome or subject. The `--specular`/`--shade` material register
