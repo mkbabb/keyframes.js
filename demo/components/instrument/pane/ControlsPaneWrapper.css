@@ -90,8 +90,17 @@
        both hold. glass's public `--fade-scroll-width` is set by state, the
        token's ordinary use; the ramp returns on `open` / `full`, where the
        body scrolls. `data-rung` is written from the same rung the stage
-       reserve reads. */
-    .controls-drawer-content[data-rung="peek"] .fading-scroll {
+       reserve reads.
+       Value.js X §0hs.2 (the adversarial check of §0hx, finding 1) — the
+       rule holds only where its premise does: the BOTTOM sheet, whose PEEK
+       detent rowBoundaryPeek sets on a row foot. The short-landscape RIGHT
+       side sheet has no row-boundary detent; its rungs are widths, its block
+       size is the band between the docks, and at PEEK it rests as the rail
+       with its body a scroll window. There a row crossing the port's edge is
+       the "more below", so the feather stays, keyed on glass's public
+       `data-side`. Unscoped, the rule cut the next row hard there (844×390:
+       edge 275, row 220–280; 932×430: edge 315, row 284–344). */
+    .controls-drawer-content[data-side="bottom"][data-rung="peek"] .fading-scroll {
         --fade-scroll-width: 0px;
     }
 

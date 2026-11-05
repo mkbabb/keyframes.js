@@ -33,12 +33,14 @@
  * pre-flight that bites at EDIT time, before the bundle stage. It does not
  * re-implement the bundle oracle; it catches the same breach sooner.
  *
- * THREE forbidden rules. Rule 1 cruises `^(?:src|demo)/` — `lint` passes BOTH
- * roots since `fb509edd`; rules 2 and 3 stay scoped to `src/`:
+ * FOUR forbidden rules. Rule 1 cruises `^(?:src|demo)/` — `lint` passes BOTH
+ * roots since `fb509edd`; rules 2 and 3 stay scoped to `src/`, rule 4 to `demo/`:
  *   1. no-cycle                  — no circular dependency anywhere in src/animation/.
  *   2. leaf-no-engine-no-valuejs — internal/ leaves may not reach the engine or value.js.
  *   3. light-barrel-no-engine    — the LIGHT named-export modules may not STATICALLY
  *                                  reach the engine or value.js (allowlist polarity).
+ *   4. demo-reads-published-surface — demo/ reaches src/ only through the
+ *                                  published barrel (K-D6).
  */
 
 // ── The LIGHT named-export module allowlist (rule 3's `from` set) ──────────────
@@ -292,6 +294,33 @@ module.exports = {
                     "type-import",
                     "dynamic-import",
                 ],
+            },
+        },
+
+        // ── Rule 4: demo-reads-published-surface ──────────────────────────
+        // K-D6 (value.js X realization, KF.W8 G1/G2/G3): the demo is the
+        // library's first consumer and reads it ONLY through the published
+        // barrel specifier `@mkbabb/keyframes.js` (resolved to its source
+        // barrel by the dogfood self-alias), never an internal module through
+        // `@src/*` or a relative reach. Type edges count too: a type the demo
+        // needs is a type the package must publish. The dist half (the barrel
+        // and the engine expose what the manifest rows say) is proof:publish's.
+        // Value.js X §0hs.2 (the adversarial check of §0hx, finding 6): this
+        // rule replaces the out-of-repo F-K-D6 shell script, so CI's `lint`
+        // re-runs the invariant on every push.
+        {
+            name: "demo-reads-published-surface",
+            severity: "error",
+            comment:
+                "A demo module imported a library-internal module (`@src/…` or a " +
+                "relative path into src/). The demo reads keyframes.js only through " +
+                "the published barrel `@mkbabb/keyframes.js`; if the demo needs it, " +
+                "publish it (barrel export + docs/published-surface.md row) and " +
+                "import it from the barrel.",
+            from: { path: "^demo/" },
+            to: {
+                path: "^src/",
+                pathNot: "^src/animation/index\\.ts$",
             },
         },
     ],

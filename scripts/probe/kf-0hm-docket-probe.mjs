@@ -23,6 +23,14 @@
  *   every row ends at or above it or starts at or below it. `d28` tests the
  *   row FOOT the reserve aims at; this tests the edge the paint is cut at, so
  *   a sliver of the next row inside the fade ramp reads RED here.
+ * D-28l (value.js X §0hs.2, the adversarial check of §0hx, finding 1 — the
+ *   short-landscape RIGHT side sheet at PEEK, 844x390 / 932x430): that sheet
+ *   has no row-boundary detent (its rungs are widths, its block size is the
+ *   dock band) and rests as the rail with its body a scroll window, so a row
+ *   crossing the port's clip edge is the "more below" and must be FEATHERED:
+ *   the port's resolved end ramp (glass's registered `--fade-end`) is > 0 px
+ *   there. A 0 px ramp is the hard cut (K-D1's PEEK rule leaking off the
+ *   bottom sheet). d28c is portrait-only; this is its landscape complement.
  * D-18 (the @mbabb menu reveal at 1800x1000@2x): the rAF interval p95 over the
  *   reveal, and the layers Chromium re-paints during it (CDP LayerTree).
  */
@@ -242,6 +250,62 @@ async function d28c(browser) {
     }
 }
 
+async function d28l(browser) {
+    out.d28l = [];
+    for (const vp of [{ w: 844, h: 390 }, { w: 932, h: 430 }]) {
+        for (const scheme of ["light", "dark"]) {
+            for (const scene of ["cube", "amiga", "square", "spring"]) {
+                const { ctx, page } = await open(browser, { ...vp, scene, scheme });
+                try {
+                    const r = await page.evaluate(() => {
+                        const sheet = document.querySelector(".controls-drawer-content");
+                        if (!sheet) return null;
+                        const sel = '[data-slot="configurator-layer-trigger"], [data-slot="labeled-field"], .param-row';
+                        const rows = [...sheet.querySelectorAll(sel)].filter((e) => e.getBoundingClientRect().height > 0);
+                        if (!rows.length) return { rows: 0 };
+                        let edge = Math.min(sheet.getBoundingClientRect().bottom, innerHeight);
+                        let clip = "sheet";
+                        for (let e = rows[0].parentElement; e && e !== sheet.parentElement; e = e.parentElement) {
+                            const cs = getComputedStyle(e);
+                            if (cs.overflowY === "visible") continue;
+                            const b = e.getBoundingClientRect().bottom - parseFloat(cs.borderBottomWidth);
+                            if (b < edge) {
+                                edge = b;
+                                clip = `${e.tagName.toLowerCase()}.${String(e.className).split(" ")[0]}`;
+                            }
+                        }
+                        const port = sheet.querySelector(".fading-scroll");
+                        const ps = port ? getComputedStyle(port) : null;
+                        return {
+                            side: sheet.getAttribute("data-side"),
+                            rung: sheet.getAttribute("data-rung"),
+                            edge: +edge.toFixed(1),
+                            clip,
+                            ramp: ps ? ps.getPropertyValue("--fade-scroll-width").trim() : null,
+                            fadeEnd: ps ? parseFloat(ps.getPropertyValue("--fade-end")) : null,
+                            more: port ? port.scrollHeight - port.clientHeight - port.scrollTop : null,
+                            straddle: rows
+                                .map((e) => e.getBoundingClientRect())
+                                .filter((b) => b.top < edge - 0.5 && b.bottom > edge + 0.5)
+                                .map((b) => [Math.round(b.top), Math.round(b.bottom)]),
+                        };
+                    });
+                    if (SHOTS && scene === "cube" && scheme === "dark")
+                        await page.screenshot({ path: join(SHOTS, `d28l-${scene}-${vp.w}x${vp.h}-${scheme}.png`) });
+                    out.d28l.push({ vp: `${vp.w}x${vp.h}`, scheme, scene, ...r });
+                    const tag = `D-28l ${scene}@${vp.w}x${vp.h} ${scheme}`;
+                    if (!r) fails.push(`${tag}: no sheet`);
+                    else if (r.side !== "right" || r.rung !== "peek") fails.push(`${tag}: not the resting side sheet (side ${r.side}, rung ${r.rung})`);
+                    else if (r.straddle?.length && !(r.fadeEnd > 0.5))
+                        fails.push(`${tag}: clip edge y=${r.edge} (${r.clip}) cuts ${JSON.stringify(r.straddle)} HARD (ramp ${r.ramp}, --fade-end ${r.fadeEnd}px)`);
+                } finally {
+                    await ctx.close();
+                }
+            }
+        }
+    }
+}
+
 async function d18(browser) {
     out.d18 = [];
     for (let rep = 0; rep < REPS; rep++) {
@@ -320,7 +384,7 @@ async function d18(browser) {
 const browser = await chromium.launch();
 try {
     if (SHOTS) mkdirSync(SHOTS, { recursive: true });
-    for (const [row, run] of [["d29", d29], ["d28", d28], ["d28c", d28c], ["d18", d18]]) {
+    for (const [row, run] of [["d29", d29], ["d28", d28], ["d28c", d28c], ["d28l", d28l], ["d18", d18]]) {
         if (!ROWS.includes(row)) continue;
         try {
             await run(browser);
