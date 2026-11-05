@@ -64,11 +64,11 @@ jobs:
               run: npm run build:lib
             - name: correctness suite
               run: npm run test:lib
-            # X.KF.W4 — the demo lane is a MERGE-PATH gate, not a nightly
+            # X.KF.W4 — the demo lane is a MERGE-PATH gate, not a weekly
             # observation. `test:demo` is the jsdom vitest project (27 specs);
             # `lint` is the source-graph cruise over src + demo plus the
             # eslint-plugin-vue ESSENTIALS tier over the SFC templates. Both
-            # block. A demo defect that used to surface (at best) in a nightly
+            # block. A demo defect that used to surface (at best) in a weekly run
             # whose colour nobody read now fails the pull request that authors it.
             #
             # X.KF.W10 G-7 (the `v/w9-staging` landing) — MR4 CONVERGED HERE.
@@ -94,7 +94,7 @@ jobs:
     # red indefinitely without stopping a single merge. The event gate is
     # REMOVED: the roster runs on pull_request and push as well, and it blocks.
     # The schedule/dispatch triggers survive for deploy ancestry, which is the
-    # one thing the nightly was genuinely for.
+    # one thing the weekly run was genuinely for.
     demo-correctness:
         name: demo correctness (browser roster)
         permissions:
@@ -159,7 +159,7 @@ jobs:
                     -f "sha=${{ github.sha }}" 2>/dev/null || \
                   gh api --method PATCH "repos/${{ github.repository }}/git/refs/tags/last-demo-green" \
                     -f "sha=${{ github.sha }}" -F force=true
-            # Device-dependent observers are co-scheduled with the nightly roster
+            # Device-dependent observers are co-scheduled with the weekly roster
             # and remain explicitly non-blocking; no separate merge-path job or
             # demo-device-observe apparatus survives U.A6.
             - name: install browser observers (recorded)
