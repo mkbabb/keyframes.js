@@ -22,6 +22,15 @@
  * Orbit cells (G2.1/G2.3/G2.6): CDP touch and mouse on the cube, under reduced
  * motion (no idle bob, no coast), reading the OrbitalDrag container's computed
  * matrix and the front face's projected centre.
+ *
+ * K-D3 (value.js X realization, KF-M-O1 host half): `--engine webkit` runs the
+ * orbit cells in Playwright's WebKit (one browser per run; launch the run with
+ * `guarded --exclusive webkit`). WebKit has no CDP, so `--input synthetic` (the
+ * default under webkit) drives the two fingers as script-dispatched Pointer
+ * Events (pointerType "touch", the same paths), and the Chromium leg can be run
+ * with the same input as the comparator. Two single-source legs ride the touch
+ * cell: (b) `gesturestart`/`gesturechange` dispatched while two fingers are
+ * down write nothing to the orbit; (c) `touchmove` alone writes nothing.
  */
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -35,8 +44,12 @@ const OUT = arg("out", null);
 const MODE = arg("mode", "all");
 const SHOTS = arg("shots", null);
 const SCHEMES = (arg("schemes", "dark")).split(",");
+const ENGINE = arg("engine", "chromium");
+const INPUT = arg("input", ENGINE === "chromium" ? "cdp" : "synthetic");
 const PW = process.env.PLAYWRIGHT_MODULE ?? "/Users/mkbabb/Programming/value.js/node_modules/playwright/index.mjs";
-const { chromium } = await import(PW);
+const engines = await import(PW);
+const chromium = engines[ENGINE];
+if (!chromium) throw new Error(`unknown --engine ${ENGINE}`);
 
 const PHONES = [
     { w: 390, h: 844 },
@@ -284,7 +297,7 @@ async function orbitCells(browser, out) {
             await settle(page);
             await page.keyboard.press("Escape");
             await page.waitForTimeout(600);
-            const cdp = await ctx.newCDPSession(page);
+            const cdp = INPUT === "cdp" ? await ctx.newCDPSession(page) : null;
             const r0 = await page.evaluate(readOrbit);
             const { x: cx, y: cy } = r0.centre;
             const frame = () => page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
@@ -296,11 +309,39 @@ async function orbitCells(browser, out) {
                 await page.mouse.up();
                 await frame();
             };
-            const touch = async (type, pts) =>
-                cdp.send("Input.dispatchTouchEvent", {
+            // The synthetic path: one PointerEvent per finger per step, pointerdown
+            // on the element under the finger (the orbit container), move/up on
+            // the document (where the gesture's own listeners are).
+            let down = [];
+            const synth = (type, pts) =>
+                page.evaluate(
+                    ({ type, pts, down }) => {
+                        const fire = (name, x, y, id, target) =>
+                            target.dispatchEvent(
+                                new PointerEvent(name, {
+                                    bubbles: true, cancelable: true, composed: true, pointerId: 100 + id,
+                                    pointerType: "touch", isPrimary: id === 0, clientX: x, clientY: y,
+                                    buttons: name === "pointerup" ? 0 : 1, button: name === "pointermove" ? -1 : 0,
+                                    width: 2, height: 2, pressure: name === "pointerup" ? 0 : 0.5,
+                                }),
+                            );
+                        if (type === "touchStart") pts.forEach(([x, y], i) => fire("pointerdown", x, y, i, document.elementFromPoint(x, y) ?? document.body));
+                        else if (type === "touchMove") pts.forEach(([x, y], i) => fire("pointermove", x, y, i, document));
+                        else down.forEach(([x, y], i) => fire("pointerup", x, y, i, document));
+                    },
+                    { type, pts, down },
+                );
+            const touch = async (type, pts) => {
+                if (!cdp) {
+                    await synth(type, pts);
+                    down = type === "touchEnd" ? [] : pts;
+                    return;
+                }
+                return cdp.send("Input.dispatchTouchEvent", {
                     type,
                     touchPoints: pts.map(([x, y], i) => ({ x, y, id: i + 1, radiusX: 1, radiusY: 1, force: 1 })),
                 });
+            };
             const twoFinger = async (a0, b0, a1, b1, steps = 20) => {
                 await touch("touchStart", [a0, b0]);
                 for (let i = 1; i <= steps; i++) {
@@ -386,6 +427,47 @@ async function orbitCells(browser, out) {
                 cell.twistDeg = (Math.acos(Math.max(-1, Math.min(1, (dotR - 1) / 2))) * 180) / Math.PI;
                 const sc = await readScale();
                 cell.twistScale = sc.s;
+
+                // K-D3 (b) — ONE SOURCE: Safari's gesture* while two fingers are
+                // down must write nothing (the Pointer Events similarity owns it).
+                const g0 = (await page.evaluate(readOrbit)).transform;
+                const gx = (await page.evaluate(readOrbit)).die;
+                await touch("touchStart", [[gx.x - 40, gx.y], [gx.x + 40, gx.y]]);
+                await page.evaluate(() => {
+                    const el = document.querySelector(".graph") ?? document.body;
+                    const G = (name, scale, rotation) => {
+                        const e = new Event(name, { bubbles: true, cancelable: true });
+                        Object.assign(e, { scale, rotation });
+                        return e;
+                    };
+                    el.dispatchEvent(G("gesturestart", 1, 0));
+                    for (let i = 1; i <= 10; i++) window.dispatchEvent(G("gesturechange", 1 + i * 0.2, i * 9));
+                    window.dispatchEvent(G("gestureend", 3, 90));
+                });
+                await frame();
+                cell.gestureWhileDownWrites = (await page.evaluate(readOrbit)).transform !== g0;
+                await touch("touchEnd", []);
+                await frame();
+                // K-D3 (c) — touchmove alone (no pointer stream) writes nothing.
+                const h0 = (await page.evaluate(readOrbit)).transform;
+                await page.evaluate(({ x, y }) => {
+                    const el = document.elementFromPoint(x, y) ?? document.body;
+                    const T = (name, dx) => {
+                        let e;
+                        try {
+                            const t = new Touch({ identifier: 7, target: el, clientX: x + dx, clientY: y });
+                            e = new TouchEvent(name, { bubbles: true, cancelable: true, touches: name === "touchend" ? [] : [t], changedTouches: [t] });
+                        } catch {
+                            e = new Event(name, { bubbles: true, cancelable: true });
+                        }
+                        el.dispatchEvent(e);
+                    };
+                    T("touchstart", 0);
+                    for (let i = 1; i <= 10; i++) T("touchmove", i * 10);
+                    T("touchend", 100);
+                }, gx);
+                await frame();
+                cell.touchmoveAloneWrites = (await page.evaluate(readOrbit)).transform !== h0;
             }
             cell.transform = (await page.evaluate(readOrbit)).transform;
         } catch (e) {
@@ -405,7 +487,7 @@ try {
 } finally {
     await browser.close();
 }
-const json = JSON.stringify({ base: BASE, at: new Date().toISOString(), out }, null, 1);
+const json = JSON.stringify({ base: BASE, engine: ENGINE, input: INPUT, at: new Date().toISOString(), out }, null, 1);
 if (OUT) {
     mkdirSync(dirname(OUT), { recursive: true });
     writeFileSync(OUT, json);
@@ -434,5 +516,7 @@ for (const c of out) {
     if (c.pan100 !== undefined && !(Math.abs(c.pan100 - 100) <= 1)) fails.push(`G2.3c ${c.cell} pan ${c.pan100}`);
     if (c.twistDeg !== undefined && !(Math.abs(c.twistDeg - 90) <= 0.5)) fails.push(`G2.3b ${c.cell} twist ${c.twistDeg}°`);
     if (c.twistScale !== undefined && !(Math.abs(c.twistScale - 1) <= 0.005)) fails.push(`G2.3b ${c.cell} twist scale ${c.twistScale}`);
+    if (c.gestureWhileDownWrites) fails.push(`K-D3b ${c.cell} gesture* with fingers down wrote the orbit`);
+    if (c.touchmoveAloneWrites) fails.push(`K-D3c ${c.cell} touchmove alone wrote the orbit`);
 }
 console.log(JSON.stringify({ cells: out.length, fails }, null, 1));
