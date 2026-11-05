@@ -289,7 +289,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@mkbabb/glass-ui/toolti
 import { clamp } from "@mkbabb/value.js/math";
 import { useZoomPan } from "../composables/useZoomPan";
 import LaneTrack, { edgeOf, type LaneTrackBeginDrag, type LaneTrackTick } from "./LaneTrack.vue";
-import TimelineCaret from "../TimelineCaret.vue";
+import TimelineCaret from "./TimelineCaret.vue";
 import TimelineHoverPreview, { describeKeyframe } from "./TimelineHoverPreview.vue";
 import { coalesceKeyframes } from "../timelineTypes";
 import type { TimelineKeyframe, TimelineStop } from "../timelineTypes";

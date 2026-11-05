@@ -30,6 +30,13 @@
  *       never false-positives on the `.` / `./engine` public surface or on a
  *       legitimate module-internal cross-file export (kept out of the barrel by
  *       design). See the "R6 support" block below for the full semantics.
+ *   R7  parent-reach single consumer (demo/DESIGN.md §10 R7, K-D6/K-D7) — a
+ *       demo file that imports a component one directory UP (`../X.vue`) is
+ *       lawful only when the parent directory states a shared contract, i.e.
+ *       the component has ≥ 2 consumers. A `../X.vue` with ONE consumer is a
+ *       vestigial path segment: the component belongs beside its consumer.
+ *       Scope-level over `demo/` (it runs with the default scope, so `check`
+ *       carries it).
  *
  * BIRTH SCOPE: `src/` only (default). R1–R3 carry live reds against the
  * pre-move library tree; R4/R5 are PREVENTIVE on src (src max is 484L; src has
@@ -91,6 +98,21 @@ const SCOPES = {
                 { exact: "@mkbabb/keyframes.js", to: "src/animation/index.ts" },
             ],
         },
+        // R7 parent-reach single consumer — the demo tree, with the demo's
+        // tsconfig path aliases so a consumer reached through `@components/*`
+        // counts the same as a relative one.
+        parentReach: {
+            roots: ["demo"],
+            extensions: [".vue", ".ts"],
+            aliases: [
+                { prefix: "@components/", to: "demo/components/" },
+                { prefix: "@composables/", to: "demo/composables/" },
+                { prefix: "@utils/", to: "demo/utils/" },
+                { prefix: "@styles/", to: "demo/styles/" },
+                { prefix: "@state/", to: "demo/state/" },
+                { prefix: "@app/", to: "demo/app/" },
+            ],
+        },
     },
     demo: {
         roots: ["demo"],
@@ -113,7 +135,7 @@ const KIND_DIR_NAMES = new Set([
     "services",
 ]);
 
-const RULE_IDS = ["R1", "R2", "R3", "R4", "R5", "R6"];
+const RULE_IDS = ["R1", "R2", "R3", "R4", "R5", "R6", "R7"];
 
 // ── Filesystem walk ──────────────────────────────────────────────────────────
 
@@ -575,6 +597,56 @@ function evaluate(rootAbs, scope) {
 
 // ── Runner ───────────────────────────────────────────────────────────────────
 
+// ── R7 support: parent-reach single consumer ─────────────────────────────────
+
+const PARENT_VUE_IMPORT = /\bfrom\s*["'](\.\.\/[^/"']+\.vue)["']/g;
+const ANY_SPECIFIER = /(?:\bfrom\s*|\bimport\s*\(\s*|\bimport\s+)["']([^"']+)["']/g;
+
+function listFilesDeep(rootAbs, extensions) {
+    const out = [];
+    for (const dir of listDirs(rootAbs)) {
+        for (const name of directSourceFiles(dir, extensions)) out.push(join(dir, name));
+    }
+    return out;
+}
+
+/** R7 evaluation — returns findings with repo-relative paths. */
+function evaluateParentReach(repoRoot, cfg) {
+    const files = cfg.roots.flatMap((r) => {
+        const abs = resolve(repoRoot, r);
+        return existsSync(abs) ? listFilesDeep(abs, cfg.extensions) : [];
+    });
+    const consumers = new Map(); // target abs → Set(consumer abs)
+    const reaches = []; // { from, target, spec }
+    for (const file of files) {
+        const src = stripComments(readFileSync(file, "utf8"));
+        for (const m of src.matchAll(ANY_SPECIFIER)) {
+            const target = resolveModuleSpecifier(file, m[1], repoRoot, cfg.aliases, cfg.extensions);
+            if (!target || target === file) continue;
+            if (!consumers.has(target)) consumers.set(target, new Set());
+            consumers.get(target).add(file);
+        }
+        for (const m of src.matchAll(PARENT_VUE_IMPORT)) {
+            const target = resolve(dirname(file), m[1]);
+            if (existsSync(target)) reaches.push({ from: file, target, spec: m[1] });
+        }
+    }
+    const findings = [];
+    for (const { from, target, spec } of reaches) {
+        const n = consumers.get(target)?.size ?? 0;
+        if (n < 2) {
+            findings.push({
+                rule: "R7",
+                path: relative(repoRoot, from).split(sep).join("/"),
+                message:
+                    `imports "${spec}" one directory up, and ${relative(repoRoot, target).split(sep).join("/")} has ${n} consumer(s): ` +
+                    `a single-consumer component lives beside its consumer (demo/DESIGN.md §10 R7).`,
+            });
+        }
+    }
+    return findings;
+}
+
 function runScope(scopeName, ruleFilter) {
     const scope = SCOPES[scopeName];
     if (!scope) {
@@ -595,6 +667,9 @@ function runScope(scopeName, ruleFilter) {
     if (scope.unusedExports && (!ruleFilter || ruleFilter === "R6")) {
         findings.push(...evaluateUnusedExports(REPO_ROOT, scope.unusedExports));
     }
+    if (scope.parentReach && (!ruleFilter || ruleFilter === "R7")) {
+        findings.push(...evaluateParentReach(REPO_ROOT, scope.parentReach));
+    }
     if (ruleFilter) findings = findings.filter((f) => f.rule === ruleFilter);
 
     const header = ruleFilter
@@ -606,7 +681,7 @@ function runScope(scopeName, ruleFilter) {
         console.log(
             ruleFilter
                 ? `proof:structure — PASS: ${ruleFilter} clean on scope=${scopeName} (0 violations)`
-                : `proof:structure — PASS: scope=${scopeName} clean (0 violations across R1–R6)`,
+                : `proof:structure — PASS: scope=${scopeName} clean (0 violations across R1–R7)`,
         );
         return 0;
     }
@@ -678,7 +753,7 @@ function selftest() {
         for (const f of dirtyFindings) console.log(`    ${f.rule}  ${f.path} — ${f.message}`);
         // R1–R5 are per-file/dir rules exercised by `evaluate`. R6 is scope-level
         // (a multi-root consumer scan) and gets its own fixture arm below.
-        for (const id of RULE_IDS.filter((r) => r !== "R6")) {
+        for (const id of RULE_IDS.filter((r) => r !== "R6" && r !== "R7")) {
             const hit = fired.has(id);
             console.log(`selftest · rule ${id} CAN fail — ${hit ? "PASS" : "FAIL (rule never fired on the dirty fixture)"}`);
             if (!hit) ok = false;
@@ -723,6 +798,30 @@ function selftest() {
     } finally {
         rmSync(r6Clean, { recursive: true, force: true });
         rmSync(r6Dirty, { recursive: true, force: true });
+    }
+
+    // ── R7 arm — parent-reach single consumer non-vacuity (own fixture repo) ──
+    const r7Cfg = { roots: ["demo"], extensions: [".vue", ".ts"], aliases: [{ prefix: "@c/", to: "demo/" }] };
+    const r7Clean = mkdtempSync(join(tmpdir(), "proof-structure-r7-clean-"));
+    const r7Dirty = mkdtempSync(join(tmpdir(), "proof-structure-r7-dirty-"));
+    try {
+        // CLEAN — `Shared.vue` is reached from two children (one relative, one by
+        // alias): the parent states a contract. R7 must find 0.
+        writeFixtureFile(r7Clean, "demo/area/Shared.vue", `<template><i /></template>\n`);
+        writeFixtureFile(r7Clean, "demo/area/a/A.vue", `<script setup>\nimport Shared from "../Shared.vue";\n</script>\n`);
+        writeFixtureFile(r7Clean, "demo/area/b/B.vue", `<script setup>\nimport Shared from "@c/area/Shared.vue";\n</script>\n`);
+        const r7CleanFindings = evaluateParentReach(r7Clean, r7Cfg);
+        console.log(`selftest · R7 clean fixture → ${r7CleanFindings.length} finding(s) — ${r7CleanFindings.length === 0 ? "PASS (R7 CAN pass)" : "FAIL"}`);
+        if (r7CleanFindings.length !== 0) ok = false;
+        // DIRTY — `Lone.vue` has one consumer, in a child directory. R7 must fire.
+        writeFixtureFile(r7Dirty, "demo/area/Lone.vue", `<template><i /></template>\n`);
+        writeFixtureFile(r7Dirty, "demo/area/a/A.vue", `<script setup>\nimport Lone from "../Lone.vue";\n</script>\n`);
+        const r7DirtyHit = evaluateParentReach(r7Dirty, r7Cfg).some((f) => f.rule === "R7");
+        console.log(`selftest · rule R7 CAN fail — ${r7DirtyHit ? "PASS" : "FAIL (R7 never fired on the dirty fixture)"}`);
+        if (!r7DirtyHit) ok = false;
+    } finally {
+        rmSync(r7Clean, { recursive: true, force: true });
+        rmSync(r7Dirty, { recursive: true, force: true });
     }
 
     console.log(ok ? "selftest — PASS: every rule can pass on clean and fail on dirty (non-vacuous)." : "selftest — FAIL: a rule is vacuous.");

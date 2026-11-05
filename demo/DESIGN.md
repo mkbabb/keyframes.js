@@ -275,7 +275,7 @@ owner; the codex is their only home.
 | **R4** | Utilities belong in templates; scoped CSS is token-plain. `@apply` is design-system-only and `@reference` is banned. | NO standing gate; U.B12 owns the rule. |
 | **R5** | Tests mirror the source tree in their own top-level directory. OD-U7 makes this a language carve-out: tests consume a public surface and must not tax runtime colocation or HMR. | NO standing gate; U.H/U.B own the rule. |
 | **R6** | Shared-tier membership is kind-appropriate, has at least two consumers, and is tolerance-free. Exceptions change the rule or move the member; the old DEFERRED map dies. | NO standing gate; U.B1 owns the rule. |
-| **R7** | No vestigial path segments. A directory layer must state a contract; single-child bins and semantically empty `custom/`, `components/`, or transport pairs fail. | NO standing gate (the no-single-child clause is unenforced); U.B1. |
+| **R7** | No vestigial path segments. A directory layer must state a contract; single-child bins and semantically empty `custom/`, `components/`, or transport pairs fail. | The parent-reach clause is gated: `proof:structure` R7 reds a `../X.vue` import whose component has one consumer (K-D7). The no-single-child-bin clause is still unenforced; U.B1. |
 
 R5's mirror ruling is explicit owner law, not a loophole. R2's witness remains
 inside `proof:publish`; U.G does not create a standalone chunk gate. All other

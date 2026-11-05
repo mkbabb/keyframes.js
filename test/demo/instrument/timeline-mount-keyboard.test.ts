@@ -25,7 +25,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { createApp, defineComponent, h, nextTick, reactive, ref, type App } from "vue";
 import { TooltipProvider } from "@mkbabb/glass-ui/tooltip";
 import TimelineTrack from "@components/instrument/timeline/components/TimelineTrack.vue";
-import TimelineCaret from "@components/instrument/timeline/TimelineCaret.vue";
+import TimelineCaret from "@components/instrument/timeline/components/TimelineCaret.vue";
 import { useTimelineOps } from "@components/instrument/timeline/composables/useTimelineOps";
 import type {
     TimelineKeyframe,
