@@ -1,10 +1,10 @@
-// X.KF.W8 MISS-β2 (G3) — THE keyframe-selector serializer is `../css-text`'s
-// `serializeSelector`, imported here rather than re-declared. This module used
+// X.KF.W8 MISS-β2 (G3) — THE keyframe-selector serializer is the `../selector`
+// leaf's `serializeSelector` (K-D6), imported here rather than re-declared. This module used
 // to carry a second, byte-equivalent body of its own (`selectorText`); a
 // serializer with two implementations is the Tier-D defect the emit sub-zone's
 // own `serializeDeclaration` docblock names, and it was the same defect one
 // function over.
-import { serializeSelector } from "../css-text";
+import { serializeSelector } from "../selector";
 import { serializeAdmittedValue } from "../serialize-value";
 import type { CssValue } from "@mkbabb/value.js/value";
 import { camelCaseToHyphen } from "../../../internal/helpers";

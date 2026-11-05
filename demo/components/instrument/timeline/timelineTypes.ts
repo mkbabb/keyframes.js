@@ -1,5 +1,5 @@
 import type { KeyframeSelector } from "@mkbabb/value.js/css";
-import { selectorText } from "@utils/keyframeSelector";
+import { serializeSelector } from "@mkbabb/keyframes.js";
 
 export interface TimelineKeyframe {
     id: string;
@@ -21,7 +21,7 @@ export interface TimelineState {
 /**
  * A STOP — the unit the engine compiles and the track renders (KF.W7 G5).
  *
- * Keyframes whose selectors serialize to ONE text (`selectorText`) are one
+ * Keyframes whose selectors serialize to ONE text (`serializeSelector`) are one
  * rule in the built `@keyframes` block and in the exported CSS — CSS merges
  * same-selector blocks, later declarations winning — so they are ONE stop:
  * one marker, one caret, and a marker that says how many keyframes it holds.
@@ -29,7 +29,7 @@ export interface TimelineState {
  * "the UI and the artifact agree on the count" structural rather than policed.
  */
 export interface TimelineStop {
-    /** The merge key — `selectorText(keyframes[0].selector)`. */
+    /** The merge key — `serializeSelector(keyframes[0].selector)`. */
     key: string;
     /** The stop's presentation position (its first member's). */
     percent: number;
@@ -52,7 +52,7 @@ export function coalesceKeyframes(
     const sorted = [...keyframes].sort((a, b) => a.percent - b.percent);
 
     for (const kf of sorted) {
-        const key = selectorText(kf.selector);
+        const key = serializeSelector(kf.selector);
         const stop = stops.get(key);
         if (stop) {
             stop.keyframes.push(kf);

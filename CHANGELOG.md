@@ -3,6 +3,13 @@
 <!-- CONVENTION: entries follow the 5.0.0 format — consumer-facing Breaking/Minor/Patch sections,
      no internal wave codes (Wn, Band X, Tranche Y). Keep planning language in docs/tranches/. -->
 
+## 6.3.0
+
+### Minor Changes (additive)
+
+- **`serializeSelector` on the main entry.** A parsed keyframe selector → its CSS text (`50%`, `entry`, `entry 50%`), the same function the emitters use. It needs no value.js at runtime, so it is exported from `@mkbabb/keyframes.js` itself.
+- **`bumpLayoutEpoch` on the engine.** `loadAnimationEngine()` (and `@mkbabb/keyframes.js/engine`) now return `bumpLayoutEpoch()`, which invalidates the resolver's cache of layout-dependent units (`cqw`, `%`, `vw`, …). The engine already does this on `window.resize`; call it when a container you own re-lays out without a viewport resize, so the next frame resolves fresh pixel values.
+
 ## 6.2.2
 
 ### Patch Changes

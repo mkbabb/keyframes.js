@@ -3,7 +3,7 @@ import type { Ref, ShallowRef } from "vue";
 import type { CSSKeyframesAnimation } from "@mkbabb/keyframes.js";
 import type { InputAnimationOptions } from "@mkbabb/keyframes.js";
 import type { TimelineState } from "../timelineTypes";
-import { selectorText } from "@utils/keyframeSelector";
+import { serializeSelector } from "@mkbabb/keyframes.js";
 import {
     buildAnimationFromTimeline,
     exportTimelineToCSS,
@@ -157,19 +157,19 @@ export function useTimelineBuild(
         }
 
         const existing = new Map(
-            state.value.keyframes.map((kf) => [selectorText(kf.selector), kf]),
+            state.value.keyframes.map((kf) => [serializeSelector(kf.selector), kf]),
         );
         let added = 0;
         let merged = 0;
 
         for (const kf of imported) {
-            const target = existing.get(selectorText(kf.selector));
+            const target = existing.get(serializeSelector(kf.selector));
             if (target) {
                 target.vars = { ...target.vars, ...kf.vars };
                 merged += 1;
             } else {
                 state.value.keyframes.push(kf);
-                existing.set(selectorText(kf.selector), kf);
+                existing.set(serializeSelector(kf.selector), kf);
                 added += 1;
             }
         }

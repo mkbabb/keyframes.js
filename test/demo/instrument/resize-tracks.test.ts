@@ -60,6 +60,11 @@ vi.mock("@mkbabb/glass-ui", () => ({
 const { default: AnimationVisualizer } = await import(
     "@components/playback/AnimationVisualizer.vue"
 );
+// The component reads `bumpLayoutEpoch` off the published heavy surface
+// (K-D6), synchronously through `kfEngine()`; the app warms that surface
+// before it mounts (`main.ts`), and so does this mount.
+const { warmKfEngine } = await import("@kf-engine");
+await warmKfEngine();
 
 // jsdom ships no ResizeObserver. Install a controllable polyfill that captures
 // each observer's callback so the test can fire a synthetic CONTAINER resize

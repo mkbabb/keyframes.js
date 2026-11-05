@@ -191,7 +191,7 @@
  * TT"). A plain `<script>` block beside the setup block is how an SFC exports a
  * pure function; `vue-tsc` resolves it, and nothing else in the file moves.
  */
-import { selectorText } from "@utils/keyframeSelector";
+import { serializeSelector } from "@mkbabb/keyframes.js";
 import { fitPreviewSubject, posePreviewSubject } from "../utils/timelineEngine";
 import type { TimelineKeyframe } from "../timelineTypes";
 
@@ -218,12 +218,12 @@ const percentOf = (keyframe: TimelineKeyframe): number =>
 /**
  * C-5 (THP) — a PERCENT selector's authored form IS its position (presentation
  * rounding, no discriminant lost); a NAMED phase's authored form comes from
- * `selectorText`, the same serialization the engine's merge key uses.
+ * `serializeSelector`, the same serialization the engine's merge key uses.
  */
 export const authoredSelectorOf = (keyframe: TimelineKeyframe): string =>
     keyframe.selector.kind === "percent"
         ? `${percentOf(keyframe)}%`
-        : selectorText(keyframe.selector);
+        : serializeSelector(keyframe.selector);
 
 /** The resolved position, shown only when it is NOT what the author wrote. */
 export const resolvedPositionOf = (keyframe: TimelineKeyframe): string | null =>

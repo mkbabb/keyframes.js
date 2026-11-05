@@ -2,11 +2,11 @@ import type {
     CSSAnimationOptions,
     CssTimeUnit,
     Declaration,
-    KeyframeSelector,
     StylesheetItem,
 } from "@mkbabb/value.js/css";
 import type { CssEasingLiteral } from "../../constants";
 import { serializeAdmittedValue } from "./serialize-value";
+import { serializeSelector } from "./selector";
 
 /**
  * ms → a CSS time literal, in the unit the author wrote (UIA-KF-177).
@@ -52,27 +52,6 @@ export const serializeTimingFunction = (value: NonNullable<CSSAnimationOptions["
             `${stop.output}${stop.input.map((input) => ` ${input * 100}%`).join("")}`,
         ).join(", ")})`;
     }
-};
-
-/**
- * THE keyframe-selector serializer (X.KF.W8 MISS-β2 · G3) — one body for
- * `50%` / `entry` / `entry 50%`, owned here beside the declaration serializer
- * it is the peer of (the value half is value.js's, via `./serialize-value`). `emit/format/format.ts` held a second,
- * byte-equivalent copy (`selectorText`) and now imports this one: the same
- * "a serializer with two implementations is the Tier-D defect this seam exists
- * to stop" the {@link serializeDeclaration} docblock states, applied to the
- * selector half.
- *
- * Exported for the sub-zone barrel as well, so a consumer never needs the deep
- * path. The PACKAGE surface (`public.ts` / `load-engine.ts`) is KF.W5's and
- * does not name it, which is why the demo still carries its own reading — see
- * this unit's ESC-d1.
- */
-export const serializeSelector = (selector: KeyframeSelector): string => {
-    if (selector.kind === "percent") return `${selector.value * 100}%`;
-    return selector.offset === undefined
-        ? selector.name
-        : `${selector.name} ${selector.offset * 100}%`;
 };
 
 /**

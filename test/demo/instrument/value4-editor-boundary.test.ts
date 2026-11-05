@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
     requireKeyframeSelector,
     selectorPercent,
-    selectorText,
 } from "../../../demo/utils/keyframeSelector";
+import { serializeSelector } from "../../../src/animation";
 import { parseAnimationCSS } from "../../../demo/components/instrument/keyframes/utils/parseAnimationCSS";
 import {
     buildAnimationFromTimeline,
@@ -23,7 +23,7 @@ describe("Value4 editor boundary", () => {
 
         const named = requireKeyframeSelector("ENTRY 50%");
         expect(named).toEqual({ kind: "named", name: "entry", offset: 0.5 });
-        expect(selectorText(named)).toBe("entry 50%");
+        expect(serializeSelector(named)).toBe("entry 50%");
         expect(selectorPercent(named)).toBe(12.5);
         expect(() => requireKeyframeSelector("125%")).toThrow(
             /invalid keyframe selector/i,

@@ -80,7 +80,6 @@
 <script setup lang="ts">
 import { computed, onScopeDispose, useTemplateRef, watch } from "vue";
 import { useResizeObserver } from "@vueuse/core";
-import { bumpLayoutEpoch } from "@src/animation/resolve/browser";
 import { clamp } from "@mkbabb/value.js/math";
 import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 import { SmoothProgress } from "@mkbabb/keyframes.js";
@@ -88,6 +87,7 @@ import { SpringProgress } from "@mkbabb/keyframes.js";
 import { RAFPlayback } from "@mkbabb/keyframes.js";
 import { useDemoTicker } from "@composables/useDemoTicker";
 import { useDragScrub } from "@composables/useDragScrub";
+import { kfEngine } from "@kf-engine";
 import { useTouchGate } from "@mkbabb/glass-ui";
 import PreviewToggle from "./PreviewToggle.vue";
 
@@ -120,10 +120,11 @@ const containerEl = useTemplateRef<HTMLElement>("containerEl");
 // `window.resize` listener cannot see. A `cqw` endpoint resolves against
 // this `container-inline-size` box (the dashed twin that animated to
 // `calc(100cqw - 100%)` is the Preview disc now, OD19-K4), and
-// THIS repo's own `src/animation/resolve/browser.ts` caches the resolved px
-// keyed by a monotonic `layoutEpoch` — it also installs the `window.resize`
-// listener that bumps it. The cache, the epoch and the listener are keyframes'
-// (`bumpLayoutEpoch` is exported there); value.js's part on this path is the
+// keyframes' resolver caches the resolved px keyed by a monotonic
+// `layoutEpoch` — it also installs the `window.resize` listener that bumps it.
+// The cache, the epoch and the listener are keyframes' (`bumpLayoutEpoch` is
+// published on the heavy engine surface, K-D6; `main.ts` warms the engine, so
+// `kfEngine()` reads it synchronously inside the observer); value.js's part on this path is the
 // unit classifier `isLayoutTrackingUnit`, and nothing else. A panel/split-pane
 // re-layout that changes the container width WITHOUT a viewport resize never
 // bumps the epoch → the ball serves the stale pre-resize target. Feed the
@@ -148,7 +149,7 @@ const measureMaxX = (): number => {
     return (maxX = container.clientWidth - ball.clientWidth);
 };
 useResizeObserver([containerEl, ballEl], () => {
-    bumpLayoutEpoch();
+    kfEngine().bumpLayoutEpoch();
     measureMaxX();
 });
 

@@ -25,13 +25,6 @@ const PHASE_FRACTIONS: Record<
     exit: { start: 0.75, end: 1 },
 };
 
-export const selectorText = (selector: KeyframeSelector): string =>
-    selector.kind === "percent"
-        ? `${selector.value * 100}%`
-        : `${selector.name}${
-              selector.offset === undefined ? "" : ` ${selector.offset * 100}%`
-          }`;
-
 export const requireKeyframeSelector = (source: string): KeyframeSelector => {
     const result = parseKeyframeSelector(source);
     if (result.ok) return result.value;

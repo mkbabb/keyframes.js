@@ -63,6 +63,7 @@ import type {
     serializeTimingFunction,
     resolveTimingFunction,
     timingFunctionEntries,
+    bumpLayoutEpoch,
 } from "./public";
 import type * as AnimationPresets from "./presets/index";
 import type { AnimationOptions, AnimationLayerConfig } from "./constants/types";
@@ -122,6 +123,8 @@ export interface AnimationEngine {
     resolveTimingFunction: typeof resolveTimingFunction;
     /** The registry roster behind it — `[name, fn]`, stable, not injective. */
     timingFunctionEntries: typeof timingFunctionEntries;
+    /** Invalidate the resolver's layout-unit cache after a container re-layout. */
+    bumpLayoutEpoch: typeof bumpLayoutEpoch;
 }
 
 let enginePromise: Promise<AnimationEngine> | undefined;

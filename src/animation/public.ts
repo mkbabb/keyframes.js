@@ -203,3 +203,10 @@ export {
 } from "./compile/emit/format";
 export { transformTargetsStyle } from "./compile/value";
 export { yieldToMain } from "./internal/scheduler";
+
+// K-D6 (ESC-c2) — the resolver's layout-cache invalidation. `resolve/browser.ts`
+// caches resolved layout-tracking units (`cqw`, `%`, `vw`, …) per layout epoch
+// and bumps the epoch on `window.resize` itself; a consumer that owns a
+// container whose re-layout changes those units WITHOUT a viewport resize calls
+// this to invalidate the cache. HEAVY: the module carries value.js.
+export { bumpLayoutEpoch } from "./resolve/browser";

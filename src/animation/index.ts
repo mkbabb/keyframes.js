@@ -55,6 +55,10 @@ export { springTimingFunction } from "./physics/spring";
 // KF-3 (atlas A2(b)) — the sampled LUT form of `springTimingFunction` + the
 // `linear()` serializer over evenly spaced samples.
 export { springTimingLUT, linearFromSamples } from "./physics/spring";
+// K-D6 (ESC-d1) — THE keyframe-selector serializer (`50%` / `entry` /
+// `entry 50%`). A value-free leaf (its value.js edge is an erased type import),
+// so it rides the LIGHT barrel; the heavy emitters import the same body.
+export { serializeSelector } from "./compile/emit/selector";
 export type { SpringTimingFunctionOptions } from "./physics/spring";
 // SpringDurationOptions — the spring-from-duration option surface (R.W1: the
 // barrel gap fill, lib-spring §10).
