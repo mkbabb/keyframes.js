@@ -247,6 +247,8 @@ anim.fromVars([{ opacity: 0 }, { opacity: 1 }]);
 
 The default transform applies interpolated values to `element.style` for each target.
 
+Each of the three is an ingest, and an ingest **replaces** the animation's frames: a second `fromString` (or `fromKeyframes`, or `fromVars`) on the same instance yields that call's frames alone, never a union with the last ones. `addFrame` is the incremental append.
+
 ### Parsing CSS keyframes
 
 `keyframes.ts` covers most of the CSS spec:

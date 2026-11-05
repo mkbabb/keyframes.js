@@ -3,6 +3,12 @@
 <!-- CONVENTION: entries follow the 5.0.0 format — consumer-facing Breaking/Minor/Patch sections,
      no internal wave codes (Wn, Band X, Tranche Y). Keep planning language in docs/tranches/. -->
 
+## 6.2.2
+
+### Patch Changes
+
+- **An ingest replaces the animation's frames.** A second `fromString`, `fromKeyframes` or `fromVars` on the same `CSSKeyframesAnimation` appended to the frames from the first call: re-ingesting the same text doubled them (3 → 6, with duplicated selectors and zero-length segments), and different text produced the union of both. Each ingest now starts from an empty frame set and yields only its own frames, with a custom `transform` kept on every frame. `addFrame` still appends.
+
 ## 6.2.1
 
 ### Patch Changes

@@ -35,6 +35,10 @@
  * MEASURED AT THIS SEAT (keyframes.js master, this wave's HEAD): 3 template
  * frames → a second `fromString` + `parse` → **6**, selectors duplicated; a
  * second ingest of DIFFERENT text (2 stops) → **5**, the union of both texts.
+ *
+ * CURED (K-D5, value.js X realization 2026-11-04): `CSSKeyframesAnimation`'s
+ * one ingest head (`beginIngest`) resets the template set for `fromString`,
+ * `fromKeyframes` and `fromVars` alike; the two `it.fails` are plain `it`.
  */
 import { beforeEach, describe, expect, it } from "vitest";
 import { CSSKeyframesAnimation } from "../../src/animation/engine";
@@ -68,10 +72,11 @@ describe("`fromString` REPLACES (G-FROMSTRING · KF-W5R4(1))", () => {
         expect(selectorsOf(anim).length).toBe(new Set(selectorsOf(anim)).size);
     });
 
-    // RED at this seat: yields 6 (the append), not 3. Unwrap to a plain `it`
-    // when `engine/css/animation.ts` clears the template set before the ingest.
-    it.fails(
-        "re-ingesting the SAME text yields the parsed set alone — RULED, cure outside .c's bounds",
+    // K-D5 (value.js X realization, 2026-11-04): the ingest head resets the
+    // template set, so these two are plain `it` — RED (6 / 5) before the reset
+    // line in `engine/css/animation.ts`, GREEN (3 / 2) after.
+    it(
+        "re-ingesting the SAME text yields the parsed set alone",
         () => {
             const anim = seeded();
             anim.fromString(CSS).parse();
@@ -83,10 +88,8 @@ describe("`fromString` REPLACES (G-FROMSTRING · KF-W5R4(1))", () => {
         },
     );
 
-    // RED at this seat: yields 5 — the UNION of both texts, which is neither
-    // text's animation.
-    it.fails(
-        "re-ingesting DIFFERENT text yields THAT text's frames, not a union — RULED, cure outside .c's bounds",
+    it(
+        "re-ingesting DIFFERENT text yields THAT text's frames, not a union",
         () => {
             const anim = seeded();
             anim.fromString(
@@ -96,4 +99,24 @@ describe("`fromString` REPLACES (G-FROMSTRING · KF-W5R4(1))", () => {
             expect(anim.templateFrames.length).toBe(2);
         },
     );
+
+    // The G-RENDERER floor: a re-ingest that names the same custom renderer
+    // keeps it on every frame, and the set is still the parsed set alone.
+    it("a re-ingest keeps a custom `transform` on the parsed set alone", () => {
+        const custom = (v: Record<string, unknown>) => v;
+        const anim = seeded();
+        anim.fromString(CSS, custom).parse();
+        anim.fromString(CSS, custom).parse();
+
+        expect(anim.templateFrames.length).toBe(3);
+        expect(anim.templateFrames.every((f) => f.transform === custom)).toBe(true);
+        expect(anim.frames.every((f) => !anim.usesDefaultRenderer(f.transform))).toBe(true);
+    });
+
+    it("`fromKeyframes` replaces under the same rule", () => {
+        const anim = seeded();
+        anim.fromKeyframes({ "0%": { opacity: 1 }, "100%": { opacity: 0 } });
+
+        expect(anim.templateFrames.length).toBe(2);
+    });
 });

@@ -4,7 +4,7 @@
  * F-4) and sub-zoned into `engine/css/` beside its `metadata` recovery sibling
  * (S.B2 — C-1). Its fields (`propertyRegistry`, `scrollOptions`)
  * and methods (`fromString`, `fromVars`, `fromKeyframes`, `bindTimeline`,
- * `resolveTransform`) are wholly CSS-specific — the base `KeyframesAnimation`
+ * `beginIngest`) are wholly CSS-specific — the base `KeyframesAnimation`
  * (in `../animation`) is value.js-/scroll-agnostic. The `engine/css/index.ts`
  * barrel re-exports the class; the `engine/index.ts` barrel re-exports it onward.
  */
@@ -98,7 +98,14 @@ export class CSSKeyframesAnimation<
     }
 
     /**
-     * One transform-resolution seam for the three `from*` entry points:
+     * The one ingest head for the three `from*` entry points. An ingest
+     * REPLACES the animation's source (COHESION §0j.C KF-W5R4(1), G-FROMSTRING):
+     * the template set is reset here, so a second `fromString` / `fromKeyframes`
+     * / `fromVars` yields the parsed set alone, never a union with the last one.
+     * `addFrame` stays the incremental append. The setter re-marks the compiled
+     * set stale; `parse()` at the end of each entry recompiles it.
+     *
+     * It is also the one transform-resolution seam:
      * a supplied transform is the consumer's renderer (vars arrive
      * unflattened); genuine omission resolves to the instance's ONE
      * default DOM-style renderer, which keeps WAAPI eligibility a
@@ -114,15 +121,16 @@ export class CSSKeyframesAnimation<
      * renderer with a foreign instance's default, and every frame then
      * answered `usesDefaultRenderer` FALSE for a renderer nobody supplied.
      */
-    private resolveTransform(
+    private beginIngest(
         transform: TransformFunction<V> | undefined,
     ): TransformFunction<V> {
+        this.templateFrames = [];
         this.unflatten = transform != null;
         return transform ?? this._defaultTransform;
     }
 
     fromVars(vars: V[], transform?: TransformFunction<V>) {
-        transform = this.resolveTransform(transform);
+        transform = this.beginIngest(transform);
 
         for (let i = 0; i < vars.length; i++) {
             const v = vars[i]!;
@@ -139,7 +147,7 @@ export class CSSKeyframesAnimation<
         keyframes: Map<string, Partial<V>> | Record<string, Partial<V>>,
         transform?: TransformFunction<V>,
     ) {
-        transform = this.resolveTransform(transform);
+        transform = this.beginIngest(transform);
 
         const entries: Iterable<[string, Partial<V>]> =
             keyframes instanceof Map ? keyframes : Object.entries(keyframes);
@@ -174,7 +182,7 @@ export class CSSKeyframesAnimation<
     scrollOptions?: CSSTimelineOptions;
 
     fromString(keyframes: string, transform?: TransformFunction<V>) {
-        transform = this.resolveTransform(transform);
+        transform = this.beginIngest(transform);
 
         // Single grammar in value.js handles every input shape:
         // bare @keyframes, @property + @keyframes, .class +

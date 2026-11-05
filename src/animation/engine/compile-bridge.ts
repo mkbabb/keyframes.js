@@ -84,7 +84,7 @@ interface OwnedRenderer<V extends Vars> {
 /**
  * Read an animation's renderer off its compiled frames, through the class's own
  * reference test ({@link KeyframesAnimation.usesDefaultRenderer}) — the
- * comparison `engine/css/animation.ts`'s `resolveTransform` comment already
+ * comparison `engine/css/animation.ts`'s `beginIngest` comment already
  * names as the one way to ask "did the consumer supply a transform?".
  */
 function rendererOf<V extends Vars>(
