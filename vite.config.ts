@@ -344,6 +344,28 @@ export default defineConfig((mode) => {
                 ...(process.env.KF_ANALYZE ? [chunkAnalyzerPlugin()] : []),
             ],
         };
+    } else if (mode.mode === "gh-pages-embed") {
+        // The embed entry (demo/app/embed/): one slice of the demo for an
+        // allow-listed host, built as its OWN graph into the site's `embed/`
+        // directory after the demo's build, so the demo's bundle is untouched.
+        // The site's `public/` (`_headers`) is the demo build's to copy.
+        return {
+            ...defaultOptions,
+            base: "./",
+            root: "./demo/app/embed/",
+            publicDir: false,
+            resolve: {
+                ...defaultOptions.resolve,
+                conditions: devConditions,
+            },
+            build: {
+                outDir: path.resolve(import.meta.dirname, "./dist/gh-pages/embed/"),
+                emptyOutDir: true,
+                minify: true,
+                sourcemap: false,
+            },
+            plugins: [...defaultPlugins],
+        };
     } else {
         // Dev mode: serve the demo app with HMR.
         //

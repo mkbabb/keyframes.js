@@ -40,7 +40,7 @@
         "build": "npm run build:lib",
         "build:lib": "vite build --mode production",
         "build:watch": "vite build --watch --mode production",
-        "gh-pages": "vite build --mode gh-pages",
+        "gh-pages": "vite build --mode gh-pages && vite build --mode gh-pages-embed",
         "lint": "depcruise --config .dependency-cruiser.cjs src demo && eslint demo",
         "test": "vitest",
         "test:lib": "vitest run --project library",

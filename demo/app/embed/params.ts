@@ -1,0 +1,28 @@
+/**
+ * The slice route, read from the entry's hash: `#/cube?skin=daraksha&scheme=dark`.
+ * Only the cube is a slice; its skin is one of the demo's own.
+ */
+import type { CubeSkin } from "@state";
+import type { Scheme } from "./bridge";
+
+export interface SliceRoute {
+    slice: "cube" | null;
+    skin: CubeSkin;
+    scheme: Scheme | null;
+}
+
+const SKINS: readonly CubeSkin[] = ["crayon", "ppmycota", "daraksha"];
+
+export function parseSliceRoute(hash: string): SliceRoute {
+    const body = hash.replace(/^#/, "");
+    const queryAt = body.indexOf("?");
+    const path = (queryAt < 0 ? body : body.slice(0, queryAt)).replace(/^\/+|\/+$/g, "");
+    const query = new URLSearchParams(queryAt < 0 ? "" : body.slice(queryAt + 1));
+    const skin = query.get("skin") as CubeSkin | null;
+    const scheme = query.get("scheme");
+    return {
+        slice: path === "cube" ? "cube" : null,
+        skin: skin && SKINS.includes(skin) ? skin : "crayon",
+        scheme: scheme === "dark" || scheme === "light" ? scheme : null,
+    };
+}
