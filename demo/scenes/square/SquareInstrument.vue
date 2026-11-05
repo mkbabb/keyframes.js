@@ -300,6 +300,16 @@ const tetherPath = computed(() => {
 .square-legend[data-resting] {
     opacity: 1;
 }
+/* K-D2 (value.js X realization) — under the phone stage's short rung (a
+   landscape phone) the arena is the plate's whole body and the caption is not
+   drawn (it is `aria-hidden` already; the box's described-by twin carries the
+   instructions), so it neither hangs under the card's foot nor takes the
+   field's room (SquareScene.css). */
+@container stage (max-block-size: 20rem) {
+    .square-legend {
+        display: none;
+    }
+}
 /* D-3 ≡ kf-SquareScene D-11 — the hint opacity is GONE. `opacity: 0.8` on
    `text-caption` (italic, 400, the 12 px floor) composited the light arm to
    ≈3.47–3.98:1 against a 4.5 floor, and NO plate luminance restores AA — the

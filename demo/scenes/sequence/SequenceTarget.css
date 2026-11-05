@@ -248,3 +248,26 @@
 .seq-ball {
     --ball-size: var(--seq-ball);
 }
+
+/* K-D2 (value.js X realization) — THE LANES ARE THE REMAINDER, NEVER A
+   DOCUMENT. The card scrolled (375 px in 227 at 844x390: lanes 3–5 of 5 below
+   the fold), because the storyboard's floor (`min-block-size`, the "a short
+   cell still scrolls the card" posture above) was taller than a landscape
+   phone's plate. The plate no longer scrolls. Under the phone stage's short
+   rung the floor goes, the lane is the traveller's own diameter (no 0.4rem of
+   track around it) and the pitch is the 0.25rem grid step, so the five lanes
+   fit the body under the one-row header (5 × 1.6rem + 4 × 0.25rem). */
+@container stage (max-block-size: 20rem) {
+    .seq-storyboard {
+        min-block-size: 0;
+        padding-block: 0 0.5rem;
+    }
+    .seq-stage {
+        --seq-ball: 1.6rem;
+        --seq-lane: var(--seq-ball);
+        padding-block: 0;
+    }
+    .seq-rows {
+        row-gap: 0.25rem;
+    }
+}

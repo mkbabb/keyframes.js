@@ -330,3 +330,19 @@
         opacity: 0;
     }
 }
+
+/* K-D2 (value.js X realization) — THE SHORT PLATE. Under the phone stage's
+   short rung (`stage` under 20rem: 844x390) the arena is the whole body: the
+   caption leaves the drawn plate (`.stage-prose`), so its block is not
+   reserved, and the envelope is the arena's short side, less the box's own
+   half at either end, so the box at full travel stays inside the arena and the
+   field never runs under the header (the 5rem size floor held a 160 px field
+   in a 114 px arena: 47 px clipped, the grid across the SETTLED badge). */
+@container stage (max-block-size: 20rem) {
+    .square-arena {
+        --square-caption-block: 0rem;
+    }
+    .square-arena > :deep(*) {
+        --square-travel: max(0px, 50cqmin - var(--square-size) / 2);
+    }
+}

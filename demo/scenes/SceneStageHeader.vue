@@ -70,4 +70,21 @@ defineProps<{
         font-size: var(--type-display-2);
     }
 }
+/* K-D2 (value.js X realization) — THE SHORT PLATE. When the phone stage's
+   visible box is short (a landscape phone: the stage cell is the size
+   container `stage`, 229 px at 844x390), the header is ONE baseline row —
+   title, status and readouts — and the title steps down one rung of the same
+   display ladder (display-2 → display-1; the face, weight and ink are the
+   owner's and do not change). The instrument below takes the remainder. */
+@container stage (max-block-size: 20rem) {
+    [data-scene-stage-header] .text-display {
+        font-size: var(--type-display-1);
+    }
+    [data-scene-stage-header] > :first-child {
+        flex-direction: row;
+        flex-wrap: nowrap;
+        align-items: baseline;
+        column-gap: var(--space-family, 1rem);
+    }
+}
 </style>

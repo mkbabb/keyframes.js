@@ -34,7 +34,7 @@
              Spring and Easing fill the column to the sheet. The plate now takes
              the stage cell at every width (`h-full`) and the storyboard's
              `my-auto` centres the lanes in it; the lane spacing is unchanged. -->
-        <Card :shadow="false" class="seq-target w-full h-full max-h-full min-h-0 flex flex-col overflow-y-auto overflow-x-hidden">
+        <Card :shadow="false" class="seq-target w-full h-full max-h-full min-h-0 flex flex-col overflow-x-clip">
             <!-- Header: the scene's name and ONE live readout
                  (X.KF.W13X.sequence — UIA-KF-210 · UIA-KF-211 · KFA-220).
                  X.KF.W13X.dh2 (UIA-KF-098) — the reel left the stage for the
@@ -101,7 +101,7 @@
                  cell below lg too (KF-C15-02), so the storyboard takes it and the
                  lanes spread rather than crush into a strip in the middle. -->
             <div
-                class="seq-storyboard px-(--stage-plate-pad-inline) py-4 flex-1"
+                class="seq-storyboard px-(--stage-plate-pad-inline) py-4 flex-1 min-h-0"
                 :style="{ '--seq-n': ROW_COUNT }"
             >
                 <!-- L.W11 S7 — the cascade host (`.cascade-chase`, a marker

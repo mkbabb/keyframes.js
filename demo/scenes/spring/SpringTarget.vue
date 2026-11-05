@@ -23,7 +23,7 @@
          height the title sat flush against the card's top border. -->
     <Card
         :shadow="false"
-        class="spring-target relative flex flex-col items-center gap-8 h-full w-full px-(--stage-plate-pad-inline) py-(--stage-plate-pad-block) overflow-x-hidden overflow-y-auto"
+        class="spring-target relative flex flex-col items-center h-full w-full px-(--stage-plate-pad-inline) py-(--stage-plate-pad-block) overflow-x-clip"
         :class="{ 'spring-target--live': isLive, 'spring-target--sweeping': demo.isPlaying.value }"
     >
         <!-- Header readout.
@@ -121,9 +121,9 @@
              the plot. r6 pass 8 (KF-C8-01): the band is the axis's, never a
              text gutter — the caption and the trace's title row keep the
              header's gutter; Re-seat alone ends under the rail's right end. -->
-        <figure class="spring-figure m-0 flex w-full max-w-3xl min-h-0 flex-1 flex-col gap-6" :style="figureInset" data-subject>
+        <figure class="spring-figure m-0 flex w-full max-w-3xl min-h-0 flex-1 flex-col" :style="figureInset" data-subject>
         <!-- The rail: tap/drag to re-seat the live target -->
-        <div class="flex w-full flex-col items-center justify-center gap-6">
+        <div class="spring-rail-block flex w-full flex-col items-center justify-center">
             <!-- J.W7a S4 (D17 / C2) — the displacement rail carries the shared
                  `.stage-field-x` coordinate frame: vertical quarter ticks at
                  0.25/0.5/0.75 of the target axis (the curve canvas's --border
@@ -293,7 +293,7 @@
                      whose only disc is the dashed ring: a reader could not tell
                      the ring (the target) from the ball (on the curve). One
                      protagonist disc per figure; the copy says which is which. -->
-                <p id="spring-rail-hint" class="min-w-0 flex-1 text-caption text-muted-foreground text-pretty">
+                <p id="spring-rail-hint" class="stage-prose min-w-0 flex-1 text-caption text-muted-foreground text-pretty">
                     Tap or drag the rail to move the target (the dashed ring) &mdash; the
                     ball on the curve below springs to it. Tune response and damping in
                     the Physics pane.
@@ -1111,6 +1111,42 @@ const onKeydown = (e: KeyboardEvent) => {
 }
 .spring-rail-verbs--veiled {
     opacity: 0;
+}
+/* K-D2 — the verb is one word; it never breaks across lines ("Re-/seat" in
+   the short plate's rail column). */
+.spring-reseat {
+    white-space: nowrap;
+}
+/* K-D2 (value.js X realization) — THE PLATE NEVER SCROLLS; THE TRACE IS THE
+   REMAINDER. The card was a scroll document (`overflow-y-auto`, `gap-8`): at
+   390 it held 585 px in 404 and at 844x390 553 in 227, the trace wholly below
+   the fold. The plate now clips inline only and lays its column out whole: the
+   rhythm rides the stage's own block size (`cqb` of the phone's `stage` size
+   container; the small viewport where there is none), and the plot takes what
+   the header, the rail and its verbs leave (SpringTrace `.plot-frame`). */
+.spring-target {
+    gap: clamp(0.75rem, 4cqb, 2rem);
+}
+.spring-figure,
+.spring-rail-block {
+    gap: clamp(0.75rem, 3cqb, 1.5rem);
+}
+/* The short plate (one rung, design-idioms `.stage-prose` beside it): the rail
+   and the trace share the body as two columns, which the plate's inline size
+   has room for; the header above is one row (SceneStageHeader). */
+@container stage (max-block-size: 20rem) {
+    .spring-figure {
+        display: grid;
+        grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+        align-items: center;
+        column-gap: var(--space-family, 1rem);
+    }
+    .spring-figure > * {
+        min-height: 0;
+    }
+    .spring-header :deep(.stage-readout) {
+        white-space: nowrap;
+    }
 }
 /* KFA-40 · UIA-KF-094 — one legend line; each tag keeps its name and ζ on one
    line and the row wraps between tags, never inside one. */

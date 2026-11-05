@@ -393,11 +393,23 @@ const figureLabel = computed(
    (PLOT) are unchanged; only the CSS box grew. */
 .plot-frame {
     position: relative;
+    /* K-D2 (value.js X realization) — THE CARRIAGES LIVE IN THE PLOT. Each
+       `.curve-carriage` spans this box and rides `translate(x%, y%)` of it, so
+       a parked carriage's (empty) box sits up to a plot-height below the plot:
+       229 px under the card at 1440, which made the spring plate a scroll
+       container with nothing to show. Layout containment keeps every
+       descendant's overflow INK overflow: the balls, the overshoot breach
+       (L-14) and the value ticks in the gutter still paint, unclipped, but none
+       of them extends the plate's scrollable area. */
+    contain: layout;
     width: 100%;
-    /* §0dz — the plot box takes the figure's free height, floored at the
-       8rem OA-56 set so a ball still reads ON the trace in a short card. */
-    flex: 1 1 auto;
-    min-height: 8rem;
+    /* §0dz — the plot box takes the figure's free height. K-D2: it is the
+       REMAINDER (basis 0), floored at 4rem — two ball diameters and a half of
+       headroom, where a ball still reads ON the trace — so a short plate shows
+       the whole figure instead of scrolling it (the 8rem floor was taller than
+       a 390 plate's free row). */
+    flex: 1 1 0;
+    min-height: 4rem;
     /* X-DS pass 14 (KF-C18-02) — the size of the largest ball that rides this
        plot (the live spring ball; SpringTarget's `.spring-ball` reads it). The
        value ticks derive their gutter from it, so they clear the ball resting
