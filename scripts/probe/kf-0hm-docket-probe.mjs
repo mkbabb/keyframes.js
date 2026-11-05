@@ -18,6 +18,11 @@
  *   control row's height, not 48 px.
  * D-28 (phone PEEK, portrait): no control row (layer header, labelled field,
  *   param row) straddles the resting sheet's visible foot.
+ * D-28c (value.js X realization K-D1, phone PEEK): no row paints across the
+ *   port's real CLIP EDGE (the tightest `overflow != visible` box's bottom) —
+ *   every row ends at or above it or starts at or below it. `d28` tests the
+ *   row FOOT the reserve aims at; this tests the edge the paint is cut at, so
+ *   a sliver of the next row inside the fade ramp reads RED here.
  * D-18 (the @mbabb menu reveal at 1800x1000@2x): the rAF interval p95 over the
  *   reveal, and the layers Chromium re-paints during it (CDP LayerTree).
  */
@@ -44,11 +49,11 @@ const fails = [];
 const out = {};
 const errors = [];
 
-async function open(browser, { w, h, dpr = 1, scene, motion = "reduce" }) {
+async function open(browser, { w, h, dpr = 1, scene, motion = "reduce", scheme = "dark" }) {
     const ctx = await browser.newContext({
         viewport: { width: w, height: h },
         deviceScaleFactor: dpr,
-        colorScheme: "dark",
+        colorScheme: scheme,
         reducedMotion: motion,
     });
     if (DIR)
@@ -185,6 +190,58 @@ async function d28(browser) {
     }
 }
 
+async function d28c(browser) {
+    out.d28c = [];
+    for (const vp of [{ w: 390, h: 844 }, { w: 430, h: 932 }]) {
+        for (const scheme of ["light", "dark"]) {
+            for (const scene of ["cube", "amiga", "square", "spring"]) {
+                const { ctx, page } = await open(browser, { ...vp, scene, scheme });
+                try {
+                    const r = await page.evaluate(() => {
+                        const sheet = document.querySelector(".controls-drawer-content");
+                        if (!sheet) return null;
+                        const sel = '[data-slot="configurator-layer-trigger"], [data-slot="labeled-field"], .param-row';
+                        const rows = [...sheet.querySelectorAll(sel)].filter((e) => e.getBoundingClientRect().height > 0);
+                        if (!rows.length) return { rows: 0 };
+                        // The real clip edge: the tightest clipping box above the
+                        // rows, inside the sheet (and the sheet / viewport).
+                        let edge = Math.min(sheet.getBoundingClientRect().bottom, innerHeight);
+                        let clip = "sheet";
+                        for (let e = rows[0].parentElement; e && e !== sheet.parentElement; e = e.parentElement) {
+                            const cs = getComputedStyle(e);
+                            if (cs.overflowY === "visible") continue;
+                            const b = e.getBoundingClientRect().bottom - parseFloat(cs.borderBottomWidth);
+                            if (b < edge) {
+                                edge = b;
+                                clip = `${e.tagName.toLowerCase()}.${String(e.className).split(" ")[0]}`;
+                            }
+                        }
+                        const boxes = rows.map((e) => e.getBoundingClientRect());
+                        const straddle = boxes.filter((b) => b.top < edge - 0.5 && b.bottom > edge + 0.5);
+                        const port = sheet.querySelector(".fading-scroll");
+                        return {
+                            rung: sheet.getAttribute("data-rung") ?? sheet.closest("[data-rung]")?.getAttribute("data-rung") ?? null,
+                            sheetH: Math.round(sheet.getBoundingClientRect().height),
+                            edge: +edge.toFixed(1),
+                            clip,
+                            ramp: port ? getComputedStyle(port).getPropertyValue("--fade-scroll-width").trim() : null,
+                            lastWhole: Math.round(Math.max(...boxes.filter((b) => b.bottom <= edge + 0.5).map((b) => b.bottom))),
+                            straddle: straddle.map((b) => [Math.round(b.top), Math.round(b.bottom)]),
+                        };
+                    });
+                    if (SHOTS && ((scene === "cube" && vp.w === 390 && scheme === "dark") || (scene === "spring" && vp.w === 430 && scheme === "light")))
+                        await page.screenshot({ path: join(SHOTS, `d28c-${scene}-${vp.w}x${vp.h}-${scheme}.png`), clip: { x: 0, y: vp.h - 340, width: vp.w, height: 340 } });
+                    out.d28c.push({ vp: `${vp.w}x${vp.h}`, scheme, scene, ...r });
+                    if (!r) fails.push(`D-28c ${scene}@${vp.w} ${scheme}: no sheet`);
+                    else if (r.straddle?.length) fails.push(`D-28c ${scene}@${vp.w} ${scheme}: clip edge y=${r.edge} (${r.clip}) cuts ${JSON.stringify(r.straddle)}`);
+                } finally {
+                    await ctx.close();
+                }
+            }
+        }
+    }
+}
+
 async function d18(browser) {
     out.d18 = [];
     for (let rep = 0; rep < REPS; rep++) {
@@ -263,7 +320,7 @@ async function d18(browser) {
 const browser = await chromium.launch();
 try {
     if (SHOTS) mkdirSync(SHOTS, { recursive: true });
-    for (const [row, run] of [["d29", d29], ["d28", d28], ["d18", d18]]) {
+    for (const [row, run] of [["d29", d29], ["d28", d28], ["d28c", d28c], ["d18", d18]]) {
         if (!ROWS.includes(row)) continue;
         try {
             await run(browser);

@@ -6,9 +6,14 @@
  * port ended 20.5 px above the sheet's foot (the reserve counted only the
  * sheet's 12 px end padding), and the first field (`duration`, 40 px) showed
  * cut 9 px short. The geometry below is that page's, relative to the sheet's
- * top edge; the port's end ramp (glass's `--fade-scroll-width`) feathers its
- * last px while rows trail below, though its scroll-driven value still reads 0
- * at mount, when the detent is measured.
+ * top edge.
+ *
+ * K-D1 (value.js X realization, 2026-11-04) — the reserve once added the
+ * port's 16 px end ramp, landing the foot where the ramp begins; the next row
+ * (4 px below) then painted its cap inside the ramp, above the clip edge
+ * (served: cube `delay` 690–730 against a 702 edge). At a resting PEEK the
+ * port draws no ramp (`[data-rung="peek"]`), so the assertion is on the CLIP
+ * EDGE itself: no row paints across it, and a row's foot is that edge.
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -17,7 +22,7 @@ import { rowBoundaryPeek } from "@components/instrument/pane/composables/useStag
 const IH = 844;
 const SHEET_PAD_END = 12;
 const PORT_INSET = 20.5; // sheet foot → port clip edge
-const RAMP = 16; // glass's --fade-scroll-width (1rem); the live ramp has not run at mount
+const RAMP = 16; // glass's --fade-scroll-width token (1rem); 0 at a resting PEEK
 const ROWS = [
     { slot: "configurator-layer-trigger", top: 66, bottom: 121 },
     { slot: "labeled-field", top: 129, bottom: 169 },
@@ -62,17 +67,19 @@ const SELECTOR = '[data-slot="configurator-layer-trigger"], [data-slot="labeled-
 afterEach(() => vi.restoreAllMocks());
 
 describe("D-28 — the PEEK rests on a row foot seen through the port", () => {
-    it("draws every row it shows whole: none straddles the port's clean edge", () => {
+    it("paints no row across the port's clip edge: the next row's cap stays below it", () => {
         vi.stubGlobal("innerHeight", IH);
         const t = rowBoundaryPeek(build(171), SELECTOR);
         expect(t).not.toBeNull();
         const h = t! * IH;
-        // The port's clean edge at the resting height: its clip, less the ramp.
-        const clean = h - PORT_INSET - RAMP;
-        const cut = ROWS.filter((r) => r.top < clean - 1 && r.bottom > clean + 1);
+        // The port's real clip edge at the resting height.
+        const edge = h - PORT_INSET;
+        const cut = ROWS.filter((r) => r.top < edge - 0.5 && r.bottom > edge + 0.5);
         expect(cut).toEqual([]);
+        // The rest sits ON a row foot: that foot is the edge.
+        expect(ROWS.some((r) => Math.abs(r.bottom - edge) <= 0.5)).toBe(true);
         // …and the first field is shown whole, not traded for the header alone.
-        expect(clean).toBeGreaterThanOrEqual(ROWS[1]!.bottom - 0.5);
+        expect(edge).toBeGreaterThanOrEqual(ROWS[1]!.bottom - 0.5);
         vi.unstubAllGlobals();
     });
 

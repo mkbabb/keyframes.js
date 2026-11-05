@@ -81,6 +81,19 @@
             calc(var(--page-gutter) - var(--space-family) - 1rem)
         );
     }
+    /* K-D1 (value.js X realization, D-28) — AT A RESTING PEEK THE PORT DRAWS
+       NO END RAMP. The PEEK detent sits on a row foot (rowBoundaryPeek), and
+       that foot is the port's edge: the grabber and the next detent say
+       "more". A feathered end ramp there could only paint the next row's cap
+       (12 px of cube's `delay`, 4 px of spring's `damping` inside the 16 px
+       ramp at 390), so a whole-row rest and a feathered "more below" cannot
+       both hold. glass's public `--fade-scroll-width` is set by state, the
+       token's ordinary use; the ramp returns on `open` / `full`, where the
+       body scrolls. `data-rung` is written from the same rung the stage
+       reserve reads. */
+    .controls-drawer-content[data-rung="peek"] .fading-scroll {
+        --fade-scroll-width: 0px;
+    }
 
 }
 

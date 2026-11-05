@@ -241,6 +241,7 @@
             v-model:detent="activeSnap"
             scroll
             class="controls-drawer-content"
+            :data-rung="rung"
             :style="sheetStyle"
             @click.capture="onParkedHeaderPress"
             @open-auto-focus.prevent

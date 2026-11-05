@@ -49,9 +49,6 @@ const px = (v: string) => {
     const n = parseFloat(v);
     return Number.isFinite(n) ? n : 0;
 };
-/** An unregistered custom property's length (it computes to its token text, e.g. `1rem`). */
-const tokenPx = (v: string) =>
-    v.trim().endsWith("rem") ? px(v) * px(getComputedStyle(document.documentElement).fontSize) : px(v);
 
 /** The sheet's size at detent `t` on its own axis (px). */
 export const sheetRungSize = (el: HTMLElement | null, side: "bottom" | "right", t: number): number => {
@@ -113,8 +110,13 @@ export function useStageReserve(params: StageReserveParams) {
  * former reserve counted the 12 px padding alone and the first field showed
  * cut 9 px short), and while rows trail below, the port's end edge feathers
  * over glass's `--fade-scroll-width` ramp. The foot reserve is read off the
- * port: the sheet's foot minus the port's clip edge, plus that ramp, so a
- * row's foot lands where it is drawn whole.
+ * port: the sheet's foot minus the port's clip edge.
+ *
+ * K-D1 (value.js X realization, 2026-11-04) — the reserve once added that
+ * ramp, landing row k's foot where the ramp begins; the next row sat 4 px
+ * below, so its first 12 px painted, feathered, between the foot and the clip
+ * edge. At a resting PEEK the port draws no ramp (ControlsPaneWrapper.css,
+ * `[data-rung="peek"]`), so the row foot IS the clip edge and the term is gone.
  */
 export const rowBoundaryPeek = (el: HTMLElement | null, rowSelector: string): number | null => {
     if (!el) return null;
@@ -138,12 +140,7 @@ export const rowBoundaryPeek = (el: HTMLElement | null, rowSelector: string): nu
         const clip = p.getBoundingClientRect().bottom - px(ps.borderBottomWidth);
         if (clip >= edge) continue;
         edge = clip;
-        // A glass FadingScroll port feathers its end over the public
-        // `--fade-scroll-width` while rows trail below it, which at a resting
-        // PEEK they do. Read as the token, not the live ramp or the port's
-        // overflow: at mount neither has settled yet.
-        const ramp = p.matches(".fading-scroll") ? tokenPx(ps.getPropertyValue("--fade-scroll-width")) : 0;
-        reserve = box.bottom - clip + ramp;
+        reserve = box.bottom - clip;
     }
     // Rows sit at fixed offsets from the sheet's top edge whatever its size
     // (the header and the body port stack from the top).
