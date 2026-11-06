@@ -1,12 +1,4 @@
-import {
-    computed,
-    nextTick,
-    onScopeDispose,
-    watch,
-    type ComputedRef,
-    type Ref,
-} from "vue";
-import { useTimeoutFn } from "@vueuse/core";
+import { computed, nextTick, watch, type ComputedRef, type Ref } from "vue";
 import type { StoredAnimationGroupControlOptions } from "@state";
 
 interface UseKeyframesPaneRevealOptions {
@@ -24,16 +16,11 @@ interface UseKeyframesPaneRevealReturn {
     /** Whether the keyframes surface is the active control surface. */
     keyframesActive: ComputedRef<boolean>;
     /**
-     * Whether the Monaco keyframes pane may MOUNT yet (T.G9 — the Monaco-eager LCP
-     * cure). Starts `false` so the ~4 MB `vendor-monaco` chunk is OFF the scene's
-     * initial critical path; flips `true` after LCP settles (a `requestIdleCallback`
-     * warm) OR the instant the user selects/interacts with the keyframes surface —
-     * so the editor still opens instantly on tab-select (no UX regression), it just
-     * no longer pays Monaco's bytes during first paint of every scene.
+     * Whether the Monaco keyframes pane may MOUNT yet (T.G9). Starts `false` so
+     * the `vendor-monaco` chunk is off every scene's load; flips `true` the
+     * instant the Keyframes surface is reached, and stays `true` for the channel.
      */
     keyframesWarmed: Ref<boolean>;
-    /** Force the warm now (interaction-gated: e.g. pointerenter on the tab). */
-    warmKeyframes: () => void;
 }
 
 /**
@@ -60,67 +47,23 @@ export function useKeyframesPaneReveal(
         () => storedControls.selectedControl === "keyframes",
     );
 
-    // ── T.G9 — the Monaco-eager LCP cure (idle/interaction-gated warm) ──────────
+    // ── T.G9 — the Monaco keyframes pane mounts on INTENT only ────────────────
     // The force-mount + content-visibility cache (B-2, INP) is preserved: once the
-    // pane mounts it is NEVER torn down, so a tab switch-back stays instant and
-    // never re-spins Monaco's worker/model/themes. What changes is WHEN it first
-    // mounts — no longer on scene entry (which put `vendor-monaco`'s ~4 MB on the
-    // initial critical path of EVERY scene that surfaces a keyframes channel, the
-    // post-T.B triad-derivation regression: mobile LCP 10–16 s), but after the LCP
-    // window (a `requestIdleCallback` warm) or the instant the user reaches for it.
-    let idleHandle: number | undefined;
-    // The vueuse fallback timer (scope-disposed automatically — the decomposition
-    // async-blob discipline; no raw setTimeout).
-    const idleFallback = useTimeoutFn(() => warmKeyframes(), 1500, {
-        immediate: false,
-    });
-    const warmKeyframes = (): void => {
-        if (keyframesWarmed.value) return;
-        keyframesWarmed.value = true;
-        // Cancel the pending idle warm — we've warmed early (select/interaction).
-        const w = globalThis as unknown as {
-            cancelIdleCallback?: (h: number) => void;
-        };
-        if (idleHandle !== undefined) w.cancelIdleCallback?.(idleHandle);
-        idleFallback.stop();
-    };
-
-    // Warm during the first idle after mount (post-LCP). `requestIdleCallback`
-    // (Baseline: Safari 17+) falls back to a short vueuse timer where absent so the
-    // warm still lands promptly on older engines — always AFTER the synchronous
-    // first-paint work, never blocking it.
-    const scheduleIdleWarm = (): void => {
-        const w = globalThis as unknown as {
-            requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number;
-        };
-        if (typeof w.requestIdleCallback === "function") {
-            idleHandle = w.requestIdleCallback(() => warmKeyframes(), {
-                timeout: 4000,
-            });
-        } else {
-            idleFallback.start();
-        }
-    };
-    if (!keyframesWarmed.value) scheduleIdleWarm();
-
-    // Reaching the keyframes surface (tab select, deep-link, restore) warms it
-    // immediately — the editor is mounting the moment it is asked for, so it opens
-    // without waiting on the idle warm.
+    // pane mounts it is never torn down, so a switch-back stays instant and never
+    // re-spins Monaco's worker, model or themes. It first mounts when the
+    // Keyframes surface is reached (select, deep link, restore). The dock's
+    // surfaces trigger prefetches the pane's chunk on pointerenter/focus
+    // (ChromeDock `warmControlSurfaces`), so the select-time mount lands on a
+    // warm module cache. There is no idle warm: an idle callback fired within
+    // the first seconds of every scene that has a Keyframes surface and fetched
+    // and evaluated Monaco (~2.5 MB) and Prettier for a pane nobody opened.
     watch(
         keyframesActive,
         (active) => {
-            if (active) warmKeyframes();
+            if (active) keyframesWarmed.value = true;
         },
         { immediate: true },
     );
-
-    onScopeDispose(() => {
-        const w = globalThis as unknown as {
-            cancelIdleCallback?: (h: number) => void;
-        };
-        if (idleHandle !== undefined) w.cancelIdleCallback?.(idleHandle);
-        // (the vueuse fallback timer disposes with the scope on its own)
-    });
 
     watch(keyframesActive, (active) => {
         if (!active) return;
@@ -141,5 +84,5 @@ export function useKeyframesPaneReveal(
         });
     });
 
-    return { keyframesActive, keyframesWarmed, warmKeyframes };
+    return { keyframesActive, keyframesWarmed };
 }
