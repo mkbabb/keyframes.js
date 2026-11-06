@@ -15,10 +15,14 @@ export function chunkAnalyzerPlugin(): Plugin {
                     isEntry: item.isEntry,
                     imports: item.imports,
                     dynamicImports: item.dynamicImports,
-                    modules: Object.keys(item.modules).map((moduleId) =>
-                        moduleId
-                            .replace(/^.*node_modules\//, "nm:")
-                            .replace(`${PROJECT_ROOT}/`, ""),
+                    // module → its rendered bytes in this chunk
+                    modules: Object.fromEntries(
+                        Object.entries(item.modules).map(([moduleId, m]) => [
+                            moduleId
+                                .replace(/^.*node_modules\//, "nm:")
+                                .replace(`${PROJECT_ROOT}/`, ""),
+                            m.renderedLength,
+                        ]),
                     ),
                 };
             }

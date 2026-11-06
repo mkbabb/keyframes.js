@@ -1,0 +1,6091 @@
+{
+ "base": "../../.dev-logs/o1105/kf-load/dist-base",
+ "at": "2026-11-06T03:52:39.874Z",
+ "runs": 3,
+ "gpu": false,
+ "cells": {
+  "home-390": {
+   "median": {
+    "fcp": 480,
+    "lcp": 580,
+    "cls": 0,
+    "tbt": 0,
+    "jsKB": 1890,
+    "jsWireKB": 551,
+    "monaco10s": 0,
+    "three10s": 1
+   },
+   "thirdParty": [
+    "https://fonts.gstatic.com",
+    "https://fonts.googleapis.com"
+   ],
+   "runs": [
+    {
+     "id": "home-390",
+     "env": {
+      "load1": 14.72,
+      "memFreePct": 77
+     },
+     "fcp": 480,
+     "lcp": 580,
+     "cls": 0,
+     "tbt": 0,
+     "jsKB": 1890,
+     "jsWireKB": 551,
+     "thirdParty": [
+      "https://fonts.gstatic.com",
+      "https://fonts.googleapis.com"
+     ],
+     "monaco10s": 0,
+     "three10s": 1,
+     "requests": [
+      {
+       "at": 13,
+       "url": "/"
+      },
+      {
+       "at": 29,
+       "url": "https://fonts.gstatic.com/s/instrumentserif/v5/jizHRFtNs2ka5fXjeivQ4LroWlx-6zAjjH7Motmp5g.woff2"
+      },
+      {
+       "at": 29,
+       "url": "/assets/index-rZwbIwtW.js"
+      },
+      {
+       "at": 29,
+       "url": "/assets/rolldown-runtime-DK3Fl9T5.js"
+      },
+      {
+       "at": 29,
+       "url": "/assets/vendor-reka-ui-4DPhyUsZ.js"
+      },
+      {
+       "at": 29,
+       "url": "/assets/_plugin-vue_export-helper-BWVvCjWZ.js"
+      },
+      {
+       "at": 29,
+       "url": "/assets/preload-helper-kNaey6uv.js"
+      },
+      {
+       "at": 29,
+       "url": "/assets/keyboard-BmEMwZUm.js"
+      },
+      {
+       "at": 29,
+       "url": "/assets/progress-e88g4GGc.js"
+      },
+      {
+       "at": 29,
+       "url": "/assets/timing-function-CtQ34pOp.js"
+      },
+      {
+       "at": 29,
+       "url": "/assets/binary-search-U2Hj7143.js"
+      },
+      {
+       "at": 29,
+       "url": "/assets/vendor-lucide-BET3I7w3.js"
+      },
+      {
+       "at": 29,
+       "url": "/assets/pointerFieldMappings-DXwlU5uj-D5wIeQ_V.js"
+      },
+      {
+       "at": 29,
+       "url": "/assets/glass-ui-BrtcQ8aJ.js"
+      },
+      {
+       "at": 32,
+       "url": "https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap"
+      },
+      {
+       "at": 32,
+       "url": "/assets/index-CKrMH4Il.css"
+      },
+      {
+       "at": 148,
+       "url": "/assets/public-BcvGh6So.js"
+      },
+      {
+       "at": 148,
+       "url": "/assets/selector-p3bXA53F.js"
+      },
+      {
+       "at": 148,
+       "url": "/assets/HeroAurora-CZRChc1c.js"
+      },
+      {
+       "at": 148,
+       "url": "/assets/color-grammar-CRvuKec1-Cd3aM6VH.js"
+      },
+      {
+       "at": 148,
+       "url": "/assets/HeroAurora-CJUYErC9.css"
+      },
+      {
+       "at": 495,
+       "url": "https://fonts.gstatic.com/s/instrumentserif/v5/jizBRFtNs2ka5fXjeivQ4LroWlx-6zUTjnTLgNs.woff2"
+      },
+      {
+       "at": 551,
+       "url": "/assets/AmigaScene-D5lGLo4t.js"
+      },
+      {
+       "at": 551,
+       "url": "/assets/arrowNudge-D7YehOEl.js"
+      },
+      {
+       "at": 551,
+       "url": "/assets/AmigaScene-CZ-H5DGo.css"
+      },
+      {
+       "at": 551,
+       "url": "/assets/SquareScene-DAa58Pyc.js"
+      },
+      {
+       "at": 551,
+       "url": "/assets/useSweepScene-DL8J9Itd.js"
+      },
+      {
+       "at": 551,
+       "url": "/assets/useSweepScene-B__ZuSDF.css"
+      },
+      {
+       "at": 551,
+       "url": "/assets/SquareScene-B7GpYqAj.css"
+      },
+      {
+       "at": 551,
+       "url": "/assets/EasingScene-FgfwFadK.js"
+      },
+      {
+       "at": 551,
+       "url": "/assets/usePainterRegistry-DK8-RVKk.js"
+      },
+      {
+       "at": 551,
+       "url": "/assets/copyWithToast-C0Bsi9O2.js"
+      },
+      {
+       "at": 551,
+       "url": "/assets/usePainterRegistry-C0DwymcO.css"
+      },
+      {
+       "at": 551,
+       "url": "/assets/EasingScene-B7P-3tCr.css"
+      },
+      {
+       "at": 551,
+       "url": "/assets/SpringScene-0uD6b8IU.js"
+      },
+      {
+       "at": 551,
+       "url": "/assets/codeTokens-c1Vqa4L7.js"
+      },
+      {
+       "at": 551,
+       "url": "/assets/SpringScene-Bd3fkLgj.css"
+      },
+      {
+       "at": 551,
+       "url": "/assets/SequenceScene-BnqWhRU3.js"
+      },
+      {
+       "at": 551,
+       "url": "/assets/SequenceScene-CztErGj8.css"
+      },
+      {
+       "at": 560,
+       "url": "/assets/vendor-three-nw0IrzH_.js"
+      }
+     ]
+    },
+    {
+     "id": "home-390",
+     "env": {
+      "load1": 14.13,
+      "memFreePct": 77
+     },
+     "fcp": 444,
+     "lcp": 500,
+     "cls": 0,
+     "tbt": 0,
+     "jsKB": 1890,
+     "jsWireKB": 551,
+     "thirdParty": [
+      "https://fonts.gstatic.com",
+      "https://fonts.googleapis.com"
+     ],
+     "monaco10s": 0,
+     "three10s": 1,
+     "requests": [
+      {
+       "at": 20,
+       "url": "/"
+      },
+      {
+       "at": 34,
+       "url": "https://fonts.gstatic.com/s/instrumentserif/v5/jizHRFtNs2ka5fXjeivQ4LroWlx-6zAjjH7Motmp5g.woff2"
+      },
+      {
+       "at": 34,
+       "url": "/assets/index-rZwbIwtW.js"
+      },
+      {
+       "at": 34,
+       "url": "/assets/rolldown-runtime-DK3Fl9T5.js"
+      },
+      {
+       "at": 34,
+       "url": "/assets/vendor-reka-ui-4DPhyUsZ.js"
+      },
+      {
+       "at": 34,
+       "url": "/assets/_plugin-vue_export-helper-BWVvCjWZ.js"
+      },
+      {
+       "at": 34,
+       "url": "/assets/preload-helper-kNaey6uv.js"
+      },
+      {
+       "at": 34,
+       "url": "/assets/keyboard-BmEMwZUm.js"
+      },
+      {
+       "at": 34,
+       "url": "/assets/progress-e88g4GGc.js"
+      },
+      {
+       "at": 34,
+       "url": "/assets/timing-function-CtQ34pOp.js"
+      },
+      {
+       "at": 34,
+       "url": "/assets/binary-search-U2Hj7143.js"
+      },
+      {
+       "at": 34,
+       "url": "/assets/vendor-lucide-BET3I7w3.js"
+      },
+      {
+       "at": 34,
+       "url": "/assets/pointerFieldMappings-DXwlU5uj-D5wIeQ_V.js"
+      },
+      {
+       "at": 34,
+       "url": "/assets/glass-ui-BrtcQ8aJ.js"
+      },
+      {
+       "at": 38,
+       "url": "https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap"
+      },
+      {
+       "at": 38,
+       "url": "/assets/index-CKrMH4Il.css"
+      },
+      {
+       "at": 148,
+       "url": "/assets/public-BcvGh6So.js"
+      },
+      {
+       "at": 148,
+       "url": "/assets/selector-p3bXA53F.js"
+      },
+      {
+       "at": 148,
+       "url": "/assets/HeroAurora-CZRChc1c.js"
+      },
+      {
+       "at": 148,
+       "url": "/assets/color-grammar-CRvuKec1-Cd3aM6VH.js"
+      },
+      {
+       "at": 148,
+       "url": "/assets/HeroAurora-CJUYErC9.css"
+      },
+      {
+       "at": 466,
+       "url": "https://fonts.gstatic.com/s/instrumentserif/v5/jizBRFtNs2ka5fXjeivQ4LroWlx-6zUTjnTLgNs.woff2"
+      },
+      {
+       "at": 533,
+       "url": "/assets/AmigaScene-D5lGLo4t.js"
+      },
+      {
+       "at": 534,
+       "url": "/assets/arrowNudge-D7YehOEl.js"
+      },
+      {
+       "at": 534,
+       "url": "/assets/AmigaScene-CZ-H5DGo.css"
+      },
+      {
+       "at": 534,
+       "url": "/assets/SquareScene-DAa58Pyc.js"
+      },
+      {
+       "at": 534,
+       "url": "/assets/useSweepScene-DL8J9Itd.js"
+      },
+      {
+       "at": 534,
+       "url": "/assets/useSweepScene-B__ZuSDF.css"
+      },
+      {
+       "at": 534,
+       "url": "/assets/SquareScene-B7GpYqAj.css"
+      },
+      {
+       "at": 534,
+       "url": "/assets/EasingScene-FgfwFadK.js"
+      },
+      {
+       "at": 534,
+       "url": "/assets/usePainterRegistry-DK8-RVKk.js"
+      },
+      {
+       "at": 534,
+       "url": "/assets/copyWithToast-C0Bsi9O2.js"
+      },
+      {
+       "at": 534,
+       "url": "/assets/usePainterRegistry-C0DwymcO.css"
+      },
+      {
+       "at": 534,
+       "url": "/assets/EasingScene-B7P-3tCr.css"
+      },
+      {
+       "at": 534,
+       "url": "/assets/SpringScene-0uD6b8IU.js"
+      },
+      {
+       "at": 534,
+       "url": "/assets/codeTokens-c1Vqa4L7.js"
+      },
+      {
+       "at": 534,
+       "url": "/assets/SpringScene-Bd3fkLgj.css"
+      },
+      {
+       "at": 534,
+       "url": "/assets/SequenceScene-BnqWhRU3.js"
+      },
+      {
+       "at": 534,
+       "url": "/assets/SequenceScene-CztErGj8.css"
+      },
+      {
+       "at": 542,
+       "url": "/assets/vendor-three-nw0IrzH_.js"
+      }
+     ]
+    },
+    {
+     "id": "home-390",
+     "env": {
+      "load1": 16.28,
+      "memFreePct": 77
+     },
+     "fcp": 480,
+     "lcp": 1332,
+     "cls": 0.0057,
+     "tbt": 0,
+     "jsKB": 1890,
+     "jsWireKB": 551,
+     "thirdParty": [
+      "https://fonts.gstatic.com",
+      "https://fonts.googleapis.com"
+     ],
+     "monaco10s": 0,
+     "three10s": 1,
+     "requests": [
+      {
+       "at": 13,
+       "url": "/"
+      },
+      {
+       "at": 27,
+       "url": "https://fonts.gstatic.com/s/instrumentserif/v5/jizHRFtNs2ka5fXjeivQ4LroWlx-6zAjjH7Motmp5g.woff2"
+      },
+      {
+       "at": 27,
+       "url": "/assets/index-rZwbIwtW.js"
+      },
+      {
+       "at": 27,
+       "url": "/assets/rolldown-runtime-DK3Fl9T5.js"
+      },
+      {
+       "at": 27,
+       "url": "/assets/vendor-reka-ui-4DPhyUsZ.js"
+      },
+      {
+       "at": 27,
+       "url": "/assets/_plugin-vue_export-helper-BWVvCjWZ.js"
+      },
+      {
+       "at": 27,
+       "url": "/assets/preload-helper-kNaey6uv.js"
+      },
+      {
+       "at": 27,
+       "url": "/assets/keyboard-BmEMwZUm.js"
+      },
+      {
+       "at": 27,
+       "url": "/assets/progress-e88g4GGc.js"
+      },
+      {
+       "at": 27,
+       "url": "/assets/timing-function-CtQ34pOp.js"
+      },
+      {
+       "at": 27,
+       "url": "/assets/binary-search-U2Hj7143.js"
+      },
+      {
+       "at": 27,
+       "url": "/assets/vendor-lucide-BET3I7w3.js"
+      },
+      {
+       "at": 27,
+       "url": "/assets/pointerFieldMappings-DXwlU5uj-D5wIeQ_V.js"
+      },
+      {
+       "at": 27,
+       "url": "/assets/glass-ui-BrtcQ8aJ.js"
+      },
+      {
+       "at": 29,
+       "url": "https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap"
+      },
+      {
+       "at": 29,
+       "url": "/assets/index-CKrMH4Il.css"
+      },
+      {
+       "at": 149,
+       "url": "/assets/public-BcvGh6So.js"
+      },
+      {
+       "at": 149,
+       "url": "/assets/selector-p3bXA53F.js"
+      },
+      {
+       "at": 149,
+       "url": "/assets/HeroAurora-CZRChc1c.js"
+      },
+      {
+       "at": 149,
+       "url": "/assets/color-grammar-CRvuKec1-Cd3aM6VH.js"
+      },
+      {
+       "at": 149,
+       "url": "/assets/HeroAurora-CJUYErC9.css"
+      },
+      {
+       "at": 548,
+       "url": "/assets/AmigaScene-D5lGLo4t.js"
+      },
+      {
+       "at": 548,
+       "url": "/assets/arrowNudge-D7YehOEl.js"
+      },
+      {
+       "at": 548,
+       "url": "/assets/AmigaScene-CZ-H5DGo.css"
+      },
+      {
+       "at": 548,
+       "url": "/assets/SquareScene-DAa58Pyc.js"
+      },
+      {
+       "at": 548,
+       "url": "/assets/useSweepScene-DL8J9Itd.js"
+      },
+      {
+       "at": 548,
+       "url": "/assets/useSweepScene-B__ZuSDF.css"
+      },
+      {
+       "at": 548,
+       "url": "/assets/SquareScene-B7GpYqAj.css"
+      },
+      {
+       "at": 548,
+       "url": "/assets/EasingScene-FgfwFadK.js"
+      },
+      {
+       "at": 548,
+       "url": "/assets/usePainterRegistry-DK8-RVKk.js"
+      },
+      {
+       "at": 548,
+       "url": "/assets/copyWithToast-C0Bsi9O2.js"
+      },
+      {
+       "at": 548,
+       "url": "/assets/usePainterRegistry-C0DwymcO.css"
+      },
+      {
+       "at": 548,
+       "url": "/assets/EasingScene-B7P-3tCr.css"
+      },
+      {
+       "at": 548,
+       "url": "/assets/SpringScene-0uD6b8IU.js"
+      },
+      {
+       "at": 548,
+       "url": "/assets/codeTokens-c1Vqa4L7.js"
+      },
+      {
+       "at": 548,
+       "url": "/assets/SpringScene-Bd3fkLgj.css"
+      },
+      {
+       "at": 548,
+       "url": "/assets/SequenceScene-BnqWhRU3.js"
+      },
+      {
+       "at": 548,
+       "url": "/assets/SequenceScene-CztErGj8.css"
+      },
+      {
+       "at": 574,
+       "url": "/assets/vendor-three-nw0IrzH_.js"
+      },
+      {
+       "at": 1332,
+       "url": "https://fonts.gstatic.com/s/instrumentserif/v5/jizBRFtNs2ka5fXjeivQ4LroWlx-6zUTjnTLgNs.woff2"
+      }
+     ]
+    }
+   ]
+  },
+  "spring-390": {
+   "median": {
+    "fcp": 436,
+    "lcp": 688,
+    "cls": 0.0149,
+    "tbt": 411,
+    "jsKB": 4651,
+    "jsWireKB": 1269,
+    "monaco10s": 2,
+    "three10s": 1
+   },
+   "thirdParty": [
+    "https://fonts.gstatic.com",
+    "https://fonts.googleapis.com"
+   ],
+   "runs": [
+    {
+     "id": "spring-390",
+     "env": {
+      "load1": 16.74,
+      "memFreePct": 77
+     },
+     "fcp": 576,
+     "lcp": 948,
+     "cls": 0.0156,
+     "tbt": 511,
+     "jsKB": 4651,
+     "jsWireKB": 1269,
+     "thirdParty": [
+      "https://fonts.gstatic.com",
+      "https://fonts.googleapis.com"
+     ],
+     "monaco10s": 2,
+     "three10s": 1,
+     "requests": [
+      {
+       "at": 14,
+       "url": "/"
+      },
+      {
+       "at": 31,
+       "url": "https://fonts.gstatic.com/s/instrumentserif/v5/jizHRFtNs2ka5fXjeivQ4LroWlx-6zAjjH7Motmp5g.woff2"
+      },
+      {
+       "at": 31,
+       "url": "/assets/index-rZwbIwtW.js"
+      },
+      {
+       "at": 31,
+       "url": "/assets/rolldown-runtime-DK3Fl9T5.js"
+      },
+      {
+       "at": 31,
+       "url": "/assets/vendor-reka-ui-4DPhyUsZ.js"
+      },
+      {
+       "at": 31,
+       "url": "/assets/_plugin-vue_export-helper-BWVvCjWZ.js"
+      },
+      {
+       "at": 31,
+       "url": "/assets/preload-helper-kNaey6uv.js"
+      },
+      {
+       "at": 31,
+       "url": "/assets/keyboard-BmEMwZUm.js"
+      },
+      {
+       "at": 31,
+       "url": "/assets/progress-e88g4GGc.js"
+      },
+      {
+       "at": 31,
+       "url": "/assets/timing-function-CtQ34pOp.js"
+      },
+      {
+       "at": 32,
+       "url": "/assets/binary-search-U2Hj7143.js"
+      },
+      {
+       "at": 32,
+       "url": "/assets/vendor-lucide-BET3I7w3.js"
+      },
+      {
+       "at": 32,
+       "url": "/assets/pointerFieldMappings-DXwlU5uj-D5wIeQ_V.js"
+      },
+      {
+       "at": 32,
+       "url": "/assets/glass-ui-BrtcQ8aJ.js"
+      },
+      {
+       "at": 34,
+       "url": "https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap"
+      },
+      {
+       "at": 34,
+       "url": "/assets/index-CKrMH4Il.css"
+      },
+      {
+       "at": 192,
+       "url": "/assets/public-BcvGh6So.js"
+      },
+      {
+       "at": 192,
+       "url": "/assets/selector-p3bXA53F.js"
+      },
+      {
+       "at": 192,
+       "url": "/assets/SpringScene-0uD6b8IU.js"
+      },
+      {
+       "at": 192,
+       "url": "/assets/usePainterRegistry-DK8-RVKk.js"
+      },
+      {
+       "at": 192,
+       "url": "/assets/copyWithToast-C0Bsi9O2.js"
+      },
+      {
+       "at": 192,
+       "url": "/assets/codeTokens-c1Vqa4L7.js"
+      },
+      {
+       "at": 192,
+       "url": "/assets/useSweepScene-DL8J9Itd.js"
+      },
+      {
+       "at": 192,
+       "url": "/assets/usePainterRegistry-C0DwymcO.css"
+      },
+      {
+       "at": 192,
+       "url": "/assets/useSweepScene-B__ZuSDF.css"
+      },
+      {
+       "at": 192,
+       "url": "/assets/SpringScene-Bd3fkLgj.css"
+      },
+      {
+       "at": 871,
+       "url": "https://fonts.gstatic.com/s/instrumentserif/v5/jizBRFtNs2ka5fXjeivQ4LroWlx-6zUTjnTLgNs.woff2"
+      },
+      {
+       "at": 1490,
+       "url": "/assets/KeyframeTimeline-Dym0eWQc.js"
+      },
+      {
+       "at": 1490,
+       "url": "/assets/formatEditorCSS-D8Wafaon.js"
+      },
+      {
+       "at": 1490,
+       "url": "/assets/KeyframeTimeline-O82eV-zs.css"
+      },
+      {
+       "at": 1490,
+       "url": "/assets/KeyframesStringControls-BzKgRPDC.js"
+      },
+      {
+       "at": 1490,
+       "url": "/assets/KeyframesStringControls-D0Pg5ybW.css"
+      },
+      {
+       "at": 1516,
+       "url": "/assets/vendor-prettier-BlTWbCTH.js"
+      },
+      {
+       "at": 1616,
+       "url": "/assets/HeroAurora-CZRChc1c.js"
+      },
+      {
+       "at": 1616,
+       "url": "/assets/color-grammar-CRvuKec1-Cd3aM6VH.js"
+      },
+      {
+       "at": 1616,
+       "url": "/assets/HeroAurora-CJUYErC9.css"
+      },
+      {
+       "at": 1616,
+       "url": "/assets/AmigaScene-D5lGLo4t.js"
+      },
+      {
+       "at": 1616,
+       "url": "/assets/arrowNudge-D7YehOEl.js"
+      },
+      {
+       "at": 1616,
+       "url": "/assets/AmigaScene-CZ-H5DGo.css"
+      },
+      {
+       "at": 1616,
+       "url": "/assets/SquareScene-DAa58Pyc.js"
+      },
+      {
+       "at": 1616,
+       "url": "/assets/SquareScene-B7GpYqAj.css"
+      },
+      {
+       "at": 1616,
+       "url": "/assets/EasingScene-FgfwFadK.js"
+      },
+      {
+       "at": 1616,
+       "url": "/assets/EasingScene-B7P-3tCr.css"
+      },
+      {
+       "at": 1616,
+       "url": "/assets/SequenceScene-BnqWhRU3.js"
+      },
+      {
+       "at": 1616,
+       "url": "/assets/SequenceScene-CztErGj8.css"
+      },
+      {
+       "at": 1625,
+       "url": "/assets/vendor-three-nw0IrzH_.js"
+      },
+      {
+       "at": 1707,
+       "url": "/assets/vendor-monaco-C5uazxST.css"
+      },
+      {
+       "at": 1707,
+       "url": "/assets/vendor-monaco-nwzXcI7Q.js"
+      }
+     ]
+    },
+    {
+     "id": "spring-390",
+     "env": {
+      "load1": 17.39,
+      "memFreePct": 77
+     },
+     "fcp": 436,
+     "lcp": 688,
+     "cls": 0.0149,
+     "tbt": 411,
+     "jsKB": 4651,
+     "jsWireKB": 1269,
+     "thirdParty": [
+      "https://fonts.gstatic.com",
+      "https://fonts.googleapis.com"
+     ],
+     "monaco10s": 2,
+     "three10s": 1,
+     "requests": [
+      {
+       "at": 12,
+       "url": "/"
+      },
+      {
+       "at": 27,
+       "url": "https://fonts.gstatic.com/s/instrumentserif/v5/jizHRFtNs2ka5fXjeivQ4LroWlx-6zAjjH7Motmp5g.woff2"
+      },
+      {
+       "at": 27,
+       "url": "/assets/index-rZwbIwtW.js"
+      },
+      {
+       "at": 28,
+       "url": "/assets/rolldown-runtime-DK3Fl9T5.js"
+      },
+      {
+       "at": 28,
+       "url": "/assets/vendor-reka-ui-4DPhyUsZ.js"
+      },
+      {
+       "at": 28,
+       "url": "/assets/_plugin-vue_export-helper-BWVvCjWZ.js"
+      },
+      {
+       "at": 28,
+       "url": "/assets/preload-helper-kNaey6uv.js"
+      },
+      {
+       "at": 28,
+       "url": "/assets/keyboard-BmEMwZUm.js"
+      },
+      {
+       "at": 28,
+       "url": "/assets/progress-e88g4GGc.js"
+      },
+      {
+       "at": 28,
+       "url": "/assets/timing-function-CtQ34pOp.js"
+      },
+      {
+       "at": 28,
+       "url": "/assets/binary-search-U2Hj7143.js"
+      },
+      {
+       "at": 28,
+       "url": "/assets/vendor-lucide-BET3I7w3.js"
+      },
+      {
+       "at": 28,
+       "url": "/assets/pointerFieldMappings-DXwlU5uj-D5wIeQ_V.js"
+      },
+      {
+       "at": 28,
+       "url": "/assets/glass-ui-BrtcQ8aJ.js"
+      },
+      {
+       "at": 30,
+       "url": "https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap"
+      },
+      {
+       "at": 30,
+       "url": "/assets/index-CKrMH4Il.css"
+      },
+      {
+       "at": 151,
+       "url": "/assets/public-BcvGh6So.js"
+      },
+      {
+       "at": 151,
+       "url": "/assets/selector-p3bXA53F.js"
+      },
+      {
+       "at": 151,
+       "url": "/assets/SpringScene-0uD6b8IU.js"
+      },
+      {
+       "at": 151,
+       "url": "/assets/usePainterRegistry-DK8-RVKk.js"
+      },
+      {
+       "at": 151,
+       "url": "/assets/copyWithToast-C0Bsi9O2.js"
+      },
+      {
+       "at": 151,
+       "url": "/assets/codeTokens-c1Vqa4L7.js"
+      },
+      {
+       "at": 151,
+       "url": "/assets/useSweepScene-DL8J9Itd.js"
+      },
+      {
+       "at": 151,
+       "url": "/assets/usePainterRegistry-C0DwymcO.css"
+      },
+      {
+       "at": 151,
+       "url": "/assets/useSweepScene-B__ZuSDF.css"
+      },
+      {
+       "at": 151,
+       "url": "/assets/SpringScene-Bd3fkLgj.css"
+      },
+      {
+       "at": 635,
+       "url": "https://fonts.gstatic.com/s/instrumentserif/v5/jizBRFtNs2ka5fXjeivQ4LroWlx-6zUTjnTLgNs.woff2"
+      },
+      {
+       "at": 1203,
+       "url": "/assets/KeyframeTimeline-Dym0eWQc.js"
+      },
+      {
+       "at": 1204,
+       "url": "/assets/formatEditorCSS-D8Wafaon.js"
+      },
+      {
+       "at": 1204,
+       "url": "/assets/KeyframeTimeline-O82eV-zs.css"
+      },
+      {
+       "at": 1204,
+       "url": "/assets/KeyframesStringControls-BzKgRPDC.js"
+      },
+      {
+       "at": 1204,
+       "url": "/assets/KeyframesStringControls-D0Pg5ybW.css"
+      },
+      {
+       "at": 1234,
+       "url": "/assets/vendor-prettier-BlTWbCTH.js"
+      },
+      {
+       "at": 1331,
+       "url": "/assets/HeroAurora-CZRChc1c.js"
+      },
+      {
+       "at": 1331,
+       "url": "/assets/color-grammar-CRvuKec1-Cd3aM6VH.js"
+      },
+      {
+       "at": 1331,
+       "url": "/assets/HeroAurora-CJUYErC9.css"
+      },
+      {
+       "at": 1331,
+       "url": "/assets/AmigaScene-D5lGLo4t.js"
+      },
+      {
+       "at": 1331,
+       "url": "/assets/arrowNudge-D7YehOEl.js"
+      },
+      {
+       "at": 1331,
+       "url": "/assets/AmigaScene-CZ-H5DGo.css"
+      },
+      {
+       "at": 1331,
+       "url": "/assets/SquareScene-DAa58Pyc.js"
+      },
+      {
+       "at": 1331,
+       "url": "/assets/SquareScene-B7GpYqAj.css"
+      },
+      {
+       "at": 1331,
+       "url": "/assets/EasingScene-FgfwFadK.js"
+      },
+      {
+       "at": 1332,
+       "url": "/assets/EasingScene-B7P-3tCr.css"
+      },
+      {
+       "at": 1333,
+       "url": "/assets/SequenceScene-BnqWhRU3.js"
+      },
+      {
+       "at": 1333,
+       "url": "/assets/SequenceScene-CztErGj8.css"
+      },
+      {
+       "at": 1384,
+       "url": "/assets/vendor-three-nw0IrzH_.js"
+      },
+      {
+       "at": 1430,
+       "url": "/assets/vendor-monaco-C5uazxST.css"
+      },
+      {
+       "at": 1430,
+       "url": "/assets/vendor-monaco-nwzXcI7Q.js"
+      }
+     ]
+    },
+    {
+     "id": "spring-390",
+     "env": {
+      "load1": 16.31,
+      "memFreePct": 77
+     },
+     "fcp": 376,
+     "lcp": 608,
+     "cls": 0.0139,
+     "tbt": 260,
+     "jsKB": 4651,
+     "jsWireKB": 1269,
+     "thirdParty": [
+      "https://fonts.gstatic.com",
+      "https://fonts.googleapis.com"
+     ],
+     "monaco10s": 2,
+     "three10s": 1,
+     "requests": [
+      {
+       "at": 10,
+       "url": "/"
+      },
+      {
+       "at": 22,
+       "url": "https://fonts.gstatic.com/s/instrumentserif/v5/jizHRFtNs2ka5fXjeivQ4LroWlx-6zAjjH7Motmp5g.woff2"
+      },
+      {
+       "at": 22,
+       "url": "/assets/index-rZwbIwtW.js"
+      },
+      {
+       "at": 22,
+       "url": "/assets/rolldown-runtime-DK3Fl9T5.js"
+      },
+      {
+       "at": 22,
+       "url": "/assets/vendor-reka-ui-4DPhyUsZ.js"
+      },
+      {
+       "at": 22,
+       "url": "/assets/_plugin-vue_export-helper-BWVvCjWZ.js"
+      },
+      {
+       "at": 22,
+       "url": "/assets/preload-helper-kNaey6uv.js"
+      },
+      {
+       "at": 22,
+       "url": "/assets/keyboard-BmEMwZUm.js"
+      },
+      {
+       "at": 22,
+       "url": "/assets/progress-e88g4GGc.js"
+      },
+      {
+       "at": 22,
+       "url": "/assets/timing-function-CtQ34pOp.js"
+      },
+      {
+       "at": 23,
+       "url": "/assets/binary-search-U2Hj7143.js"
+      },
+      {
+       "at": 23,
+       "url": "/assets/vendor-lucide-BET3I7w3.js"
+      },
+      {
+       "at": 23,
+       "url": "/assets/pointerFieldMappings-DXwlU5uj-D5wIeQ_V.js"
+      },
+      {
+       "at": 23,
+       "url": "/assets/glass-ui-BrtcQ8aJ.js"
+      },
+      {
+       "at": 25,
+       "url": "https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap"
+      },
+      {
+       "at": 25,
+       "url": "/assets/index-CKrMH4Il.css"
+      },
+      {
+       "at": 133,
+       "url": "/assets/public-BcvGh6So.js"
+      },
+      {
+       "at": 133,
+       "url": "/assets/selector-p3bXA53F.js"
+      },
+      {
+       "at": 133,
+       "url": "/assets/SpringScene-0uD6b8IU.js"
+      },
+      {
+       "at": 133,
+       "url": "/assets/usePainterRegistry-DK8-RVKk.js"
+      },
+      {
+       "at": 133,
+       "url": "/assets/copyWithToast-C0Bsi9O2.js"
+      },
+      {
+       "at": 133,
+       "url": "/assets/codeTokens-c1Vqa4L7.js"
+      },
+      {
+       "at": 133,
+       "url": "/assets/useSweepScene-DL8J9Itd.js"
+      },
+      {
+       "at": 133,
+       "url": "/assets/usePainterRegistry-C0DwymcO.css"
+      },
+      {
+       "at": 133,
+       "url": "/assets/useSweepScene-B__ZuSDF.css"
+      },
+      {
+       "at": 133,
+       "url": "/assets/SpringScene-Bd3fkLgj.css"
+      },
+      {
+       "at": 556,
+       "url": "https://fonts.gstatic.com/s/instrumentserif/v5/jizBRFtNs2ka5fXjeivQ4LroWlx-6zUTjnTLgNs.woff2"
+      },
+      {
+       "at": 917,
+       "url": "/assets/KeyframeTimeline-Dym0eWQc.js"
+      },
+      {
+       "at": 917,
+       "url": "/assets/formatEditorCSS-D8Wafaon.js"
+      },
+      {
+       "at": 917,
+       "url": "/assets/KeyframeTimeline-O82eV-zs.css"
+      },
+      {
+       "at": 917,
+       "url": "/assets/KeyframesStringControls-BzKgRPDC.js"
+      },
+      {
+       "at": 917,
+       "url": "/assets/KeyframesStringControls-D0Pg5ybW.css"
+      },
+      {
+       "at": 935,
+       "url": "/assets/vendor-prettier-BlTWbCTH.js"
+      },
+      {
+       "at": 993,
+       "url": "/assets/HeroAurora-CZRChc1c.js"
+      },
+      {
+       "at": 993,
+       "url": "/assets/color-grammar-CRvuKec1-Cd3aM6VH.js"
+      },
+      {
+       "at": 993,
+       "url": "/assets/HeroAurora-CJUYErC9.css"
+      },
+      {
+       "at": 993,
+       "url": "/assets/AmigaScene-D5lGLo4t.js"
+      },
+      {
+       "at": 993,
+       "url": "/assets/arrowNudge-D7YehOEl.js"
+      },
+      {
+       "at": 993,
+       "url": "/assets/AmigaScene-CZ-H5DGo.css"
+      },
+      {
+       "at": 993,
+       "url": "/assets/SquareScene-DAa58Pyc.js"
+      },
+      {
+       "at": 993,
+       "url": "/assets/SquareScene-B7GpYqAj.css"
+      },
+      {
+       "at": 993,
+       "url": "/assets/EasingScene-FgfwFadK.js"
+      },
+      {
+       "at": 993,
+       "url": "/assets/EasingScene-B7P-3tCr.css"
+      },
+      {
+       "at": 993,
+       "url": "/assets/SequenceScene-BnqWhRU3.js"
+      },
+      {
+       "at": 993,
+       "url": "/assets/SequenceScene-CztErGj8.css"
+      },
+      {
+       "at": 1001,
+       "url": "/assets/vendor-three-nw0IrzH_.js"
+      },
+      {
+       "at": 1091,
+       "url": "/assets/vendor-monaco-C5uazxST.css"
+      },
+      {
+       "at": 1091,
+       "url": "/assets/vendor-monaco-nwzXcI7Q.js"
+      }
+     ]
+    }
+   ]
+  },
+  "easing-390": {
+   "median": {
+    "fcp": 404,
+    "lcp": 404,
+    "cls": 0,
+    "tbt": 319,
+    "jsKB": 4651,
+    "jsWireKB": 1269,
+    "monaco10s": 2,
+    "three10s": 1
+   },
+   "thirdParty": [
+    "https://fonts.gstatic.com",
+    "https://fonts.googleapis.com"
+   ],
+   "runs": [
+    {
+     "id": "easing-390",
+     "env": {
+      "load1": 14.86,
+      "memFreePct": 77
+     },
+     "fcp": 396,
+     "lcp": 396,
+     "cls": 0,
+     "tbt": 319,
+     "jsKB": 4651,
+     "jsWireKB": 1269,
+     "thirdParty": [
+      "https://fonts.gstatic.com",
+      "https://fonts.googleapis.com"
+     ],
+     "monaco10s": 2,
+     "three10s": 1,
+     "requests": [
+      {
+       "at": 13,
+       "url": "/"
+      },
+      {
+       "at": 28,
+       "url": "https://fonts.gstatic.com/s/instrumentserif/v5/jizHRFtNs2ka5fXjeivQ4LroWlx-6zAjjH7Motmp5g.woff2"
+      },
+      {
+       "at": 28,
+       "url": "/assets/index-rZwbIwtW.js"
+      },
+      {
+       "at": 28,
+       "url": "/assets/rolldown-runtime-DK3Fl9T5.js"
+      },
+      {
+       "at": 28,
+       "url": "/assets/vendor-reka-ui-4DPhyUsZ.js"
+      },
+      {
+       "at": 28,
+       "url": "/assets/_plugin-vue_export-helper-BWVvCjWZ.js"
+      },
+      {
+       "at": 28,
+       "url": "/assets/preload-helper-kNaey6uv.js"
+      },
+      {
+       "at": 28,
+       "url": "/assets/keyboard-BmEMwZUm.js"
+      },
+      {
+       "at": 28,
+       "url": "/assets/progress-e88g4GGc.js"
+      },
+      {
+       "at": 28,
+       "url": "/assets/timing-function-CtQ34pOp.js"
+      },
+      {
+       "at": 28,
+       "url": "/assets/binary-search-U2Hj7143.js"
+      },
+      {
+       "at": 28,
+       "url": "/assets/vendor-lucide-BET3I7w3.js"
+      },
+      {
+       "at": 28,
+       "url": "/assets/pointerFieldMappings-DXwlU5uj-D5wIeQ_V.js"
+      },
+      {
+       "at": 28,
+       "url": "/assets/glass-ui-BrtcQ8aJ.js"
+      },
+      {
+       "at": 30,
+       "url": "https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap"
+      },
+      {
+       "at": 30,
+       "url": "/assets/index-CKrMH4Il.css"
+      },
+      {
+       "at": 140,
+       "url": "/assets/public-BcvGh6So.js"
+      },
+      {
+       "at": 140,
+       "url": "/assets/selector-p3bXA53F.js"
+      },
+      {
+       "at": 140,
+       "url": "/assets/EasingScene-FgfwFadK.js"
+      },
+      {
+       "at": 140,
+       "url": "/assets/usePainterRegistry-DK8-RVKk.js"
+      },
+      {
+       "at": 140,
+       "url": "/assets/copyWithToast-C0Bsi9O2.js"
+      },
+      {
+       "at": 140,
+       "url": "/assets/useSweepScene-DL8J9Itd.js"
+      },
+      {
+       "at": 140,
+       "url": "/assets/usePainterRegistry-C0DwymcO.css"
+      },
+      {
+       "at": 140,
+       "url": "/assets/useSweepScene-B__ZuSDF.css"
+      },
+      {
+       "at": 140,
+       "url": "/assets/EasingScene-B7P-3tCr.css"
+      },
+      {
+       "at": 631,
+       "url": "https://fonts.gstatic.com/s/instrumentserif/v5/jizBRFtNs2ka5fXjeivQ4LroWlx-6zUTjnTLgNs.woff2"
+      },
+      {
+       "at": 922,
+       "url": "/assets/KeyframeTimeline-Dym0eWQc.js"
+      },
+      {
+       "at": 922,
+       "url": "/assets/formatEditorCSS-D8Wafaon.js"
+      },
+      {
+       "at": 923,
+       "url": "/assets/KeyframeTimeline-O82eV-zs.css"
+      },
+      {
+       "at": 923,
+       "url": "/assets/KeyframesStringControls-BzKgRPDC.js"
+      },
+      {
+       "at": 923,
+       "url": "/assets/codeTokens-c1Vqa4L7.js"
+      },
+      {
+       "at": 923,
+       "url": "/assets/KeyframesStringControls-D0Pg5ybW.css"
+      },
+      {
+       "at": 949,
+       "url": "/assets/vendor-prettier-BlTWbCTH.js"
+      },
+      {
+       "at": 1021,
+       "url": "/assets/HeroAurora-CZRChc1c.js"
+      },
+      {
+       "at": 1022,
+       "url": "/assets/color-grammar-CRvuKec1-Cd3aM6VH.js"
+      },
+      {
+       "at": 1022,
+       "url": "/assets/HeroAurora-CJUYErC9.css"
+      },
+      {
+       "at": 1022,
+       "url": "/assets/AmigaScene-D5lGLo4t.js"
+      },
+      {
+       "at": 1022,
+       "url": "/assets/arrowNudge-D7YehOEl.js"
+      },
+      {
+       "at": 1022,
+       "url": "/assets/AmigaScene-CZ-H5DGo.css"
+      },
+      {
+       "at": 1022,
+       "url": "/assets/SquareScene-DAa58Pyc.js"
+      },
+      {
+       "at": 1022,
+       "url": "/assets/SquareScene-B7GpYqAj.css"
+      },
+      {
+       "at": 1022,
+       "url": "/assets/SpringScene-0uD6b8IU.js"
+      },
+      {
+       "at": 1022,
+       "url": "/assets/SpringScene-Bd3fkLgj.css"
+      },
+      {
+       "at": 1022,
+       "url": "/assets/SequenceScene-BnqWhRU3.js"
+      },
+      {
+       "at": 1022,
+       "url": "/assets/SequenceScene-CztErGj8.css"
+      },
+      {
+       "at": 1080,
+       "url": "/assets/vendor-three-nw0IrzH_.js"
+      },
+      {
+       "at": 1088,
+       "url": "/assets/vendor-monaco-C5uazxST.css"
+      },
+      {
+       "at": 1088,
+       "url": "/assets/vendor-monaco-nwzXcI7Q.js"
+      }
+     ]
+    },
+    {
+     "id": "easing-390",
+     "env": {
+      "load1": 13.18,
+      "memFreePct": 77
+     },
+     "fcp": 404,
+     "lcp": 404,
+     "cls": 0,
+     "tbt": 308,
+     "jsKB": 4651,
+     "jsWireKB": 1269,
+     "thirdParty": [
+      "https://fonts.gstatic.com",
+      "https://fonts.googleapis.com"
+     ],
+     "monaco10s": 2,
+     "three10s": 1,
+     "requests": [
+      {
+       "at": 14,
+       "url": "/"
+      },
+      {
+       "at": 29,
+       "url": "https://fonts.gstatic.com/s/instrumentserif/v5/jizHRFtNs2ka5fXjeivQ4LroWlx-6zAjjH7Motmp5g.woff2"
+      },
+      {
+       "at": 29,
+       "url": "/assets/index-rZwbIwtW.js"
+      },
+      {
+       "at": 29,
+       "url": "/assets/rolldown-runtime-DK3Fl9T5.js"
+      },
+      {
+       "at": 29,
+       "url": "/assets/vendor-reka-ui-4DPhyUsZ.js"
+      },
+      {
+       "at": 29,
+       "url": "/assets/_plugin-vue_export-helper-BWVvCjWZ.js"
+      },
+      {
+       "at": 29,
+       "url": "/assets/preload-helper-kNaey6uv.js"
+      },
+      {
+       "at": 29,
+       "url": "/assets/keyboard-BmEMwZUm.js"
+      },
+      {
+       "at": 29,
+       "url": "/assets/progress-e88g4GGc.js"
+      },
+      {
+       "at": 29,
+       "url": "/assets/timing-function-CtQ34pOp.js"
+      },
+      {
+       "at": 29,
+       "url": "/assets/binary-search-U2Hj7143.js"
+      },
+      {
+       "at": 29,
+       "url": "/assets/vendor-lucide-BET3I7w3.js"
+      },
+      {
+       "at": 29,
+       "url": "/assets/pointerFieldMappings-DXwlU5uj-D5wIeQ_V.js"
+      },
+      {
+       "at": 29,
+       "url": "/assets/glass-ui-BrtcQ8aJ.js"
+      },
+      {
+       "at": 32,
+       "url": "https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap"
+      },
+      {
+       "at": 32,
+       "url": "/assets/index-CKrMH4Il.css"
+      },
+      {
+       "at": 148,
+       "url": "/assets/public-BcvGh6So.js"
+      },
+      {
+       "at": 148,
+       "url": "/assets/selector-p3bXA53F.js"
+      },
+      {
+       "at": 148,
+       "url": "/assets/EasingScene-FgfwFadK.js"
+      },
+      {
+       "at": 148,
+       "url": "/assets/usePainterRegistry-DK8-RVKk.js"
+      },
+      {
+       "at": 148,
+       "url": "/assets/copyWithToast-C0Bsi9O2.js"
+      },
+      {
+       "at": 148,
+       "url": "/assets/useSweepScene-DL8J9Itd.js"
+      },
+      {
+       "at": 148,
+       "url": "/assets/usePainterRegistry-C0DwymcO.css"
+      },
+      {
+       "at": 148,
+       "url": "/assets/useSweepScene-B__ZuSDF.css"
+      },
+      {
+       "at": 148,
+       "url": "/assets/EasingScene-B7P-3tCr.css"
+      },
+      {
+       "at": 634,
+       "url": "https://fonts.gstatic.com/s/instrumentserif/v5/jizBRFtNs2ka5fXjeivQ4LroWlx-6zUTjnTLgNs.woff2"
+      },
+      {
+       "at": 927,
+       "url": "/assets/KeyframeTimeline-Dym0eWQc.js"
+      },
+      {
+       "at": 927,
+       "url": "/assets/formatEditorCSS-D8Wafaon.js"
+      },
+      {
+       "at": 927,
+       "url": "/assets/KeyframeTimeline-O82eV-zs.css"
+      },
+      {
+       "at": 927,
+       "url": "/assets/KeyframesStringControls-BzKgRPDC.js"
+      },
+      {
+       "at": 927,
+       "url": "/assets/codeTokens-c1Vqa4L7.js"
+      },
+      {
+       "at": 927,
+       "url": "/assets/KeyframesStringControls-D0Pg5ybW.css"
+      },
+      {
+       "at": 946,
+       "url": "/assets/vendor-prettier-BlTWbCTH.js"
+      },
+      {
+       "at": 1009,
+       "url": "/assets/HeroAurora-CZRChc1c.js"
+      },
+      {
+       "at": 1009,
+       "url": "/assets/color-grammar-CRvuKec1-Cd3aM6VH.js"
+      },
+      {
+       "at": 1009,
+       "url": "/assets/HeroAurora-CJUYErC9.css"
+      },
+      {
+       "at": 1009,
+       "url": "/assets/AmigaScene-D5lGLo4t.js"
+      },
+      {
+       "at": 1009,
+       "url": "/assets/arrowNudge-D7YehOEl.js"
+      },
+      {
+       "at": 1009,
+       "url": "/assets/AmigaScene-CZ-H5DGo.css"
+      },
+      {
+       "at": 1009,
+       "url": "/assets/SquareScene-DAa58Pyc.js"
+      },
+      {
+       "at": 1009,
+       "url": "/assets/SquareScene-B7GpYqAj.css"
+      },
+      {
+       "at": 1009,
+       "url": "/assets/SpringScene-0uD6b8IU.js"
+      },
+      {
+       "at": 1009,
+       "url": "/assets/SpringScene-Bd3fkLgj.css"
+      },
+      {
+       "at": 1009,
+       "url": "/assets/SequenceScene-BnqWhRU3.js"
+      },
+      {
+       "at": 1009,
+       "url": "/assets/SequenceScene-CztErGj8.css"
+      },
+      {
+       "at": 1047,
+       "url": "/assets/vendor-three-nw0IrzH_.js"
+      },
+      {
+       "at": 1054,
+       "url": "/assets/vendor-monaco-C5uazxST.css"
+      },
+      {
+       "at": 1054,
+       "url": "/assets/vendor-monaco-nwzXcI7Q.js"
+      }
+     ]
+    },
+    {
+     "id": "easing-390",
+     "env": {
+      "load1": 11.99,
+      "memFreePct": 77
+     },
+     "fcp": 476,
+     "lcp": 476,
+     "cls": 0,
+     "tbt": 354,
+     "jsKB": 4651,
+     "jsWireKB": 1269,
+     "thirdParty": [
+      "https://fonts.gstatic.com",
+      "https://fonts.googleapis.com"
+     ],
+     "monaco10s": 2,
+     "three10s": 1,
+     "requests": [
+      {
+       "at": 14,
+       "url": "/"
+      },
+      {
+       "at": 28,
+       "url": "https://fonts.gstatic.com/s/instrumentserif/v5/jizHRFtNs2ka5fXjeivQ4LroWlx-6zAjjH7Motmp5g.woff2"
+      },
+      {
+       "at": 28,
+       "url": "/assets/index-rZwbIwtW.js"
+      },
+      {
+       "at": 28,
+       "url": "/assets/rolldown-runtime-DK3Fl9T5.js"
+      },
+      {
+       "at": 28,
+       "url": "/assets/vendor-reka-ui-4DPhyUsZ.js"
+      },
+      {
+       "at": 28,
+       "url": "/assets/_plugin-vue_export-helper-BWVvCjWZ.js"
+      },
+      {
+       "at": 28,
+       "url": "/assets/preload-helper-kNaey6uv.js"
+      },
+      {
+       "at": 28,
+       "url": "/assets/keyboard-BmEMwZUm.js"
+      },
+      {
+       "at": 28,
+       "url": "/assets/progress-e88g4GGc.js"
+      },
+      {
+       "at": 28,
+       "url": "/assets/timing-function-CtQ34pOp.js"
+      },
+      {
+       "at": 28,
+       "url": "/assets/binary-search-U2Hj7143.js"
+      },
+      {
+       "at": 28,
+       "url": "/assets/vendor-lucide-BET3I7w3.js"
+      },
+      {
+       "at": 28,
+       "url": "/assets/pointerFieldMappings-DXwlU5uj-D5wIeQ_V.js"
+      },
+      {
+       "at": 28,
+       "url": "/assets/glass-ui-BrtcQ8aJ.js"
+      },
+      {
+       "at": 29,
+       "url": "https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap"
+      },
+      {
+       "at": 29,
+       "url": "/assets/index-CKrMH4Il.css"
+      },
+      {
+       "at": 156,
+       "url": "/assets/public-BcvGh6So.js"
+      },
+      {
+       "at": 156,
+       "url": "/assets/selector-p3bXA53F.js"
+      },
+      {
+       "at": 156,
+       "url": "/assets/EasingScene-FgfwFadK.js"
+      },
+      {
+       "at": 156,
+       "url": "/assets/usePainterRegistry-DK8-RVKk.js"
+      },
+      {
+       "at": 156,
+       "url": "/assets/copyWithToast-C0Bsi9O2.js"
+      },
+      {
+       "at": 156,
+       "url": "/assets/useSweepScene-DL8J9Itd.js"
+      },
+      {
+       "at": 156,
+       "url": "/assets/usePainterRegistry-C0DwymcO.css"
+      },
+      {
+       "at": 156,
+       "url": "/assets/useSweepScene-B__ZuSDF.css"
+      },
+      {
+       "at": 156,
+       "url": "/assets/EasingScene-B7P-3tCr.css"
+      },
+      {
+       "at": 732,
+       "url": "https://fonts.gstatic.com/s/instrumentserif/v5/jizBRFtNs2ka5fXjeivQ4LroWlx-6zUTjnTLgNs.woff2"
+      },
+      {
+       "at": 1005,
+       "url": "/assets/KeyframeTimeline-Dym0eWQc.js"
+      },
+      {
+       "at": 1005,
+       "url": "/assets/formatEditorCSS-D8Wafaon.js"
+      },
+      {
+       "at": 1005,
+       "url": "/assets/KeyframeTimeline-O82eV-zs.css"
+      },
+      {
+       "at": 1005,
+       "url": "/assets/KeyframesStringControls-BzKgRPDC.js"
+      },
+      {
+       "at": 1005,
+       "url": "/assets/codeTokens-c1Vqa4L7.js"
+      },
+      {
+       "at": 1005,
+       "url": "/assets/KeyframesStringControls-D0Pg5ybW.css"
+      },
+      {
+       "at": 1028,
+       "url": "/assets/vendor-prettier-BlTWbCTH.js"
+      },
+      {
+       "at": 1103,
+       "url": "/assets/HeroAurora-CZRChc1c.js"
+      },
+      {
+       "at": 1103,
+       "url": "/assets/color-grammar-CRvuKec1-Cd3aM6VH.js"
+      },
+      {
+       "at": 1103,
+       "url": "/assets/HeroAurora-CJUYErC9.css"
+      },
+      {
+       "at": 1103,
+       "url": "/assets/AmigaScene-D5lGLo4t.js"
+      },
+      {
+       "at": 1103,
+       "url": "/assets/arrowNudge-D7YehOEl.js"
+      },
+      {
+       "at": 1103,
+       "url": "/assets/AmigaScene-CZ-H5DGo.css"
+      },
+      {
+       "at": 1103,
+       "url": "/assets/SquareScene-DAa58Pyc.js"
+      },
+      {
+       "at": 1103,
+       "url": "/assets/SquareScene-B7GpYqAj.css"
+      },
+      {
+       "at": 1103,
+       "url": "/assets/SpringScene-0uD6b8IU.js"
+      },
+      {
+       "at": 1103,
+       "url": "/assets/SpringScene-Bd3fkLgj.css"
+      },
+      {
+       "at": 1103,
+       "url": "/assets/SequenceScene-BnqWhRU3.js"
+      },
+      {
+       "at": 1103,
+       "url": "/assets/SequenceScene-CztErGj8.css"
+      },
+      {
+       "at": 1113,
+       "url": "/assets/vendor-three-nw0IrzH_.js"
+      },
+      {
+       "at": 1164,
+       "url": "/assets/vendor-monaco-C5uazxST.css"
+      },
+      {
+       "at": 1164,
+       "url": "/assets/vendor-monaco-nwzXcI7Q.js"
+      }
+     ]
+    }
+   ]
+  },
+  "home-1440": {
+   "median": {
+    "fcp": 164,
+    "lcp": 232,
+    "cls": 0.0101,
+    "tbt": 0,
+    "jsKB": 1890,
+    "jsWireKB": 551,
+    "monaco10s": 0,
+    "three10s": 1
+   },
+   "thirdParty": [
+    "https://fonts.gstatic.com",
+    "https://fonts.googleapis.com"
+   ],
+   "runs": [
+    {
+     "id": "home-1440",
+     "env": {
+      "load1": 12.63,
+      "memFreePct": 77
+     },
+     "fcp": 136,
+     "lcp": 232,
+     "cls": 0.0101,
+     "tbt": 0,
+     "jsKB": 1890,
+     "jsWireKB": 551,
+     "thirdParty": [
+      "https://fonts.gstatic.com",
+      "https://fonts.googleapis.com"
+     ],
+     "monaco10s": 0,
+     "three10s": 1,
+     "requests": [
+      {
+       "at": 18,
+       "url": "/"
+      },
+      {
+       "at": 24,
+       "url": "https://fonts.gstatic.com/s/instrumentserif/v5/jizHRFtNs2ka5fXjeivQ4LroWlx-6zAjjH7Motmp5g.woff2"
+      },
+      {
+       "at": 24,
+       "url": "/assets/index-rZwbIwtW.js"
+      },
+      {
+       "at": 24,
+       "url": "/assets/rolldown-runtime-DK3Fl9T5.js"
+      },
+      {
+       "at": 24,
+       "url": "/assets/vendor-reka-ui-4DPhyUsZ.js"
+      },
+      {
+       "at": 24,
+       "url": "/assets/_plugin-vue_export-helper-BWVvCjWZ.js"
+      },
+      {
+       "at": 24,
+       "url": "/assets/preload-helper-kNaey6uv.js"
+      },
+      {
+       "at": 24,
+       "url": "/assets/keyboard-BmEMwZUm.js"
+      },
+      {
+       "at": 24,
+       "url": "/assets/progress-e88g4GGc.js"
+      },
+      {
+       "at": 24,
+       "url": "/assets/timing-function-CtQ34pOp.js"
+      },
+      {
+       "at": 24,
+       "url": "/assets/binary-search-U2Hj7143.js"
+      },
+      {
+       "at": 24,
+       "url": "/assets/vendor-lucide-BET3I7w3.js"
+      },
+      {
+       "at": 24,
+       "url": "/assets/pointerFieldMappings-DXwlU5uj-D5wIeQ_V.js"
+      },
+      {
+       "at": 24,
+       "url": "/assets/glass-ui-BrtcQ8aJ.js"
+      },
+      {
+       "at": 24,
+       "url": "https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap"
+      },
+      {
+       "at": 24,
+       "url": "/assets/index-CKrMH4Il.css"
+      },
+      {
+       "at": 60,
+       "url": "/assets/public-BcvGh6So.js"
+      },
+      {
+       "at": 60,
+       "url": "/assets/selector-p3bXA53F.js"
+      },
+      {
+       "at": 60,
+       "url": "/assets/HeroAurora-CZRChc1c.js"
+      },
+      {
+       "at": 60,
+       "url": "/assets/color-grammar-CRvuKec1-Cd3aM6VH.js"
+      },
+      {
+       "at": 60,
+       "url": "/assets/HeroAurora-CJUYErC9.css"
+      },
+      {
+       "at": 154,
+       "url": "https://fonts.gstatic.com/s/instrumentserif/v5/jizBRFtNs2ka5fXjeivQ4LroWlx-6zUTjnTLgNs.woff2"
+      },
+      {
+       "at": 156,
+       "url": "/assets/AmigaScene-D5lGLo4t.js"
+      },
+      {
+       "at": 156,
+       "url": "/assets/arrowNudge-D7YehOEl.js"
+      },
+      {
+       "at": 156,
+       "url": "/assets/AmigaScene-CZ-H5DGo.css"
+      },
+      {
+       "at": 156,
+       "url": "/assets/SquareScene-DAa58Pyc.js"
+      },
+      {
+       "at": 156,
+       "url": "/assets/useSweepScene-DL8J9Itd.js"
+      },
+      {
+       "at": 156,
+       "url": "/assets/useSweepScene-B__ZuSDF.css"
+      },
+      {
+       "at": 156,
+       "url": "/assets/SquareScene-B7GpYqAj.css"
+      },
+      {
+       "at": 156,
+       "url": "/assets/EasingScene-FgfwFadK.js"
+      },
+      {
+       "at": 156,
+       "url": "/assets/usePainterRegistry-DK8-RVKk.js"
+      },
+      {
+       "at": 156,
+       "url": "/assets/copyWithToast-C0Bsi9O2.js"
+      },
+      {
+       "at": 156,
+       "url": "/assets/usePainterRegistry-C0DwymcO.css"
+      },
+      {
+       "at": 156,
+       "url": "/assets/EasingScene-B7P-3tCr.css"
+      },
+      {
+       "at": 156,
+       "url": "/assets/SpringScene-0uD6b8IU.js"
+      },
+      {
+       "at": 156,
+       "url": "/assets/codeTokens-c1Vqa4L7.js"
+      },
+      {
+       "at": 156,
+       "url": "/assets/SpringScene-Bd3fkLgj.css"
+      },
+      {
+       "at": 156,
+       "url": "/assets/SequenceScene-BnqWhRU3.js"
+      },
+      {
+       "at": 156,
+       "url": "/assets/SequenceScene-CztErGj8.css"
+      },
+      {
+       "at": 160,
+       "url": "/assets/vendor-three-nw0IrzH_.js"
+      }
+     ]
+    },
+    {
+     "id": "home-1440",
+     "env": {
+      "load1": 16.05,
+      "memFreePct": 77
+     },
+     "fcp": 172,
+     "lcp": 240,
+     "cls": 0.0101,
+     "tbt": 0,
+     "jsKB": 1890,
+     "jsWireKB": 551,
+     "thirdParty": [
+      "https://fonts.gstatic.com",
+      "https://fonts.googleapis.com"
+     ],
+     "monaco10s": 0,
+     "three10s": 1,
+     "requests": [
+      {
+       "at": 12,
+       "url": "/"
+      },
+      {
+       "at": 18,
+       "url": "https://fonts.gstatic.com/s/instrumentserif/v5/jizHRFtNs2ka5fXjeivQ4LroWlx-6zAjjH7Motmp5g.woff2"
+      },
+      {
+       "at": 18,
+       "url": "/assets/index-rZwbIwtW.js"
+      },
+      {
+       "at": 18,
+       "url": "/assets/rolldown-runtime-DK3Fl9T5.js"
+      },
+      {
+       "at": 18,
+       "url": "/assets/vendor-reka-ui-4DPhyUsZ.js"
+      },
+      {
+       "at": 18,
+       "url": "/assets/_plugin-vue_export-helper-BWVvCjWZ.js"
+      },
+      {
+       "at": 18,
+       "url": "/assets/preload-helper-kNaey6uv.js"
+      },
+      {
+       "at": 18,
+       "url": "/assets/keyboard-BmEMwZUm.js"
+      },
+      {
+       "at": 18,
+       "url": "/assets/progress-e88g4GGc.js"
+      },
+      {
+       "at": 18,
+       "url": "/assets/timing-function-CtQ34pOp.js"
+      },
+      {
+       "at": 18,
+       "url": "/assets/binary-search-U2Hj7143.js"
+      },
+      {
+       "at": 18,
+       "url": "/assets/vendor-lucide-BET3I7w3.js"
+      },
+      {
+       "at": 18,
+       "url": "/assets/pointerFieldMappings-DXwlU5uj-D5wIeQ_V.js"
+      },
+      {
+       "at": 18,
+       "url": "/assets/glass-ui-BrtcQ8aJ.js"
+      },
+      {
+       "at": 19,
+       "url": "https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap"
+      },
+      {
+       "at": 19,
+       "url": "/assets/index-CKrMH4Il.css"
+      },
+      {
+       "at": 60,
+       "url": "/assets/public-BcvGh6So.js"
+      },
+      {
+       "at": 60,
+       "url": "/assets/selector-p3bXA53F.js"
+      },
+      {
+       "at": 60,
+       "url": "/assets/HeroAurora-CZRChc1c.js"
+      },
+      {
+       "at": 60,
+       "url": "/assets/color-grammar-CRvuKec1-Cd3aM6VH.js"
+      },
+      {
+       "at": 61,
+       "url": "/assets/HeroAurora-CJUYErC9.css"
+      },
+      {
+       "at": 166,
+       "url": "https://fonts.gstatic.com/s/instrumentserif/v5/jizBRFtNs2ka5fXjeivQ4LroWlx-6zUTjnTLgNs.woff2"
+      },
+      {
+       "at": 189,
+       "url": "/assets/AmigaScene-D5lGLo4t.js"
+      },
+      {
+       "at": 189,
+       "url": "/assets/arrowNudge-D7YehOEl.js"
+      },
+      {
+       "at": 189,
+       "url": "/assets/AmigaScene-CZ-H5DGo.css"
+      },
+      {
+       "at": 189,
+       "url": "/assets/SquareScene-DAa58Pyc.js"
+      },
+      {
+       "at": 189,
+       "url": "/assets/useSweepScene-DL8J9Itd.js"
+      },
+      {
+       "at": 189,
+       "url": "/assets/useSweepScene-B__ZuSDF.css"
+      },
+      {
+       "at": 189,
+       "url": "/assets/SquareScene-B7GpYqAj.css"
+      },
+      {
+       "at": 189,
+       "url": "/assets/EasingScene-FgfwFadK.js"
+      },
+      {
+       "at": 189,
+       "url": "/assets/usePainterRegistry-DK8-RVKk.js"
+      },
+      {
+       "at": 189,
+       "url": "/assets/copyWithToast-C0Bsi9O2.js"
+      },
+      {
+       "at": 189,
+       "url": "/assets/usePainterRegistry-C0DwymcO.css"
+      },
+      {
+       "at": 189,
+       "url": "/assets/EasingScene-B7P-3tCr.css"
+      },
+      {
+       "at": 189,
+       "url": "/assets/SpringScene-0uD6b8IU.js"
+      },
+      {
+       "at": 191,
+       "url": "/assets/codeTokens-c1Vqa4L7.js"
+      },
+      {
+       "at": 191,
+       "url": "/assets/SpringScene-Bd3fkLgj.css"
+      },
+      {
+       "at": 191,
+       "url": "/assets/SequenceScene-BnqWhRU3.js"
+      },
+      {
+       "at": 191,
+       "url": "/assets/SequenceScene-CztErGj8.css"
+      },
+      {
+       "at": 192,
+       "url": "/assets/vendor-three-nw0IrzH_.js"
+      }
+     ]
+    },
+    {
+     "id": "home-1440",
+     "env": {
+      "load1": 17.55,
+      "memFreePct": 77
+     },
+     "fcp": 164,
+     "lcp": 216,
+     "cls": 0.2099,
+     "tbt": 0,
+     "jsKB": 1890,
+     "jsWireKB": 551,
+     "thirdParty": [
+      "https://fonts.gstatic.com",
+      "https://fonts.googleapis.com"
+     ],
+     "monaco10s": 0,
+     "three10s": 1,
+     "requests": [
+      {
+       "at": 11,
+       "url": "/"
+      },
+      {
+       "at": 15,
+       "url": "https://fonts.gstatic.com/s/instrumentserif/v5/jizHRFtNs2ka5fXjeivQ4LroWlx-6zAjjH7Motmp5g.woff2"
+      },
+      {
+       "at": 15,
+       "url": "/assets/index-rZwbIwtW.js"
+      },
+      {
+       "at": 15,
+       "url": "/assets/rolldown-runtime-DK3Fl9T5.js"
+      },
+      {
+       "at": 15,
+       "url": "/assets/vendor-reka-ui-4DPhyUsZ.js"
+      },
+      {
+       "at": 16,
+       "url": "/assets/_plugin-vue_export-helper-BWVvCjWZ.js"
+      },
+      {
+       "at": 16,
+       "url": "/assets/preload-helper-kNaey6uv.js"
+      },
+      {
+       "at": 16,
+       "url": "/assets/keyboard-BmEMwZUm.js"
+      },
+      {
+       "at": 16,
+       "url": "/assets/progress-e88g4GGc.js"
+      },
+      {
+       "at": 16,
+       "url": "/assets/timing-function-CtQ34pOp.js"
+      },
+      {
+       "at": 16,
+       "url": "/assets/binary-search-U2Hj7143.js"
+      },
+      {
+       "at": 16,
+       "url": "/assets/vendor-lucide-BET3I7w3.js"
+      },
+      {
+       "at": 16,
+       "url": "/assets/pointerFieldMappings-DXwlU5uj-D5wIeQ_V.js"
+      },
+      {
+       "at": 16,
+       "url": "/assets/glass-ui-BrtcQ8aJ.js"
+      },
+      {
+       "at": 17,
+       "url": "https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap"
+      },
+      {
+       "at": 17,
+       "url": "/assets/index-CKrMH4Il.css"
+      },
+      {
+       "at": 56,
+       "url": "/assets/public-BcvGh6So.js"
+      },
+      {
+       "at": 56,
+       "url": "/assets/selector-p3bXA53F.js"
+      },
+      {
+       "at": 56,
+       "url": "/assets/HeroAurora-CZRChc1c.js"
+      },
+      {
+       "at": 56,
+       "url": "/assets/color-grammar-CRvuKec1-Cd3aM6VH.js"
+      },
+      {
+       "at": 56,
+       "url": "/assets/HeroAurora-CJUYErC9.css"
+      },
+      {
+       "at": 179,
+       "url": "/assets/AmigaScene-D5lGLo4t.js"
+      },
+      {
+       "at": 179,
+       "url": "/assets/arrowNudge-D7YehOEl.js"
+      },
+      {
+       "at": 179,
+       "url": "/assets/AmigaScene-CZ-H5DGo.css"
+      },
+      {
+       "at": 179,
+       "url": "/assets/SquareScene-DAa58Pyc.js"
+      },
+      {
+       "at": 179,
+       "url": "/assets/useSweepScene-DL8J9Itd.js"
+      },
+      {
+       "at": 179,
+       "url": "/assets/useSweepScene-B__ZuSDF.css"
+      },
+      {
+       "at": 179,
+       "url": "/assets/SquareScene-B7GpYqAj.css"
+      },
+      {
+       "at": 179,
+       "url": "/assets/EasingScene-FgfwFadK.js"
+      },
+      {
+       "at": 179,
+       "url": "/assets/usePainterRegistry-DK8-RVKk.js"
+      },
+      {
+       "at": 179,
+       "url": "/assets/copyWithToast-C0Bsi9O2.js"
+      },
+      {
+       "at": 179,
+       "url": "/assets/usePainterRegistry-C0DwymcO.css"
+      },
+      {
+       "at": 179,
+       "url": "/assets/EasingScene-B7P-3tCr.css"
+      },
+      {
+       "at": 179,
+       "url": "/assets/SpringScene-0uD6b8IU.js"
+      },
+      {
+       "at": 179,
+       "url": "/assets/codeTokens-c1Vqa4L7.js"
+      },
+      {
+       "at": 179,
+       "url": "/assets/SpringScene-Bd3fkLgj.css"
+      },
+      {
+       "at": 179,
+       "url": "/assets/SequenceScene-BnqWhRU3.js"
+      },
+      {
+       "at": 179,
+       "url": "/assets/SequenceScene-CztErGj8.css"
+      },
+      {
+       "at": 188,
+       "url": "/assets/vendor-three-nw0IrzH_.js"
+      },
+      {
+       "at": 200,
+       "url": "https://fonts.gstatic.com/s/instrumentserif/v5/jizBRFtNs2ka5fXjeivQ4LroWlx-6zUTjnTLgNs.woff2"
+      }
+     ]
+    }
+   ]
+  },
+  "bytes-home-390": {
+   "id": "bytes-home-390",
+   "env": {
+    "load1": 15.76,
+    "memFreePct": 77
+   },
+   "windowMs": 8000,
+   "evaluatedKB": 1888,
+   "evaluatedGzKB": 550,
+   "evaluated": [
+    "rolldown-runtime-DK3Fl9T5.js 0",
+    "_plugin-vue_export-helper-BWVvCjWZ.js 1",
+    "preload-helper-kNaey6uv.js 1",
+    "timing-function-CtQ34pOp.js 2",
+    "keyboard-BmEMwZUm.js 22",
+    "binary-search-U2Hj7143.js 0",
+    "progress-e88g4GGc.js 8",
+    "vendor-lucide-BET3I7w3.js 11",
+    "pointerFieldMappings-DXwlU5uj-D5wIeQ_V.js 4",
+    "glass-ui-BrtcQ8aJ.js 88",
+    "vendor-reka-ui-4DPhyUsZ.js 328",
+    "index-rZwbIwtW.js 448",
+    "selector-p3bXA53F.js 0",
+    "public-BcvGh6So.js 121",
+    "color-grammar-CRvuKec1-Cd3aM6VH.js 37",
+    "HeroAurora-CZRChc1c.js 208",
+    "arrowNudge-D7YehOEl.js 1",
+    "AmigaScene-D5lGLo4t.js 13",
+    "useSweepScene-DL8J9Itd.js 2",
+    "SquareScene-DAa58Pyc.js 13",
+    "EasingScene-FgfwFadK.js 8",
+    "copyWithToast-C0Bsi9O2.js 0",
+    "usePainterRegistry-DK8-RVKk.js 3",
+    "codeTokens-c1Vqa4L7.js 1",
+    "SpringScene-0uD6b8IU.js 36",
+    "SequenceScene-BnqWhRU3.js 7",
+    "vendor-three-nw0IrzH_.js 525"
+   ],
+   "threeEvaluated": 1,
+   "monacoEvaluated": 0,
+   "monacoRequests": 0,
+   "threeRequests": 1
+  },
+  "bytes-spring-390": {
+   "id": "bytes-spring-390",
+   "env": {
+    "load1": 14.98,
+    "memFreePct": 77
+   },
+   "windowMs": 10000,
+   "evaluatedKB": 4648,
+   "evaluatedGzKB": 1268,
+   "evaluated": [
+    "rolldown-runtime-DK3Fl9T5.js 0",
+    "_plugin-vue_export-helper-BWVvCjWZ.js 1",
+    "preload-helper-kNaey6uv.js 1",
+    "progress-e88g4GGc.js 8",
+    "binary-search-U2Hj7143.js 0",
+    "keyboard-BmEMwZUm.js 22",
+    "timing-function-CtQ34pOp.js 2",
+    "vendor-lucide-BET3I7w3.js 11",
+    "pointerFieldMappings-DXwlU5uj-D5wIeQ_V.js 4",
+    "glass-ui-BrtcQ8aJ.js 88",
+    "vendor-reka-ui-4DPhyUsZ.js 328",
+    "index-rZwbIwtW.js 448",
+    "selector-p3bXA53F.js 0",
+    "public-BcvGh6So.js 121",
+    "usePainterRegistry-DK8-RVKk.js 3",
+    "copyWithToast-C0Bsi9O2.js 0",
+    "codeTokens-c1Vqa4L7.js 1",
+    "useSweepScene-DL8J9Itd.js 2",
+    "SpringScene-0uD6b8IU.js 36",
+    "formatEditorCSS-D8Wafaon.js 2",
+    "KeyframesStringControls-BzKgRPDC.js 21",
+    "KeyframeTimeline-Dym0eWQc.js 34",
+    "arrowNudge-D7YehOEl.js 1",
+    "AmigaScene-D5lGLo4t.js 13",
+    "SquareScene-DAa58Pyc.js 13",
+    "EasingScene-FgfwFadK.js 8",
+    "color-grammar-CRvuKec1-Cd3aM6VH.js 37",
+    "SequenceScene-BnqWhRU3.js 7",
+    "HeroAurora-CZRChc1c.js 208",
+    "vendor-three-nw0IrzH_.js 525",
+    "vendor-prettier-BlTWbCTH.js 233",
+    "vendor-monaco-nwzXcI7Q.js 2470"
+   ],
+   "threeEvaluated": 1,
+   "monacoEvaluated": 1,
+   "monacoRequests": 2,
+   "threeRequests": 1
+  },
+  "bytes-easing-390": {
+   "id": "bytes-easing-390",
+   "env": {
+    "load1": 14.23,
+    "memFreePct": 77
+   },
+   "windowMs": 10000,
+   "evaluatedKB": 4648,
+   "evaluatedGzKB": 1268,
+   "evaluated": [
+    "rolldown-runtime-DK3Fl9T5.js 0",
+    "_plugin-vue_export-helper-BWVvCjWZ.js 1",
+    "preload-helper-kNaey6uv.js 1",
+    "progress-e88g4GGc.js 8",
+    "keyboard-BmEMwZUm.js 22",
+    "timing-function-CtQ34pOp.js 2",
+    "binary-search-U2Hj7143.js 0",
+    "pointerFieldMappings-DXwlU5uj-D5wIeQ_V.js 4",
+    "vendor-lucide-BET3I7w3.js 11",
+    "glass-ui-BrtcQ8aJ.js 88",
+    "vendor-reka-ui-4DPhyUsZ.js 328",
+    "index-rZwbIwtW.js 448",
+    "selector-p3bXA53F.js 0",
+    "EasingScene-FgfwFadK.js 8",
+    "usePainterRegistry-DK8-RVKk.js 3",
+    "public-BcvGh6So.js 121",
+    "copyWithToast-C0Bsi9O2.js 0",
+    "useSweepScene-DL8J9Itd.js 2",
+    "formatEditorCSS-D8Wafaon.js 2",
+    "codeTokens-c1Vqa4L7.js 1",
+    "KeyframeTimeline-Dym0eWQc.js 34",
+    "KeyframesStringControls-BzKgRPDC.js 21",
+    "vendor-prettier-BlTWbCTH.js 233",
+    "arrowNudge-D7YehOEl.js 1",
+    "AmigaScene-D5lGLo4t.js 13",
+    "color-grammar-CRvuKec1-Cd3aM6VH.js 37",
+    "SquareScene-DAa58Pyc.js 13",
+    "SpringScene-0uD6b8IU.js 36",
+    "SequenceScene-BnqWhRU3.js 7",
+    "HeroAurora-CZRChc1c.js 208",
+    "vendor-three-nw0IrzH_.js 525",
+    "vendor-monaco-nwzXcI7Q.js 2470"
+   ],
+   "threeEvaluated": 1,
+   "monacoEvaluated": 1,
+   "monacoRequests": 2,
+   "threeRequests": 1
+  },
+  "swap": {
+   "summary": {
+    "cube->amiga": {
+     "prepare": 87,
+     "commit": 295,
+     "total": 1111,
+     "frameP95": 416.4
+    },
+    "amiga->cube": {
+     "prepare": 4,
+     "commit": 300,
+     "total": 1081,
+     "frameP95": 376.8
+    },
+    "cube->square": {
+     "prepare": 48,
+     "commit": 303,
+     "total": 781,
+     "frameP95": 349.7
+    },
+    "square->cube": {
+     "prepare": 6,
+     "commit": 261,
+     "total": 1229,
+     "frameP95": 434.4
+    },
+    "cube->easing": {
+     "prepare": 37,
+     "commit": 370,
+     "total": 897,
+     "frameP95": 401.6
+    },
+    "easing->cube": {
+     "prepare": 1,
+     "commit": 292,
+     "total": 1165,
+     "frameP95": 391.8
+    },
+    "cube->spring": {
+     "prepare": 49,
+     "commit": 334,
+     "total": 865,
+     "frameP95": 375.2
+    },
+    "spring->cube": {
+     "prepare": 5,
+     "commit": 290,
+     "total": 1241,
+     "frameP95": 442.4
+    },
+    "cube->sequence": {
+     "prepare": 42,
+     "commit": 219,
+     "total": 697,
+     "frameP95": 258.8
+    },
+    "sequence->cube": {
+     "prepare": 1,
+     "commit": 262,
+     "total": 1110,
+     "frameP95": 334.3
+    },
+    "cube->home": {
+     "prepare": 39,
+     "commit": 76,
+     "total": 494,
+     "frameP95": 108.2
+    },
+    "home->cube": {
+     "prepare": 6,
+     "commit": 152,
+     "total": 597,
+     "frameP95": 182.4
+    }
+   },
+   "runs": [
+    {
+     "env": {
+      "load1": 13.81,
+      "memFreePct": 77
+     },
+     "hops": [
+      {
+       "hop": "cube->amiga",
+       "prepare": 72,
+       "total": 1006,
+       "commit": 239,
+       "frames": [
+        15.9,
+        9.4,
+        16.8,
+        7.9,
+        7.1,
+        8.5,
+        284.4,
+        33.5,
+        39.9,
+        184.5,
+        390.6,
+        8.9,
+        8.8
+       ]
+      },
+      {
+       "hop": "amiga->cube",
+       "prepare": 7,
+       "total": 1069,
+       "commit": 247,
+       "frames": [
+        266.3,
+        42.6,
+        8.4,
+        17,
+        56.6,
+        376.8
+       ]
+      },
+      {
+       "hop": "cube->square",
+       "prepare": 61,
+       "total": 838,
+       "commit": 317,
+       "frames": [
+        31.8,
+        18.2,
+        16.1,
+        357.7,
+        67.3,
+        17.3,
+        15.2,
+        67.7,
+        50.5,
+        50.3,
+        74.9
+       ]
+      },
+      {
+       "hop": "square->cube",
+       "prepare": 0,
+       "total": 1305,
+       "commit": 285,
+       "frames": [
+        316.9,
+        58.5,
+        8.2,
+        15.6,
+        76.4,
+        456.4
+       ]
+      },
+      {
+       "hop": "cube->easing",
+       "prepare": 37,
+       "total": 897,
+       "commit": 370,
+       "frames": [
+        18.2,
+        7.5,
+        16.3,
+        401.6,
+        90.2,
+        24.8,
+        9.3,
+        83.6,
+        57.3,
+        92.7
+       ]
+      },
+      {
+       "hop": "easing->cube",
+       "prepare": 3,
+       "total": 1234,
+       "commit": 292,
+       "frames": [
+        323.9,
+        50.8,
+        8.4,
+        17.2,
+        74.9,
+        408.5
+       ]
+      },
+      {
+       "hop": "cube->spring",
+       "prepare": 49,
+       "total": 865,
+       "commit": 334,
+       "frames": [
+        24.9,
+        7.9,
+        15.6,
+        375.2,
+        83.5,
+        32.7,
+        75.8,
+        34.3,
+        41.4,
+        82.8,
+        92.5
+       ]
+      },
+      {
+       "hop": "spring->cube",
+       "prepare": 5,
+       "total": 1241,
+       "commit": 290,
+       "frames": [
+        318.4,
+        48.2,
+        8.8,
+        9.6,
+        57.7,
+        442.4
+       ]
+      },
+      {
+       "hop": "cube->sequence",
+       "prepare": 42,
+       "total": 697,
+       "commit": 219,
+       "frames": [
+        17.7,
+        15.2,
+        9.7,
+        258.8,
+        65,
+        26.4,
+        8.4,
+        66.9,
+        48.1,
+        84.4,
+        40.8
+       ]
+      },
+      {
+       "hop": "sequence->cube",
+       "prepare": 6,
+       "total": 1229,
+       "commit": 294,
+       "frames": [
+        325.5,
+        49.5,
+        9.7,
+        16.7,
+        66.5,
+        408.4
+       ]
+      },
+      {
+       "hop": "cube->home",
+       "prepare": 45,
+       "total": 565,
+       "commit": 91,
+       "frames": [
+        23.8,
+        17.5,
+        8.6,
+        133.3,
+        49.9,
+        8.4,
+        65.2,
+        26.8,
+        64.9,
+        41.5,
+        67.6
+       ]
+      },
+      {
+       "hop": "home->cube",
+       "prepare": 6,
+       "total": 643,
+       "commit": 152,
+       "frames": [
+        182.4,
+        59.2,
+        25.2,
+        48.6,
+        34.7,
+        75,
+        57.9,
+        75.6
+       ]
+      }
+     ]
+    },
+    {
+     "env": {
+      "load1": 17.32,
+      "memFreePct": 77
+     },
+     "hops": [
+      {
+       "hop": "cube->amiga",
+       "prepare": 87,
+       "total": 1167,
+       "commit": 337,
+       "frames": [
+        26,
+        7.9,
+        16.8,
+        16.6,
+        17,
+        391.2,
+        41.8,
+        65.5,
+        109.8,
+        40.4,
+        416.4,
+        16.5,
+        8.2
+       ]
+      },
+      {
+       "hop": "amiga->cube",
+       "prepare": 4,
+       "total": 1245,
+       "commit": 331,
+       "frames": [
+        350.4,
+        49,
+        7.5,
+        18.5,
+        64.6,
+        401
+       ]
+      },
+      {
+       "hop": "cube->square",
+       "prepare": 48,
+       "total": 781,
+       "commit": 303,
+       "frames": [
+        17.3,
+        17.7,
+        15.9,
+        349.7,
+        51,
+        25.3,
+        7.9,
+        65.7,
+        51,
+        75.4,
+        49.9
+       ]
+      },
+      {
+       "hop": "square->cube",
+       "prepare": 6,
+       "total": 1229,
+       "commit": 261,
+       "frames": [
+        293.1,
+        41.8,
+        15.8,
+        9.4,
+        65.3,
+        434.4
+       ]
+      },
+      {
+       "hop": "cube->easing",
+       "prepare": 59,
+       "total": 961,
+       "commit": 384,
+       "frames": [
+        16.5,
+        16.8,
+        16.4,
+        433.4,
+        90.3,
+        17,
+        17.2,
+        75.2,
+        50.1,
+        82.4,
+        58.1
+       ]
+      },
+      {
+       "hop": "easing->cube",
+       "prepare": 1,
+       "total": 1163,
+       "commit": 304,
+       "frames": [
+        342.2,
+        50.1,
+        7.4,
+        25.3,
+        82.7,
+        301.6
+       ]
+      },
+      {
+       "hop": "cube->spring",
+       "prepare": 42,
+       "total": 844,
+       "commit": 311,
+       "frames": [
+        16.2,
+        16.9,
+        8.4,
+        350,
+        91.8,
+        25.1,
+        65.6,
+        34.3,
+        74.7,
+        49.5,
+        91.5,
+        9.3
+       ]
+      },
+      {
+       "hop": "spring->cube",
+       "prepare": 1,
+       "total": 1028,
+       "commit": 228,
+       "frames": [
+        248.6,
+        41.3,
+        18.3,
+        8.1,
+        50,
+        358.6
+       ]
+      },
+      {
+       "hop": "cube->sequence",
+       "prepare": 33,
+       "total": 590,
+       "commit": 161,
+       "frames": [
+        16.1,
+        7.7,
+        16.9,
+        184.7,
+        41.6,
+        6.5,
+        18,
+        50.2,
+        33.4,
+        57.1,
+        33.9,
+        50.4,
+        33.6
+       ]
+      },
+      {
+       "hop": "sequence->cube",
+       "prepare": 1,
+       "total": 912,
+       "commit": 200,
+       "frames": [
+        226.2,
+        42,
+        8,
+        8.3,
+        41.9,
+        308.1
+       ]
+      },
+      {
+       "hop": "cube->home",
+       "prepare": 35,
+       "total": 483,
+       "commit": 72,
+       "frames": [
+        8.7,
+        15,
+        10.3,
+        107.5,
+        32.2,
+        8.7,
+        58.2,
+        17.5,
+        49.5,
+        34.5,
+        48.3,
+        26.5,
+        33.4
+       ]
+      },
+      {
+       "hop": "home->cube",
+       "prepare": 7,
+       "total": 535,
+       "commit": 109,
+       "frames": [
+        131.4,
+        34.9,
+        16.8,
+        50.1,
+        41.7,
+        49.5,
+        41,
+        50,
+        57.8
+       ]
+      }
+     ]
+    },
+    {
+     "env": {
+      "load1": 16.37,
+      "memFreePct": 77
+     },
+     "hops": [
+      {
+       "hop": "cube->amiga",
+       "prepare": 88,
+       "total": 1111,
+       "commit": 295,
+       "frames": [
+        25.3,
+        8.8,
+        15.6,
+        8.2,
+        10,
+        16.6,
+        341.3,
+        40.2,
+        68.6,
+        115.3,
+        33.2,
+        416.6,
+        17.1,
+        16.4
+       ]
+      },
+      {
+       "hop": "amiga->cube",
+       "prepare": 4,
+       "total": 1081,
+       "commit": 300,
+       "frames": [
+        324,
+        35,
+        7.3,
+        24.4,
+        60.2,
+        333
+       ]
+      },
+      {
+       "hop": "cube->square",
+       "prepare": 43,
+       "total": 742,
+       "commit": 273,
+       "frames": [
+        16.7,
+        17.1,
+        17.5,
+        308.2,
+        50.5,
+        14.7,
+        16.9,
+        60,
+        32.7,
+        58.7,
+        41.9,
+        66.4
+       ]
+      },
+      {
+       "hop": "square->cube",
+       "prepare": 7,
+       "total": 923,
+       "commit": 198,
+       "frames": [
+        223.1,
+        34.8,
+        7.4,
+        17.8,
+        49.8,
+        315.7
+       ]
+      },
+      {
+       "hop": "cube->easing",
+       "prepare": 33,
+       "total": 845,
+       "commit": 337,
+       "frames": [
+        9.5,
+        16.2,
+        7.8,
+        367.8,
+        89.8,
+        18.2,
+        15.8,
+        74.9,
+        32.9,
+        75.7,
+        42.7,
+        48.2
+       ]
+      },
+      {
+       "hop": "easing->cube",
+       "prepare": 1,
+       "total": 1165,
+       "commit": 239,
+       "frames": [
+        266.4,
+        41.8,
+        9.3,
+        17.2,
+        50.2,
+        391.8
+       ]
+      },
+      {
+       "hop": "cube->spring",
+       "prepare": 50,
+       "total": 933,
+       "commit": 363,
+       "frames": [
+        16.5,
+        17.4,
+        16.1,
+        408.4,
+        99.6,
+        27,
+        73,
+        41.7,
+        50.2,
+        76.8,
+        108
+       ]
+      },
+      {
+       "hop": "spring->cube",
+       "prepare": 6,
+       "total": 1302,
+       "commit": 346,
+       "frames": [
+        375.2,
+        91.9,
+        8.8,
+        24.1,
+        83.3,
+        443.4
+       ]
+      },
+      {
+       "hop": "cube->sequence",
+       "prepare": 47,
+       "total": 726,
+       "commit": 253,
+       "frames": [
+        24.2,
+        8.4,
+        16.4,
+        300,
+        68.2,
+        15,
+        9,
+        67.5,
+        49.1,
+        74.4,
+        43.5
+       ]
+      },
+      {
+       "hop": "sequence->cube",
+       "prepare": 1,
+       "total": 1110,
+       "commit": 262,
+       "frames": [
+        291.2,
+        50.6,
+        7.7,
+        17.3,
+        66.1,
+        334.3
+       ]
+      },
+      {
+       "hop": "cube->home",
+       "prepare": 39,
+       "total": 494,
+       "commit": 76,
+       "frames": [
+        17.1,
+        9.9,
+        15,
+        108.2,
+        41.8,
+        18.3,
+        41.6,
+        15.1,
+        34.9,
+        56.8,
+        42.1,
+        50.4
+       ]
+      },
+      {
+       "hop": "home->cube",
+       "prepare": 4,
+       "total": 597,
+       "commit": 163,
+       "frames": [
+        192.1,
+        49.3,
+        25.2,
+        41.9,
+        49.6,
+        76,
+        66,
+        91.7
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  "vt": {
+   "env": {
+    "load1": 18.08,
+    "memFreePct": 77
+   },
+   "hops": [
+    {
+     "hop": "cube->amiga",
+     "prepare": 99,
+     "total": 1086,
+     "commit": 300,
+     "frames": [
+      25,
+      17,
+      16.2,
+      8.3,
+      17.3,
+      16,
+      351.9,
+      39.9,
+      41.9,
+      149.7,
+      391.8,
+      17.8
+     ],
+     "vt": {
+      "types": [],
+      "rootAnimated": [
+       "height",
+       "width",
+       "transform",
+       "backdropFilter",
+       "opacity",
+       "mixBlendMode",
+       "opacity",
+       "mixBlendMode"
+      ],
+      "animations": [
+       {
+        "pseudo": "::view-transition-group(chrome-dock)",
+        "name": "-ua-view-transition-group-anim-chrome-dock",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-group(scene-subject)",
+        "name": "-ua-view-transition-group-anim-scene-subject",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-group(root)",
+        "name": "-ua-view-transition-group-anim-root",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-group(transport-dock)",
+        "name": "-ua-view-transition-group-anim-transport-dock",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(root)",
+        "name": "-ua-view-transition-fade-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(root)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(root)",
+        "name": "-ua-view-transition-fade-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(root)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(scene-subject)",
+        "name": "-ua-view-transition-fade-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(scene-subject)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(scene-subject)",
+        "name": "-ua-view-transition-fade-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(scene-subject)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(chrome-dock)",
+        "name": "-ua-view-transition-fade-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(chrome-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(chrome-dock)",
+        "name": "-ua-view-transition-fade-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(chrome-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(transport-dock)",
+        "name": "-ua-view-transition-fade-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(transport-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(transport-dock)",
+        "name": "-ua-view-transition-fade-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(transport-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       }
+      ]
+     }
+    },
+    {
+     "hop": "amiga->cube",
+     "prepare": 8,
+     "total": 1045,
+     "commit": 298,
+     "frames": [
+      326.3,
+      42,
+      8,
+      16.2,
+      75.9,
+      264.9
+     ],
+     "vt": {
+      "types": [],
+      "rootAnimated": [
+       "height",
+       "width",
+       "transform",
+       "backdropFilter",
+       "opacity",
+       "mixBlendMode",
+       "opacity",
+       "mixBlendMode"
+      ],
+      "animations": [
+       {
+        "pseudo": "::view-transition-group(chrome-dock)",
+        "name": "-ua-view-transition-group-anim-chrome-dock",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-group(root)",
+        "name": "-ua-view-transition-group-anim-root",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-group(transport-dock)",
+        "name": "-ua-view-transition-group-anim-transport-dock",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-group(scene-subject)",
+        "name": "-ua-view-transition-group-anim-scene-subject",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(root)",
+        "name": "-ua-view-transition-fade-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(root)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(root)",
+        "name": "-ua-view-transition-fade-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(root)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(scene-subject)",
+        "name": "-ua-view-transition-fade-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(scene-subject)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(scene-subject)",
+        "name": "-ua-view-transition-fade-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(scene-subject)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(chrome-dock)",
+        "name": "-ua-view-transition-fade-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(chrome-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(chrome-dock)",
+        "name": "-ua-view-transition-fade-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(chrome-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(transport-dock)",
+        "name": "-ua-view-transition-fade-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(transport-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(transport-dock)",
+        "name": "-ua-view-transition-fade-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(transport-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       }
+      ]
+     }
+    },
+    {
+     "hop": "cube->square",
+     "prepare": 37,
+     "total": 780,
+     "commit": 304,
+     "frames": [
+      26.5,
+      7.2,
+      8.7,
+      342.2,
+      58,
+      17.3,
+      31.9,
+      76.9,
+      73.3,
+      75
+     ],
+     "vt": {
+      "types": [],
+      "rootAnimated": [
+       "height",
+       "width",
+       "transform",
+       "backdropFilter",
+       "opacity",
+       "mixBlendMode",
+       "opacity",
+       "mixBlendMode"
+      ],
+      "animations": [
+       {
+        "pseudo": "::view-transition-group(root)",
+        "name": "-ua-view-transition-group-anim-root",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-group(chrome-dock)",
+        "name": "-ua-view-transition-group-anim-chrome-dock",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-group(transport-dock)",
+        "name": "-ua-view-transition-group-anim-transport-dock",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-group(scene-subject)",
+        "name": "-ua-view-transition-group-anim-scene-subject",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(root)",
+        "name": "-ua-view-transition-fade-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(root)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(root)",
+        "name": "-ua-view-transition-fade-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(root)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(scene-subject)",
+        "name": "-ua-view-transition-fade-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(scene-subject)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(scene-subject)",
+        "name": "-ua-view-transition-fade-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(scene-subject)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(chrome-dock)",
+        "name": "-ua-view-transition-fade-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(chrome-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(chrome-dock)",
+        "name": "-ua-view-transition-fade-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(chrome-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(transport-dock)",
+        "name": "-ua-view-transition-fade-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(transport-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(transport-dock)",
+        "name": "-ua-view-transition-fade-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(transport-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       }
+      ]
+     }
+    },
+    {
+     "hop": "square->cube",
+     "prepare": 1,
+     "total": 1151,
+     "commit": 253,
+     "frames": [
+      283.5,
+      48.5,
+      9.6,
+      8.8,
+      66.5,
+      391.7
+     ],
+     "vt": {
+      "types": [],
+      "rootAnimated": [
+       "height",
+       "width",
+       "transform",
+       "backdropFilter",
+       "opacity",
+       "mixBlendMode",
+       "opacity",
+       "mixBlendMode"
+      ],
+      "animations": [
+       {
+        "pseudo": "::view-transition-group(transport-dock)",
+        "name": "-ua-view-transition-group-anim-transport-dock",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-group(root)",
+        "name": "-ua-view-transition-group-anim-root",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-group(scene-subject)",
+        "name": "-ua-view-transition-group-anim-scene-subject",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-group(chrome-dock)",
+        "name": "-ua-view-transition-group-anim-chrome-dock",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(root)",
+        "name": "-ua-view-transition-fade-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(root)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(root)",
+        "name": "-ua-view-transition-fade-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(root)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(scene-subject)",
+        "name": "-ua-view-transition-fade-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(scene-subject)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(scene-subject)",
+        "name": "-ua-view-transition-fade-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(scene-subject)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(chrome-dock)",
+        "name": "-ua-view-transition-fade-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(chrome-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(chrome-dock)",
+        "name": "-ua-view-transition-fade-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(chrome-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(transport-dock)",
+        "name": "-ua-view-transition-fade-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(transport-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(transport-dock)",
+        "name": "-ua-view-transition-fade-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(transport-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       }
+      ]
+     }
+    },
+    {
+     "hop": "cube->easing",
+     "prepare": 53,
+     "total": 1093,
+     "commit": 463,
+     "frames": [
+      15.2,
+      17.3,
+      26.1,
+      506.6,
+      108.9,
+      8.8,
+      33.8,
+      74.9,
+      23.5,
+      100.6,
+      92.4
+     ],
+     "vt": {
+      "types": [],
+      "rootAnimated": [
+       "height",
+       "width",
+       "transform",
+       "backdropFilter",
+       "opacity",
+       "mixBlendMode",
+       "opacity",
+       "mixBlendMode"
+      ],
+      "animations": [
+       {
+        "pseudo": "::view-transition-group(root)",
+        "name": "-ua-view-transition-group-anim-root",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-group(transport-dock)",
+        "name": "-ua-view-transition-group-anim-transport-dock",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-group(chrome-dock)",
+        "name": "-ua-view-transition-group-anim-chrome-dock",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-group(scene-subject)",
+        "name": "-ua-view-transition-group-anim-scene-subject",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(root)",
+        "name": "-ua-view-transition-fade-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(root)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(root)",
+        "name": "-ua-view-transition-fade-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(root)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(scene-subject)",
+        "name": "-ua-view-transition-fade-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(scene-subject)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(scene-subject)",
+        "name": "-ua-view-transition-fade-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(scene-subject)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(chrome-dock)",
+        "name": "-ua-view-transition-fade-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(chrome-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(chrome-dock)",
+        "name": "-ua-view-transition-fade-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(chrome-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(transport-dock)",
+        "name": "-ua-view-transition-fade-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(transport-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(transport-dock)",
+        "name": "-ua-view-transition-fade-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(transport-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       }
+      ]
+     }
+    },
+    {
+     "hop": "easing->cube",
+     "prepare": 5,
+     "total": 1564,
+     "commit": 356,
+     "frames": [
+      392.9,
+      65.1,
+      16.5,
+      34.8,
+      83.1,
+      525.3
+     ],
+     "vt": {
+      "types": [],
+      "rootAnimated": [
+       "height",
+       "width",
+       "transform",
+       "backdropFilter",
+       "opacity",
+       "mixBlendMode",
+       "opacity",
+       "mixBlendMode"
+      ],
+      "animations": [
+       {
+        "pseudo": "::view-transition-group(transport-dock)",
+        "name": "-ua-view-transition-group-anim-transport-dock",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-group(scene-subject)",
+        "name": "-ua-view-transition-group-anim-scene-subject",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-group(chrome-dock)",
+        "name": "-ua-view-transition-group-anim-chrome-dock",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-group(root)",
+        "name": "-ua-view-transition-group-anim-root",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(root)",
+        "name": "-ua-view-transition-fade-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(root)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(root)",
+        "name": "-ua-view-transition-fade-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(root)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(scene-subject)",
+        "name": "-ua-view-transition-fade-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(scene-subject)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(scene-subject)",
+        "name": "-ua-view-transition-fade-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(scene-subject)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(chrome-dock)",
+        "name": "-ua-view-transition-fade-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(chrome-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(chrome-dock)",
+        "name": "-ua-view-transition-fade-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(chrome-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(transport-dock)",
+        "name": "-ua-view-transition-fade-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(transport-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(transport-dock)",
+        "name": "-ua-view-transition-fade-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(transport-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       }
+      ]
+     }
+    },
+    {
+     "hop": "cube->spring",
+     "prepare": 51,
+     "total": 1043,
+     "commit": 397,
+     "frames": [
+      15.1,
+      17.8,
+      17,
+      440.7,
+      126.2,
+      49.9,
+      91.5,
+      91.6,
+      100.2
+     ],
+     "vt": {
+      "types": [],
+      "rootAnimated": [
+       "height",
+       "width",
+       "transform",
+       "backdropFilter",
+       "opacity",
+       "mixBlendMode",
+       "opacity",
+       "mixBlendMode"
+      ],
+      "animations": [
+       {
+        "pseudo": "::view-transition-group(scene-subject)",
+        "name": "-ua-view-transition-group-anim-scene-subject",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-group(chrome-dock)",
+        "name": "-ua-view-transition-group-anim-chrome-dock",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-group(root)",
+        "name": "-ua-view-transition-group-anim-root",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-group(transport-dock)",
+        "name": "-ua-view-transition-group-anim-transport-dock",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(root)",
+        "name": "-ua-view-transition-fade-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(root)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(root)",
+        "name": "-ua-view-transition-fade-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(root)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(scene-subject)",
+        "name": "-ua-view-transition-fade-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(scene-subject)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(scene-subject)",
+        "name": "-ua-view-transition-fade-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(scene-subject)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(chrome-dock)",
+        "name": "-ua-view-transition-fade-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(chrome-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(chrome-dock)",
+        "name": "-ua-view-transition-fade-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(chrome-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(transport-dock)",
+        "name": "-ua-view-transition-fade-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(transport-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(transport-dock)",
+        "name": "-ua-view-transition-fade-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(transport-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       }
+      ]
+     }
+    },
+    {
+     "hop": "spring->cube",
+     "prepare": 1,
+     "total": 1297,
+     "commit": 303,
+     "frames": [
+      332.9,
+      50.4,
+      7.6,
+      35,
+      81.9,
+      442.6
+     ],
+     "vt": {
+      "types": [],
+      "rootAnimated": [
+       "height",
+       "width",
+       "transform",
+       "backdropFilter",
+       "opacity",
+       "mixBlendMode",
+       "opacity",
+       "mixBlendMode"
+      ],
+      "animations": [
+       {
+        "pseudo": "::view-transition-group(root)",
+        "name": "-ua-view-transition-group-anim-root",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-group(scene-subject)",
+        "name": "-ua-view-transition-group-anim-scene-subject",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-group(chrome-dock)",
+        "name": "-ua-view-transition-group-anim-chrome-dock",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-group(transport-dock)",
+        "name": "-ua-view-transition-group-anim-transport-dock",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(root)",
+        "name": "-ua-view-transition-fade-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(root)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(root)",
+        "name": "-ua-view-transition-fade-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(root)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(scene-subject)",
+        "name": "-ua-view-transition-fade-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(scene-subject)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(scene-subject)",
+        "name": "-ua-view-transition-fade-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(scene-subject)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(chrome-dock)",
+        "name": "-ua-view-transition-fade-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(chrome-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(chrome-dock)",
+        "name": "-ua-view-transition-fade-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(chrome-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(transport-dock)",
+        "name": "-ua-view-transition-fade-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(transport-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(transport-dock)",
+        "name": "-ua-view-transition-fade-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(transport-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       }
+      ]
+     }
+    },
+    {
+     "hop": "cube->sequence",
+     "prepare": 40,
+     "total": 683,
+     "commit": 194,
+     "frames": [
+      15,
+      10.2,
+      14.8,
+      235.1,
+      56.9,
+      26.3,
+      57.7,
+      67.6,
+      65.7,
+      74.1
+     ],
+     "vt": {
+      "types": [],
+      "rootAnimated": [
+       "height",
+       "width",
+       "transform",
+       "backdropFilter",
+       "opacity",
+       "mixBlendMode",
+       "opacity",
+       "mixBlendMode"
+      ],
+      "animations": [
+       {
+        "pseudo": "::view-transition-group(root)",
+        "name": "-ua-view-transition-group-anim-root",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-group(scene-subject)",
+        "name": "-ua-view-transition-group-anim-scene-subject",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-group(chrome-dock)",
+        "name": "-ua-view-transition-group-anim-chrome-dock",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-group(transport-dock)",
+        "name": "-ua-view-transition-group-anim-transport-dock",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(root)",
+        "name": "-ua-view-transition-fade-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(root)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(root)",
+        "name": "-ua-view-transition-fade-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(root)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(scene-subject)",
+        "name": "-ua-view-transition-fade-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(scene-subject)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(scene-subject)",
+        "name": "-ua-view-transition-fade-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(scene-subject)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(chrome-dock)",
+        "name": "-ua-view-transition-fade-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(chrome-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(chrome-dock)",
+        "name": "-ua-view-transition-fade-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(chrome-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(transport-dock)",
+        "name": "-ua-view-transition-fade-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(transport-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(transport-dock)",
+        "name": "-ua-view-transition-fade-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(transport-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       }
+      ]
+     }
+    },
+    {
+     "hop": "sequence->cube",
+     "prepare": 1,
+     "total": 1152,
+     "commit": 232,
+     "frames": [
+      265.1,
+      33.8,
+      16.5,
+      9.6,
+      64.9,
+      416.7
+     ],
+     "vt": {
+      "types": [],
+      "rootAnimated": [
+       "height",
+       "width",
+       "transform",
+       "backdropFilter",
+       "opacity",
+       "mixBlendMode",
+       "opacity",
+       "mixBlendMode"
+      ],
+      "animations": [
+       {
+        "pseudo": "::view-transition-group(chrome-dock)",
+        "name": "-ua-view-transition-group-anim-chrome-dock",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-group(root)",
+        "name": "-ua-view-transition-group-anim-root",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-group(scene-subject)",
+        "name": "-ua-view-transition-group-anim-scene-subject",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-group(transport-dock)",
+        "name": "-ua-view-transition-group-anim-transport-dock",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(root)",
+        "name": "-ua-view-transition-fade-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(root)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(root)",
+        "name": "-ua-view-transition-fade-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(root)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(scene-subject)",
+        "name": "-ua-view-transition-fade-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(scene-subject)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(scene-subject)",
+        "name": "-ua-view-transition-fade-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(scene-subject)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(chrome-dock)",
+        "name": "-ua-view-transition-fade-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(chrome-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(chrome-dock)",
+        "name": "-ua-view-transition-fade-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(chrome-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(transport-dock)",
+        "name": "-ua-view-transition-fade-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(transport-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(transport-dock)",
+        "name": "-ua-view-transition-fade-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(transport-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       }
+      ]
+     }
+    },
+    {
+     "hop": "cube->home",
+     "prepare": 48,
+     "total": 554,
+     "commit": 94,
+     "frames": [
+      25.1,
+      17,
+      7.8,
+      141.5,
+      43.1,
+      16.8,
+      57.5,
+      34.5,
+      49,
+      65.8,
+      68.4
+     ],
+     "vt": {
+      "types": [],
+      "rootAnimated": [
+       "height",
+       "width",
+       "transform",
+       "backdropFilter",
+       "opacity",
+       "mixBlendMode",
+       "opacity",
+       "mixBlendMode"
+      ],
+      "animations": [
+       {
+        "pseudo": "::view-transition-group(transport-dock)",
+        "name": "-ua-view-transition-group-anim-transport-dock",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-group(chrome-dock)",
+        "name": "-ua-view-transition-group-anim-chrome-dock",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-group(scene-subject)",
+        "name": "-ua-view-transition-group-anim-scene-subject",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-group(root)",
+        "name": "-ua-view-transition-group-anim-root",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(root)",
+        "name": "-ua-view-transition-fade-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(root)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(root)",
+        "name": "-ua-view-transition-fade-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(root)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(scene-subject)",
+        "name": "-ua-view-transition-fade-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(scene-subject)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(scene-subject)",
+        "name": "-ua-view-transition-fade-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(scene-subject)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(chrome-dock)",
+        "name": "-ua-view-transition-fade-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(chrome-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(chrome-dock)",
+        "name": "-ua-view-transition-fade-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(chrome-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(transport-dock)",
+        "name": "-ua-view-transition-fade-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(transport-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(transport-dock)",
+        "name": "-ua-view-transition-fade-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(transport-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       }
+      ]
+     }
+    },
+    {
+     "hop": "home->cube",
+     "prepare": 3,
+     "total": 585,
+     "commit": 128,
+     "frames": [
+      150.8,
+      49.1,
+      34.9,
+      58.1,
+      48.4,
+      67.7,
+      74.1,
+      93.3
+     ],
+     "vt": {
+      "types": [],
+      "rootAnimated": [
+       "height",
+       "width",
+       "transform",
+       "backdropFilter",
+       "opacity",
+       "mixBlendMode",
+       "opacity",
+       "mixBlendMode"
+      ],
+      "animations": [
+       {
+        "pseudo": "::view-transition-group(scene-subject)",
+        "name": "-ua-view-transition-group-anim-scene-subject",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-group(transport-dock)",
+        "name": "-ua-view-transition-group-anim-transport-dock",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-group(chrome-dock)",
+        "name": "-ua-view-transition-group-anim-chrome-dock",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-group(root)",
+        "name": "-ua-view-transition-group-anim-root",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(root)",
+        "name": "-ua-view-transition-fade-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(root)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(root)",
+        "name": "-ua-view-transition-fade-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(root)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(scene-subject)",
+        "name": "-ua-view-transition-fade-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(scene-subject)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(scene-subject)",
+        "name": "-ua-view-transition-fade-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(scene-subject)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(chrome-dock)",
+        "name": "-ua-view-transition-fade-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(chrome-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(chrome-dock)",
+        "name": "-ua-view-transition-fade-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(chrome-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(transport-dock)",
+        "name": "-ua-view-transition-fade-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(transport-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(transport-dock)",
+        "name": "-ua-view-transition-fade-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(transport-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       }
+      ]
+     }
+    }
+   ]
+  },
+  "inp": {
+   "median": {
+    "inp": 152,
+    "wellHeight": 536
+   },
+   "runs": [
+    {
+     "env": {
+      "load1": 18.72,
+      "memFreePct": 77
+     },
+     "monacoBefore": true,
+     "inp": 128,
+     "interactions": {
+      "541": 128
+     },
+     "wellHeight": 536
+    },
+    {
+     "env": {
+      "load1": 17.8,
+      "memFreePct": 77
+     },
+     "monacoBefore": true,
+     "inp": 200,
+     "interactions": {
+      "7801": 200
+     },
+     "wellHeight": 536
+    },
+    {
+     "env": {
+      "load1": 19.33,
+      "memFreePct": 77
+     },
+     "monacoBefore": true,
+     "inp": 152,
+     "interactions": {
+      "2657": 152
+     },
+     "wellHeight": 536
+    }
+   ]
+  },
+  "lighthouse": [
+   {
+    "run": 1,
+    "page": "home",
+    "env": {
+     "load1": 18.78,
+     "memFreePct": 77
+    },
+    "perf": 0.73,
+    "fcp": 3931,
+    "lcp": 4701,
+    "tbt": 77,
+    "cls": 0.038,
+    "si": 3931
+   },
+   {
+    "run": 1,
+    "page": "#/spring",
+    "env": {
+     "load1": 18,
+     "memFreePct": 77
+    },
+    "perf": 0.71,
+    "fcp": 3758,
+    "lcp": 4395,
+    "tbt": 261,
+    "cls": 0.0159,
+    "si": 3758
+   },
+   {
+    "run": 2,
+    "page": "home",
+    "env": {
+     "load1": 17.64,
+     "memFreePct": 77
+    },
+    "perf": 0.74,
+    "fcp": 3929,
+    "lcp": 4698,
+    "tbt": 76,
+    "cls": 0.038,
+    "si": 3929
+   },
+   {
+    "run": 2,
+    "page": "#/spring",
+    "env": {
+     "load1": 17.43,
+     "memFreePct": 77
+    },
+    "perf": 0.66,
+    "fcp": 3840,
+    "lcp": 4407,
+    "tbt": 397,
+    "cls": 0.0105,
+    "si": 3840
+   }
+  ]
+ }
+}
