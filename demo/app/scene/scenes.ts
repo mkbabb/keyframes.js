@@ -98,12 +98,17 @@ export interface SceneDescriptor {
 // share one import edge — Vite dedupes the in-flight/settled module, so a warmed
 // chunk is reused (no double fetch) when the scene actually mounts.
 const sceneLoaders = new Map<string, SceneLoader>();
+// The scenes the idle warm skips (see `warmScenesAtIdle`).
+const intentOnly = new Set<string>();
 
 /** Declare a route-lazy scene once: register its loader for hover-warmup AND
  *  wrap it in `defineAsyncComponent` for `<Suspense>` mount. One source of the
- *  import thunk — warm and mount can never drift onto different chunks. */
-function lazyScene(id: string, loader: SceneLoader): Component {
+ *  import thunk — warm and mount can never drift onto different chunks.
+ *  `idleWarm: false` marks a scene whose chunk carries a heavy vendor: it is
+ *  fetched on intent (the Scene menu opening, the switch) and never at idle. */
+function lazyScene(id: string, loader: SceneLoader, { idleWarm = true } = {}): Component {
     sceneLoaders.set(id, loader);
+    if (!idleWarm) intentOnly.add(id);
     return defineAsyncComponent(loader as () => Promise<Component>);
 }
 
@@ -136,16 +141,18 @@ export function warmScene(id: string): void {
 }
 
 /**
- * KFA-76 (X.KF.W13X.scene) — warm EVERY scene chunk once the page is idle after
+ * KFA-76 (X.KF.W13X.scene) — warm the scene chunks once the page is idle after
  * first paint, so a first-visit switch evaluates no chunk on the swap tick. The
  * caller arms it after the first scene's content has painted (KF-RES-1,
- * `useSceneTransition`'s `onSceneContent`), never at mount.
+ * `useSceneTransition`'s `onSceneContent`), never at mount. A scene declared
+ * `idleWarm: false` is skipped: the Amiga's chunk pulls three.js (~530 KB), and
+ * evaluating it at idle on every visit cost every page that never opens it.
  * `requestIdleCallback` where the engine ships it (Safari does not), else one
  * macrotask after load; either way the warm never competes with first paint.
  */
 export function warmScenesAtIdle(): void {
     const warmAll = () => {
-        for (const id of sceneLoaders.keys()) warmScene(id);
+        for (const id of sceneLoaders.keys()) if (!intentOnly.has(id)) warmScene(id);
     };
     if ("requestIdleCallback" in window) requestIdleCallback(warmAll);
     else setTimeout(warmAll, 0);
@@ -201,7 +208,9 @@ export const scenes: SceneDescriptor[] = [
         superKey: AMIGA_SCENE_ID,
         stageMode: "subject",
         icon: AmigaIcon,
-        component: lazyScene(AMIGA_SCENE_ID, () => import("../../scenes/amiga/AmigaScene.vue")),
+        component: lazyScene(AMIGA_SCENE_ID, () => import("../../scenes/amiga/AmigaScene.vue"), {
+            idleWarm: false,
+        }),
     },
     {
         id: SQUARE_SCENE_ID,
