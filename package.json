@@ -1,6 +1,6 @@
 {
     "name": "@mkbabb/keyframes.js",
-    "version": "6.3.0",
+    "version": "6.4.0",
     "description": "Create keyframe animations for anything in JavaScript; specify your keyframes in standards-complaint CSS.",
     "license": "MIT",
     "keywords": [
@@ -68,7 +68,7 @@
     },
     "homepage": "https://github.com/mkbabb/keyframes.js#readme",
     "dependencies": {
-        "@mkbabb/value.js": "4.2.0"
+        "@mkbabb/value.js": "4.3.0"
     },
     "devDependencies": {
         "@iconify-json/radix-icons": "^1.2.6",
