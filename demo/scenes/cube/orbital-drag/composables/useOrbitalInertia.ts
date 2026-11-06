@@ -26,6 +26,11 @@ interface OrbitalInertiaParams {
  * frame applies angle(t) − angle(t_prev), never a per-frame step). It starts at
  * ω₀ = min(COAST_GAIN·|ω|, 2π) about ω̂ and stops once |ω| < 1% of ω₀. Under
  * reduced motion ω₀ = 0: the gesture stays 1:1 and nothing coasts.
+ *
+ * The GLIDE is the same decay with a known total: a wheel notch's rotation θ
+ * (an axis·angle vector) drains at r₀ = |θ|·k and lands EXACTLY on θ at the 1%
+ * rest. Notches stack: a new one adds into the remaining-rotation vector (any
+ * axis), so two notches travel Σθ. Under reduced motion it applies at once.
  */
 export function useOrbitalInertia(params: OrbitalInertiaParams) {
     const { inertiaFactor, rotateBy, onRest, reducedMotion } = params;
@@ -36,12 +41,15 @@ export function useOrbitalInertia(params: OrbitalInertiaParams) {
     let sample: ((t: number) => DecaySample) | null = null;
     let startedAt = -1;
     let travelled = 0;
+    /** A glide's exact travel (rad); −1 for a release coast (no landing). */
+    let total = -1;
 
     const stop = () => {
         const wasCoasting = sample !== null;
         sample = null;
         startedAt = -1;
         travelled = 0;
+        total = -1;
         pause();
         if (wasCoasting) onRest?.();
     };
@@ -51,10 +59,13 @@ export function useOrbitalInertia(params: OrbitalInertiaParams) {
         if (!sample) return false;
         if (startedAt < 0) startedAt = now;
         const s = sample((now - startedAt) / 1000);
-        const step = s.value - travelled;
-        travelled = s.value;
+        const resting = s.velocity < COAST_REST_FRACTION * rate0;
+        // A glide lands its whole travel at the rest.
+        const at = total >= 0 ? (resting ? total : Math.min(s.value, total)) : s.value;
+        const step = at - travelled;
+        travelled = at;
         if (step !== 0) rotateBy(axis, step);
-        if (s.velocity < COAST_REST_FRACTION * rate0) {
+        if (resting) {
             stop();
             return false;
         }
@@ -83,5 +94,34 @@ export function useOrbitalInertia(params: OrbitalInertiaParams) {
         return r0;
     };
 
-    return { start, stop, advance, friction };
+    /**
+     * Glide out a rotation `theta` (axis·angle, rad, in the attitude's frame),
+     * added into whatever is still to travel. Returns the starting rate.
+     */
+    const glide = (theta: Vec3, now?: number): number => {
+        // What is left of the running motion (a coast: its analytic rest).
+        const left = sample ? (total >= 0 ? total : rate0 / friction) - travelled : 0;
+        const v: Vec3 = [theta[0] + axis[0] * left, theta[1] + axis[1] * left, theta[2] + axis[2] * left];
+        const angle = norm3(v);
+        if (angle === 0) return 0;
+        const dir: Vec3 = [v[0] / angle, v[1] / angle, v[2] / angle];
+        if (reducedMotion?.() ?? false) {
+            sample = null;
+            pause();
+            rotateBy(dir, angle);
+            stop();
+            onRest?.();
+            return 0;
+        }
+        axis = dir;
+        rate0 = angle * friction;
+        sample = decay({ velocity: rate0, friction });
+        startedAt = now ?? -1;
+        travelled = 0;
+        total = angle;
+        resume();
+        return rate0;
+    };
+
+    return { start, stop, advance, glide, friction };
 }

@@ -70,8 +70,10 @@ async function mountOrbit() {
             applyTransformToContainer: true,
             modelValue: model.value,
             "onUpdate:modelValue": (v: TransformState) => (model.value = v),
+            // D5 — the frame reports the REST centre (`.graph`'s, which the
+            // orbit's own pan does not move); the reader adds the pan.
             frame: () => ({
-                centre: { x: CENTRE.x + model.value.translate.x, y: CENTRE.y + model.value.translate.y },
+                centre: { ...CENTRE },
                 side: 160,
                 fit: 1,
                 stage: STAGE,

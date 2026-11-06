@@ -8,10 +8,8 @@
          the same layout.css tokens), so text and cube never share pixels.
          Desktop and the cube scene proper are byte-identical. -->
     <div
-        class="grid h-full w-full max-w-full items-center justify-center justify-items-center overflow-visible"
+        class="grid h-full w-full max-w-full items-center justify-items-center overflow-visible"
         :class="{ 'cube-stage--hero-recede': props.hideLoader }"
-        style="touch-action: none; overscroll-behavior: contain"
-        @wheel.prevent
     >
         <CubeTarget
             ref="cubeTargetRef"

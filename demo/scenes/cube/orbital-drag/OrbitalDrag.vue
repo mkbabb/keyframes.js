@@ -20,6 +20,7 @@ import {
     quatFromAxisAngle,
     quatMultiply,
     quatToAxisAngle,
+    panInPlane,
     rotateVec,
 } from "./arcball";
 import type { Quat, Vec3 } from "./arcball";
@@ -27,7 +28,7 @@ import type { TransformBounds, TransformState } from "./transform";
 import type { PressedKeys } from "./types";
 import { defaultTransformBounds, defaultTransformState } from "./transform";
 import { useOrbitalGesture } from "./composables/useOrbitalGesture";
-import type { OrbitFrame, OrbitState } from "./composables/useOrbitalGesture";
+import type { OrbitFrame, OrbitState, ScrollOwner } from "./composables/useOrbitalGesture";
 import { useOrbitalInertia } from "./composables/useOrbitalInertia";
 import { DEFAULT_INERTIA_FACTOR } from "./composables/inertiaDecay";
 import {
@@ -45,8 +46,10 @@ import {
  *  · A screen-frame rotation q_s reaches Q conjugated, Q' = (G⁻¹·q_s·G)·Q₀, so
  *    a drag turns the die about the axis the hand sees (the former local-frame
  *    axis skewed it up to 30°).
- *  · The pan is in SCREEN px and renders as translate3d(G⁻¹·t): G·G⁻¹·t = t,
- *    no depth, no perspective magnification (the former 1.43×, D-13).
+ *  · The pan is in SCREEN px and renders in the stage's own plane
+ *    (panInPlane: local z = 0, so `.graph`'s perspective cannot magnify it):
+ *    the die's centre lands exactly t (the former 1.43×, D-13; translate3d
+ *    (G⁻¹·t)'s own local depth, 1.15× at a 440 px pan).
  *  · The Euler triple is a READOUT (Y·X·Z, continuous, quaternionEuler.ts).
  *  · Gesture moves write the state; ONE commit per frame writes the model,
  *    emits, and ticks the render (no Euler-triple render dependency).
@@ -59,8 +62,13 @@ const props = withDefaults(
          *  visible stage — read once per gesture anchor. */
         frame?: () => OrbitFrame;
         applyTransformToContainer?: boolean;
+        /** The element the gesture is read on and captured by (the whole
+         *  stage); the container itself when absent. */
+        surface?: HTMLElement | null;
+        /** Who a vertical scroll over the surface belongs to. */
+        scrollOwner?: ScrollOwner;
     }>(),
-    { inertiaFactor: DEFAULT_INERTIA_FACTOR },
+    { inertiaFactor: DEFAULT_INERTIA_FACTOR, surface: null, scrollOwner: "stage" },
 );
 
 const emit = defineEmits<{
@@ -106,7 +114,7 @@ const containerStyle = computed(() => {
     if (!props.applyTransformToContainer) return {};
     void version.value;
     const { translate, scale: s } = model.value;
-    const tl = rotateVec(Ginv, [translate.x, translate.y, translate.z]);
+    const tl = panInPlane(G, [translate.x, translate.y, translate.z]);
     const { axis, angle } = quatToAxisAngle(state.q);
     return {
         transformStyle: "preserve-3d" as const,
@@ -147,6 +155,7 @@ const requestCommit = () => {
     if (commitHandle) return;
     commitHandle = requestAnimationFrame(() => {
         commitHandle = 0;
+        gesture.flushWheel();
         writeModel();
     });
 };
@@ -155,8 +164,11 @@ const requestCommit = () => {
 const defaultFrame = (): OrbitFrame => {
     const el = containerRef.value;
     const r = el?.getBoundingClientRect();
+    // The container carries the pan: its rest centre is the rect's less t.
     return {
-        centre: r ? { x: r.left + r.width / 2, y: r.top + r.height / 2 } : { x: 0, y: 0 },
+        centre: r
+            ? { x: r.left + r.width / 2 - state.t.x, y: r.top + r.height / 2 - state.t.y }
+            : { x: 0, y: 0 },
         side: el?.offsetWidth ?? 0,
         fit: 1,
         stage: null,
@@ -182,24 +194,26 @@ const inertia = useOrbitalInertia({
 });
 
 // ── The reader ──────────────────────────────────────────────────────
+const surfaceEl = (): HTMLElement | null => props.surface ?? containerRef.value;
+
 const gesture = useOrbitalGesture({
-    containerRef,
+    surfaceRef: surfaceEl,
+    scrollOwner: () => props.scrollOwner,
     G,
     state,
     frame: readFrame,
     scaleRange: bounds.scale,
     requestCommit,
-    onGestureStart: () => {
-        inertia.stop();
-        // A gesture opens on the model as it stands (an external write since
-        // the last commit is honoured).
-        state.t = { x: model.value.translate.x, y: model.value.translate.y };
-        state.s = model.value.scale.x;
-    },
+    // D1 — the state is the truth; a gesture never re-seeds from the model
+    // (the external-write watch below does, the moment one lands).
+    onGestureStart: () => inertia.stop(),
     onGestureEnd: (omega) => {
         commitNow();
         if (inertia.start(omega) === 0) writeModel(true);
     },
+    // A wheel notch glides out on the coast's own decay, conjugated into Q's
+    // frame (G is fixed, so turning the axis by G⁻¹ is the conjugation).
+    onGlide: (w) => void inertia.glide(rotateVec(Ginv, w)),
 });
 
 // ── The axis latch — KF-AX-1 ≡ OD-3/OD-4/OD-5/OD-6/OD-25/OD-31 ──────
@@ -232,13 +246,15 @@ useEventListener(document, "visibilitychange", () => {
 });
 
 onMounted(() => {
-    useEventListener(containerRef, "wheel", (event) => gesture.handleWheel(event as WheelEvent), {
+    // The surface may arrive after the container (a parent's root ref).
+    const surface = computed(() => props.surface ?? containerRef.value);
+    useEventListener(surface, "wheel", (event) => gesture.handleWheel(event as WheelEvent), {
         passive: false,
     });
-    useEventListener(containerRef, "pointerdown", gesture.onPointerDown);
+    useEventListener(surface, "pointerdown", gesture.onPointerDown);
     // Safari gesture*: page-zoom suppression while fingers are down, and the
     // desktop trackpad pinch when none are.
-    useEventListener(containerRef, "gesturestart", gesture.onGestureStartEvent, { passive: false });
+    useEventListener(surface, "gesturestart", gesture.onGestureStartEvent, { passive: false });
     useEventListener(window, "gesturechange", gesture.onGestureChange, { passive: false });
     useEventListener(window, "gestureend", gesture.onGestureEndEvent, { passive: false });
 });
@@ -251,7 +267,11 @@ onUnmounted(() => {
 // kf-CubeTarget #1 — THE CAPTURE SURFACE, published (a consumer recognising its
 // own gesture listens where the captured events are delivered), with OD-5's
 // escape hatch.
-defineExpose({ containerRef, resetPressedKeys: gesture.resetPressedKeys });
+defineExpose({
+    containerRef,
+    resetPressedKeys: gesture.resetPressedKeys,
+    onArcball: gesture.onArcball,
+});
 
 // The reverse path: an EXTERNAL write to the readout (Reset, a slider, a
 // restored state) re-seeds the attitude. The test is by ROTATION, not by
@@ -281,6 +301,20 @@ watch(
     },
 );
 
+// …and of the pan and the zoom (Reset, a slider, a restored state). Epsilon,
+// not bytes: our own commit writes the state's exact numbers back.
+watch(
+    () => [model.value.translate.x, model.value.translate.y, model.value.scale.x] as const,
+    ([x, y, s]) => {
+        const eps = 1e-9;
+        if (Math.abs(x - state.t.x) < eps && Math.abs(y - state.t.y) < eps && Math.abs(s - state.s) < eps)
+            return;
+        state.t = { x, y };
+        state.s = s;
+        version.value++;
+    },
+);
+
 // P.W5.S3 — surface the latch to the parent the moment it changes.
 watch(
     () => gesture.pressedKeys.value,
@@ -293,6 +327,5 @@ watch(
 div {
     cursor: move;
     user-select: none;
-    touch-action: none;
 }
 </style>

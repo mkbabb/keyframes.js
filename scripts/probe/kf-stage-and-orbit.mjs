@@ -31,6 +31,15 @@
  * with the same input as the comparator. Two single-source legs ride the touch
  * cell: (b) `gesturestart`/`gesturechange` dispatched while two fingers are
  * down write nothing to the orbit; (c) `touchmove` alone writes nothing.
+ *
+ * kf-cube (value.js X §0hz): `--mode assay` reads gestures → outcomes for the
+ * cube's scroll and orbit — the grab map over V, the seam at R ± 2, wheel and
+ * swipe beside the die, notch span and stacking, ctrl-wheel coalescing, CDP
+ * pinch 2× / 0.5× with its Δy trace, pan ×3 against V, a timestamped CDP
+ * flick at 60/120 Hz, double-tap on/off the die, touch at 390, drag and
+ * scroll-port frame times (die playing vs at rest), and the embed: bare at
+ * rest plus a loopback host page (vertical swipe and plain wheel scroll the
+ * host; a horizontal drag turns the die). Extended here, not forked.
  */
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -479,11 +488,411 @@ async function orbitCells(browser, out) {
     }
 }
 
+// ── --mode assay (kf-cube, value.js X §0hz; owner 2026-11-05: "keyframes cube
+// scrolling and orbital dragging needs debugging and assay") ─────────────────
+// Gestures → measured outcomes on the cube page and the embed slice. Readings
+// only; the gate lines below the summary name each unit's bar.
+const G_AXIS = [-Math.SQRT1_2, Math.SQRT1_2, 0];
+const G_Q = (() => { const h = Math.PI / 12; return [G_AXIS[0] * Math.sin(h), G_AXIS[1] * Math.sin(h), 0, Math.cos(h)]; })();
+const qMul = (a, b) => [
+    a[3] * b[0] + a[0] * b[3] + a[1] * b[2] - a[2] * b[1],
+    a[3] * b[1] + a[1] * b[3] + a[2] * b[0] - a[0] * b[2],
+    a[3] * b[2] + a[2] * b[3] + a[0] * b[1] - a[1] * b[0],
+    a[3] * b[3] - a[0] * b[0] - a[1] * b[1] - a[2] * b[2],
+];
+const qInv = (q) => [-q[0], -q[1], -q[2], q[3]];
+const qOf = (tf) => {
+    const m = /rotate3d\(([-\d.e]+), ([-\d.e]+), ([-\d.e]+), ([-\d.e]+)deg\)/.exec(tf ?? "");
+    if (!m) return [0, 0, 0, 1];
+    const n = Math.hypot(+m[1], +m[2], +m[3]) || 1;
+    const h = (+m[4] * Math.PI) / 360;
+    return [(+m[1] / n) * Math.sin(h), (+m[2] / n) * Math.sin(h), (+m[3] / n) * Math.sin(h), Math.cos(h)];
+};
+const sOf = (tf) => +(/scale3d\(([-\d.e]+),/.exec(tf ?? "")?.[1] ?? 1);
+/** The screen-frame rotation from tf0 to tf1: { deg, rollDeg } (G·d·G⁻¹). */
+const turn = (tf0, tf1) => {
+    const d = qMul(qOf(tf1), qInv(qOf(tf0)));
+    const s = qMul(qMul(G_Q, d), qInv(G_Q));
+    const w = Math.abs(s[3]) > 1 ? 1 : s[3];
+    const sg = w < 0 ? -1 : 1;
+    const v = Math.hypot(s[0], s[1], s[2]);
+    const ang = 2 * Math.atan2(v, Math.abs(w));
+    return { deg: (ang * 180) / Math.PI, rollDeg: v > 0 ? (sg * (s[2] / v) * ang * 180) / Math.PI : 0 };
+};
+const pct = (a, p) => { const s = [...a].sort((x, y) => x - y); return s[Math.min(s.length - 1, Math.floor(s.length * p))]; };
+
+/** One page read: the orbit container's transform, the die and V. */
+function readAssay() {
+    const c = document.querySelector(".graph > div");
+    const k = document.querySelector(".cube")?.getBoundingClientRect();
+    const cell = document.querySelector(".stage-cell");
+    let V = null;
+    if (cell) {
+        const r = cell.getBoundingClientRect();
+        const cs = getComputedStyle(cell);
+        V = { l: r.left + parseFloat(cs.paddingLeft), t: r.top + parseFloat(cs.paddingTop), r: r.right - parseFloat(cs.paddingRight), b: r.bottom - parseFloat(cs.paddingBottom) };
+    }
+    const g = document.querySelector(".graph")?.getBoundingClientRect();
+    return {
+        tf: c?.style.transform ?? "",
+        die: k && { x: k.left + k.width / 2, y: k.top + k.height / 2, w: k.width },
+        rest: g && { x: g.left + g.width / 2, y: g.top + g.height / 2 },
+        side: document.querySelector(".cube")?.offsetWidth ?? 0,
+        V,
+        scrollY: document.scrollingElement?.scrollTop ?? 0,
+        rolling: !!document.querySelector(".idle-hover--rolling"),
+        numerals: document.querySelectorAll(".face-numeral").length,
+        axisLines: document.querySelectorAll(".axis-line").length,
+    };
+}
+
+/** rAF-sampled transform trace for `ms`: per-frame screen deg steps. */
+const traceFrames = (page, ms) =>
+    page.evaluate((ms) => new Promise((done) => {
+        const c = document.querySelector(".graph > div");
+        const out = [];
+        let last = c.style.transform;
+        const t0 = performance.now();
+        const f = (t) => {
+            out.push({ t: t - t0, tf: c.style.transform });
+            if (t - t0 < ms) requestAnimationFrame(f); else done({ start: last, out });
+        };
+        requestAnimationFrame(f);
+    }), ms);
+
+async function assayCells(browser, out) {
+    const isCr = ENGINE === "chromium";
+    const open = async (vp, { touch = false, prm = true, path = "cube" } = {}) => {
+        const ctx = await browser.newContext({
+            viewport: { width: vp.w, height: vp.h }, deviceScaleFactor: 1,
+            isMobile: touch && isCr, hasTouch: touch, reducedMotion: prm ? "reduce" : "no-preference", colorScheme: "dark",
+        });
+        const page = await ctx.newPage();
+        await page.goto(path.startsWith("http") ? path : url(path), { timeout: 45000, waitUntil: "domcontentloaded" });
+        await settle(page);
+        if (path === "cube") await page.keyboard.press("Escape");
+        await page.waitForTimeout(600);
+        return { ctx, page, cdp: isCr ? await ctx.newCDPSession(page) : null };
+    };
+    const frame = (page, n = 2) => page.evaluate((n) => new Promise((r) => { let i = 0; const f = () => (++i >= n ? r() : requestAnimationFrame(f)); requestAnimationFrame(f); }), n);
+    const read = (page) => page.evaluate(readAssay);
+    const held = async (page, path, shift = false) => {
+        if (shift) await page.keyboard.down("Shift");
+        await page.mouse.move(path[0][0], path[0][1]);
+        await page.mouse.down();
+        for (const [x, y] of path.slice(1)) await page.mouse.move(x, y, { steps: 1 });
+        await page.waitForTimeout(120);
+        await page.mouse.up();
+        if (shift) await page.keyboard.up("Shift");
+        await frame(page);
+    };
+    const run = async (name, vp, opts, fn) => {
+        let o;
+        try {
+            o = await open(vp, opts);
+            out.push({ cell: `assay-${name}`, ...(await fn(o)) });
+        } catch (e) {
+            out.push({ cell: `assay-${name}`, err: String(e).slice(0, 300) });
+        } finally {
+            await o?.ctx.close();
+        }
+    };
+    const D = { w: 1440, h: 900 };
+    const P = { w: 390, h: 844 };
+
+    // U3 — the grab map: a 9×9 grid over V, a 12 px held drag at each point;
+    // a point counts when the die turned.
+    for (const [vp, touch] of [[D, false], [P, true]]) {
+        await run(`grab-${vp.w}`, vp, { touch: false }, async ({ page }) => {
+            const r = await read(page);
+            let hit = 0;
+            for (let i = 1; i <= 9; i++) for (let j = 1; j <= 9; j++) {
+                const x = r.V.l + ((r.V.r - r.V.l) * i) / 10;
+                const y = r.V.t + ((r.V.b - r.V.t) * j) / 10;
+                const a = (await read(page)).tf;
+                await held(page, [[x, y], [x + 6, y], [x + 12, y]]);
+                if (turn(a, (await read(page)).tf).deg > 0.5) hit++;
+            }
+            return { grabHit: hit, of: 81, touchEmu: touch };
+        });
+    }
+
+    // U3 — the seam (1440): a 4 px move at R − 2 and R + 2, tangential and radial.
+    await run("seam-1440", D, {}, async ({ page }) => {
+        const r = await read(page);
+        const R = r.side; // R = 2h = the die's side at s = 1 (inside the V cap at 1440)
+        const res = {};
+        for (const [k, dr, dir] of [["inT", -2, "t"], ["outT", 2, "t"], ["inR", -2, "r"], ["outR", 2, "r"]]) {
+            const x = r.die.x + R + dr;
+            const y = r.die.y;
+            const a = (await read(page)).tf;
+            const to = dir === "t" ? [x, y + 4] : [x + 4, y];
+            await held(page, [[x, y], [(x + to[0]) / 2, (y + to[1]) / 2], to]);
+            res[k] = turn(a, (await read(page)).tf).deg;
+        }
+        return { R, seamTangential: res.outT / res.inT, seamRadial: res.inR > 0 ? res.outR / res.inR : null, ...res };
+    });
+
+    // U3 — wheel and swipe beside the die; a centre grab for the gain.
+    await run("offdie-1440", D, {}, async ({ page }) => {
+        const r = await read(page);
+        const ox = r.V.l + 30, oy = (r.V.t + r.V.b) / 2;
+        const a = (await read(page)).tf;
+        await held(page, [[r.die.x, r.die.y], [r.die.x, r.die.y + 10], [r.die.x, r.die.y + 20]]);
+        const b = (await read(page)).tf;
+        await held(page, [[ox, oy], [ox, oy + 10], [ox, oy + 20]]);
+        const c = (await read(page)).tf;
+        await page.mouse.move(ox, oy);
+        await page.mouse.wheel(0, 20);
+        await frame(page, 3);
+        const d = (await read(page)).tf;
+        return { centreDeg: turn(a, b).deg, offDieDeg: turn(b, c).deg, offDieGain: turn(b, c).deg / turn(a, b).deg, offDieWheelDeg: turn(c, d).deg };
+    });
+
+    // U4 — notch span (motion on): one 100 px notch, then two stacked.
+    await run("notch-1440", D, { prm: false }, async ({ page }) => {
+        const r = await read(page);
+        // The idle bob moves the container too: pause the die's own play first.
+        const notch = async (n) => {
+            await page.evaluate(({ x, y, n }) => {
+                const el = document.elementFromPoint(x, y);
+                for (let i = 0; i < n; i++) setTimeout(() => el.dispatchEvent(new WheelEvent("wheel", { deltaY: 100, bubbles: true, cancelable: true, clientX: x, clientY: y })), i * 60);
+            }, { x: r.die.x, y: r.die.y, n });
+            const tr = await traceFrames(page, 1500);
+            const steps = [];
+            let prev = tr.start;
+            for (const f of tr.out) { steps.push(turn(prev, f.tf).deg); prev = f.tf; }
+            return { framesSpanned: steps.filter((s) => s > 1e-6).length, maxStepDeg: Math.max(...steps), totalDeg: turn(tr.start, tr.out.at(-1).tf).deg };
+        };
+        return { one: await notch(1), two: await notch(2) };
+    });
+
+    // U1 — coalesce: k ctrl-wheel events in one task (under the frame cap).
+    await run("coalesce-1440", D, {}, async ({ page }) => {
+        const res = {};
+        for (const [k, d] of [[1, -20], [2, -10], [4, -5]]) {
+            res[`k${k}`] = await page.evaluate(async ({ k, d }) => {
+                const c = document.querySelector(".graph > div");
+                const kb = document.querySelector(".cube").getBoundingClientRect();
+                const x = kb.left + kb.width / 2, y = kb.top + kb.height / 2;
+                const s = () => +(/scale3d\(([-\d.e]+),/.exec(c.style.transform)?.[1] ?? 1);
+                const s0 = s();
+                const el = document.elementFromPoint(x, y);
+                for (let i = 0; i < k; i++) el.dispatchEvent(new WheelEvent("wheel", { deltaY: d, ctrlKey: true, bubbles: true, cancelable: true, clientX: x, clientY: y }));
+                await new Promise(requestAnimationFrame); await new Promise(requestAnimationFrame);
+                const s1 = s();
+                for (let i = 0; i < k; i++) el.dispatchEvent(new WheelEvent("wheel", { deltaY: -d, ctrlKey: true, bubbles: true, cancelable: true, clientX: x, clientY: y }));
+                await new Promise(requestAnimationFrame); await new Promise(requestAnimationFrame);
+                return s1 / s0;
+            }, { k, d });
+        }
+        return { ...res, coalesceSpread: Math.max(res.k2, res.k4, res.k1) / Math.min(res.k2, res.k4, res.k1) - 1 };
+    });
+
+    // U2 — CDP trackpad pinch 2× and 0.5×, with the per-event Δy trace.
+    if (isCr) await run("pinch-1440", D, {}, async ({ page, cdp }) => {
+        const r = await read(page);
+        await page.evaluate(() => { window.__wl = []; addEventListener("wheel", (e) => window.__wl.push([+e.deltaY.toFixed(3), e.ctrlKey, Math.round(e.timeStamp)]), { capture: true, passive: true }); });
+        const pinch = async (f) => {
+            const a = (await read(page)).tf;
+            await cdp.send("Input.synthesizePinchGesture", { x: r.die.x, y: r.die.y, scaleFactor: f, gestureSourceType: "mouse" });
+            await frame(page, 4);
+            return sOf((await read(page)).tf) / sOf(a);
+        };
+        const up = await pinch(2);
+        const trace = await page.evaluate(() => window.__wl.splice(0));
+        const down = await pinch(0.5);
+        const sumUp = trace.reduce((s, e) => s + e[0], 0);
+        return { pinch2: up, pinchHalf: down, events: trace.length, sumDy: sumUp, lnScaleOfSum: -sumUp / 100, maxAbsDy: Math.max(...trace.map((e) => Math.abs(e[0]))), vv: await page.evaluate(() => visualViewport.scale) };
+    });
+
+    // U5 — three +250 px shift-drag pans; then a 20 px drag at the panned centre.
+    await run("pan-1440", D, {}, async ({ page }) => {
+        const pans = [];
+        for (let i = 0; i < 3; i++) {
+            const r = await read(page);
+            await held(page, [[r.die.x, r.die.y], [r.die.x + 125, r.die.y], [r.die.x + 250, r.die.y]], true);
+            const q = await read(page);
+            pans.push({ dieX: q.die.x, Vr: q.V.r, past: q.die.x - q.V.r });
+        }
+        const r = await read(page);
+        await held(page, [[r.die.x, r.die.y], [r.die.x + 10, r.die.y], [r.die.x + 20, r.die.y]]);
+        const t = turn(r.tf, (await read(page)).tf);
+        return { pans, maxPast: Math.max(...pans.map((p) => p.past)), dragDeg: t.deg, rollDeg: Math.abs(t.rollDeg) };
+    });
+
+    // U7 — the coast: a timestamped CDP flick, 120 px in 100/120/160 ms, at 60 and 120 Hz.
+    if (isCr) await run("coast-1440", D, { prm: false }, async ({ page, cdp }) => {
+        const res = [];
+        for (const hz of [60, 120]) for (const ms of [100, 120, 160]) {
+            const r = await read(page);
+            const n = Math.round((ms / 1000) * hz);
+            const T = Date.now() / 1000;
+            const x0 = r.die.x - 60, y = r.die.y;
+            const m = (type, x, t, extra = {}) => cdp.send("Input.dispatchMouseEvent", { type, x, y, timestamp: T + t, button: "left", buttons: type === "mouseReleased" ? 0 : 1, clickCount: 1, ...extra });
+            await m("mousePressed", x0, 0);
+            for (let i = 1; i <= n; i++) await m("mouseMoved", x0 + (120 * i) / n, (ms / 1000) * (i / n));
+            const a = (await read(page)).tf;
+            await m("mouseReleased", x0 + 120, ms / 1000 + 0.002);
+            await page.waitForTimeout(900);
+            const b = (await read(page)).tf;
+            const g = turn(r.tf, a).deg, c = turn(a, b).deg;
+            res.push({ hz, ms, gestureDeg: g, coastDeg: c, ratio: c / g });
+        }
+        return { coast: res };
+    });
+
+    // U3 — double-tap on and off the die.
+    // Motion on: under reduced motion the roll snaps and is over before a read.
+    await run("dbltap-1440", D, { prm: false }, async ({ page }) => {
+        const r = await read(page);
+        const tap2 = async (x, y) => { for (let i = 0; i < 2; i++) { await page.mouse.move(x, y); await page.mouse.down(); await page.mouse.up(); } await frame(page, 1); return (await read(page)).rolling; };
+        const off = await tap2(r.V.l + 30, (r.V.t + r.V.b) / 2);
+        await page.waitForTimeout(1500);
+        const on = await tap2(r.die.x, r.die.y);
+        return { offDieRolls: off ? 1 : 0, onDieRolls: on ? 1 : 0 };
+    });
+
+    // U3/U6 — touch at 390 (CDP): on/off the die, horizontal and vertical.
+    if (isCr) await run("touch-390", P, { touch: true }, async ({ page, cdp }) => {
+        const swipe = async (x, y, dx, dy) => {
+            await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x, y }] });
+            for (let i = 1; i <= 10; i++) await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: x + (dx * i) / 10, y: y + (dy * i) / 10 }] });
+            await page.waitForTimeout(100);
+            await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+            await frame(page);
+        };
+        const r = await read(page);
+        const res = {};
+        for (const [k, x, y, dx, dy] of [["onH", r.die.x, r.die.y, 60, 0], ["onV", r.die.x, r.die.y, 0, -60], ["offH", r.V.l + 20, r.die.y, 60, 0], ["offV", r.V.l + 20, r.die.y, 0, -60]]) {
+            const a = await read(page);
+            await swipe(x, y, dx, dy);
+            const b = await read(page);
+            res[k] = { deg: turn(a.tf, b.tf).deg, scrollDy: b.scrollY - a.scrollY };
+        }
+        return res;
+    });
+
+    // Perf — drag frame time during a 1 s drag.
+    await run("dragframe-1440", D, {}, async ({ page }) => {
+        const r = await read(page);
+        await page.evaluate(() => { window.__dts = []; let p = performance.now(); const f = (t) => { window.__dts.push(t - p); p = t; if (window.__dts.length < 400) requestAnimationFrame(f); }; requestAnimationFrame(f); });
+        await page.mouse.move(r.die.x, r.die.y);
+        await page.mouse.down();
+        for (let i = 0; i < 60; i++) { await page.mouse.move(r.die.x + 120 * Math.sin(i / 6), r.die.y + 80 * Math.cos(i / 9)); await page.waitForTimeout(16); }
+        await page.mouse.up();
+        const d = (await page.evaluate(() => window.__dts)).slice(2);
+        return { dragP50: pct(d, 0.5), dragP95: pct(d, 0.95) };
+    });
+
+    // U0 — the controls' scroll ports on the cube page, die playing (motion on)
+    // vs at rest (reduced motion): wheel at 1440, CDP touch at 390.
+    for (const [vp, touch] of [[D, false], [P, true]]) for (const prm of [false, true]) {
+        if (touch && !isCr) continue;
+        await run(`scroll-${vp.w}-${prm ? "rest" : "playing"}`, vp, { touch, prm }, async ({ page, cdp }) => {
+            // Open the sheet's layer at the phone so its body is a scroll port.
+            if (touch) {
+                const trig = page.locator('[data-slot="sheet-content"] [data-slot="configurator-layer-trigger"]').first();
+                if (await trig.count()) { await trig.click({ timeout: 3000 }).catch(() => {}); await page.waitForTimeout(1200); }
+            }
+            const ports = await page.evaluate(() => [...document.querySelectorAll("*")].filter((e) => {
+                const cs = getComputedStyle(e);
+                return /(auto|scroll)/.test(cs.overflowY) && e.scrollHeight > e.clientHeight + 4 && e.clientHeight > 40;
+            }).map((e) => { const r = e.getBoundingClientRect(); e.dataset.assayPort = "1"; return { x: r.left + r.width / 2, y: r.top + Math.min(r.height / 2, 60), h: e.clientHeight, sh: e.scrollHeight, cls: String(e.className).slice(0, 60) }; }));
+            if (!ports.length) return { ports: 0 };
+            const p = ports[0];
+            await page.evaluate(() => { window.__dts = []; let pr = performance.now(); const f = (t) => { window.__dts.push(t - pr); pr = t; if (window.__dts.length < 240) requestAnimationFrame(f); }; requestAnimationFrame(f); });
+            const st0 = await page.evaluate(() => document.querySelector("[data-assay-port]").scrollTop);
+            if (touch) {
+                for (let k = 0; k < 3; k++) {
+                    await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x: p.x, y: p.y + 30 }] });
+                    for (let i = 1; i <= 10; i++) await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: p.x, y: p.y + 30 - 4 * i }] });
+                    await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+                }
+            } else {
+                await page.mouse.move(p.x, p.y);
+                for (let i = 0; i < 20; i++) { await page.mouse.wheel(0, 30); await page.waitForTimeout(16); }
+            }
+            await page.waitForTimeout(500);
+            const st1 = await page.evaluate(() => document.querySelector("[data-assay-port]").scrollTop);
+            const d = (await page.evaluate(() => window.__dts)).slice(2);
+            return { ports: ports.length, port: p, scrolled: st1 - st0, scrollP50: pct(d, 0.5), scrollP95: pct(d, 0.95) };
+        });
+    }
+
+    // U6 — the embed: bare at rest, and a loopback host page that frames it.
+    const embedUrl = `${BASE.replace(/\/?$/, "/")}embed/#/cube`;
+    await run("embed-rest", { w: 600, h: 600 }, { path: embedUrl }, async ({ page }) => {
+        await page.waitForSelector(".graph > div", { timeout: 15000 });
+        const r = await read(page);
+        return { numerals: r.numerals, axisLines: r.axisLines };
+    });
+    const { createServer } = await import("node:http");
+    const host = createServer((_, res) => {
+        res.writeHead(200, { "content-type": "text/html" });
+        res.end(`<!doctype html><meta name=viewport content="width=device-width"><body style="margin:0"><div style="height:300px"></div><iframe id=f src="${embedUrl}" style="display:block;width:100%;aspect-ratio:1;border:0"></iframe><div style="height:3000px"></div></body>`);
+    });
+    await new Promise((r) => host.listen(0, "127.0.0.1", r));
+    const hostUrl = `http://127.0.0.1:${host.address().port}/`;
+    try {
+        for (const [vp, touch] of [[P, true], [D, false]]) {
+            if (touch && !isCr) continue;
+            await run(`embedhost-${vp.w}`, vp, { touch, path: hostUrl }, async ({ page, cdp }) => {
+                const fr = await (await page.waitForSelector("#f")).contentFrame();
+                await fr.waitForSelector(".graph > div", { timeout: 20000 });
+                await page.waitForTimeout(800);
+                await page.evaluate(() => scrollTo(0, 200));
+                await page.waitForTimeout(200);
+                const box = await page.evaluate(() => { const r = document.getElementById("f").getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; });
+                const sy = () => page.evaluate(() => scrollY);
+                const tf = async () => (await fr.evaluate(readAssay)).tf;
+                const res = {};
+                if (touch) {
+                    const swipe = async (dx, dy) => {
+                        await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x: box.x, y: box.y }] });
+                        for (let i = 1; i <= 10; i++) await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: box.x + (dx * i) / 10, y: box.y + (dy * i) / 10 }] });
+                        await page.waitForTimeout(100);
+                        await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+                        await page.waitForTimeout(400);
+                    };
+                    // The control: the same swipe over the host's own content
+                    // (the browser's own touch slop is in both).
+                    let a = await sy(), q = await tf();
+                    const at = box.y;
+                    box.y = 700;
+                    await swipe(0, -120);
+                    const control = (await sy()) - a;
+                    box.y = at - control;
+                    a = await sy();
+                    await swipe(0, -120);
+                    res.vertical = { hostDy: (await sy()) - a, dieDeg: turn(q, await tf()).deg, expect: control };
+                    a = await sy(); q = await tf();
+                    await swipe(-120, 0);
+                    res.horizontal = { hostDy: (await sy()) - a, dieDeg: turn(q, await tf()).deg };
+                } else {
+                    const a = await sy(), q = await tf();
+                    await page.mouse.move(box.x, box.y);
+                    await page.mouse.wheel(0, 200);
+                    await page.waitForTimeout(600);
+                    res.wheel = { hostDy: (await sy()) - a, dieDeg: turn(q, await tf()).deg, expect: 200 };
+                    const b = await sy(), q2 = await tf();
+                    await held(page, [[box.x, box.y], [box.x + 40, box.y], [box.x + 80, box.y]]);
+                    res.drag = { hostDy: (await sy()) - b, dieDeg: turn(q2, await tf()).deg };
+                }
+                return res;
+            });
+        }
+    } finally {
+        await new Promise((r) => host.close(r));
+    }
+}
+
 const out = [];
 const browser = await chromium.launch();
 try {
     if (MODE === "layout" || MODE === "all") await layoutCells(browser, out);
     if (MODE === "orbit" || MODE === "all") await orbitCells(browser, out);
+    if (MODE === "assay") await assayCells(browser, out);
 } finally {
     await browser.close();
 }
@@ -518,5 +927,21 @@ for (const c of out) {
     if (c.twistScale !== undefined && !(Math.abs(c.twistScale - 1) <= 0.005)) fails.push(`G2.3b ${c.cell} twist scale ${c.twistScale}`);
     if (c.gestureWhileDownWrites) fails.push(`K-D3b ${c.cell} gesture* with fingers down wrote the orbit`);
     if (c.touchmoveAloneWrites) fails.push(`K-D3c ${c.cell} touchmove alone wrote the orbit`);
+    // kf-cube assay gates.
+    if (c.grabHit !== undefined && c.grabHit !== 81) fails.push(`U3 ${c.cell} grab map ${c.grabHit}/81 inside V`);
+    if (c.seamTangential !== undefined && !(Math.abs(c.seamTangential - 1) <= 0.05)) fails.push(`U3 ${c.cell} seam tangential ${c.seamTangential}`);
+    if (c.offDieGain !== undefined && !(Math.abs(c.offDieGain - 1) <= 0.05)) fails.push(`U3 ${c.cell} off-die gain ${c.offDieGain}`);
+    if (c.offDieRolls !== undefined && (c.offDieRolls !== 0 || c.onDieRolls !== 1)) fails.push(`U3 ${c.cell} double-tap off ${c.offDieRolls} on ${c.onDieRolls}`);
+    if (c.one && !(c.one.framesSpanned >= 12 && c.one.maxStepDeg <= 6)) fails.push(`U4 ${c.cell} notch ${c.one.framesSpanned} frames, max ${c.one.maxStepDeg}°`);
+    if (c.coalesceSpread !== undefined && !(c.coalesceSpread <= 0.005)) fails.push(`U1 ${c.cell} coalesce spread ${c.coalesceSpread}`);
+    if (c.pinch2 !== undefined && !(Math.abs(c.pinch2 - 2) <= 0.03 && Math.abs(c.pinchHalf - 0.5) <= 0.01)) fails.push(`U2 ${c.cell} pinch ${c.pinch2} / ${c.pinchHalf}`);
+    if (c.maxPast !== undefined && !(c.maxPast <= 1 && c.rollDeg < 0.5)) fails.push(`U5 ${c.cell} past V ${c.maxPast}, roll ${c.rollDeg}°`);
+    if (c.coast) for (const k of c.coast) if (!(k.ratio >= 0.3 && k.ratio <= 0.6)) fails.push(`U7 ${c.cell} ${k.hz} Hz ${k.ms} ms coast ratio ${k.ratio}`);
+    if (c.scrollP95 !== undefined && !(c.scrollP95 <= 16.7)) fails.push(`U0 ${c.cell} scroll p95 ${c.scrollP95}`);
+    if (c.numerals !== undefined && (c.numerals !== 0 || c.axisLines !== 0)) fails.push(`embed ${c.cell} at rest: ${c.numerals} numerals, ${c.axisLines} axis lines`);
+    if (c.vertical && !(Math.abs(c.vertical.hostDy - c.vertical.expect) <= 2 && c.vertical.dieDeg < 0.5)) fails.push(`U6 ${c.cell} vertical swipe host Δ ${c.vertical.hostDy} (control ${c.vertical.expect}), die ${c.vertical.dieDeg}°`);
+    if (c.horizontal && !(c.horizontal.dieDeg > 20 && c.horizontal.hostDy === 0)) fails.push(`U6 ${c.cell} horizontal ${c.horizontal.dieDeg}° host Δ ${c.horizontal.hostDy}`);
+    if (c.wheel && !(Math.abs(c.wheel.hostDy - c.wheel.expect) <= 2 && c.wheel.dieDeg < 0.5)) fails.push(`U6 ${c.cell} wheel host Δ ${c.wheel.hostDy}, die ${c.wheel.dieDeg}°`);
+    if (c.drag && !(c.drag.dieDeg > 5 && c.drag.hostDy === 0)) fails.push(`U6 ${c.cell} drag ${c.drag.dieDeg}°, host Δ ${c.drag.hostDy}`);
 }
 console.log(JSON.stringify({ cells: out.length, fails }, null, 1));
