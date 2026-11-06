@@ -77,11 +77,33 @@
     --color-accent-kf-foreground: var(--accent-kf-foreground);
 }
 
+/* The display voice, self-hosted (OFL, demo/app/fonts/OFL.txt): Instrument Serif's
+   one weight, roman and italic, latin subset. Same-origin and hashed, so it
+   rides the site's immutable asset cache and makes no third-party request;
+   index.html preloads the roman (the hero's LCP face). The embed slice
+   (demo/app/embed/embed.css) reads the same roman file. */
+@font-face {
+    font-family: "Instrument Serif";
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url("../app/fonts/instrument-serif-latin-400-normal.woff2") format("woff2");
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+    font-family: "Instrument Serif";
+    font-style: italic;
+    font-weight: 400;
+    font-display: swap;
+    src: url("../app/fonts/instrument-serif-latin-400-italic.woff2") format("woff2");
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
 /* ════════════════════════════════════════════════════════════════════════
    METRIC-MATCHED FONT FALLBACK (the CLS-stabilizing LCP fix)
    ────────────────────────────────────────────────────────────────────────
    The hero <h1> (EditorStartScreen.vue) is the LCP element, rendered in Instrument
-   Serif (--font-display) loaded &display=swap. Instrument Serif is a condensed
+   Serif (--font-display), font-display: swap. Instrument Serif is a condensed
    display serif whose box differs markedly from Georgia → the LARGEST text on the
    page reflows when the web font arrives, a CLS contribution landing on the LCP node
    itself. A calibrated local("Georgia") face sized to Instrument Serif's box makes
