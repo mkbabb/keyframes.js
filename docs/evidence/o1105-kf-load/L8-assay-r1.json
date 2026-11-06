@@ -1,0 +1,322 @@
+{
+ "base": "../../.dev-logs/o1105/kf-load/dist-unmin",
+ "at": "2026-11-06T04:25:32.875Z",
+ "runs": 1,
+ "gpu": false,
+ "cells": {
+  "assay": [
+   {
+    "env": {
+     "load1": 18.38,
+     "memFreePct": 76
+    },
+    "from": "square",
+    "swap": {
+     "prepare": 2,
+     "commit": 793,
+     "total": 2172
+    },
+    "loaf": [
+     {
+      "start": 6250,
+      "duration": 117,
+      "blocking": 63,
+      "render": 101,
+      "styleLayout": 97,
+      "scripts": [
+       {
+        "d": 5,
+        "forced": 0,
+        "invoker": "DOMWindow.onpopstate",
+        "fn": "popStateHandler",
+        "src": "index-CNB_HK2M.js:723034"
+       }
+      ]
+     },
+     {
+      "start": 6371,
+      "duration": 907,
+      "blocking": 846,
+      "render": 80,
+      "styleLayout": 48,
+      "scripts": [
+       {
+        "d": 793,
+        "forced": 292,
+        "invoker": "ViewTransitionCallback",
+        "fn": "",
+        "src": "index-CNB_HK2M.js:931603"
+       },
+       {
+        "d": 23,
+        "forced": 22,
+        "invoker": "ResizeObserverCallback",
+        "fn": "",
+        "src": "index-CNB_HK2M.js:619884"
+       },
+       {
+        "d": 21,
+        "forced": 19,
+        "invoker": "FrameRequestCallback",
+        "fn": "",
+        "src": "index-CNB_HK2M.js:603002"
+       },
+       {
+        "d": 18,
+        "forced": 17,
+        "invoker": "ResizeObserverCallback",
+        "fn": "",
+        "src": "index-CNB_HK2M.js:619884"
+       }
+      ]
+     }
+    ],
+    "hot": [
+     "156ms $ @ index-CNB_HK2M.js:32277",
+     "127ms getPropertyValue @ getPropertyValue:-1",
+     "71ms focus @ focus:-1",
+     "56ms getBoundingClientRect @ getBoundingClientRect:-1",
+     "51ms Be @ index-CNB_HK2M.js:32294",
+     "28ms (anon) @ :-1",
+     "23ms land @ index-CNB_HK2M.js:31340",
+     "18ms setFullProps @ vendor-reka-ui-DMopu46s.js:4124",
+     "15ms mergeProps @ vendor-reka-ui-DMopu46s.js:5500",
+     "12ms insertBefore @ insertBefore:-1",
+     "12ms forwardRef @ vendor-reka-ui-DMopu46s.js:9541",
+     "11ms renderFnWithContext @ vendor-reka-ui-DMopu46s.js:1881",
+     "10ms s$1 @ keyboard-DFB-lqOz.js:1131",
+     "10ms elementsFromPoint @ elementsFromPoint:-1",
+     "10ms callWithErrorHandling @ vendor-reka-ui-DMopu46s.js:1689",
+     "10ms renderComponentRoot @ vendor-reka-ui-DMopu46s.js:3945",
+     "10ms get @ vendor-reka-ui-DMopu46s.js:943",
+     "9ms guardReactiveProps @ vendor-reka-ui-DMopu46s.js:5400",
+     "9ms unmount @ vendor-reka-ui-DMopu46s.js:4792",
+     "9ms track @ vendor-reka-ui-DMopu46s.js:695",
+     "8ms traverse @ vendor-reka-ui-DMopu46s.js:1594",
+     "8ms patchClass @ vendor-reka-ui-DMopu46s.js:6083",
+     "7ms get value @ vendor-reka-ui-DMopu46s.js:1275",
+     "7ms (anon) @ vendor-reka-ui-DMopu46s.js:1802",
+     "7ms _createVNode @ vendor-reka-ui-DMopu46s.js:5377"
+    ],
+    "gc": 16,
+    "callers": [
+     "84ms getPropertyValue@:-1 < n$4@glass-ui-B8jJGFJp.js:1217 < maxStretch@glass-ui-B8jJGFJp.js:1273 < o@glass-ui-B8jJGFJp.js:1146 < (anon)@glass-ui-B8jJGFJp.js:1157 < refreshComputed@vendor-reka-ui-DMopu46s.js:499",
+     "71ms focus@:-1 < (anon)@index-CNB_HK2M.js:41273 < (root)@:-1",
+     "62ms $@index-CNB_HK2M.js:32277 < (anon)@index-CNB_HK2M.js:32329 < ze@index-CNB_HK2M.js:32280 < Ve@index-CNB_HK2M.js:32306 < (anon)@index-CNB_HK2M.js:32362 < Be@index-CNB_HK2M.js:32294",
+     "56ms getBoundingClientRect@:-1 < ke@index-CNB_HK2M.js:31904 < je@index-CNB_HK2M.js:31918 < C@index-CNB_HK2M.js:31991 < (anon)@index-CNB_HK2M.js:31762 < (root)@:-1",
+     "39ms $@index-CNB_HK2M.js:32277 < f@index-CNB_HK2M.js:32354 < m@index-CNB_HK2M.js:32377 < callWithErrorHandling@vendor-reka-ui-DMopu46s.js:1689 < callWithAsyncErrorHandling@vendor-reka-ui-DMopu46s.js:1696 < baseWatchOptions.call@vendor-reka-ui-DMopu46s.js:1998",
+     "38ms getPropertyValue@:-1 < e$10@glass-ui-B8jJGFJp.js:7 < l$4@glass-ui-B8jJGFJp.js:14 < d$3@glass-ui-B8jJGFJp.js:1230 < f$2@glass-ui-B8jJGFJp.js:1259 < setup@glass-ui-B8jJGFJp.js:1348",
+     "32ms $@index-CNB_HK2M.js:32277 < (anon)@index-CNB_HK2M.js:32329 < ze@index-CNB_HK2M.js:32280 < Ve@index-CNB_HK2M.js:32306 < (anon)@index-CNB_HK2M.js:32363 < Be@index-CNB_HK2M.js:32294",
+     "13ms $@index-CNB_HK2M.js:32277 < f@index-CNB_HK2M.js:32354 < (anon)@index-CNB_HK2M.js:32380 < (root)@:-1",
+     "9ms $@index-CNB_HK2M.js:32277 < f@index-CNB_HK2M.js:32354 < (anon)@index-CNB_HK2M.js:32402 < (root)@:-1",
+     "4ms getPropertyValue@:-1 < probeBrowserScalar@public-i115TsXK.js:575 < resolveBrowserScalar@public-i115TsXK.js:617 < interpolateSlot@public-i115TsXK.js:834 < processFrame@public-i115TsXK.js:2846 < interpFrames@public-i115TsXK.js:2786"
+    ]
+   },
+   {
+    "env": {
+     "load1": 19.95,
+     "memFreePct": 76
+    },
+    "from": "spring",
+    "swap": {
+     "prepare": 2,
+     "commit": 948,
+     "total": 2848
+    },
+    "loaf": [
+     {
+      "start": 6381,
+      "duration": 99,
+      "blocking": 48,
+      "render": 86,
+      "styleLayout": 84,
+      "scripts": []
+     },
+     {
+      "start": 6484,
+      "duration": 1091,
+      "blocking": 1029,
+      "render": 106,
+      "styleLayout": 67,
+      "scripts": [
+       {
+        "d": 948,
+        "forced": 333,
+        "invoker": "ViewTransitionCallback",
+        "fn": "",
+        "src": "index-CNB_HK2M.js:931603"
+       },
+       {
+        "d": 31,
+        "forced": 31,
+        "invoker": "ResizeObserverCallback",
+        "fn": "",
+        "src": "index-CNB_HK2M.js:619884"
+       },
+       {
+        "d": 28,
+        "forced": 27,
+        "invoker": "ResizeObserverCallback",
+        "fn": "",
+        "src": "index-CNB_HK2M.js:619884"
+       },
+       {
+        "d": 24,
+        "forced": 21,
+        "invoker": "FrameRequestCallback",
+        "fn": "",
+        "src": "index-CNB_HK2M.js:603002"
+       },
+       {
+        "d": 5,
+        "forced": 0,
+        "invoker": "FrameRequestCallback",
+        "fn": "frame",
+        "src": "progress-BJVjL-Ue.js:12049"
+       }
+      ]
+     }
+    ],
+    "hot": [
+     "174ms getPropertyValue @ getPropertyValue:-1",
+     "165ms $ @ index-CNB_HK2M.js:32277",
+     "83ms focus @ focus:-1",
+     "67ms Be @ index-CNB_HK2M.js:32294",
+     "47ms getBoundingClientRect @ getBoundingClientRect:-1",
+     "32ms land @ index-CNB_HK2M.js:31340",
+     "32ms s$1 @ keyboard-DFB-lqOz.js:1131",
+     "28ms callWithErrorHandling @ vendor-reka-ui-DMopu46s.js:1689",
+     "24ms (anon) @ :-1",
+     "23ms renderComponentRoot @ vendor-reka-ui-DMopu46s.js:3945",
+     "22ms renderFnWithContext @ vendor-reka-ui-DMopu46s.js:1881",
+     "18ms guardReactiveProps @ vendor-reka-ui-DMopu46s.js:5400",
+     "16ms mergeProps @ vendor-reka-ui-DMopu46s.js:5500",
+     "15ms elementsFromPoint @ elementsFromPoint:-1",
+     "15ms insertBefore @ insertBefore:-1",
+     "14ms setAttribute @ setAttribute:-1",
+     "12ms finishComponentSetup @ vendor-reka-ui-DMopu46s.js:5679",
+     "12ms mountElement @ vendor-reka-ui-DMopu46s.js:4383",
+     "9ms assignSlots @ vendor-reka-ui-DMopu46s.js:4259",
+     "9ms playFrame @ public-i115TsXK.js:2484",
+     "8ms resolveKeyframes @ public-i115TsXK.js:4108",
+     "8ms patchProp @ vendor-reka-ui-DMopu46s.js:6346",
+     "7ms track @ vendor-reka-ui-DMopu46s.js:634",
+     "7ms forwardRef @ vendor-reka-ui-DMopu46s.js:9541",
+     "7ms C$1 @ index-CNB_HK2M.js:25641"
+    ],
+    "gc": 17,
+    "callers": [
+     "100ms getPropertyValue@:-1 < n$4@glass-ui-B8jJGFJp.js:1217 < maxStretch@glass-ui-B8jJGFJp.js:1273 < o@glass-ui-B8jJGFJp.js:1146 < (anon)@glass-ui-B8jJGFJp.js:1157 < refreshComputed@vendor-reka-ui-DMopu46s.js:499",
+     "83ms focus@:-1 < (anon)@index-CNB_HK2M.js:41273 < (root)@:-1",
+     "68ms getPropertyValue@:-1 < e$10@glass-ui-B8jJGFJp.js:7 < l$4@glass-ui-B8jJGFJp.js:14 < d$3@glass-ui-B8jJGFJp.js:1230 < f$2@glass-ui-B8jJGFJp.js:1259 < setup@glass-ui-B8jJGFJp.js:1348",
+     "61ms $@index-CNB_HK2M.js:32277 < (anon)@index-CNB_HK2M.js:32329 < ze@index-CNB_HK2M.js:32280 < Ve@index-CNB_HK2M.js:32306 < (anon)@index-CNB_HK2M.js:32362 < Be@index-CNB_HK2M.js:32294",
+     "46ms getBoundingClientRect@:-1 < ke@index-CNB_HK2M.js:31904 < je@index-CNB_HK2M.js:31918 < C@index-CNB_HK2M.js:31991 < (anon)@index-CNB_HK2M.js:31762 < (root)@:-1",
+     "46ms $@index-CNB_HK2M.js:32277 < f@index-CNB_HK2M.js:32354 < m@index-CNB_HK2M.js:32377 < callWithErrorHandling@vendor-reka-ui-DMopu46s.js:1689 < callWithAsyncErrorHandling@vendor-reka-ui-DMopu46s.js:1696 < baseWatchOptions.call@vendor-reka-ui-DMopu46s.js:1998",
+     "32ms $@index-CNB_HK2M.js:32277 < (anon)@index-CNB_HK2M.js:32329 < ze@index-CNB_HK2M.js:32280 < Ve@index-CNB_HK2M.js:32306 < (anon)@index-CNB_HK2M.js:32363 < Be@index-CNB_HK2M.js:32294",
+     "15ms $@index-CNB_HK2M.js:32277 < f@index-CNB_HK2M.js:32354 < (anon)@index-CNB_HK2M.js:32402 < (root)@:-1",
+     "11ms $@index-CNB_HK2M.js:32277 < f@index-CNB_HK2M.js:32354 < (anon)@index-CNB_HK2M.js:32380 < (root)@:-1",
+     "6ms getPropertyValue@:-1 < probeBrowserScalar@public-i115TsXK.js:575 < resolveBrowserScalar@public-i115TsXK.js:617 < interpolateSlot@public-i115TsXK.js:834 < processFrame@public-i115TsXK.js:2846 < interpFrames@public-i115TsXK.js:2786"
+    ]
+   },
+   {
+    "env": {
+     "load1": 21.63,
+     "memFreePct": 76
+    },
+    "from": "easing",
+    "swap": {
+     "prepare": 3,
+     "commit": 723,
+     "total": 2011
+    },
+    "loaf": [
+     {
+      "start": 6469,
+      "duration": 82,
+      "blocking": 32,
+      "render": 70,
+      "styleLayout": 66,
+      "scripts": []
+     },
+     {
+      "start": 6559,
+      "duration": 818,
+      "blocking": 759,
+      "render": 70,
+      "styleLayout": 42,
+      "scripts": [
+       {
+        "d": 723,
+        "forced": 247,
+        "invoker": "ViewTransitionCallback",
+        "fn": "",
+        "src": "index-CNB_HK2M.js:931603"
+       },
+       {
+        "d": 19,
+        "forced": 18,
+        "invoker": "ResizeObserverCallback",
+        "fn": "",
+        "src": "index-CNB_HK2M.js:619884"
+       },
+       {
+        "d": 18,
+        "forced": 17,
+        "invoker": "ResizeObserverCallback",
+        "fn": "",
+        "src": "index-CNB_HK2M.js:619884"
+       },
+       {
+        "d": 15,
+        "forced": 14,
+        "invoker": "FrameRequestCallback",
+        "fn": "",
+        "src": "index-CNB_HK2M.js:603002"
+       }
+      ]
+     }
+    ],
+    "hot": [
+     "121ms getPropertyValue @ getPropertyValue:-1",
+     "120ms $ @ index-CNB_HK2M.js:32277",
+     "60ms focus @ focus:-1",
+     "49ms getBoundingClientRect @ getBoundingClientRect:-1",
+     "46ms Be @ index-CNB_HK2M.js:32294",
+     "20ms land @ index-CNB_HK2M.js:31340",
+     "18ms renderComponentRoot @ vendor-reka-ui-DMopu46s.js:3945",
+     "18ms s$1 @ keyboard-DFB-lqOz.js:1131",
+     "17ms guardReactiveProps @ vendor-reka-ui-DMopu46s.js:5400",
+     "16ms resolve @ resolve:-1",
+     "16ms mergeProps @ vendor-reka-ui-DMopu46s.js:5500",
+     "16ms renderFnWithContext @ vendor-reka-ui-DMopu46s.js:1881",
+     "13ms setFullProps @ vendor-reka-ui-DMopu46s.js:4124",
+     "11ms setupStatefulComponent @ vendor-reka-ui-DMopu46s.js:5639",
+     "10ms elementsFromPoint @ elementsFromPoint:-1",
+     "8ms normalizeClass @ vendor-reka-ui-DMopu46s.js:113",
+     "8ms initProps @ vendor-reka-ui-DMopu46s.js:4071",
+     "8ms get @ vendor-reka-ui-DMopu46s.js:943",
+     "7ms track @ vendor-reka-ui-DMopu46s.js:695",
+     "7ms setAttribute @ setAttribute:-1",
+     "7ms forwardRef @ vendor-reka-ui-DMopu46s.js:9541",
+     "6ms componentUpdateFn @ vendor-reka-ui-DMopu46s.js:4532",
+     "6ms mountElement @ vendor-reka-ui-DMopu46s.js:4383",
+     "6ms addEventListener @ addEventListener:-1",
+     "6ms callWithErrorHandling @ vendor-reka-ui-DMopu46s.js:1689"
+    ],
+    "gc": 15,
+    "callers": [
+     "70ms getPropertyValue@:-1 < n$4@glass-ui-B8jJGFJp.js:1217 < maxStretch@glass-ui-B8jJGFJp.js:1273 < o@glass-ui-B8jJGFJp.js:1146 < (anon)@glass-ui-B8jJGFJp.js:1157 < refreshComputed@vendor-reka-ui-DMopu46s.js:499",
+     "60ms focus@:-1 < (anon)@index-CNB_HK2M.js:41273 < (root)@:-1",
+     "47ms getBoundingClientRect@:-1 < ke@index-CNB_HK2M.js:31904 < je@index-CNB_HK2M.js:31918 < C@index-CNB_HK2M.js:31991 < (anon)@index-CNB_HK2M.js:31762 < (root)@:-1",
+     "46ms getPropertyValue@:-1 < e$10@glass-ui-B8jJGFJp.js:7 < l$4@glass-ui-B8jJGFJp.js:14 < d$3@glass-ui-B8jJGFJp.js:1230 < f$2@glass-ui-B8jJGFJp.js:1259 < setup@glass-ui-B8jJGFJp.js:1348",
+     "46ms $@index-CNB_HK2M.js:32277 < (anon)@index-CNB_HK2M.js:32329 < ze@index-CNB_HK2M.js:32280 < Ve@index-CNB_HK2M.js:32306 < (anon)@index-CNB_HK2M.js:32362 < Be@index-CNB_HK2M.js:32294",
+     "34ms $@index-CNB_HK2M.js:32277 < f@index-CNB_HK2M.js:32354 < m@index-CNB_HK2M.js:32377 < callWithErrorHandling@vendor-reka-ui-DMopu46s.js:1689 < callWithAsyncErrorHandling@vendor-reka-ui-DMopu46s.js:1696 < baseWatchOptions.call@vendor-reka-ui-DMopu46s.js:1998",
+     "23ms $@index-CNB_HK2M.js:32277 < (anon)@index-CNB_HK2M.js:32329 < ze@index-CNB_HK2M.js:32280 < Ve@index-CNB_HK2M.js:32306 < (anon)@index-CNB_HK2M.js:32363 < Be@index-CNB_HK2M.js:32294",
+     "9ms $@index-CNB_HK2M.js:32277 < f@index-CNB_HK2M.js:32354 < (anon)@index-CNB_HK2M.js:32402 < (root)@:-1",
+     "8ms $@index-CNB_HK2M.js:32277 < f@index-CNB_HK2M.js:32354 < (anon)@index-CNB_HK2M.js:32380 < (root)@:-1",
+     "5ms getPropertyValue@:-1 < probeBrowserScalar@public-i115TsXK.js:575 < resolveBrowserScalar@public-i115TsXK.js:617 < interpolateSlot@public-i115TsXK.js:834 < processFrame@public-i115TsXK.js:2846 < interpFrames@public-i115TsXK.js:2786"
+    ]
+   }
+  ]
+ }
+}

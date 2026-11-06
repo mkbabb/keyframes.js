@@ -1,0 +1,2772 @@
+{
+ "base": "../../.dev-logs/o1105/kf-load/dist-L7",
+ "at": "2026-11-06T04:27:07.440Z",
+ "runs": 1,
+ "gpu": false,
+ "cells": {
+  "vt": {
+   "env": {
+    "load1": 26.18,
+    "memFreePct": 76
+   },
+   "hops": [
+    {
+     "hop": "cube->amiga",
+     "prepare": 256,
+     "total": 2141,
+     "commit": 782,
+     "frames": [
+      25.2,
+      31.9,
+      34.8,
+      24.7,
+      32.5,
+      24.6,
+      25.4,
+      33.1,
+      25.1,
+      932.7,
+      126.7,
+      149.9,
+      598.8,
+      84.1
+     ],
+     "vt": {
+      "types": [
+       "lateral"
+      ],
+      "rootAnimated": [
+       "height",
+       "width",
+       "transform",
+       "backdropFilter",
+       "opacity",
+       "translate",
+       "opacity",
+       "translate"
+      ],
+      "animations": [
+       {
+        "pseudo": "::view-transition-group(chrome-dock)",
+        "name": "-ua-view-transition-group-anim-chrome-dock",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-group(gl-route-window)",
+        "name": "-ua-view-transition-group-anim-gl-route-window",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 210,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-group(root)",
+        "name": "-ua-view-transition-group-anim-root",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-group(transport-dock)",
+        "name": "-ua-view-transition-group-anim-transport-dock",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(root)",
+        "name": "gl-vt-route-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 570,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(root)",
+        "name": "gl-route-world-push-in",
+        "props": [
+         "translate"
+        ],
+        "duration": 570,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(root)",
+        "name": "gl-vt-route-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 570,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(root)",
+        "name": "gl-route-world-push-out",
+        "props": [
+         "translate"
+        ],
+        "duration": 570,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(gl-route-window)",
+        "name": "gl-vt-route-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 210,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(gl-route-window)",
+        "name": "gl-route-slide-in",
+        "props": [
+         "translate"
+        ],
+        "duration": 210,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(gl-route-window)",
+        "name": "gl-vt-route-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 210,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(gl-route-window)",
+        "name": "gl-route-slide-out",
+        "props": [
+         "translate"
+        ],
+        "duration": 210,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(chrome-dock)",
+        "name": "-ua-view-transition-fade-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(chrome-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(chrome-dock)",
+        "name": "-ua-view-transition-fade-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(chrome-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(transport-dock)",
+        "name": "-ua-view-transition-fade-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(transport-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(transport-dock)",
+        "name": "-ua-view-transition-fade-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(transport-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       }
+      ]
+     }
+    },
+    {
+     "hop": "amiga->cube",
+     "prepare": 5,
+     "total": 2683,
+     "commit": 696,
+     "frames": [
+      798.4,
+      93.1,
+      16.4,
+      24,
+      24.6,
+      151.7,
+      1058
+     ],
+     "vt": {
+      "types": [
+       "lateral"
+      ],
+      "rootAnimated": [
+       "height",
+       "width",
+       "transform",
+       "backdropFilter",
+       "opacity",
+       "translate",
+       "opacity",
+       "translate"
+      ],
+      "animations": [
+       {
+        "pseudo": "::view-transition-group(transport-dock)",
+        "name": "-ua-view-transition-group-anim-transport-dock",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-group(gl-route-window)",
+        "name": "-ua-view-transition-group-anim-gl-route-window",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 210,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-group(root)",
+        "name": "-ua-view-transition-group-anim-root",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-group(chrome-dock)",
+        "name": "-ua-view-transition-group-anim-chrome-dock",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(root)",
+        "name": "gl-vt-route-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 570,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(root)",
+        "name": "gl-route-world-push-in",
+        "props": [
+         "translate"
+        ],
+        "duration": 570,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(root)",
+        "name": "gl-vt-route-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 570,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(root)",
+        "name": "gl-route-world-push-out",
+        "props": [
+         "translate"
+        ],
+        "duration": 570,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(gl-route-window)",
+        "name": "gl-vt-route-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 210,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(gl-route-window)",
+        "name": "gl-route-slide-in",
+        "props": [
+         "translate"
+        ],
+        "duration": 210,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(gl-route-window)",
+        "name": "gl-vt-route-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 210,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(gl-route-window)",
+        "name": "gl-route-slide-out",
+        "props": [
+         "translate"
+        ],
+        "duration": 210,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(chrome-dock)",
+        "name": "-ua-view-transition-fade-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(chrome-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(chrome-dock)",
+        "name": "-ua-view-transition-fade-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(chrome-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(transport-dock)",
+        "name": "-ua-view-transition-fade-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(transport-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(transport-dock)",
+        "name": "-ua-view-transition-fade-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(transport-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       }
+      ]
+     }
+    },
+    {
+     "hop": "cube->square",
+     "prepare": 244,
+     "total": 1935,
+     "commit": 781,
+     "frames": [
+      41.6,
+      32.1,
+      93,
+      25.1,
+      25.2,
+      24.7,
+      907.3,
+      133.2,
+      26.3,
+      24,
+      141.3,
+      132.9,
+      101.8,
+      125,
+      57.9,
+      50.6
+     ],
+     "vt": {
+      "types": [
+       "lateral"
+      ],
+      "rootAnimated": [
+       "height",
+       "width",
+       "transform",
+       "backdropFilter",
+       "opacity",
+       "translate",
+       "opacity",
+       "translate"
+      ],
+      "animations": [
+       {
+        "pseudo": "::view-transition-group(chrome-dock)",
+        "name": "-ua-view-transition-group-anim-chrome-dock",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-group(root)",
+        "name": "-ua-view-transition-group-anim-root",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-group(transport-dock)",
+        "name": "-ua-view-transition-group-anim-transport-dock",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-group(gl-route-window)",
+        "name": "-ua-view-transition-group-anim-gl-route-window",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 210,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(root)",
+        "name": "gl-vt-route-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 570,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(root)",
+        "name": "gl-route-world-push-in",
+        "props": [
+         "translate"
+        ],
+        "duration": 570,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(root)",
+        "name": "gl-vt-route-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 570,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(root)",
+        "name": "gl-route-world-push-out",
+        "props": [
+         "translate"
+        ],
+        "duration": 570,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(gl-route-window)",
+        "name": "gl-vt-route-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 210,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(gl-route-window)",
+        "name": "gl-route-slide-in",
+        "props": [
+         "translate"
+        ],
+        "duration": 210,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(gl-route-window)",
+        "name": "gl-vt-route-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 210,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(gl-route-window)",
+        "name": "gl-route-slide-out",
+        "props": [
+         "translate"
+        ],
+        "duration": 210,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(chrome-dock)",
+        "name": "-ua-view-transition-fade-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(chrome-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(chrome-dock)",
+        "name": "-ua-view-transition-fade-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(chrome-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(transport-dock)",
+        "name": "-ua-view-transition-fade-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(transport-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(transport-dock)",
+        "name": "-ua-view-transition-fade-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(transport-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       }
+      ]
+     }
+    },
+    {
+     "hop": "square->cube",
+     "prepare": 2,
+     "total": 2431,
+     "commit": 721,
+     "frames": [
+      115.2,
+      842.6,
+      8.5,
+      33.7,
+      150.1,
+      791.5
+     ],
+     "vt": {
+      "types": [
+       "lateral"
+      ],
+      "rootAnimated": [
+       "height",
+       "width",
+       "transform",
+       "backdropFilter",
+       "opacity",
+       "translate",
+       "opacity",
+       "translate"
+      ],
+      "animations": [
+       {
+        "pseudo": "::view-transition-group(transport-dock)",
+        "name": "-ua-view-transition-group-anim-transport-dock",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-group(root)",
+        "name": "-ua-view-transition-group-anim-root",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-group(chrome-dock)",
+        "name": "-ua-view-transition-group-anim-chrome-dock",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-group(gl-route-window)",
+        "name": "-ua-view-transition-group-anim-gl-route-window",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 210,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(root)",
+        "name": "gl-vt-route-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 570,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(root)",
+        "name": "gl-route-world-push-in",
+        "props": [
+         "translate"
+        ],
+        "duration": 570,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(root)",
+        "name": "gl-vt-route-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 570,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(root)",
+        "name": "gl-route-world-push-out",
+        "props": [
+         "translate"
+        ],
+        "duration": 570,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(gl-route-window)",
+        "name": "gl-vt-route-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 210,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(gl-route-window)",
+        "name": "gl-route-slide-in",
+        "props": [
+         "translate"
+        ],
+        "duration": 210,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(gl-route-window)",
+        "name": "gl-vt-route-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 210,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(gl-route-window)",
+        "name": "gl-route-slide-out",
+        "props": [
+         "translate"
+        ],
+        "duration": 210,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(chrome-dock)",
+        "name": "-ua-view-transition-fade-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(chrome-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(chrome-dock)",
+        "name": "-ua-view-transition-fade-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(chrome-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(transport-dock)",
+        "name": "-ua-view-transition-fade-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(transport-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(transport-dock)",
+        "name": "-ua-view-transition-fade-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(transport-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       }
+      ]
+     }
+    },
+    {
+     "hop": "cube->easing",
+     "prepare": 86,
+     "total": 1948,
+     "commit": 915,
+     "frames": [
+      41.6,
+      25.1,
+      25,
+      1057.8,
+      142.2,
+      16.6,
+      16.7,
+      16.7,
+      108.6,
+      141.4,
+      98.6,
+      133.6,
+      76.1
+     ],
+     "vt": {
+      "types": [
+       "lateral"
+      ],
+      "rootAnimated": [
+       "height",
+       "width",
+       "transform",
+       "backdropFilter",
+       "opacity",
+       "translate",
+       "opacity",
+       "translate"
+      ],
+      "animations": [
+       {
+        "pseudo": "::view-transition-group(root)",
+        "name": "-ua-view-transition-group-anim-root",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-group(transport-dock)",
+        "name": "-ua-view-transition-group-anim-transport-dock",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-group(gl-route-window)",
+        "name": "-ua-view-transition-group-anim-gl-route-window",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 210,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-group(chrome-dock)",
+        "name": "-ua-view-transition-group-anim-chrome-dock",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(root)",
+        "name": "gl-vt-route-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 570,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(root)",
+        "name": "gl-route-world-push-in",
+        "props": [
+         "translate"
+        ],
+        "duration": 570,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(root)",
+        "name": "gl-vt-route-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 570,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(root)",
+        "name": "gl-route-world-push-out",
+        "props": [
+         "translate"
+        ],
+        "duration": 570,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(gl-route-window)",
+        "name": "gl-vt-route-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 210,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(gl-route-window)",
+        "name": "gl-route-slide-in",
+        "props": [
+         "translate"
+        ],
+        "duration": 210,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(gl-route-window)",
+        "name": "gl-vt-route-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 210,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(gl-route-window)",
+        "name": "gl-route-slide-out",
+        "props": [
+         "translate"
+        ],
+        "duration": 210,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(chrome-dock)",
+        "name": "-ua-view-transition-fade-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(chrome-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(chrome-dock)",
+        "name": "-ua-view-transition-fade-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(chrome-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(transport-dock)",
+        "name": "-ua-view-transition-fade-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(transport-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(transport-dock)",
+        "name": "-ua-view-transition-fade-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(transport-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       }
+      ]
+     }
+    },
+    {
+     "hop": "easing->cube",
+     "prepare": 4,
+     "total": 2454,
+     "commit": 697,
+     "frames": [
+      815.3,
+      101.4,
+      8,
+      33.4,
+      156.8,
+      783.6
+     ],
+     "vt": {
+      "types": [
+       "lateral"
+      ],
+      "rootAnimated": [
+       "height",
+       "width",
+       "transform",
+       "backdropFilter",
+       "opacity",
+       "translate",
+       "opacity",
+       "translate"
+      ],
+      "animations": [
+       {
+        "pseudo": "::view-transition-group(chrome-dock)",
+        "name": "-ua-view-transition-group-anim-chrome-dock",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-group(gl-route-window)",
+        "name": "-ua-view-transition-group-anim-gl-route-window",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 210,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-group(root)",
+        "name": "-ua-view-transition-group-anim-root",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-group(transport-dock)",
+        "name": "-ua-view-transition-group-anim-transport-dock",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(root)",
+        "name": "gl-vt-route-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 570,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(root)",
+        "name": "gl-route-world-push-in",
+        "props": [
+         "translate"
+        ],
+        "duration": 570,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(root)",
+        "name": "gl-vt-route-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 570,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(root)",
+        "name": "gl-route-world-push-out",
+        "props": [
+         "translate"
+        ],
+        "duration": 570,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(gl-route-window)",
+        "name": "gl-vt-route-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 210,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(gl-route-window)",
+        "name": "gl-route-slide-in",
+        "props": [
+         "translate"
+        ],
+        "duration": 210,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(gl-route-window)",
+        "name": "gl-vt-route-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 210,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(gl-route-window)",
+        "name": "gl-route-slide-out",
+        "props": [
+         "translate"
+        ],
+        "duration": 210,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(chrome-dock)",
+        "name": "-ua-view-transition-fade-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(chrome-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(chrome-dock)",
+        "name": "-ua-view-transition-fade-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(chrome-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(transport-dock)",
+        "name": "-ua-view-transition-fade-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(transport-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(transport-dock)",
+        "name": "-ua-view-transition-fade-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(transport-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       }
+      ]
+     }
+    },
+    {
+     "hop": "cube->spring",
+     "prepare": 14,
+     "total": 1784,
+     "commit": 777,
+     "frames": [
+      17.7,
+      939.8,
+      166.9,
+      50,
+      126.4,
+      82.9,
+      225.3,
+      133.6,
+      49.4
+     ],
+     "vt": {
+      "types": [
+       "lateral"
+      ],
+      "rootAnimated": [
+       "height",
+       "width",
+       "transform",
+       "backdropFilter",
+       "opacity",
+       "translate",
+       "opacity",
+       "translate"
+      ],
+      "animations": [
+       {
+        "pseudo": "::view-transition-group(chrome-dock)",
+        "name": "-ua-view-transition-group-anim-chrome-dock",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-group(gl-route-window)",
+        "name": "-ua-view-transition-group-anim-gl-route-window",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 210,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-group(transport-dock)",
+        "name": "-ua-view-transition-group-anim-transport-dock",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-group(root)",
+        "name": "-ua-view-transition-group-anim-root",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(root)",
+        "name": "gl-vt-route-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 570,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(root)",
+        "name": "gl-route-world-push-in",
+        "props": [
+         "translate"
+        ],
+        "duration": 570,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(root)",
+        "name": "gl-vt-route-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 570,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(root)",
+        "name": "gl-route-world-push-out",
+        "props": [
+         "translate"
+        ],
+        "duration": 570,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(gl-route-window)",
+        "name": "gl-vt-route-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 210,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(gl-route-window)",
+        "name": "gl-route-slide-in",
+        "props": [
+         "translate"
+        ],
+        "duration": 210,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(gl-route-window)",
+        "name": "gl-vt-route-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 210,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(gl-route-window)",
+        "name": "gl-route-slide-out",
+        "props": [
+         "translate"
+        ],
+        "duration": 210,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(chrome-dock)",
+        "name": "-ua-view-transition-fade-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(chrome-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(chrome-dock)",
+        "name": "-ua-view-transition-fade-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(chrome-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(transport-dock)",
+        "name": "-ua-view-transition-fade-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(transport-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(transport-dock)",
+        "name": "-ua-view-transition-fade-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(transport-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       }
+      ]
+     }
+    },
+    {
+     "hop": "spring->cube",
+     "prepare": 1,
+     "total": 2376,
+     "commit": 678,
+     "frames": [
+      791.7,
+      108.7,
+      17.8,
+      31.6,
+      126.4,
+      749.4
+     ],
+     "vt": {
+      "types": [
+       "lateral"
+      ],
+      "rootAnimated": [
+       "height",
+       "width",
+       "transform",
+       "backdropFilter",
+       "opacity",
+       "translate",
+       "opacity",
+       "translate"
+      ],
+      "animations": [
+       {
+        "pseudo": "::view-transition-group(gl-route-window)",
+        "name": "-ua-view-transition-group-anim-gl-route-window",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 210,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-group(root)",
+        "name": "-ua-view-transition-group-anim-root",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-group(chrome-dock)",
+        "name": "-ua-view-transition-group-anim-chrome-dock",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-group(transport-dock)",
+        "name": "-ua-view-transition-group-anim-transport-dock",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(root)",
+        "name": "gl-vt-route-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 570,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(root)",
+        "name": "gl-route-world-push-in",
+        "props": [
+         "translate"
+        ],
+        "duration": 570,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(root)",
+        "name": "gl-vt-route-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 570,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(root)",
+        "name": "gl-route-world-push-out",
+        "props": [
+         "translate"
+        ],
+        "duration": 570,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(gl-route-window)",
+        "name": "gl-vt-route-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 210,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(gl-route-window)",
+        "name": "gl-route-slide-in",
+        "props": [
+         "translate"
+        ],
+        "duration": 210,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(gl-route-window)",
+        "name": "gl-vt-route-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 210,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(gl-route-window)",
+        "name": "gl-route-slide-out",
+        "props": [
+         "translate"
+        ],
+        "duration": 210,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(chrome-dock)",
+        "name": "-ua-view-transition-fade-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(chrome-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(chrome-dock)",
+        "name": "-ua-view-transition-fade-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(chrome-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(transport-dock)",
+        "name": "-ua-view-transition-fade-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(transport-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(transport-dock)",
+        "name": "-ua-view-transition-fade-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(transport-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       }
+      ]
+     }
+    },
+    {
+     "hop": "cube->sequence",
+     "prepare": 85,
+     "total": 1362,
+     "commit": 438,
+     "frames": [
+      42,
+      24.7,
+      25.2,
+      540.7,
+      117.3,
+      42.4,
+      99.7,
+      24,
+      126,
+      125,
+      108.2,
+      58,
+      42.1
+     ],
+     "vt": {
+      "types": [
+       "lateral"
+      ],
+      "rootAnimated": [
+       "height",
+       "width",
+       "transform",
+       "backdropFilter",
+       "opacity",
+       "translate",
+       "opacity",
+       "translate"
+      ],
+      "animations": [
+       {
+        "pseudo": "::view-transition-group(gl-route-window)",
+        "name": "-ua-view-transition-group-anim-gl-route-window",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 210,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-group(root)",
+        "name": "-ua-view-transition-group-anim-root",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-group(transport-dock)",
+        "name": "-ua-view-transition-group-anim-transport-dock",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-group(chrome-dock)",
+        "name": "-ua-view-transition-group-anim-chrome-dock",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(root)",
+        "name": "gl-vt-route-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 570,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(root)",
+        "name": "gl-route-world-push-in",
+        "props": [
+         "translate"
+        ],
+        "duration": 570,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(root)",
+        "name": "gl-vt-route-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 570,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(root)",
+        "name": "gl-route-world-push-out",
+        "props": [
+         "translate"
+        ],
+        "duration": 570,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(gl-route-window)",
+        "name": "gl-vt-route-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 210,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(gl-route-window)",
+        "name": "gl-route-slide-in",
+        "props": [
+         "translate"
+        ],
+        "duration": 210,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(gl-route-window)",
+        "name": "gl-vt-route-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 210,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(gl-route-window)",
+        "name": "gl-route-slide-out",
+        "props": [
+         "translate"
+        ],
+        "duration": 210,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(chrome-dock)",
+        "name": "-ua-view-transition-fade-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(chrome-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(chrome-dock)",
+        "name": "-ua-view-transition-fade-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(chrome-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(transport-dock)",
+        "name": "-ua-view-transition-fade-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(transport-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(transport-dock)",
+        "name": "-ua-view-transition-fade-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(transport-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       }
+      ]
+     }
+    },
+    {
+     "hop": "sequence->cube",
+     "prepare": 2,
+     "total": 2251,
+     "commit": 675,
+     "frames": [
+      776.3,
+      108.1,
+      25,
+      25.4,
+      132.9,
+      641
+     ],
+     "vt": {
+      "types": [
+       "lateral"
+      ],
+      "rootAnimated": [
+       "height",
+       "width",
+       "transform",
+       "backdropFilter",
+       "opacity",
+       "translate",
+       "opacity",
+       "translate"
+      ],
+      "animations": [
+       {
+        "pseudo": "::view-transition-group(transport-dock)",
+        "name": "-ua-view-transition-group-anim-transport-dock",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-group(gl-route-window)",
+        "name": "-ua-view-transition-group-anim-gl-route-window",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 210,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-group(chrome-dock)",
+        "name": "-ua-view-transition-group-anim-chrome-dock",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-group(root)",
+        "name": "-ua-view-transition-group-anim-root",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(root)",
+        "name": "gl-vt-route-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 570,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(root)",
+        "name": "gl-route-world-push-in",
+        "props": [
+         "translate"
+        ],
+        "duration": 570,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(root)",
+        "name": "gl-vt-route-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 570,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(root)",
+        "name": "gl-route-world-push-out",
+        "props": [
+         "translate"
+        ],
+        "duration": 570,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(gl-route-window)",
+        "name": "gl-vt-route-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 210,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(gl-route-window)",
+        "name": "gl-route-slide-in",
+        "props": [
+         "translate"
+        ],
+        "duration": 210,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(gl-route-window)",
+        "name": "gl-vt-route-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 210,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(gl-route-window)",
+        "name": "gl-route-slide-out",
+        "props": [
+         "translate"
+        ],
+        "duration": 210,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(chrome-dock)",
+        "name": "-ua-view-transition-fade-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(chrome-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(chrome-dock)",
+        "name": "-ua-view-transition-fade-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(chrome-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(transport-dock)",
+        "name": "-ua-view-transition-fade-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(transport-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(transport-dock)",
+        "name": "-ua-view-transition-fade-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(transport-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       }
+      ]
+     }
+    },
+    {
+     "hop": "cube->home",
+     "prepare": 76,
+     "total": 953,
+     "commit": 126,
+     "frames": [
+      33.8,
+      33.4,
+      16.5,
+      224.9,
+      58.2,
+      16.8,
+      8.3,
+      66.6,
+      90.8,
+      100.9,
+      100,
+      75.3,
+      32,
+      26.1,
+      23.9,
+      26.2,
+      23.9
+     ],
+     "vt": {
+      "types": [
+       "lateral"
+      ],
+      "rootAnimated": [
+       "height",
+       "width",
+       "transform",
+       "backdropFilter",
+       "opacity",
+       "translate",
+       "opacity",
+       "translate"
+      ],
+      "animations": [
+       {
+        "pseudo": "::view-transition-group(root)",
+        "name": "-ua-view-transition-group-anim-root",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-group(transport-dock)",
+        "name": "-ua-view-transition-group-anim-transport-dock",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-group(gl-route-window)",
+        "name": "-ua-view-transition-group-anim-gl-route-window",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 210,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-group(chrome-dock)",
+        "name": "-ua-view-transition-group-anim-chrome-dock",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(root)",
+        "name": "gl-vt-route-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 570,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(root)",
+        "name": "gl-route-world-push-in",
+        "props": [
+         "translate"
+        ],
+        "duration": 570,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(root)",
+        "name": "gl-vt-route-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 570,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(root)",
+        "name": "gl-route-world-push-out",
+        "props": [
+         "translate"
+        ],
+        "duration": 570,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(gl-route-window)",
+        "name": "gl-vt-route-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 210,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(gl-route-window)",
+        "name": "gl-route-slide-in",
+        "props": [
+         "translate"
+        ],
+        "duration": 210,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(gl-route-window)",
+        "name": "gl-vt-route-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 210,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(gl-route-window)",
+        "name": "gl-route-slide-out",
+        "props": [
+         "translate"
+        ],
+        "duration": 210,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(chrome-dock)",
+        "name": "-ua-view-transition-fade-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(chrome-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(chrome-dock)",
+        "name": "-ua-view-transition-fade-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(chrome-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(transport-dock)",
+        "name": "-ua-view-transition-fade-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(transport-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(transport-dock)",
+        "name": "-ua-view-transition-fade-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(transport-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       }
+      ]
+     }
+    },
+    {
+     "hop": "home->cube",
+     "prepare": 4,
+     "total": 1237,
+     "commit": 371,
+     "frames": [
+      450.5,
+      116.5,
+      51.4,
+      116.2,
+      100.2,
+      149.8,
+      25.1,
+      66.8,
+      66.5
+     ],
+     "vt": {
+      "types": [
+       "lateral"
+      ],
+      "rootAnimated": [
+       "height",
+       "width",
+       "transform",
+       "backdropFilter",
+       "opacity",
+       "translate",
+       "opacity",
+       "translate"
+      ],
+      "animations": [
+       {
+        "pseudo": "::view-transition-group(chrome-dock)",
+        "name": "-ua-view-transition-group-anim-chrome-dock",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-group(transport-dock)",
+        "name": "-ua-view-transition-group-anim-transport-dock",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-group(gl-route-window)",
+        "name": "-ua-view-transition-group-anim-gl-route-window",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 210,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-group(root)",
+        "name": "-ua-view-transition-group-anim-root",
+        "props": [
+         "height",
+         "width",
+         "transform",
+         "backdropFilter"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(root)",
+        "name": "gl-vt-route-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 570,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(root)",
+        "name": "gl-route-world-push-in",
+        "props": [
+         "translate"
+        ],
+        "duration": 570,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(root)",
+        "name": "gl-vt-route-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 570,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(root)",
+        "name": "gl-route-world-push-out",
+        "props": [
+         "translate"
+        ],
+        "duration": 570,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(gl-route-window)",
+        "name": "gl-vt-route-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 210,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(gl-route-window)",
+        "name": "gl-route-slide-in",
+        "props": [
+         "translate"
+        ],
+        "duration": 210,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(gl-route-window)",
+        "name": "gl-vt-route-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 210,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(gl-route-window)",
+        "name": "gl-route-slide-out",
+        "props": [
+         "translate"
+        ],
+        "duration": 210,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(chrome-dock)",
+        "name": "-ua-view-transition-fade-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(chrome-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(chrome-dock)",
+        "name": "-ua-view-transition-fade-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(chrome-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(transport-dock)",
+        "name": "-ua-view-transition-fade-in",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-new(transport-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(transport-dock)",
+        "name": "-ua-view-transition-fade-out",
+        "props": [
+         "opacity"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       },
+       {
+        "pseudo": "::view-transition-old(transport-dock)",
+        "name": "-ua-mix-blend-mode-plus-lighter",
+        "props": [
+         "mixBlendMode"
+        ],
+        "duration": 250,
+        "easing": "linear"
+       }
+      ]
+     }
+    }
+   ]
+  },
+  "frames": [
+   {
+    "w": 390,
+    "scheme": "light",
+    "file": "docs/evidence/o1105-kf-load/frames-L7/swap-cube-spring-390-light.png",
+    "groups": []
+   },
+   {
+    "w": 390,
+    "scheme": "dark",
+    "file": "docs/evidence/o1105-kf-load/frames-L7/swap-cube-spring-390-dark.png",
+    "groups": []
+   },
+   {
+    "w": 1440,
+    "scheme": "light",
+    "file": "docs/evidence/o1105-kf-load/frames-L7/swap-cube-spring-1440-light.png",
+    "groups": []
+   },
+   {
+    "w": 1440,
+    "scheme": "dark",
+    "file": "docs/evidence/o1105-kf-load/frames-L7/swap-cube-spring-1440-dark.png",
+    "groups": []
+   }
+  ],
+  "reducedMotion": {
+   "animations": 0,
+   "types": null
+  }
+ }
+}
