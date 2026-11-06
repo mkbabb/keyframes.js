@@ -57,7 +57,16 @@ const flag = (n) => process.argv.includes(`--${n}`);
 const OUT = arg("out", null);
 const RUNS = Number(arg("runs", "3"));
 const CELLS = new Set(arg("cells", "load,bytes,swap,vt,inp").split(","));
+// --gpu: the real-GPU witness. Playwright's default headless shell composites
+// in software (viz SoftwareRenderer) unless asked otherwise, and a software
+// compositor draws every view-transition render pass at 2880x1800 on the CPU:
+// a trace of square -> cube showed 997 ms of SoftwareRenderer::DoDrawQuad on
+// the viz thread against 452 ms of renderer main-thread work, so frame
+// intervals there time the compositor, not the page. The witness stays the
+// headless shell and turns on ANGLE Metal; the result records the renderer
+// string so a run that fell back to SwiftShader is visible.
 const GPU = flag("gpu");
+const GPU_ARGS = GPU ? ["--use-angle=metal", "--enable-gpu", "--ignore-gpu-blocklist"] : [];
 const PW = process.env.PLAYWRIGHT_MODULE ?? "/Users/mkbabb/Programming/value.js/node_modules/playwright/index.mjs";
 const { chromium } = await import(PW);
 
@@ -455,7 +464,7 @@ async function lighthouseCells(base, runs) {
     for (let run = 1; run <= runs; run++) {
         for (const hash of ["", "#/spring"]) {
             const port = 9300 + Math.floor(Math.random() * 500);
-            const browser = await chromium.launch({ headless: true, args: [`--remote-debugging-port=${port}`], ...(GPU ? { channel: "chrome" } : {}) });
+            const browser = await chromium.launch({ headless: true, args: [`--remote-debugging-port=${port}`, ...GPU_ARGS] });
             try {
                 const env = machine();
                 const r = await lighthouse(base + hash, { port, output: "json", logLevel: "error", onlyCategories: ["performance"] });
@@ -498,7 +507,18 @@ else {
 const result = { base: baseArg ?? path.relative(REPO, path.resolve(REPO, distArg ?? "dist/gh-pages")), at: new Date().toISOString(), runs: RUNS, gpu: GPU, cells: {} };
 let browser;
 try {
-    browser = await chromium.launch({ headless: true, ...(GPU ? { channel: "chrome" } : {}) });
+    browser = await chromium.launch({ headless: true, args: GPU_ARGS });
+    {
+        const c = await browser.newContext();
+        const p = await c.newPage();
+        result.renderer = await p.evaluate(() => {
+            const gl = document.createElement("canvas").getContext("webgl");
+            const ext = gl?.getExtension("WEBGL_debug_renderer_info");
+            return ext ? gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) : null;
+        });
+        await c.close();
+        console.log(`renderer: ${result.renderer}`);
+    }
     if (CELLS.has("load")) {
         const defs = [
             { id: "home-390", hash: "", device: MOBILE, rate: 4 },
