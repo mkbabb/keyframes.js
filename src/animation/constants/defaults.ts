@@ -28,8 +28,10 @@ export const DIRECTIONS = [
 export const FILL_MODES = ["none", "forwards", "backwards", "both"] as const;
 
 /**
- * The valid `colorSpace` values. `satisfies` keeps this runtime accept-list
- * checked against Value 4's exported `SpaceId` contract.
+ * The valid `colorSpace` values: every `SpaceId` value.js exports. `satisfies`
+ * keeps each entry a real space, and `normalizeColorSpace` narrowing a
+ * `SpaceId` through `includes` fails to compile when value.js adds a space this
+ * list lacks (value.js 4.3.0 added `xyz-d50` and `display-p3-linear`).
  */
 export const COLOR_SPACES = [
     "rgb",
@@ -49,6 +51,8 @@ export const COLOR_SPACES = [
     "rec2020",
     "ictcp",
     "jzazbz",
+    "xyz-d50",
+    "display-p3-linear",
 ] as const satisfies readonly SpaceId[];
 
 /**
