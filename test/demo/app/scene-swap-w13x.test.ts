@@ -90,7 +90,8 @@ describe("KFA-25 / KFA-26 / KFA-201 — the switch prepares, then captures the r
             promise: new Promise<void>((r) => (resolveExit = r)),
             resolve: () => resolveExit(),
         };
-        startVT = vi.fn((cb: () => Promise<void>) => {
+        startVT = vi.fn((arg: (() => Promise<void>) | { update: () => Promise<void> }) => {
+            const cb = typeof arg === "function" ? arg : arg.update;
             callbackDone = Promise.resolve().then(cb);
             const done = callbackDone.then(() => undefined);
             return { ready: done, finished: done, updateCallbackDone: done, skipTransition() {}, types: new Set() };
@@ -132,6 +133,7 @@ describe("KFA-25 / KFA-26 / KFA-201 — the switch prepares, then captures the r
                     mutate,
                     sceneHost: ref<HTMLElement | null>(null),
                     whenSceneReady,
+                    currentId: () => "cube",
                 }));
                 return () => h("div");
             },

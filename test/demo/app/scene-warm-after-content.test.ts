@@ -51,6 +51,7 @@ describe("KF-RES-1 — the idle scene warm waits for the first scene's content",
                         mutate: () => {},
                         sceneHost: ref<HTMLElement | null>(null),
                         whenSceneReady: () => Promise.resolve(),
+                        currentId: () => "cube",
                     }));
                     return () => h("div");
                 },

@@ -126,12 +126,10 @@ import "@styles/brand.css";
 // S.G2 S11 — the demo carries NO `::view-transition-*` CSS of its own (fold row
 // 5 backlog). The animation glyphs that
 // paint the scene swap are glass-ui-owned (its `view-transition.css`, loaded via
-// `@import "@mkbabb/glass-ui/styles"`): the untyped cross-fade + the `scene-subject`
-// shared-element morph are the default UA/glass-ui look. The former Q.WC3 demo-side
-// `scene-transition.css` (the typed `forward`/`backward` `::view-transition-old/new`
-// slide keyframes) was demo-side VT residue the gate forbids — DELETED here, and
-// the direction derivation that outlived them is gone too (KFA-136: a type no
-// stylesheet read; see useSceneTransition).
+// `@import "@mkbabb/glass-ui/styles"`): the swap is glass's `lateral` route type
+// over the `gl-route-window` scene host (useSceneTransition). The former Q.WC3
+// demo-side `scene-transition.css` (typed `forward`/`backward` slide keyframes)
+// was demo-side VT residue the gate forbids, and stays deleted.
 
 import {
     computed,
@@ -434,6 +432,7 @@ const { runSceneSwitch, lastSwapBackend, onSceneContent } = useSceneTransition({
     mutate: switchScene,
     sceneHost: sceneHostEl,
     whenSceneReady,
+    currentId: () => currentSceneId.value,
 });
 
 // Scene-swap cross-dissolve (SpringProgress) — PRESERVED driver (S7), the
@@ -491,7 +490,7 @@ const { sceneSwapStyle, onSceneFallback, onSceneResolve } = useSceneSwap(
    from `startViewTransition()` until the transition ends, which covers the old
    state's capture and the new state's, so the morph is unchanged. */
 :root:active-view-transition .scene-host {
-    view-transition-name: scene-subject;
+    view-transition-name: gl-route-window;
 }
 
 /* X.KF.W13W.m (OA-64) · KF-M1 — below lg the stage sits on the page gutter at
