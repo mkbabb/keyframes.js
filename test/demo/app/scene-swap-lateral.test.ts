@@ -44,7 +44,7 @@ describe("the scene swap is lateral, signed by dock order", () => {
                     ({ runSceneSwitch: run } = useSceneTransition({
                         mutate: () => {},
                         sceneHost: ref<HTMLElement | null>(null),
-                        whenSceneReady: () => Promise.resolve(),
+                        whenSceneReady: () => Promise.resolve(() => {}),
                         currentId: () => "sequence",
                     }));
                     return () => h("div");
