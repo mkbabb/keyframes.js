@@ -1,0 +1,2936 @@
+{
+ "base": "../../.dev-logs/o1105/kf-load/dist-after1",
+ "at": "2026-11-06T04:08:40.532Z",
+ "runs": 3,
+ "gpu": false,
+ "cells": {
+  "home-390": {
+   "median": {
+    "fcp": 448,
+    "lcp": 448,
+    "cls": 0,
+    "tbt": 0,
+    "jsKB": 1353,
+    "jsWireKB": 415,
+    "monaco10s": 0,
+    "three10s": 0
+   },
+   "thirdParty": [],
+   "runs": [
+    {
+     "id": "home-390",
+     "env": {
+      "load1": 15.89,
+      "memFreePct": 77
+     },
+     "fcp": 448,
+     "lcp": 448,
+     "cls": 0,
+     "tbt": 0,
+     "jsKB": 1353,
+     "jsWireKB": 415,
+     "thirdParty": [],
+     "monaco10s": 0,
+     "three10s": 0,
+     "requests": [
+      {
+       "at": 17,
+       "url": "/"
+      },
+      {
+       "at": 35,
+       "url": "/assets/instrument-serif-latin-400-normal-DnYpCC2O.woff2"
+      },
+      {
+       "at": 35,
+       "url": "/assets/index-Mbg6e3qL.js"
+      },
+      {
+       "at": 36,
+       "url": "/assets/rolldown-runtime-DK3Fl9T5.js"
+      },
+      {
+       "at": 36,
+       "url": "/assets/vendor-reka-ui-4DPhyUsZ.js"
+      },
+      {
+       "at": 36,
+       "url": "/assets/_plugin-vue_export-helper-BWVvCjWZ.js"
+      },
+      {
+       "at": 36,
+       "url": "/assets/preload-helper-kNaey6uv.js"
+      },
+      {
+       "at": 36,
+       "url": "/assets/keyboard-D-dtJ_Fp.js"
+      },
+      {
+       "at": 36,
+       "url": "/assets/progress-e88g4GGc.js"
+      },
+      {
+       "at": 36,
+       "url": "/assets/timing-function-CtQ34pOp.js"
+      },
+      {
+       "at": 36,
+       "url": "/assets/binary-search-U2Hj7143.js"
+      },
+      {
+       "at": 36,
+       "url": "/assets/vendor-lucide-BET3I7w3.js"
+      },
+      {
+       "at": 36,
+       "url": "/assets/pointerFieldMappings-DXwlU5uj-D5wIeQ_V.js"
+      },
+      {
+       "at": 36,
+       "url": "/assets/glass-ui-D0DBYXhu.js"
+      },
+      {
+       "at": 36,
+       "url": "/assets/public-By9KX_h5.js"
+      },
+      {
+       "at": 36,
+       "url": "/assets/selector-p3bXA53F.js"
+      },
+      {
+       "at": 37,
+       "url": "/assets/index-Gjp9ZfAL.css"
+      },
+      {
+       "at": 156,
+       "url": "/assets/HeroAurora-BI_b6X5S.js"
+      },
+      {
+       "at": 156,
+       "url": "/assets/color-grammar-CRvuKec1-Cj9D6Uyc.js"
+      },
+      {
+       "at": 156,
+       "url": "/assets/HeroAurora-CJUYErC9.css"
+      },
+      {
+       "at": 442,
+       "url": "/assets/instrument-serif-latin-400-italic-Dv3QvL_F.woff2"
+      },
+      {
+       "at": 524,
+       "url": "/assets/SquareScene-B6k9r2kX.js"
+      },
+      {
+       "at": 524,
+       "url": "/assets/arrowNudge-D7YehOEl.js"
+      },
+      {
+       "at": 524,
+       "url": "/assets/useSweepScene-DJkrl9Hx.js"
+      },
+      {
+       "at": 524,
+       "url": "/assets/useSweepScene-B__ZuSDF.css"
+      },
+      {
+       "at": 524,
+       "url": "/assets/SquareScene-B7GpYqAj.css"
+      },
+      {
+       "at": 524,
+       "url": "/assets/EasingScene-CMVaL0br.js"
+      },
+      {
+       "at": 524,
+       "url": "/assets/usePainterRegistry-YxcRg963.js"
+      },
+      {
+       "at": 524,
+       "url": "/assets/copyWithToast-Cq4zbV_D.js"
+      },
+      {
+       "at": 524,
+       "url": "/assets/usePainterRegistry-C0DwymcO.css"
+      },
+      {
+       "at": 524,
+       "url": "/assets/EasingScene-B7P-3tCr.css"
+      },
+      {
+       "at": 524,
+       "url": "/assets/SpringScene-CPGITVIc.js"
+      },
+      {
+       "at": 524,
+       "url": "/assets/codeTokens-c1Vqa4L7.js"
+      },
+      {
+       "at": 524,
+       "url": "/assets/SpringScene-Bd3fkLgj.css"
+      },
+      {
+       "at": 524,
+       "url": "/assets/SequenceScene-D0AnJ5M0.js"
+      },
+      {
+       "at": 524,
+       "url": "/assets/SequenceScene-CztErGj8.css"
+      }
+     ]
+    },
+    {
+     "id": "home-390",
+     "env": {
+      "load1": 13.41,
+      "memFreePct": 77
+     },
+     "fcp": 432,
+     "lcp": 432,
+     "cls": 0,
+     "tbt": 0,
+     "jsKB": 1353,
+     "jsWireKB": 415,
+     "thirdParty": [],
+     "monaco10s": 0,
+     "three10s": 0,
+     "requests": [
+      {
+       "at": 11,
+       "url": "/"
+      },
+      {
+       "at": 24,
+       "url": "/assets/instrument-serif-latin-400-normal-DnYpCC2O.woff2"
+      },
+      {
+       "at": 24,
+       "url": "/assets/index-Mbg6e3qL.js"
+      },
+      {
+       "at": 24,
+       "url": "/assets/rolldown-runtime-DK3Fl9T5.js"
+      },
+      {
+       "at": 24,
+       "url": "/assets/vendor-reka-ui-4DPhyUsZ.js"
+      },
+      {
+       "at": 24,
+       "url": "/assets/_plugin-vue_export-helper-BWVvCjWZ.js"
+      },
+      {
+       "at": 24,
+       "url": "/assets/preload-helper-kNaey6uv.js"
+      },
+      {
+       "at": 24,
+       "url": "/assets/keyboard-D-dtJ_Fp.js"
+      },
+      {
+       "at": 24,
+       "url": "/assets/progress-e88g4GGc.js"
+      },
+      {
+       "at": 24,
+       "url": "/assets/timing-function-CtQ34pOp.js"
+      },
+      {
+       "at": 24,
+       "url": "/assets/binary-search-U2Hj7143.js"
+      },
+      {
+       "at": 24,
+       "url": "/assets/vendor-lucide-BET3I7w3.js"
+      },
+      {
+       "at": 24,
+       "url": "/assets/pointerFieldMappings-DXwlU5uj-D5wIeQ_V.js"
+      },
+      {
+       "at": 24,
+       "url": "/assets/glass-ui-D0DBYXhu.js"
+      },
+      {
+       "at": 24,
+       "url": "/assets/public-By9KX_h5.js"
+      },
+      {
+       "at": 24,
+       "url": "/assets/selector-p3bXA53F.js"
+      },
+      {
+       "at": 27,
+       "url": "/assets/index-Gjp9ZfAL.css"
+      },
+      {
+       "at": 142,
+       "url": "/assets/HeroAurora-BI_b6X5S.js"
+      },
+      {
+       "at": 142,
+       "url": "/assets/color-grammar-CRvuKec1-Cj9D6Uyc.js"
+      },
+      {
+       "at": 142,
+       "url": "/assets/HeroAurora-CJUYErC9.css"
+      },
+      {
+       "at": 425,
+       "url": "/assets/instrument-serif-latin-400-italic-Dv3QvL_F.woff2"
+      },
+      {
+       "at": 493,
+       "url": "/assets/SquareScene-B6k9r2kX.js"
+      },
+      {
+       "at": 493,
+       "url": "/assets/arrowNudge-D7YehOEl.js"
+      },
+      {
+       "at": 493,
+       "url": "/assets/useSweepScene-DJkrl9Hx.js"
+      },
+      {
+       "at": 493,
+       "url": "/assets/useSweepScene-B__ZuSDF.css"
+      },
+      {
+       "at": 493,
+       "url": "/assets/SquareScene-B7GpYqAj.css"
+      },
+      {
+       "at": 493,
+       "url": "/assets/EasingScene-CMVaL0br.js"
+      },
+      {
+       "at": 493,
+       "url": "/assets/usePainterRegistry-YxcRg963.js"
+      },
+      {
+       "at": 493,
+       "url": "/assets/copyWithToast-Cq4zbV_D.js"
+      },
+      {
+       "at": 493,
+       "url": "/assets/usePainterRegistry-C0DwymcO.css"
+      },
+      {
+       "at": 494,
+       "url": "/assets/EasingScene-B7P-3tCr.css"
+      },
+      {
+       "at": 494,
+       "url": "/assets/SpringScene-CPGITVIc.js"
+      },
+      {
+       "at": 494,
+       "url": "/assets/codeTokens-c1Vqa4L7.js"
+      },
+      {
+       "at": 494,
+       "url": "/assets/SpringScene-Bd3fkLgj.css"
+      },
+      {
+       "at": 494,
+       "url": "/assets/SequenceScene-D0AnJ5M0.js"
+      },
+      {
+       "at": 494,
+       "url": "/assets/SequenceScene-CztErGj8.css"
+      }
+     ]
+    },
+    {
+     "id": "home-390",
+     "env": {
+      "load1": 12.86,
+      "memFreePct": 77
+     },
+     "fcp": 468,
+     "lcp": 468,
+     "cls": 0,
+     "tbt": 0,
+     "jsKB": 1353,
+     "jsWireKB": 415,
+     "thirdParty": [],
+     "monaco10s": 0,
+     "three10s": 0,
+     "requests": [
+      {
+       "at": 11,
+       "url": "/"
+      },
+      {
+       "at": 25,
+       "url": "/assets/instrument-serif-latin-400-normal-DnYpCC2O.woff2"
+      },
+      {
+       "at": 25,
+       "url": "/assets/index-Mbg6e3qL.js"
+      },
+      {
+       "at": 25,
+       "url": "/assets/rolldown-runtime-DK3Fl9T5.js"
+      },
+      {
+       "at": 25,
+       "url": "/assets/vendor-reka-ui-4DPhyUsZ.js"
+      },
+      {
+       "at": 25,
+       "url": "/assets/_plugin-vue_export-helper-BWVvCjWZ.js"
+      },
+      {
+       "at": 25,
+       "url": "/assets/preload-helper-kNaey6uv.js"
+      },
+      {
+       "at": 25,
+       "url": "/assets/keyboard-D-dtJ_Fp.js"
+      },
+      {
+       "at": 25,
+       "url": "/assets/progress-e88g4GGc.js"
+      },
+      {
+       "at": 25,
+       "url": "/assets/timing-function-CtQ34pOp.js"
+      },
+      {
+       "at": 25,
+       "url": "/assets/binary-search-U2Hj7143.js"
+      },
+      {
+       "at": 25,
+       "url": "/assets/vendor-lucide-BET3I7w3.js"
+      },
+      {
+       "at": 25,
+       "url": "/assets/pointerFieldMappings-DXwlU5uj-D5wIeQ_V.js"
+      },
+      {
+       "at": 25,
+       "url": "/assets/glass-ui-D0DBYXhu.js"
+      },
+      {
+       "at": 25,
+       "url": "/assets/public-By9KX_h5.js"
+      },
+      {
+       "at": 25,
+       "url": "/assets/selector-p3bXA53F.js"
+      },
+      {
+       "at": 28,
+       "url": "/assets/index-Gjp9ZfAL.css"
+      },
+      {
+       "at": 146,
+       "url": "/assets/HeroAurora-BI_b6X5S.js"
+      },
+      {
+       "at": 146,
+       "url": "/assets/color-grammar-CRvuKec1-Cj9D6Uyc.js"
+      },
+      {
+       "at": 146,
+       "url": "/assets/HeroAurora-CJUYErC9.css"
+      },
+      {
+       "at": 455,
+       "url": "/assets/instrument-serif-latin-400-italic-Dv3QvL_F.woff2"
+      },
+      {
+       "at": 541,
+       "url": "/assets/SquareScene-B6k9r2kX.js"
+      },
+      {
+       "at": 541,
+       "url": "/assets/arrowNudge-D7YehOEl.js"
+      },
+      {
+       "at": 541,
+       "url": "/assets/useSweepScene-DJkrl9Hx.js"
+      },
+      {
+       "at": 541,
+       "url": "/assets/useSweepScene-B__ZuSDF.css"
+      },
+      {
+       "at": 541,
+       "url": "/assets/SquareScene-B7GpYqAj.css"
+      },
+      {
+       "at": 541,
+       "url": "/assets/EasingScene-CMVaL0br.js"
+      },
+      {
+       "at": 541,
+       "url": "/assets/usePainterRegistry-YxcRg963.js"
+      },
+      {
+       "at": 541,
+       "url": "/assets/copyWithToast-Cq4zbV_D.js"
+      },
+      {
+       "at": 541,
+       "url": "/assets/usePainterRegistry-C0DwymcO.css"
+      },
+      {
+       "at": 541,
+       "url": "/assets/EasingScene-B7P-3tCr.css"
+      },
+      {
+       "at": 541,
+       "url": "/assets/SpringScene-CPGITVIc.js"
+      },
+      {
+       "at": 541,
+       "url": "/assets/codeTokens-c1Vqa4L7.js"
+      },
+      {
+       "at": 541,
+       "url": "/assets/SpringScene-Bd3fkLgj.css"
+      },
+      {
+       "at": 541,
+       "url": "/assets/SequenceScene-D0AnJ5M0.js"
+      },
+      {
+       "at": 541,
+       "url": "/assets/SequenceScene-CztErGj8.css"
+      }
+     ]
+    }
+   ]
+  },
+  "spring-390": {
+   "median": {
+    "fcp": 592,
+    "lcp": 940,
+    "cls": 0.0155,
+    "tbt": 23,
+    "jsKB": 1353,
+    "jsWireKB": 415,
+    "monaco10s": 0,
+    "three10s": 0
+   },
+   "thirdParty": [],
+   "runs": [
+    {
+     "id": "spring-390",
+     "env": {
+      "load1": 15.69,
+      "memFreePct": 77
+     },
+     "fcp": 600,
+     "lcp": 976,
+     "cls": 0.0155,
+     "tbt": 33,
+     "jsKB": 1353,
+     "jsWireKB": 415,
+     "thirdParty": [],
+     "monaco10s": 0,
+     "three10s": 0,
+     "requests": [
+      {
+       "at": 42,
+       "url": "/"
+      },
+      {
+       "at": 64,
+       "url": "/assets/instrument-serif-latin-400-normal-DnYpCC2O.woff2"
+      },
+      {
+       "at": 64,
+       "url": "/assets/index-Mbg6e3qL.js"
+      },
+      {
+       "at": 64,
+       "url": "/assets/rolldown-runtime-DK3Fl9T5.js"
+      },
+      {
+       "at": 64,
+       "url": "/assets/vendor-reka-ui-4DPhyUsZ.js"
+      },
+      {
+       "at": 64,
+       "url": "/assets/_plugin-vue_export-helper-BWVvCjWZ.js"
+      },
+      {
+       "at": 64,
+       "url": "/assets/preload-helper-kNaey6uv.js"
+      },
+      {
+       "at": 64,
+       "url": "/assets/keyboard-D-dtJ_Fp.js"
+      },
+      {
+       "at": 64,
+       "url": "/assets/progress-e88g4GGc.js"
+      },
+      {
+       "at": 64,
+       "url": "/assets/timing-function-CtQ34pOp.js"
+      },
+      {
+       "at": 64,
+       "url": "/assets/binary-search-U2Hj7143.js"
+      },
+      {
+       "at": 64,
+       "url": "/assets/vendor-lucide-BET3I7w3.js"
+      },
+      {
+       "at": 64,
+       "url": "/assets/pointerFieldMappings-DXwlU5uj-D5wIeQ_V.js"
+      },
+      {
+       "at": 65,
+       "url": "/assets/glass-ui-D0DBYXhu.js"
+      },
+      {
+       "at": 65,
+       "url": "/assets/public-By9KX_h5.js"
+      },
+      {
+       "at": 65,
+       "url": "/assets/selector-p3bXA53F.js"
+      },
+      {
+       "at": 73,
+       "url": "/assets/index-Gjp9ZfAL.css"
+      },
+      {
+       "at": 245,
+       "url": "/assets/SpringScene-CPGITVIc.js"
+      },
+      {
+       "at": 245,
+       "url": "/assets/usePainterRegistry-YxcRg963.js"
+      },
+      {
+       "at": 245,
+       "url": "/assets/copyWithToast-Cq4zbV_D.js"
+      },
+      {
+       "at": 245,
+       "url": "/assets/codeTokens-c1Vqa4L7.js"
+      },
+      {
+       "at": 245,
+       "url": "/assets/useSweepScene-DJkrl9Hx.js"
+      },
+      {
+       "at": 245,
+       "url": "/assets/usePainterRegistry-C0DwymcO.css"
+      },
+      {
+       "at": 245,
+       "url": "/assets/useSweepScene-B__ZuSDF.css"
+      },
+      {
+       "at": 246,
+       "url": "/assets/SpringScene-Bd3fkLgj.css"
+      },
+      {
+       "at": 1547,
+       "url": "/assets/HeroAurora-BI_b6X5S.js"
+      },
+      {
+       "at": 1547,
+       "url": "/assets/color-grammar-CRvuKec1-Cj9D6Uyc.js"
+      },
+      {
+       "at": 1547,
+       "url": "/assets/HeroAurora-CJUYErC9.css"
+      },
+      {
+       "at": 1547,
+       "url": "/assets/SquareScene-B6k9r2kX.js"
+      },
+      {
+       "at": 1547,
+       "url": "/assets/arrowNudge-D7YehOEl.js"
+      },
+      {
+       "at": 1547,
+       "url": "/assets/SquareScene-B7GpYqAj.css"
+      },
+      {
+       "at": 1547,
+       "url": "/assets/EasingScene-CMVaL0br.js"
+      },
+      {
+       "at": 1547,
+       "url": "/assets/EasingScene-B7P-3tCr.css"
+      },
+      {
+       "at": 1547,
+       "url": "/assets/SequenceScene-D0AnJ5M0.js"
+      },
+      {
+       "at": 1547,
+       "url": "/assets/SequenceScene-CztErGj8.css"
+      }
+     ]
+    },
+    {
+     "id": "spring-390",
+     "env": {
+      "load1": 17.94,
+      "memFreePct": 77
+     },
+     "fcp": 592,
+     "lcp": 940,
+     "cls": 0.0155,
+     "tbt": 23,
+     "jsKB": 1353,
+     "jsWireKB": 415,
+     "thirdParty": [],
+     "monaco10s": 0,
+     "three10s": 0,
+     "requests": [
+      {
+       "at": 15,
+       "url": "/"
+      },
+      {
+       "at": 33,
+       "url": "/assets/instrument-serif-latin-400-normal-DnYpCC2O.woff2"
+      },
+      {
+       "at": 33,
+       "url": "/assets/index-Mbg6e3qL.js"
+      },
+      {
+       "at": 33,
+       "url": "/assets/rolldown-runtime-DK3Fl9T5.js"
+      },
+      {
+       "at": 33,
+       "url": "/assets/vendor-reka-ui-4DPhyUsZ.js"
+      },
+      {
+       "at": 33,
+       "url": "/assets/_plugin-vue_export-helper-BWVvCjWZ.js"
+      },
+      {
+       "at": 33,
+       "url": "/assets/preload-helper-kNaey6uv.js"
+      },
+      {
+       "at": 33,
+       "url": "/assets/keyboard-D-dtJ_Fp.js"
+      },
+      {
+       "at": 33,
+       "url": "/assets/progress-e88g4GGc.js"
+      },
+      {
+       "at": 33,
+       "url": "/assets/timing-function-CtQ34pOp.js"
+      },
+      {
+       "at": 33,
+       "url": "/assets/binary-search-U2Hj7143.js"
+      },
+      {
+       "at": 33,
+       "url": "/assets/vendor-lucide-BET3I7w3.js"
+      },
+      {
+       "at": 33,
+       "url": "/assets/pointerFieldMappings-DXwlU5uj-D5wIeQ_V.js"
+      },
+      {
+       "at": 33,
+       "url": "/assets/glass-ui-D0DBYXhu.js"
+      },
+      {
+       "at": 33,
+       "url": "/assets/public-By9KX_h5.js"
+      },
+      {
+       "at": 33,
+       "url": "/assets/selector-p3bXA53F.js"
+      },
+      {
+       "at": 38,
+       "url": "/assets/index-Gjp9ZfAL.css"
+      },
+      {
+       "at": 209,
+       "url": "/assets/SpringScene-CPGITVIc.js"
+      },
+      {
+       "at": 209,
+       "url": "/assets/usePainterRegistry-YxcRg963.js"
+      },
+      {
+       "at": 209,
+       "url": "/assets/copyWithToast-Cq4zbV_D.js"
+      },
+      {
+       "at": 209,
+       "url": "/assets/codeTokens-c1Vqa4L7.js"
+      },
+      {
+       "at": 210,
+       "url": "/assets/useSweepScene-DJkrl9Hx.js"
+      },
+      {
+       "at": 210,
+       "url": "/assets/usePainterRegistry-C0DwymcO.css"
+      },
+      {
+       "at": 210,
+       "url": "/assets/useSweepScene-B__ZuSDF.css"
+      },
+      {
+       "at": 210,
+       "url": "/assets/SpringScene-Bd3fkLgj.css"
+      },
+      {
+       "at": 1473,
+       "url": "/assets/HeroAurora-BI_b6X5S.js"
+      },
+      {
+       "at": 1473,
+       "url": "/assets/color-grammar-CRvuKec1-Cj9D6Uyc.js"
+      },
+      {
+       "at": 1473,
+       "url": "/assets/HeroAurora-CJUYErC9.css"
+      },
+      {
+       "at": 1473,
+       "url": "/assets/SquareScene-B6k9r2kX.js"
+      },
+      {
+       "at": 1473,
+       "url": "/assets/arrowNudge-D7YehOEl.js"
+      },
+      {
+       "at": 1473,
+       "url": "/assets/SquareScene-B7GpYqAj.css"
+      },
+      {
+       "at": 1474,
+       "url": "/assets/EasingScene-CMVaL0br.js"
+      },
+      {
+       "at": 1474,
+       "url": "/assets/EasingScene-B7P-3tCr.css"
+      },
+      {
+       "at": 1474,
+       "url": "/assets/SequenceScene-D0AnJ5M0.js"
+      },
+      {
+       "at": 1474,
+       "url": "/assets/SequenceScene-CztErGj8.css"
+      }
+     ]
+    },
+    {
+     "id": "spring-390",
+     "env": {
+      "load1": 15.72,
+      "memFreePct": 77
+     },
+     "fcp": 408,
+     "lcp": 672,
+     "cls": 0.0149,
+     "tbt": 1,
+     "jsKB": 1353,
+     "jsWireKB": 415,
+     "thirdParty": [],
+     "monaco10s": 0,
+     "three10s": 0,
+     "requests": [
+      {
+       "at": 12,
+       "url": "/"
+      },
+      {
+       "at": 25,
+       "url": "/assets/instrument-serif-latin-400-normal-DnYpCC2O.woff2"
+      },
+      {
+       "at": 25,
+       "url": "/assets/index-Mbg6e3qL.js"
+      },
+      {
+       "at": 25,
+       "url": "/assets/rolldown-runtime-DK3Fl9T5.js"
+      },
+      {
+       "at": 25,
+       "url": "/assets/vendor-reka-ui-4DPhyUsZ.js"
+      },
+      {
+       "at": 25,
+       "url": "/assets/_plugin-vue_export-helper-BWVvCjWZ.js"
+      },
+      {
+       "at": 25,
+       "url": "/assets/preload-helper-kNaey6uv.js"
+      },
+      {
+       "at": 25,
+       "url": "/assets/keyboard-D-dtJ_Fp.js"
+      },
+      {
+       "at": 25,
+       "url": "/assets/progress-e88g4GGc.js"
+      },
+      {
+       "at": 25,
+       "url": "/assets/timing-function-CtQ34pOp.js"
+      },
+      {
+       "at": 25,
+       "url": "/assets/binary-search-U2Hj7143.js"
+      },
+      {
+       "at": 25,
+       "url": "/assets/vendor-lucide-BET3I7w3.js"
+      },
+      {
+       "at": 25,
+       "url": "/assets/pointerFieldMappings-DXwlU5uj-D5wIeQ_V.js"
+      },
+      {
+       "at": 25,
+       "url": "/assets/glass-ui-D0DBYXhu.js"
+      },
+      {
+       "at": 25,
+       "url": "/assets/public-By9KX_h5.js"
+      },
+      {
+       "at": 25,
+       "url": "/assets/selector-p3bXA53F.js"
+      },
+      {
+       "at": 27,
+       "url": "/assets/index-Gjp9ZfAL.css"
+      },
+      {
+       "at": 150,
+       "url": "/assets/SpringScene-CPGITVIc.js"
+      },
+      {
+       "at": 150,
+       "url": "/assets/usePainterRegistry-YxcRg963.js"
+      },
+      {
+       "at": 150,
+       "url": "/assets/copyWithToast-Cq4zbV_D.js"
+      },
+      {
+       "at": 150,
+       "url": "/assets/codeTokens-c1Vqa4L7.js"
+      },
+      {
+       "at": 150,
+       "url": "/assets/useSweepScene-DJkrl9Hx.js"
+      },
+      {
+       "at": 150,
+       "url": "/assets/usePainterRegistry-C0DwymcO.css"
+      },
+      {
+       "at": 150,
+       "url": "/assets/useSweepScene-B__ZuSDF.css"
+      },
+      {
+       "at": 150,
+       "url": "/assets/SpringScene-Bd3fkLgj.css"
+      },
+      {
+       "at": 1164,
+       "url": "/assets/HeroAurora-BI_b6X5S.js"
+      },
+      {
+       "at": 1164,
+       "url": "/assets/color-grammar-CRvuKec1-Cj9D6Uyc.js"
+      },
+      {
+       "at": 1164,
+       "url": "/assets/HeroAurora-CJUYErC9.css"
+      },
+      {
+       "at": 1166,
+       "url": "/assets/SquareScene-B6k9r2kX.js"
+      },
+      {
+       "at": 1166,
+       "url": "/assets/arrowNudge-D7YehOEl.js"
+      },
+      {
+       "at": 1166,
+       "url": "/assets/SquareScene-B7GpYqAj.css"
+      },
+      {
+       "at": 1166,
+       "url": "/assets/EasingScene-CMVaL0br.js"
+      },
+      {
+       "at": 1166,
+       "url": "/assets/EasingScene-B7P-3tCr.css"
+      },
+      {
+       "at": 1166,
+       "url": "/assets/SequenceScene-D0AnJ5M0.js"
+      },
+      {
+       "at": 1166,
+       "url": "/assets/SequenceScene-CztErGj8.css"
+      }
+     ]
+    }
+   ]
+  },
+  "easing-390": {
+   "median": {
+    "fcp": 428,
+    "lcp": 428,
+    "cls": 0,
+    "tbt": 168,
+    "jsKB": 1353,
+    "jsWireKB": 415,
+    "monaco10s": 0,
+    "three10s": 0
+   },
+   "thirdParty": [],
+   "runs": [
+    {
+     "id": "easing-390",
+     "env": {
+      "load1": 15.07,
+      "memFreePct": 77
+     },
+     "fcp": 424,
+     "lcp": 424,
+     "cls": 0,
+     "tbt": 149,
+     "jsKB": 1353,
+     "jsWireKB": 415,
+     "thirdParty": [],
+     "monaco10s": 0,
+     "three10s": 0,
+     "requests": [
+      {
+       "at": 14,
+       "url": "/"
+      },
+      {
+       "at": 28,
+       "url": "/assets/instrument-serif-latin-400-normal-DnYpCC2O.woff2"
+      },
+      {
+       "at": 28,
+       "url": "/assets/index-Mbg6e3qL.js"
+      },
+      {
+       "at": 28,
+       "url": "/assets/rolldown-runtime-DK3Fl9T5.js"
+      },
+      {
+       "at": 28,
+       "url": "/assets/vendor-reka-ui-4DPhyUsZ.js"
+      },
+      {
+       "at": 28,
+       "url": "/assets/_plugin-vue_export-helper-BWVvCjWZ.js"
+      },
+      {
+       "at": 28,
+       "url": "/assets/preload-helper-kNaey6uv.js"
+      },
+      {
+       "at": 28,
+       "url": "/assets/keyboard-D-dtJ_Fp.js"
+      },
+      {
+       "at": 28,
+       "url": "/assets/progress-e88g4GGc.js"
+      },
+      {
+       "at": 28,
+       "url": "/assets/timing-function-CtQ34pOp.js"
+      },
+      {
+       "at": 28,
+       "url": "/assets/binary-search-U2Hj7143.js"
+      },
+      {
+       "at": 28,
+       "url": "/assets/vendor-lucide-BET3I7w3.js"
+      },
+      {
+       "at": 28,
+       "url": "/assets/pointerFieldMappings-DXwlU5uj-D5wIeQ_V.js"
+      },
+      {
+       "at": 28,
+       "url": "/assets/glass-ui-D0DBYXhu.js"
+      },
+      {
+       "at": 28,
+       "url": "/assets/public-By9KX_h5.js"
+      },
+      {
+       "at": 28,
+       "url": "/assets/selector-p3bXA53F.js"
+      },
+      {
+       "at": 31,
+       "url": "/assets/index-Gjp9ZfAL.css"
+      },
+      {
+       "at": 150,
+       "url": "/assets/EasingScene-CMVaL0br.js"
+      },
+      {
+       "at": 150,
+       "url": "/assets/usePainterRegistry-YxcRg963.js"
+      },
+      {
+       "at": 150,
+       "url": "/assets/copyWithToast-Cq4zbV_D.js"
+      },
+      {
+       "at": 150,
+       "url": "/assets/useSweepScene-DJkrl9Hx.js"
+      },
+      {
+       "at": 150,
+       "url": "/assets/usePainterRegistry-C0DwymcO.css"
+      },
+      {
+       "at": 150,
+       "url": "/assets/useSweepScene-B__ZuSDF.css"
+      },
+      {
+       "at": 150,
+       "url": "/assets/EasingScene-B7P-3tCr.css"
+      },
+      {
+       "at": 936,
+       "url": "/assets/HeroAurora-BI_b6X5S.js"
+      },
+      {
+       "at": 936,
+       "url": "/assets/color-grammar-CRvuKec1-Cj9D6Uyc.js"
+      },
+      {
+       "at": 936,
+       "url": "/assets/HeroAurora-CJUYErC9.css"
+      },
+      {
+       "at": 936,
+       "url": "/assets/SquareScene-B6k9r2kX.js"
+      },
+      {
+       "at": 936,
+       "url": "/assets/arrowNudge-D7YehOEl.js"
+      },
+      {
+       "at": 936,
+       "url": "/assets/SquareScene-B7GpYqAj.css"
+      },
+      {
+       "at": 936,
+       "url": "/assets/SpringScene-CPGITVIc.js"
+      },
+      {
+       "at": 937,
+       "url": "/assets/codeTokens-c1Vqa4L7.js"
+      },
+      {
+       "at": 937,
+       "url": "/assets/SpringScene-Bd3fkLgj.css"
+      },
+      {
+       "at": 937,
+       "url": "/assets/SequenceScene-D0AnJ5M0.js"
+      },
+      {
+       "at": 937,
+       "url": "/assets/SequenceScene-CztErGj8.css"
+      }
+     ]
+    },
+    {
+     "id": "easing-390",
+     "env": {
+      "load1": 13.76,
+      "memFreePct": 77
+     },
+     "fcp": 432,
+     "lcp": 432,
+     "cls": 0,
+     "tbt": 170,
+     "jsKB": 1353,
+     "jsWireKB": 415,
+     "thirdParty": [],
+     "monaco10s": 0,
+     "three10s": 0,
+     "requests": [
+      {
+       "at": 12,
+       "url": "/"
+      },
+      {
+       "at": 25,
+       "url": "/assets/instrument-serif-latin-400-normal-DnYpCC2O.woff2"
+      },
+      {
+       "at": 25,
+       "url": "/assets/index-Mbg6e3qL.js"
+      },
+      {
+       "at": 25,
+       "url": "/assets/rolldown-runtime-DK3Fl9T5.js"
+      },
+      {
+       "at": 25,
+       "url": "/assets/vendor-reka-ui-4DPhyUsZ.js"
+      },
+      {
+       "at": 25,
+       "url": "/assets/_plugin-vue_export-helper-BWVvCjWZ.js"
+      },
+      {
+       "at": 25,
+       "url": "/assets/preload-helper-kNaey6uv.js"
+      },
+      {
+       "at": 26,
+       "url": "/assets/keyboard-D-dtJ_Fp.js"
+      },
+      {
+       "at": 26,
+       "url": "/assets/progress-e88g4GGc.js"
+      },
+      {
+       "at": 26,
+       "url": "/assets/timing-function-CtQ34pOp.js"
+      },
+      {
+       "at": 26,
+       "url": "/assets/binary-search-U2Hj7143.js"
+      },
+      {
+       "at": 26,
+       "url": "/assets/vendor-lucide-BET3I7w3.js"
+      },
+      {
+       "at": 26,
+       "url": "/assets/pointerFieldMappings-DXwlU5uj-D5wIeQ_V.js"
+      },
+      {
+       "at": 26,
+       "url": "/assets/glass-ui-D0DBYXhu.js"
+      },
+      {
+       "at": 26,
+       "url": "/assets/public-By9KX_h5.js"
+      },
+      {
+       "at": 26,
+       "url": "/assets/selector-p3bXA53F.js"
+      },
+      {
+       "at": 28,
+       "url": "/assets/index-Gjp9ZfAL.css"
+      },
+      {
+       "at": 151,
+       "url": "/assets/EasingScene-CMVaL0br.js"
+      },
+      {
+       "at": 151,
+       "url": "/assets/usePainterRegistry-YxcRg963.js"
+      },
+      {
+       "at": 151,
+       "url": "/assets/copyWithToast-Cq4zbV_D.js"
+      },
+      {
+       "at": 151,
+       "url": "/assets/useSweepScene-DJkrl9Hx.js"
+      },
+      {
+       "at": 151,
+       "url": "/assets/usePainterRegistry-C0DwymcO.css"
+      },
+      {
+       "at": 151,
+       "url": "/assets/useSweepScene-B__ZuSDF.css"
+      },
+      {
+       "at": 151,
+       "url": "/assets/EasingScene-B7P-3tCr.css"
+      },
+      {
+       "at": 948,
+       "url": "/assets/HeroAurora-BI_b6X5S.js"
+      },
+      {
+       "at": 948,
+       "url": "/assets/color-grammar-CRvuKec1-Cj9D6Uyc.js"
+      },
+      {
+       "at": 948,
+       "url": "/assets/HeroAurora-CJUYErC9.css"
+      },
+      {
+       "at": 948,
+       "url": "/assets/SquareScene-B6k9r2kX.js"
+      },
+      {
+       "at": 948,
+       "url": "/assets/arrowNudge-D7YehOEl.js"
+      },
+      {
+       "at": 948,
+       "url": "/assets/SquareScene-B7GpYqAj.css"
+      },
+      {
+       "at": 949,
+       "url": "/assets/SpringScene-CPGITVIc.js"
+      },
+      {
+       "at": 949,
+       "url": "/assets/codeTokens-c1Vqa4L7.js"
+      },
+      {
+       "at": 949,
+       "url": "/assets/SpringScene-Bd3fkLgj.css"
+      },
+      {
+       "at": 949,
+       "url": "/assets/SequenceScene-D0AnJ5M0.js"
+      },
+      {
+       "at": 949,
+       "url": "/assets/SequenceScene-CztErGj8.css"
+      }
+     ]
+    },
+    {
+     "id": "easing-390",
+     "env": {
+      "load1": 13.52,
+      "memFreePct": 77
+     },
+     "fcp": 428,
+     "lcp": 428,
+     "cls": 0,
+     "tbt": 168,
+     "jsKB": 1353,
+     "jsWireKB": 415,
+     "thirdParty": [],
+     "monaco10s": 0,
+     "three10s": 0,
+     "requests": [
+      {
+       "at": 12,
+       "url": "/"
+      },
+      {
+       "at": 25,
+       "url": "/assets/instrument-serif-latin-400-normal-DnYpCC2O.woff2"
+      },
+      {
+       "at": 25,
+       "url": "/assets/index-Mbg6e3qL.js"
+      },
+      {
+       "at": 25,
+       "url": "/assets/rolldown-runtime-DK3Fl9T5.js"
+      },
+      {
+       "at": 25,
+       "url": "/assets/vendor-reka-ui-4DPhyUsZ.js"
+      },
+      {
+       "at": 25,
+       "url": "/assets/_plugin-vue_export-helper-BWVvCjWZ.js"
+      },
+      {
+       "at": 25,
+       "url": "/assets/preload-helper-kNaey6uv.js"
+      },
+      {
+       "at": 25,
+       "url": "/assets/keyboard-D-dtJ_Fp.js"
+      },
+      {
+       "at": 25,
+       "url": "/assets/progress-e88g4GGc.js"
+      },
+      {
+       "at": 25,
+       "url": "/assets/timing-function-CtQ34pOp.js"
+      },
+      {
+       "at": 25,
+       "url": "/assets/binary-search-U2Hj7143.js"
+      },
+      {
+       "at": 25,
+       "url": "/assets/vendor-lucide-BET3I7w3.js"
+      },
+      {
+       "at": 25,
+       "url": "/assets/pointerFieldMappings-DXwlU5uj-D5wIeQ_V.js"
+      },
+      {
+       "at": 25,
+       "url": "/assets/glass-ui-D0DBYXhu.js"
+      },
+      {
+       "at": 25,
+       "url": "/assets/public-By9KX_h5.js"
+      },
+      {
+       "at": 25,
+       "url": "/assets/selector-p3bXA53F.js"
+      },
+      {
+       "at": 28,
+       "url": "/assets/index-Gjp9ZfAL.css"
+      },
+      {
+       "at": 149,
+       "url": "/assets/EasingScene-CMVaL0br.js"
+      },
+      {
+       "at": 149,
+       "url": "/assets/usePainterRegistry-YxcRg963.js"
+      },
+      {
+       "at": 149,
+       "url": "/assets/copyWithToast-Cq4zbV_D.js"
+      },
+      {
+       "at": 149,
+       "url": "/assets/useSweepScene-DJkrl9Hx.js"
+      },
+      {
+       "at": 149,
+       "url": "/assets/usePainterRegistry-C0DwymcO.css"
+      },
+      {
+       "at": 149,
+       "url": "/assets/useSweepScene-B__ZuSDF.css"
+      },
+      {
+       "at": 149,
+       "url": "/assets/EasingScene-B7P-3tCr.css"
+      },
+      {
+       "at": 944,
+       "url": "/assets/HeroAurora-BI_b6X5S.js"
+      },
+      {
+       "at": 944,
+       "url": "/assets/color-grammar-CRvuKec1-Cj9D6Uyc.js"
+      },
+      {
+       "at": 944,
+       "url": "/assets/HeroAurora-CJUYErC9.css"
+      },
+      {
+       "at": 944,
+       "url": "/assets/SquareScene-B6k9r2kX.js"
+      },
+      {
+       "at": 944,
+       "url": "/assets/arrowNudge-D7YehOEl.js"
+      },
+      {
+       "at": 944,
+       "url": "/assets/SquareScene-B7GpYqAj.css"
+      },
+      {
+       "at": 944,
+       "url": "/assets/SpringScene-CPGITVIc.js"
+      },
+      {
+       "at": 944,
+       "url": "/assets/codeTokens-c1Vqa4L7.js"
+      },
+      {
+       "at": 944,
+       "url": "/assets/SpringScene-Bd3fkLgj.css"
+      },
+      {
+       "at": 944,
+       "url": "/assets/SequenceScene-D0AnJ5M0.js"
+      },
+      {
+       "at": 944,
+       "url": "/assets/SequenceScene-CztErGj8.css"
+      }
+     ]
+    }
+   ]
+  },
+  "home-1440": {
+   "median": {
+    "fcp": 132,
+    "lcp": 132,
+    "cls": 0.0101,
+    "tbt": 0,
+    "jsKB": 1353,
+    "jsWireKB": 415,
+    "monaco10s": 0,
+    "three10s": 0
+   },
+   "thirdParty": [],
+   "runs": [
+    {
+     "id": "home-1440",
+     "env": {
+      "load1": 11.62,
+      "memFreePct": 77
+     },
+     "fcp": 152,
+     "lcp": 152,
+     "cls": 0.0101,
+     "tbt": 0,
+     "jsKB": 1353,
+     "jsWireKB": 415,
+     "thirdParty": [],
+     "monaco10s": 0,
+     "three10s": 0,
+     "requests": [
+      {
+       "at": 16,
+       "url": "/"
+      },
+      {
+       "at": 22,
+       "url": "/assets/instrument-serif-latin-400-normal-DnYpCC2O.woff2"
+      },
+      {
+       "at": 22,
+       "url": "/assets/index-Mbg6e3qL.js"
+      },
+      {
+       "at": 22,
+       "url": "/assets/rolldown-runtime-DK3Fl9T5.js"
+      },
+      {
+       "at": 22,
+       "url": "/assets/vendor-reka-ui-4DPhyUsZ.js"
+      },
+      {
+       "at": 22,
+       "url": "/assets/_plugin-vue_export-helper-BWVvCjWZ.js"
+      },
+      {
+       "at": 22,
+       "url": "/assets/preload-helper-kNaey6uv.js"
+      },
+      {
+       "at": 22,
+       "url": "/assets/keyboard-D-dtJ_Fp.js"
+      },
+      {
+       "at": 22,
+       "url": "/assets/progress-e88g4GGc.js"
+      },
+      {
+       "at": 22,
+       "url": "/assets/timing-function-CtQ34pOp.js"
+      },
+      {
+       "at": 22,
+       "url": "/assets/binary-search-U2Hj7143.js"
+      },
+      {
+       "at": 22,
+       "url": "/assets/vendor-lucide-BET3I7w3.js"
+      },
+      {
+       "at": 22,
+       "url": "/assets/pointerFieldMappings-DXwlU5uj-D5wIeQ_V.js"
+      },
+      {
+       "at": 22,
+       "url": "/assets/glass-ui-D0DBYXhu.js"
+      },
+      {
+       "at": 22,
+       "url": "/assets/public-By9KX_h5.js"
+      },
+      {
+       "at": 22,
+       "url": "/assets/selector-p3bXA53F.js"
+      },
+      {
+       "at": 22,
+       "url": "/assets/index-Gjp9ZfAL.css"
+      },
+      {
+       "at": 59,
+       "url": "/assets/HeroAurora-BI_b6X5S.js"
+      },
+      {
+       "at": 59,
+       "url": "/assets/color-grammar-CRvuKec1-Cj9D6Uyc.js"
+      },
+      {
+       "at": 59,
+       "url": "/assets/HeroAurora-CJUYErC9.css"
+      },
+      {
+       "at": 152,
+       "url": "/assets/instrument-serif-latin-400-italic-Dv3QvL_F.woff2"
+      },
+      {
+       "at": 186,
+       "url": "/assets/SquareScene-B6k9r2kX.js"
+      },
+      {
+       "at": 186,
+       "url": "/assets/arrowNudge-D7YehOEl.js"
+      },
+      {
+       "at": 186,
+       "url": "/assets/useSweepScene-DJkrl9Hx.js"
+      },
+      {
+       "at": 186,
+       "url": "/assets/useSweepScene-B__ZuSDF.css"
+      },
+      {
+       "at": 186,
+       "url": "/assets/SquareScene-B7GpYqAj.css"
+      },
+      {
+       "at": 186,
+       "url": "/assets/EasingScene-CMVaL0br.js"
+      },
+      {
+       "at": 186,
+       "url": "/assets/usePainterRegistry-YxcRg963.js"
+      },
+      {
+       "at": 186,
+       "url": "/assets/copyWithToast-Cq4zbV_D.js"
+      },
+      {
+       "at": 186,
+       "url": "/assets/usePainterRegistry-C0DwymcO.css"
+      },
+      {
+       "at": 186,
+       "url": "/assets/EasingScene-B7P-3tCr.css"
+      },
+      {
+       "at": 186,
+       "url": "/assets/SpringScene-CPGITVIc.js"
+      },
+      {
+       "at": 186,
+       "url": "/assets/codeTokens-c1Vqa4L7.js"
+      },
+      {
+       "at": 186,
+       "url": "/assets/SpringScene-Bd3fkLgj.css"
+      },
+      {
+       "at": 186,
+       "url": "/assets/SequenceScene-D0AnJ5M0.js"
+      },
+      {
+       "at": 186,
+       "url": "/assets/SequenceScene-CztErGj8.css"
+      }
+     ]
+    },
+    {
+     "id": "home-1440",
+     "env": {
+      "load1": 13.02,
+      "memFreePct": 77
+     },
+     "fcp": 128,
+     "lcp": 128,
+     "cls": 0.0101,
+     "tbt": 0,
+     "jsKB": 1353,
+     "jsWireKB": 415,
+     "thirdParty": [],
+     "monaco10s": 0,
+     "three10s": 0,
+     "requests": [
+      {
+       "at": 28,
+       "url": "/"
+      },
+      {
+       "at": 32,
+       "url": "/assets/instrument-serif-latin-400-normal-DnYpCC2O.woff2"
+      },
+      {
+       "at": 32,
+       "url": "/assets/index-Mbg6e3qL.js"
+      },
+      {
+       "at": 32,
+       "url": "/assets/rolldown-runtime-DK3Fl9T5.js"
+      },
+      {
+       "at": 32,
+       "url": "/assets/vendor-reka-ui-4DPhyUsZ.js"
+      },
+      {
+       "at": 32,
+       "url": "/assets/_plugin-vue_export-helper-BWVvCjWZ.js"
+      },
+      {
+       "at": 32,
+       "url": "/assets/preload-helper-kNaey6uv.js"
+      },
+      {
+       "at": 32,
+       "url": "/assets/keyboard-D-dtJ_Fp.js"
+      },
+      {
+       "at": 32,
+       "url": "/assets/progress-e88g4GGc.js"
+      },
+      {
+       "at": 32,
+       "url": "/assets/timing-function-CtQ34pOp.js"
+      },
+      {
+       "at": 32,
+       "url": "/assets/binary-search-U2Hj7143.js"
+      },
+      {
+       "at": 32,
+       "url": "/assets/vendor-lucide-BET3I7w3.js"
+      },
+      {
+       "at": 33,
+       "url": "/assets/pointerFieldMappings-DXwlU5uj-D5wIeQ_V.js"
+      },
+      {
+       "at": 33,
+       "url": "/assets/glass-ui-D0DBYXhu.js"
+      },
+      {
+       "at": 33,
+       "url": "/assets/public-By9KX_h5.js"
+      },
+      {
+       "at": 33,
+       "url": "/assets/selector-p3bXA53F.js"
+      },
+      {
+       "at": 33,
+       "url": "/assets/index-Gjp9ZfAL.css"
+      },
+      {
+       "at": 71,
+       "url": "/assets/HeroAurora-BI_b6X5S.js"
+      },
+      {
+       "at": 71,
+       "url": "/assets/color-grammar-CRvuKec1-Cj9D6Uyc.js"
+      },
+      {
+       "at": 71,
+       "url": "/assets/HeroAurora-CJUYErC9.css"
+      },
+      {
+       "at": 143,
+       "url": "/assets/instrument-serif-latin-400-italic-Dv3QvL_F.woff2"
+      },
+      {
+       "at": 165,
+       "url": "/assets/SquareScene-B6k9r2kX.js"
+      },
+      {
+       "at": 165,
+       "url": "/assets/arrowNudge-D7YehOEl.js"
+      },
+      {
+       "at": 165,
+       "url": "/assets/useSweepScene-DJkrl9Hx.js"
+      },
+      {
+       "at": 165,
+       "url": "/assets/useSweepScene-B__ZuSDF.css"
+      },
+      {
+       "at": 165,
+       "url": "/assets/SquareScene-B7GpYqAj.css"
+      },
+      {
+       "at": 165,
+       "url": "/assets/EasingScene-CMVaL0br.js"
+      },
+      {
+       "at": 165,
+       "url": "/assets/usePainterRegistry-YxcRg963.js"
+      },
+      {
+       "at": 165,
+       "url": "/assets/copyWithToast-Cq4zbV_D.js"
+      },
+      {
+       "at": 165,
+       "url": "/assets/usePainterRegistry-C0DwymcO.css"
+      },
+      {
+       "at": 165,
+       "url": "/assets/EasingScene-B7P-3tCr.css"
+      },
+      {
+       "at": 165,
+       "url": "/assets/SpringScene-CPGITVIc.js"
+      },
+      {
+       "at": 165,
+       "url": "/assets/codeTokens-c1Vqa4L7.js"
+      },
+      {
+       "at": 165,
+       "url": "/assets/SpringScene-Bd3fkLgj.css"
+      },
+      {
+       "at": 165,
+       "url": "/assets/SequenceScene-D0AnJ5M0.js"
+      },
+      {
+       "at": 165,
+       "url": "/assets/SequenceScene-CztErGj8.css"
+      }
+     ]
+    },
+    {
+     "id": "home-1440",
+     "env": {
+      "load1": 12.01,
+      "memFreePct": 77
+     },
+     "fcp": 132,
+     "lcp": 132,
+     "cls": 0.0101,
+     "tbt": 0,
+     "jsKB": 1353,
+     "jsWireKB": 415,
+     "thirdParty": [],
+     "monaco10s": 0,
+     "three10s": 0,
+     "requests": [
+      {
+       "at": 12,
+       "url": "/"
+      },
+      {
+       "at": 18,
+       "url": "/assets/instrument-serif-latin-400-normal-DnYpCC2O.woff2"
+      },
+      {
+       "at": 18,
+       "url": "/assets/index-Mbg6e3qL.js"
+      },
+      {
+       "at": 18,
+       "url": "/assets/rolldown-runtime-DK3Fl9T5.js"
+      },
+      {
+       "at": 18,
+       "url": "/assets/vendor-reka-ui-4DPhyUsZ.js"
+      },
+      {
+       "at": 18,
+       "url": "/assets/_plugin-vue_export-helper-BWVvCjWZ.js"
+      },
+      {
+       "at": 18,
+       "url": "/assets/preload-helper-kNaey6uv.js"
+      },
+      {
+       "at": 18,
+       "url": "/assets/keyboard-D-dtJ_Fp.js"
+      },
+      {
+       "at": 18,
+       "url": "/assets/progress-e88g4GGc.js"
+      },
+      {
+       "at": 18,
+       "url": "/assets/timing-function-CtQ34pOp.js"
+      },
+      {
+       "at": 18,
+       "url": "/assets/binary-search-U2Hj7143.js"
+      },
+      {
+       "at": 18,
+       "url": "/assets/vendor-lucide-BET3I7w3.js"
+      },
+      {
+       "at": 18,
+       "url": "/assets/pointerFieldMappings-DXwlU5uj-D5wIeQ_V.js"
+      },
+      {
+       "at": 18,
+       "url": "/assets/glass-ui-D0DBYXhu.js"
+      },
+      {
+       "at": 18,
+       "url": "/assets/public-By9KX_h5.js"
+      },
+      {
+       "at": 18,
+       "url": "/assets/selector-p3bXA53F.js"
+      },
+      {
+       "at": 18,
+       "url": "/assets/index-Gjp9ZfAL.css"
+      },
+      {
+       "at": 53,
+       "url": "/assets/HeroAurora-BI_b6X5S.js"
+      },
+      {
+       "at": 53,
+       "url": "/assets/color-grammar-CRvuKec1-Cj9D6Uyc.js"
+      },
+      {
+       "at": 53,
+       "url": "/assets/HeroAurora-CJUYErC9.css"
+      },
+      {
+       "at": 131,
+       "url": "/assets/instrument-serif-latin-400-italic-Dv3QvL_F.woff2"
+      },
+      {
+       "at": 159,
+       "url": "/assets/SquareScene-B6k9r2kX.js"
+      },
+      {
+       "at": 159,
+       "url": "/assets/arrowNudge-D7YehOEl.js"
+      },
+      {
+       "at": 159,
+       "url": "/assets/useSweepScene-DJkrl9Hx.js"
+      },
+      {
+       "at": 159,
+       "url": "/assets/useSweepScene-B__ZuSDF.css"
+      },
+      {
+       "at": 159,
+       "url": "/assets/SquareScene-B7GpYqAj.css"
+      },
+      {
+       "at": 159,
+       "url": "/assets/EasingScene-CMVaL0br.js"
+      },
+      {
+       "at": 159,
+       "url": "/assets/usePainterRegistry-YxcRg963.js"
+      },
+      {
+       "at": 159,
+       "url": "/assets/copyWithToast-Cq4zbV_D.js"
+      },
+      {
+       "at": 159,
+       "url": "/assets/usePainterRegistry-C0DwymcO.css"
+      },
+      {
+       "at": 159,
+       "url": "/assets/EasingScene-B7P-3tCr.css"
+      },
+      {
+       "at": 159,
+       "url": "/assets/SpringScene-CPGITVIc.js"
+      },
+      {
+       "at": 159,
+       "url": "/assets/codeTokens-c1Vqa4L7.js"
+      },
+      {
+       "at": 159,
+       "url": "/assets/SpringScene-Bd3fkLgj.css"
+      },
+      {
+       "at": 159,
+       "url": "/assets/SequenceScene-D0AnJ5M0.js"
+      },
+      {
+       "at": 159,
+       "url": "/assets/SequenceScene-CztErGj8.css"
+      }
+     ]
+    }
+   ]
+  },
+  "bytes-home-390": {
+   "id": "bytes-home-390",
+   "env": {
+    "load1": 13.26,
+    "memFreePct": 77
+   },
+   "windowMs": 8000,
+   "evaluatedKB": 1350,
+   "evaluatedGzKB": 414,
+   "evaluated": [
+    "rolldown-runtime-DK3Fl9T5.js 0",
+    "_plugin-vue_export-helper-BWVvCjWZ.js 1",
+    "preload-helper-kNaey6uv.js 1",
+    "binary-search-U2Hj7143.js 0",
+    "progress-e88g4GGc.js 8",
+    "keyboard-D-dtJ_Fp.js 22",
+    "timing-function-CtQ34pOp.js 2",
+    "pointerFieldMappings-DXwlU5uj-D5wIeQ_V.js 4",
+    "vendor-lucide-BET3I7w3.js 11",
+    "selector-p3bXA53F.js 0",
+    "glass-ui-D0DBYXhu.js 88",
+    "public-By9KX_h5.js 121",
+    "vendor-reka-ui-4DPhyUsZ.js 328",
+    "index-Mbg6e3qL.js 448",
+    "color-grammar-CRvuKec1-Cj9D6Uyc.js 37",
+    "HeroAurora-BI_b6X5S.js 208",
+    "arrowNudge-D7YehOEl.js 1",
+    "SquareScene-B6k9r2kX.js 13",
+    "useSweepScene-DJkrl9Hx.js 2",
+    "copyWithToast-Cq4zbV_D.js 0",
+    "usePainterRegistry-YxcRg963.js 3",
+    "EasingScene-CMVaL0br.js 8",
+    "codeTokens-c1Vqa4L7.js 1",
+    "SequenceScene-D0AnJ5M0.js 7",
+    "SpringScene-CPGITVIc.js 36"
+   ],
+   "threeEvaluated": 0,
+   "monacoEvaluated": 0,
+   "monacoRequests": 0,
+   "threeRequests": 0
+  },
+  "bytes-spring-390": {
+   "id": "bytes-spring-390",
+   "env": {
+    "load1": 13,
+    "memFreePct": 77
+   },
+   "windowMs": 10000,
+   "evaluatedKB": 1350,
+   "evaluatedGzKB": 414,
+   "evaluated": [
+    "rolldown-runtime-DK3Fl9T5.js 0",
+    "_plugin-vue_export-helper-BWVvCjWZ.js 1",
+    "preload-helper-kNaey6uv.js 1",
+    "timing-function-CtQ34pOp.js 2",
+    "binary-search-U2Hj7143.js 0",
+    "progress-e88g4GGc.js 8",
+    "keyboard-D-dtJ_Fp.js 22",
+    "pointerFieldMappings-DXwlU5uj-D5wIeQ_V.js 4",
+    "vendor-lucide-BET3I7w3.js 11",
+    "selector-p3bXA53F.js 0",
+    "glass-ui-D0DBYXhu.js 88",
+    "public-By9KX_h5.js 121",
+    "vendor-reka-ui-4DPhyUsZ.js 328",
+    "index-Mbg6e3qL.js 448",
+    "usePainterRegistry-YxcRg963.js 3",
+    "SpringScene-CPGITVIc.js 36",
+    "copyWithToast-Cq4zbV_D.js 0",
+    "codeTokens-c1Vqa4L7.js 1",
+    "useSweepScene-DJkrl9Hx.js 2",
+    "arrowNudge-D7YehOEl.js 1",
+    "color-grammar-CRvuKec1-Cj9D6Uyc.js 37",
+    "EasingScene-CMVaL0br.js 8",
+    "SquareScene-B6k9r2kX.js 13",
+    "SequenceScene-D0AnJ5M0.js 7",
+    "HeroAurora-BI_b6X5S.js 208"
+   ],
+   "threeEvaluated": 0,
+   "monacoEvaluated": 0,
+   "monacoRequests": 0,
+   "threeRequests": 0
+  },
+  "bytes-easing-390": {
+   "id": "bytes-easing-390",
+   "env": {
+    "load1": 11.83,
+    "memFreePct": 77
+   },
+   "windowMs": 10000,
+   "evaluatedKB": 1350,
+   "evaluatedGzKB": 414,
+   "evaluated": [
+    "rolldown-runtime-DK3Fl9T5.js 0",
+    "_plugin-vue_export-helper-BWVvCjWZ.js 1",
+    "preload-helper-kNaey6uv.js 1",
+    "progress-e88g4GGc.js 8",
+    "keyboard-D-dtJ_Fp.js 22",
+    "timing-function-CtQ34pOp.js 2",
+    "binary-search-U2Hj7143.js 0",
+    "pointerFieldMappings-DXwlU5uj-D5wIeQ_V.js 4",
+    "vendor-lucide-BET3I7w3.js 11",
+    "selector-p3bXA53F.js 0",
+    "glass-ui-D0DBYXhu.js 88",
+    "public-By9KX_h5.js 121",
+    "vendor-reka-ui-4DPhyUsZ.js 328",
+    "index-Mbg6e3qL.js 448",
+    "copyWithToast-Cq4zbV_D.js 0",
+    "usePainterRegistry-YxcRg963.js 3",
+    "useSweepScene-DJkrl9Hx.js 2",
+    "EasingScene-CMVaL0br.js 8",
+    "color-grammar-CRvuKec1-Cj9D6Uyc.js 37",
+    "arrowNudge-D7YehOEl.js 1",
+    "SquareScene-B6k9r2kX.js 13",
+    "codeTokens-c1Vqa4L7.js 1",
+    "SpringScene-CPGITVIc.js 36",
+    "SequenceScene-D0AnJ5M0.js 7",
+    "HeroAurora-BI_b6X5S.js 208"
+   ],
+   "threeEvaluated": 0,
+   "monacoEvaluated": 0,
+   "monacoRequests": 0,
+   "threeRequests": 0
+  },
+  "swap": {
+   "summary": {
+    "cube->amiga": {
+     "prepare": 75,
+     "commit": 237,
+     "total": 1042,
+     "frameP95": 416.8
+    },
+    "amiga->cube": {
+     "prepare": 3,
+     "commit": 252,
+     "total": 837,
+     "frameP95": 300.5
+    },
+    "cube->square": {
+     "prepare": 31,
+     "commit": 223,
+     "total": 650,
+     "frameP95": 258.7
+    },
+    "square->cube": {
+     "prepare": 6,
+     "commit": 192,
+     "total": 857,
+     "frameP95": 300.7
+    },
+    "cube->easing": {
+     "prepare": 33,
+     "commit": 273,
+     "total": 695,
+     "frameP95": 300.6
+    },
+    "easing->cube": {
+     "prepare": 2,
+     "commit": 208,
+     "total": 944,
+     "frameP95": 342.3
+    },
+    "cube->spring": {
+     "prepare": 32,
+     "commit": 220,
+     "total": 663,
+     "frameP95": 242.2
+    },
+    "spring->cube": {
+     "prepare": 6,
+     "commit": 218,
+     "total": 883,
+     "frameP95": 316.9
+    },
+    "cube->sequence": {
+     "prepare": 32,
+     "commit": 160,
+     "total": 572,
+     "frameP95": 190.5
+    },
+    "sequence->cube": {
+     "prepare": 3,
+     "commit": 191,
+     "total": 904,
+     "frameP95": 306.5
+    },
+    "cube->home": {
+     "prepare": 27,
+     "commit": 61,
+     "total": 419,
+     "frameP95": 91.2
+    },
+    "home->cube": {
+     "prepare": 2,
+     "commit": 111,
+     "total": 479,
+     "frameP95": 132.3
+    }
+   },
+   "runs": [
+    {
+     "env": {
+      "load1": 11.65,
+      "memFreePct": 77
+     },
+     "hops": [
+      {
+       "hop": "cube->amiga",
+       "prepare": 75,
+       "total": 1042,
+       "commit": 237,
+       "frames": [
+        23.6,
+        8.5,
+        8.9,
+        17.4,
+        8.6,
+        6.7,
+        275.2,
+        26.7,
+        48.5,
+        151.4,
+        56.8,
+        416.8
+       ]
+      },
+      {
+       "hop": "amiga->cube",
+       "prepare": 3,
+       "total": 837,
+       "commit": 252,
+       "frames": [
+        266.7,
+        26,
+        7.5,
+        16.7,
+        41.5,
+        292.2
+       ]
+      },
+      {
+       "hop": "cube->square",
+       "prepare": 31,
+       "total": 650,
+       "commit": 223,
+       "frames": [
+        16.9,
+        8.9,
+        8.2,
+        258.7,
+        31.5,
+        8.4,
+        8.4,
+        34.7,
+        58.5,
+        32,
+        58.9,
+        40.9,
+        59.7
+       ]
+      },
+      {
+       "hop": "square->cube",
+       "prepare": 1,
+       "total": 857,
+       "commit": 184,
+       "frames": [
+        200,
+        31.9,
+        10.2,
+        7.9,
+        48.6,
+        300.7
+       ]
+      },
+      {
+       "hop": "cube->easing",
+       "prepare": 33,
+       "total": 695,
+       "commit": 273,
+       "frames": [
+        8.7,
+        9.5,
+        15.3,
+        300.6,
+        49.7,
+        16.8,
+        16.5,
+        58.8,
+        33.2,
+        34.3,
+        40.2,
+        59.6
+       ]
+      },
+      {
+       "hop": "easing->cube",
+       "prepare": 3,
+       "total": 944,
+       "commit": 208,
+       "frames": [
+        233.2,
+        23.2,
+        10.3,
+        14.7,
+        51.2,
+        342.3
+       ]
+      },
+      {
+       "hop": "cube->spring",
+       "prepare": 32,
+       "total": 663,
+       "commit": 214,
+       "frames": [
+        8.3,
+        16.1,
+        8.1,
+        242.2,
+        41.7,
+        16.3,
+        10,
+        40.2,
+        51.1,
+        41.6,
+        57,
+        43.2,
+        49.9
+       ]
+      },
+      {
+       "hop": "spring->cube",
+       "prepare": 1,
+       "total": 883,
+       "commit": 187,
+       "frames": [
+        206.7,
+        26.5,
+        8.2,
+        17,
+        56.6,
+        316.9
+       ]
+      },
+      {
+       "hop": "cube->sequence",
+       "prepare": 32,
+       "total": 572,
+       "commit": 160,
+       "frames": [
+        10.3,
+        8,
+        16.8,
+        190.5,
+        26.4,
+        6.4,
+        16.7,
+        49.9,
+        35,
+        56.7,
+        34.6,
+        50.2,
+        41.8
+       ]
+      },
+      {
+       "hop": "sequence->cube",
+       "prepare": 3,
+       "total": 905,
+       "commit": 191,
+       "frames": [
+        216.9,
+        23.9,
+        10,
+        8.1,
+        57,
+        325
+       ]
+      },
+      {
+       "hop": "cube->home",
+       "prepare": 18,
+       "total": 408,
+       "commit": 58,
+       "frames": [
+        8.3,
+        8.3,
+        90.3,
+        18.3,
+        6.8,
+        59.4,
+        25.2,
+        41.7,
+        33.3,
+        41.5,
+        42.3
+       ]
+      },
+      {
+       "hop": "home->cube",
+       "prepare": 5,
+       "total": 477,
+       "commit": 111,
+       "frames": [
+        132.3,
+        17,
+        17.4,
+        8.1,
+        49,
+        42.8,
+        57.7,
+        34.4,
+        48.2,
+        43.4
+       ]
+      }
+     ]
+    },
+    {
+     "env": {
+      "load1": 14.69,
+      "memFreePct": 77
+     },
+     "hops": [
+      {
+       "hop": "cube->amiga",
+       "prepare": 87,
+       "total": 1297,
+       "commit": 355,
+       "frames": [
+        25.7,
+        17.6,
+        15.6,
+        16.5,
+        9.9,
+        408.2,
+        48.5,
+        101.5,
+        107,
+        42.7,
+        498.6,
+        9.4
+       ]
+      },
+      {
+       "hop": "amiga->cube",
+       "prepare": 4,
+       "total": 1249,
+       "commit": 329,
+       "frames": [
+        349.9,
+        33.6,
+        8.2,
+        16.7,
+        58.2,
+        433.1
+       ]
+      },
+      {
+       "hop": "cube->square",
+       "prepare": 41,
+       "total": 803,
+       "commit": 344,
+       "frames": [
+        15.8,
+        17.5,
+        8.4,
+        383.6,
+        41.6,
+        16.7,
+        8.1,
+        41.6,
+        74.1,
+        34.6,
+        41.6,
+        66.7
+       ]
+      },
+      {
+       "hop": "square->cube",
+       "prepare": 6,
+       "total": 1016,
+       "commit": 214,
+       "frames": [
+        240.8,
+        24.3,
+        8,
+        9.1,
+        57.9,
+        376.6
+       ]
+      },
+      {
+       "hop": "cube->easing",
+       "prepare": 33,
+       "total": 831,
+       "commit": 359,
+       "frames": [
+        9.8,
+        15.4,
+        8.2,
+        391.5,
+        59.5,
+        16.6,
+        16.8,
+        82,
+        41.6,
+        84.1,
+        49.9
+       ]
+      },
+      {
+       "hop": "easing->cube",
+       "prepare": 1,
+       "total": 1151,
+       "commit": 265,
+       "frames": [
+        291.5,
+        41.8,
+        8.7,
+        15.5,
+        67.7,
+        390.5
+       ]
+      },
+      {
+       "hop": "cube->spring",
+       "prepare": 39,
+       "total": 820,
+       "commit": 323,
+       "frames": [
+        16.9,
+        16,
+        8.7,
+        358.3,
+        57.1,
+        25.2,
+        8.2,
+        84.8,
+        48.2,
+        76.6,
+        66.9
+       ]
+      },
+      {
+       "hop": "spring->cube",
+       "prepare": 6,
+       "total": 1011,
+       "commit": 226,
+       "frames": [
+        249.4,
+        34.1,
+        8.3,
+        8.6,
+        56.9,
+        351.7
+       ]
+      },
+      {
+       "hop": "cube->sequence",
+       "prepare": 19,
+       "total": 607,
+       "commit": 175,
+       "frames": [
+        15.7,
+        9.4,
+        206.7,
+        41.9,
+        10,
+        15.3,
+        74.6,
+        34.7,
+        49.7,
+        65.6,
+        42.5
+       ]
+      },
+      {
+       "hop": "sequence->cube",
+       "prepare": 1,
+       "total": 861,
+       "commit": 179,
+       "frames": [
+        200.9,
+        24.1,
+        8.3,
+        9.5,
+        49.8,
+        298.4
+       ]
+      },
+      {
+       "hop": "cube->home",
+       "prepare": 35,
+       "total": 458,
+       "commit": 70,
+       "frames": [
+        7.7,
+        16.1,
+        8.1,
+        101.6,
+        24.5,
+        17.3,
+        31.8,
+        16.4,
+        43,
+        40.7,
+        34.1,
+        40.9,
+        41.8,
+        33.3
+       ]
+      },
+      {
+       "hop": "home->cube",
+       "prepare": 1,
+       "total": 479,
+       "commit": 105,
+       "frames": [
+        124.3,
+        25.8,
+        15.6,
+        41.8,
+        26,
+        41.5,
+        48.7,
+        35,
+        31.8,
+        43.2
+       ]
+      }
+     ]
+    },
+    {
+     "env": {
+      "load1": 15.75,
+      "memFreePct": 77
+     },
+     "hops": [
+      {
+       "hop": "cube->amiga",
+       "prepare": 63,
+       "total": 815,
+       "commit": 216,
+       "frames": [
+        16.4,
+        8.4,
+        9.4,
+        7.5,
+        10,
+        7.9,
+        248.5,
+        35,
+        57.5,
+        115.8,
+        283.5,
+        18.5,
+        15.9
+       ]
+      },
+      {
+       "hop": "amiga->cube",
+       "prepare": 0,
+       "total": 837,
+       "commit": 192,
+       "frames": [
+        209.5,
+        25.3,
+        8,
+        6.9,
+        58.2,
+        300.5
+       ]
+      },
+      {
+       "hop": "cube->square",
+       "prepare": 18,
+       "total": 612,
+       "commit": 219,
+       "frames": [
+        17.5,
+        8.4,
+        240.1,
+        35,
+        7.5,
+        8.1,
+        42.6,
+        49,
+        41.7,
+        66.3,
+        58.1
+       ]
+      },
+      {
+       "hop": "square->cube",
+       "prepare": 7,
+       "total": 840,
+       "commit": 192,
+       "frames": [
+        217.2,
+        17.3,
+        16.2,
+        8.7,
+        58.5,
+        283.3
+       ]
+      },
+      {
+       "hop": "cube->easing",
+       "prepare": 18,
+       "total": 658,
+       "commit": 251,
+       "frames": [
+        8.4,
+        15.2,
+        275.4,
+        41.3,
+        18.3,
+        8.2,
+        50,
+        65.2,
+        67.1,
+        59.7
+       ]
+      },
+      {
+       "hop": "easing->cube",
+       "prepare": 2,
+       "total": 834,
+       "commit": 199,
+       "frames": [
+        216.9,
+        23.6,
+        9.6,
+        7.8,
+        57.1,
+        276.9
+       ]
+      },
+      {
+       "hop": "cube->spring",
+       "prepare": 18,
+       "total": 621,
+       "commit": 220,
+       "frames": [
+        8.7,
+        7.9,
+        241.9,
+        41,
+        9.1,
+        32.3,
+        43,
+        48.6,
+        66.3,
+        60,
+        65.9
+       ]
+      },
+      {
+       "hop": "spring->cube",
+       "prepare": 6,
+       "total": 867,
+       "commit": 218,
+       "frames": [
+        242,
+        24.7,
+        10.2,
+        6.8,
+        43.1,
+        289.8
+       ]
+      },
+      {
+       "hop": "cube->sequence",
+       "prepare": 33,
+       "total": 565,
+       "commit": 151,
+       "frames": [
+        8.4,
+        16.5,
+        8.6,
+        181.7,
+        33.3,
+        8.5,
+        33.5,
+        59.3,
+        58.7,
+        56.7,
+        60.2
+       ]
+      },
+      {
+       "hop": "sequence->cube",
+       "prepare": 4,
+       "total": 904,
+       "commit": 193,
+       "frames": [
+        217.4,
+        24.8,
+        7.7,
+        33.3,
+        60.1,
+        306.5
+       ]
+      },
+      {
+       "hop": "cube->home",
+       "prepare": 27,
+       "total": 419,
+       "commit": 61,
+       "frames": [
+        6.8,
+        8.4,
+        9.3,
+        91.2,
+        16.2,
+        16.5,
+        26,
+        15.8,
+        16.8,
+        26.5,
+        57.3,
+        57.9,
+        41.9,
+        25.5
+       ]
+      },
+      {
+       "hop": "home->cube",
+       "prepare": 2,
+       "total": 485,
+       "commit": 119,
+       "frames": [
+        139.7,
+        26.8,
+        15.2,
+        26.5,
+        40.5,
+        59.6,
+        56.4,
+        60
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  "inp": {
+   "median": {
+    "inp": 128,
+    "wellHeight": 536
+   },
+   "runs": [
+    {
+     "env": {
+      "load1": 12.68,
+      "memFreePct": 77
+     },
+     "monacoBefore": false,
+     "inp": 112,
+     "interactions": {
+      "9691": 112
+     },
+     "wellHeight": 536
+    },
+    {
+     "env": {
+      "load1": 11.73,
+      "memFreePct": 77
+     },
+     "monacoBefore": false,
+     "inp": 128,
+     "interactions": {
+      "172": 128
+     },
+     "wellHeight": 536
+    },
+    {
+     "env": {
+      "load1": 15.72,
+      "memFreePct": 77
+     },
+     "monacoBefore": false,
+     "inp": 168,
+     "interactions": {
+      "7505": 168
+     },
+     "wellHeight": 536
+    }
+   ]
+  },
+  "lighthouse": [
+   {
+    "run": 1,
+    "page": "home",
+    "env": {
+     "load1": 18.76,
+     "memFreePct": 77
+    },
+    "perf": 0.65,
+    "fcp": 3326,
+    "lcp": 4549,
+    "tbt": 77,
+    "cls": 0.2342,
+    "si": 3326
+   },
+   {
+    "run": 1,
+    "page": "#/spring",
+    "env": {
+     "load1": 21.21,
+     "memFreePct": 77
+    },
+    "perf": 0.75,
+    "fcp": 4058,
+    "lcp": 4360,
+    "tbt": 68,
+    "cls": 0.0145,
+    "si": 4058
+   },
+   {
+    "run": 2,
+    "page": "home",
+    "env": {
+     "load1": 21.52,
+     "memFreePct": 77
+    },
+    "perf": 0.73,
+    "fcp": 4281,
+    "lcp": 4539,
+    "tbt": 0,
+    "cls": 0.038,
+    "si": 4281
+   },
+   {
+    "run": 2,
+    "page": "#/spring",
+    "env": {
+     "load1": 19.28,
+     "memFreePct": 77
+    },
+    "perf": 0.75,
+    "fcp": 3983,
+    "lcp": 4360,
+    "tbt": 39,
+    "cls": 0.0108,
+    "si": 3983
+   }
+  ]
+ }
+}

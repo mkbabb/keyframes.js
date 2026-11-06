@@ -11,16 +11,8 @@ body {
     overscroll-behavior: auto;
 }
 
-/* The die's numerals: the demo's display voice, self-hosted here so the slice
- * makes no third-party request (OFL, ./fonts/OFL.txt). */
-@font-face {
-    font-family: "Instrument Serif";
-    font-style: normal;
-    font-weight: 400;
-    font-display: swap;
-    src: url("./fonts/instrument-serif-latin-400-normal.woff2") format("woff2");
-    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}
+/* The die's numerals take the demo's display voice from style.css's
+ * self-hosted Instrument Serif, so the slice makes no third-party request. */
 
 /* A host theme flip crossfades over the same 377 ms as the host's. */
 ::view-transition-group(root) {

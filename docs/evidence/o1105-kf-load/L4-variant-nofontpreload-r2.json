@@ -1,0 +1,1406 @@
+{
+ "base": "../../.dev-logs/o1105/kf-load/dist-nofontpre",
+ "at": "2026-11-06T04:20:50.531Z",
+ "runs": 2,
+ "gpu": false,
+ "cells": {
+  "home-390": {
+   "median": {
+    "fcp": 508,
+    "lcp": 508,
+    "cls": 0,
+    "tbt": 0,
+    "jsKB": 1353,
+    "jsWireKB": 415,
+    "monaco10s": 0,
+    "three10s": 0
+   },
+   "thirdParty": [],
+   "runs": [
+    {
+     "id": "home-390",
+     "env": {
+      "load1": 20.63,
+      "memFreePct": 76
+     },
+     "fcp": 788,
+     "lcp": 788,
+     "cls": 0,
+     "tbt": 0,
+     "jsKB": 1353,
+     "jsWireKB": 415,
+     "thirdParty": [],
+     "monaco10s": 0,
+     "three10s": 0,
+     "requests": [
+      {
+       "at": 47,
+       "url": "/"
+      },
+      {
+       "at": 71,
+       "url": "/assets/index-1MzvMTzm.js"
+      },
+      {
+       "at": 71,
+       "url": "/assets/rolldown-runtime-DK3Fl9T5.js"
+      },
+      {
+       "at": 71,
+       "url": "/assets/vendor-reka-ui-4DPhyUsZ.js"
+      },
+      {
+       "at": 72,
+       "url": "/assets/_plugin-vue_export-helper-BWVvCjWZ.js"
+      },
+      {
+       "at": 72,
+       "url": "/assets/preload-helper-kNaey6uv.js"
+      },
+      {
+       "at": 72,
+       "url": "/assets/keyboard-GNZg3Tgs.js"
+      },
+      {
+       "at": 72,
+       "url": "/assets/progress-e88g4GGc.js"
+      },
+      {
+       "at": 72,
+       "url": "/assets/timing-function-CtQ34pOp.js"
+      },
+      {
+       "at": 72,
+       "url": "/assets/binary-search-U2Hj7143.js"
+      },
+      {
+       "at": 72,
+       "url": "/assets/vendor-lucide-BET3I7w3.js"
+      },
+      {
+       "at": 72,
+       "url": "/assets/pointerFieldMappings-DXwlU5uj-D5wIeQ_V.js"
+      },
+      {
+       "at": 72,
+       "url": "/assets/glass-ui-z15VhSzF.js"
+      },
+      {
+       "at": 72,
+       "url": "/assets/index-DvHOzllY.css"
+      },
+      {
+       "at": 270,
+       "url": "/assets/public-B1WMaqMZ.js"
+      },
+      {
+       "at": 270,
+       "url": "/assets/selector-p3bXA53F.js"
+      },
+      {
+       "at": 270,
+       "url": "/assets/HeroAurora-DlRgbleq.js"
+      },
+      {
+       "at": 270,
+       "url": "/assets/color-grammar-CRvuKec1-BqyimW4r.js"
+      },
+      {
+       "at": 270,
+       "url": "/assets/HeroAurora-CJUYErC9.css"
+      },
+      {
+       "at": 796,
+       "url": "/assets/instrument-serif-latin-400-italic-Dv3QvL_F.woff2"
+      },
+      {
+       "at": 796,
+       "url": "/assets/instrument-serif-latin-400-normal-DnYpCC2O.woff2"
+      },
+      {
+       "at": 927,
+       "url": "/assets/SquareScene-ChJSFFU1.js"
+      },
+      {
+       "at": 927,
+       "url": "/assets/arrowNudge-D7YehOEl.js"
+      },
+      {
+       "at": 927,
+       "url": "/assets/useSweepScene-Ckw-0ZKD.js"
+      },
+      {
+       "at": 927,
+       "url": "/assets/useSweepScene-B__ZuSDF.css"
+      },
+      {
+       "at": 927,
+       "url": "/assets/SquareScene-B7GpYqAj.css"
+      },
+      {
+       "at": 927,
+       "url": "/assets/EasingScene-BgY2Trr4.js"
+      },
+      {
+       "at": 927,
+       "url": "/assets/usePainterRegistry-CR6C9kbK.js"
+      },
+      {
+       "at": 927,
+       "url": "/assets/copyWithToast-DubxY-Oc.js"
+      },
+      {
+       "at": 927,
+       "url": "/assets/usePainterRegistry-C0DwymcO.css"
+      },
+      {
+       "at": 927,
+       "url": "/assets/EasingScene-B7P-3tCr.css"
+      },
+      {
+       "at": 927,
+       "url": "/assets/SpringScene-DfcVWCEx.js"
+      },
+      {
+       "at": 927,
+       "url": "/assets/codeTokens-c1Vqa4L7.js"
+      },
+      {
+       "at": 927,
+       "url": "/assets/SpringScene-Bd3fkLgj.css"
+      },
+      {
+       "at": 927,
+       "url": "/assets/SequenceScene-CZvLbUqF.js"
+      },
+      {
+       "at": 927,
+       "url": "/assets/SequenceScene-CztErGj8.css"
+      }
+     ]
+    },
+    {
+     "id": "home-390",
+     "env": {
+      "load1": 18.97,
+      "memFreePct": 76
+     },
+     "fcp": 508,
+     "lcp": 508,
+     "cls": 0,
+     "tbt": 0,
+     "jsKB": 1353,
+     "jsWireKB": 415,
+     "thirdParty": [],
+     "monaco10s": 0,
+     "three10s": 0,
+     "requests": [
+      {
+       "at": 13,
+       "url": "/"
+      },
+      {
+       "at": 27,
+       "url": "/assets/index-1MzvMTzm.js"
+      },
+      {
+       "at": 27,
+       "url": "/assets/rolldown-runtime-DK3Fl9T5.js"
+      },
+      {
+       "at": 27,
+       "url": "/assets/vendor-reka-ui-4DPhyUsZ.js"
+      },
+      {
+       "at": 27,
+       "url": "/assets/_plugin-vue_export-helper-BWVvCjWZ.js"
+      },
+      {
+       "at": 27,
+       "url": "/assets/preload-helper-kNaey6uv.js"
+      },
+      {
+       "at": 28,
+       "url": "/assets/keyboard-GNZg3Tgs.js"
+      },
+      {
+       "at": 28,
+       "url": "/assets/progress-e88g4GGc.js"
+      },
+      {
+       "at": 28,
+       "url": "/assets/timing-function-CtQ34pOp.js"
+      },
+      {
+       "at": 28,
+       "url": "/assets/binary-search-U2Hj7143.js"
+      },
+      {
+       "at": 28,
+       "url": "/assets/vendor-lucide-BET3I7w3.js"
+      },
+      {
+       "at": 28,
+       "url": "/assets/pointerFieldMappings-DXwlU5uj-D5wIeQ_V.js"
+      },
+      {
+       "at": 28,
+       "url": "/assets/glass-ui-z15VhSzF.js"
+      },
+      {
+       "at": 30,
+       "url": "/assets/index-DvHOzllY.css"
+      },
+      {
+       "at": 163,
+       "url": "/assets/public-B1WMaqMZ.js"
+      },
+      {
+       "at": 163,
+       "url": "/assets/selector-p3bXA53F.js"
+      },
+      {
+       "at": 163,
+       "url": "/assets/HeroAurora-DlRgbleq.js"
+      },
+      {
+       "at": 163,
+       "url": "/assets/color-grammar-CRvuKec1-BqyimW4r.js"
+      },
+      {
+       "at": 163,
+       "url": "/assets/HeroAurora-CJUYErC9.css"
+      },
+      {
+       "at": 499,
+       "url": "/assets/instrument-serif-latin-400-italic-Dv3QvL_F.woff2"
+      },
+      {
+       "at": 499,
+       "url": "/assets/instrument-serif-latin-400-normal-DnYpCC2O.woff2"
+      },
+      {
+       "at": 577,
+       "url": "/assets/SquareScene-ChJSFFU1.js"
+      },
+      {
+       "at": 577,
+       "url": "/assets/arrowNudge-D7YehOEl.js"
+      },
+      {
+       "at": 577,
+       "url": "/assets/useSweepScene-Ckw-0ZKD.js"
+      },
+      {
+       "at": 577,
+       "url": "/assets/useSweepScene-B__ZuSDF.css"
+      },
+      {
+       "at": 577,
+       "url": "/assets/SquareScene-B7GpYqAj.css"
+      },
+      {
+       "at": 577,
+       "url": "/assets/EasingScene-BgY2Trr4.js"
+      },
+      {
+       "at": 577,
+       "url": "/assets/usePainterRegistry-CR6C9kbK.js"
+      },
+      {
+       "at": 577,
+       "url": "/assets/copyWithToast-DubxY-Oc.js"
+      },
+      {
+       "at": 577,
+       "url": "/assets/usePainterRegistry-C0DwymcO.css"
+      },
+      {
+       "at": 577,
+       "url": "/assets/EasingScene-B7P-3tCr.css"
+      },
+      {
+       "at": 578,
+       "url": "/assets/SpringScene-DfcVWCEx.js"
+      },
+      {
+       "at": 578,
+       "url": "/assets/codeTokens-c1Vqa4L7.js"
+      },
+      {
+       "at": 578,
+       "url": "/assets/SpringScene-Bd3fkLgj.css"
+      },
+      {
+       "at": 578,
+       "url": "/assets/SequenceScene-CZvLbUqF.js"
+      },
+      {
+       "at": 578,
+       "url": "/assets/SequenceScene-CztErGj8.css"
+      }
+     ]
+    }
+   ]
+  },
+  "spring-390": {
+   "median": {
+    "fcp": 428,
+    "lcp": 672,
+    "cls": 0.0151,
+    "tbt": 0,
+    "jsKB": 1353,
+    "jsWireKB": 415,
+    "monaco10s": 0,
+    "three10s": 0
+   },
+   "thirdParty": [],
+   "runs": [
+    {
+     "id": "spring-390",
+     "env": {
+      "load1": 17.56,
+      "memFreePct": 76
+     },
+     "fcp": 432,
+     "lcp": 716,
+     "cls": 0.0161,
+     "tbt": 5,
+     "jsKB": 1353,
+     "jsWireKB": 415,
+     "thirdParty": [],
+     "monaco10s": 0,
+     "three10s": 0,
+     "requests": [
+      {
+       "at": 13,
+       "url": "/"
+      },
+      {
+       "at": 27,
+       "url": "/assets/index-1MzvMTzm.js"
+      },
+      {
+       "at": 27,
+       "url": "/assets/rolldown-runtime-DK3Fl9T5.js"
+      },
+      {
+       "at": 27,
+       "url": "/assets/vendor-reka-ui-4DPhyUsZ.js"
+      },
+      {
+       "at": 27,
+       "url": "/assets/_plugin-vue_export-helper-BWVvCjWZ.js"
+      },
+      {
+       "at": 27,
+       "url": "/assets/preload-helper-kNaey6uv.js"
+      },
+      {
+       "at": 27,
+       "url": "/assets/keyboard-GNZg3Tgs.js"
+      },
+      {
+       "at": 27,
+       "url": "/assets/progress-e88g4GGc.js"
+      },
+      {
+       "at": 27,
+       "url": "/assets/timing-function-CtQ34pOp.js"
+      },
+      {
+       "at": 27,
+       "url": "/assets/binary-search-U2Hj7143.js"
+      },
+      {
+       "at": 27,
+       "url": "/assets/vendor-lucide-BET3I7w3.js"
+      },
+      {
+       "at": 27,
+       "url": "/assets/pointerFieldMappings-DXwlU5uj-D5wIeQ_V.js"
+      },
+      {
+       "at": 27,
+       "url": "/assets/glass-ui-z15VhSzF.js"
+      },
+      {
+       "at": 30,
+       "url": "/assets/index-DvHOzllY.css"
+      },
+      {
+       "at": 145,
+       "url": "/assets/public-B1WMaqMZ.js"
+      },
+      {
+       "at": 145,
+       "url": "/assets/selector-p3bXA53F.js"
+      },
+      {
+       "at": 145,
+       "url": "/assets/SpringScene-DfcVWCEx.js"
+      },
+      {
+       "at": 145,
+       "url": "/assets/usePainterRegistry-CR6C9kbK.js"
+      },
+      {
+       "at": 145,
+       "url": "/assets/copyWithToast-DubxY-Oc.js"
+      },
+      {
+       "at": 145,
+       "url": "/assets/codeTokens-c1Vqa4L7.js"
+      },
+      {
+       "at": 145,
+       "url": "/assets/useSweepScene-Ckw-0ZKD.js"
+      },
+      {
+       "at": 145,
+       "url": "/assets/usePainterRegistry-C0DwymcO.css"
+      },
+      {
+       "at": 145,
+       "url": "/assets/useSweepScene-B__ZuSDF.css"
+      },
+      {
+       "at": 145,
+       "url": "/assets/SpringScene-Bd3fkLgj.css"
+      },
+      {
+       "at": 659,
+       "url": "/assets/instrument-serif-latin-400-normal-DnYpCC2O.woff2"
+      },
+      {
+       "at": 1219,
+       "url": "/assets/HeroAurora-DlRgbleq.js"
+      },
+      {
+       "at": 1219,
+       "url": "/assets/color-grammar-CRvuKec1-BqyimW4r.js"
+      },
+      {
+       "at": 1219,
+       "url": "/assets/HeroAurora-CJUYErC9.css"
+      },
+      {
+       "at": 1219,
+       "url": "/assets/SquareScene-ChJSFFU1.js"
+      },
+      {
+       "at": 1219,
+       "url": "/assets/arrowNudge-D7YehOEl.js"
+      },
+      {
+       "at": 1219,
+       "url": "/assets/SquareScene-B7GpYqAj.css"
+      },
+      {
+       "at": 1219,
+       "url": "/assets/EasingScene-BgY2Trr4.js"
+      },
+      {
+       "at": 1219,
+       "url": "/assets/EasingScene-B7P-3tCr.css"
+      },
+      {
+       "at": 1219,
+       "url": "/assets/SequenceScene-CZvLbUqF.js"
+      },
+      {
+       "at": 1220,
+       "url": "/assets/SequenceScene-CztErGj8.css"
+      }
+     ]
+    },
+    {
+     "id": "spring-390",
+     "env": {
+      "load1": 16.98,
+      "memFreePct": 77
+     },
+     "fcp": 428,
+     "lcp": 672,
+     "cls": 0.0151,
+     "tbt": 0,
+     "jsKB": 1353,
+     "jsWireKB": 415,
+     "thirdParty": [],
+     "monaco10s": 0,
+     "three10s": 0,
+     "requests": [
+      {
+       "at": 13,
+       "url": "/"
+      },
+      {
+       "at": 28,
+       "url": "/assets/index-1MzvMTzm.js"
+      },
+      {
+       "at": 28,
+       "url": "/assets/rolldown-runtime-DK3Fl9T5.js"
+      },
+      {
+       "at": 28,
+       "url": "/assets/vendor-reka-ui-4DPhyUsZ.js"
+      },
+      {
+       "at": 28,
+       "url": "/assets/_plugin-vue_export-helper-BWVvCjWZ.js"
+      },
+      {
+       "at": 28,
+       "url": "/assets/preload-helper-kNaey6uv.js"
+      },
+      {
+       "at": 28,
+       "url": "/assets/keyboard-GNZg3Tgs.js"
+      },
+      {
+       "at": 29,
+       "url": "/assets/progress-e88g4GGc.js"
+      },
+      {
+       "at": 29,
+       "url": "/assets/timing-function-CtQ34pOp.js"
+      },
+      {
+       "at": 29,
+       "url": "/assets/binary-search-U2Hj7143.js"
+      },
+      {
+       "at": 29,
+       "url": "/assets/vendor-lucide-BET3I7w3.js"
+      },
+      {
+       "at": 29,
+       "url": "/assets/pointerFieldMappings-DXwlU5uj-D5wIeQ_V.js"
+      },
+      {
+       "at": 29,
+       "url": "/assets/glass-ui-z15VhSzF.js"
+      },
+      {
+       "at": 30,
+       "url": "/assets/index-DvHOzllY.css"
+      },
+      {
+       "at": 151,
+       "url": "/assets/public-B1WMaqMZ.js"
+      },
+      {
+       "at": 151,
+       "url": "/assets/selector-p3bXA53F.js"
+      },
+      {
+       "at": 151,
+       "url": "/assets/SpringScene-DfcVWCEx.js"
+      },
+      {
+       "at": 151,
+       "url": "/assets/usePainterRegistry-CR6C9kbK.js"
+      },
+      {
+       "at": 151,
+       "url": "/assets/copyWithToast-DubxY-Oc.js"
+      },
+      {
+       "at": 151,
+       "url": "/assets/codeTokens-c1Vqa4L7.js"
+      },
+      {
+       "at": 151,
+       "url": "/assets/useSweepScene-Ckw-0ZKD.js"
+      },
+      {
+       "at": 151,
+       "url": "/assets/usePainterRegistry-C0DwymcO.css"
+      },
+      {
+       "at": 151,
+       "url": "/assets/useSweepScene-B__ZuSDF.css"
+      },
+      {
+       "at": 151,
+       "url": "/assets/SpringScene-Bd3fkLgj.css"
+      },
+      {
+       "at": 620,
+       "url": "/assets/instrument-serif-latin-400-normal-DnYpCC2O.woff2"
+      },
+      {
+       "at": 1188,
+       "url": "/assets/HeroAurora-DlRgbleq.js"
+      },
+      {
+       "at": 1188,
+       "url": "/assets/color-grammar-CRvuKec1-BqyimW4r.js"
+      },
+      {
+       "at": 1188,
+       "url": "/assets/HeroAurora-CJUYErC9.css"
+      },
+      {
+       "at": 1188,
+       "url": "/assets/SquareScene-ChJSFFU1.js"
+      },
+      {
+       "at": 1188,
+       "url": "/assets/arrowNudge-D7YehOEl.js"
+      },
+      {
+       "at": 1188,
+       "url": "/assets/SquareScene-B7GpYqAj.css"
+      },
+      {
+       "at": 1188,
+       "url": "/assets/EasingScene-BgY2Trr4.js"
+      },
+      {
+       "at": 1188,
+       "url": "/assets/EasingScene-B7P-3tCr.css"
+      },
+      {
+       "at": 1188,
+       "url": "/assets/SequenceScene-CZvLbUqF.js"
+      },
+      {
+       "at": 1188,
+       "url": "/assets/SequenceScene-CztErGj8.css"
+      }
+     ]
+    }
+   ]
+  },
+  "easing-390": {
+   "median": {
+    "fcp": 428,
+    "lcp": 428,
+    "cls": 0,
+    "tbt": 169,
+    "jsKB": 1353,
+    "jsWireKB": 415,
+    "monaco10s": 0,
+    "three10s": 0
+   },
+   "thirdParty": [],
+   "runs": [
+    {
+     "id": "easing-390",
+     "env": {
+      "load1": 16.12,
+      "memFreePct": 77
+     },
+     "fcp": 460,
+     "lcp": 460,
+     "cls": 0,
+     "tbt": 169,
+     "jsKB": 1353,
+     "jsWireKB": 415,
+     "thirdParty": [],
+     "monaco10s": 0,
+     "three10s": 0,
+     "requests": [
+      {
+       "at": 12,
+       "url": "/"
+      },
+      {
+       "at": 24,
+       "url": "/assets/index-1MzvMTzm.js"
+      },
+      {
+       "at": 25,
+       "url": "/assets/rolldown-runtime-DK3Fl9T5.js"
+      },
+      {
+       "at": 25,
+       "url": "/assets/vendor-reka-ui-4DPhyUsZ.js"
+      },
+      {
+       "at": 25,
+       "url": "/assets/_plugin-vue_export-helper-BWVvCjWZ.js"
+      },
+      {
+       "at": 25,
+       "url": "/assets/preload-helper-kNaey6uv.js"
+      },
+      {
+       "at": 25,
+       "url": "/assets/keyboard-GNZg3Tgs.js"
+      },
+      {
+       "at": 25,
+       "url": "/assets/progress-e88g4GGc.js"
+      },
+      {
+       "at": 25,
+       "url": "/assets/timing-function-CtQ34pOp.js"
+      },
+      {
+       "at": 25,
+       "url": "/assets/binary-search-U2Hj7143.js"
+      },
+      {
+       "at": 25,
+       "url": "/assets/vendor-lucide-BET3I7w3.js"
+      },
+      {
+       "at": 25,
+       "url": "/assets/pointerFieldMappings-DXwlU5uj-D5wIeQ_V.js"
+      },
+      {
+       "at": 25,
+       "url": "/assets/glass-ui-z15VhSzF.js"
+      },
+      {
+       "at": 27,
+       "url": "/assets/index-DvHOzllY.css"
+      },
+      {
+       "at": 148,
+       "url": "/assets/public-B1WMaqMZ.js"
+      },
+      {
+       "at": 148,
+       "url": "/assets/selector-p3bXA53F.js"
+      },
+      {
+       "at": 148,
+       "url": "/assets/EasingScene-BgY2Trr4.js"
+      },
+      {
+       "at": 149,
+       "url": "/assets/usePainterRegistry-CR6C9kbK.js"
+      },
+      {
+       "at": 149,
+       "url": "/assets/copyWithToast-DubxY-Oc.js"
+      },
+      {
+       "at": 149,
+       "url": "/assets/useSweepScene-Ckw-0ZKD.js"
+      },
+      {
+       "at": 149,
+       "url": "/assets/usePainterRegistry-C0DwymcO.css"
+      },
+      {
+       "at": 149,
+       "url": "/assets/useSweepScene-B__ZuSDF.css"
+      },
+      {
+       "at": 149,
+       "url": "/assets/EasingScene-B7P-3tCr.css"
+      },
+      {
+       "at": 701,
+       "url": "/assets/instrument-serif-latin-400-normal-DnYpCC2O.woff2"
+      },
+      {
+       "at": 992,
+       "url": "/assets/HeroAurora-DlRgbleq.js"
+      },
+      {
+       "at": 992,
+       "url": "/assets/color-grammar-CRvuKec1-BqyimW4r.js"
+      },
+      {
+       "at": 992,
+       "url": "/assets/HeroAurora-CJUYErC9.css"
+      },
+      {
+       "at": 992,
+       "url": "/assets/SquareScene-ChJSFFU1.js"
+      },
+      {
+       "at": 992,
+       "url": "/assets/arrowNudge-D7YehOEl.js"
+      },
+      {
+       "at": 992,
+       "url": "/assets/SquareScene-B7GpYqAj.css"
+      },
+      {
+       "at": 994,
+       "url": "/assets/SpringScene-DfcVWCEx.js"
+      },
+      {
+       "at": 994,
+       "url": "/assets/codeTokens-c1Vqa4L7.js"
+      },
+      {
+       "at": 994,
+       "url": "/assets/SpringScene-Bd3fkLgj.css"
+      },
+      {
+       "at": 994,
+       "url": "/assets/SequenceScene-CZvLbUqF.js"
+      },
+      {
+       "at": 994,
+       "url": "/assets/SequenceScene-CztErGj8.css"
+      }
+     ]
+    },
+    {
+     "id": "easing-390",
+     "env": {
+      "load1": 15.13,
+      "memFreePct": 76
+     },
+     "fcp": 428,
+     "lcp": 428,
+     "cls": 0,
+     "tbt": 170,
+     "jsKB": 1353,
+     "jsWireKB": 415,
+     "thirdParty": [],
+     "monaco10s": 0,
+     "three10s": 0,
+     "requests": [
+      {
+       "at": 15,
+       "url": "/"
+      },
+      {
+       "at": 27,
+       "url": "/assets/index-1MzvMTzm.js"
+      },
+      {
+       "at": 27,
+       "url": "/assets/rolldown-runtime-DK3Fl9T5.js"
+      },
+      {
+       "at": 27,
+       "url": "/assets/vendor-reka-ui-4DPhyUsZ.js"
+      },
+      {
+       "at": 27,
+       "url": "/assets/_plugin-vue_export-helper-BWVvCjWZ.js"
+      },
+      {
+       "at": 27,
+       "url": "/assets/preload-helper-kNaey6uv.js"
+      },
+      {
+       "at": 27,
+       "url": "/assets/keyboard-GNZg3Tgs.js"
+      },
+      {
+       "at": 27,
+       "url": "/assets/progress-e88g4GGc.js"
+      },
+      {
+       "at": 27,
+       "url": "/assets/timing-function-CtQ34pOp.js"
+      },
+      {
+       "at": 28,
+       "url": "/assets/binary-search-U2Hj7143.js"
+      },
+      {
+       "at": 28,
+       "url": "/assets/vendor-lucide-BET3I7w3.js"
+      },
+      {
+       "at": 28,
+       "url": "/assets/pointerFieldMappings-DXwlU5uj-D5wIeQ_V.js"
+      },
+      {
+       "at": 28,
+       "url": "/assets/glass-ui-z15VhSzF.js"
+      },
+      {
+       "at": 30,
+       "url": "/assets/index-DvHOzllY.css"
+      },
+      {
+       "at": 150,
+       "url": "/assets/public-B1WMaqMZ.js"
+      },
+      {
+       "at": 150,
+       "url": "/assets/selector-p3bXA53F.js"
+      },
+      {
+       "at": 150,
+       "url": "/assets/EasingScene-BgY2Trr4.js"
+      },
+      {
+       "at": 150,
+       "url": "/assets/usePainterRegistry-CR6C9kbK.js"
+      },
+      {
+       "at": 150,
+       "url": "/assets/copyWithToast-DubxY-Oc.js"
+      },
+      {
+       "at": 150,
+       "url": "/assets/useSweepScene-Ckw-0ZKD.js"
+      },
+      {
+       "at": 151,
+       "url": "/assets/usePainterRegistry-C0DwymcO.css"
+      },
+      {
+       "at": 151,
+       "url": "/assets/useSweepScene-B__ZuSDF.css"
+      },
+      {
+       "at": 151,
+       "url": "/assets/EasingScene-B7P-3tCr.css"
+      },
+      {
+       "at": 673,
+       "url": "/assets/instrument-serif-latin-400-normal-DnYpCC2O.woff2"
+      },
+      {
+       "at": 952,
+       "url": "/assets/HeroAurora-DlRgbleq.js"
+      },
+      {
+       "at": 952,
+       "url": "/assets/color-grammar-CRvuKec1-BqyimW4r.js"
+      },
+      {
+       "at": 952,
+       "url": "/assets/HeroAurora-CJUYErC9.css"
+      },
+      {
+       "at": 953,
+       "url": "/assets/SquareScene-ChJSFFU1.js"
+      },
+      {
+       "at": 953,
+       "url": "/assets/arrowNudge-D7YehOEl.js"
+      },
+      {
+       "at": 953,
+       "url": "/assets/SquareScene-B7GpYqAj.css"
+      },
+      {
+       "at": 953,
+       "url": "/assets/SpringScene-DfcVWCEx.js"
+      },
+      {
+       "at": 953,
+       "url": "/assets/codeTokens-c1Vqa4L7.js"
+      },
+      {
+       "at": 953,
+       "url": "/assets/SpringScene-Bd3fkLgj.css"
+      },
+      {
+       "at": 953,
+       "url": "/assets/SequenceScene-CZvLbUqF.js"
+      },
+      {
+       "at": 953,
+       "url": "/assets/SequenceScene-CztErGj8.css"
+      }
+     ]
+    }
+   ]
+  },
+  "home-1440": {
+   "median": {
+    "fcp": 172,
+    "lcp": 172,
+    "cls": 0.0101,
+    "tbt": 0,
+    "jsKB": 1353,
+    "jsWireKB": 415,
+    "monaco10s": 0,
+    "three10s": 0
+   },
+   "thirdParty": [],
+   "runs": [
+    {
+     "id": "home-1440",
+     "env": {
+      "load1": 15.36,
+      "memFreePct": 75
+     },
+     "fcp": 176,
+     "lcp": 176,
+     "cls": 0.0101,
+     "tbt": 0,
+     "jsKB": 1353,
+     "jsWireKB": 415,
+     "thirdParty": [],
+     "monaco10s": 0,
+     "three10s": 0,
+     "requests": [
+      {
+       "at": 14,
+       "url": "/"
+      },
+      {
+       "at": 20,
+       "url": "/assets/index-1MzvMTzm.js"
+      },
+      {
+       "at": 20,
+       "url": "/assets/rolldown-runtime-DK3Fl9T5.js"
+      },
+      {
+       "at": 20,
+       "url": "/assets/vendor-reka-ui-4DPhyUsZ.js"
+      },
+      {
+       "at": 22,
+       "url": "/assets/_plugin-vue_export-helper-BWVvCjWZ.js"
+      },
+      {
+       "at": 22,
+       "url": "/assets/preload-helper-kNaey6uv.js"
+      },
+      {
+       "at": 22,
+       "url": "/assets/keyboard-GNZg3Tgs.js"
+      },
+      {
+       "at": 22,
+       "url": "/assets/progress-e88g4GGc.js"
+      },
+      {
+       "at": 22,
+       "url": "/assets/timing-function-CtQ34pOp.js"
+      },
+      {
+       "at": 22,
+       "url": "/assets/binary-search-U2Hj7143.js"
+      },
+      {
+       "at": 22,
+       "url": "/assets/vendor-lucide-BET3I7w3.js"
+      },
+      {
+       "at": 22,
+       "url": "/assets/pointerFieldMappings-DXwlU5uj-D5wIeQ_V.js"
+      },
+      {
+       "at": 22,
+       "url": "/assets/glass-ui-z15VhSzF.js"
+      },
+      {
+       "at": 22,
+       "url": "/assets/index-DvHOzllY.css"
+      },
+      {
+       "at": 65,
+       "url": "/assets/public-B1WMaqMZ.js"
+      },
+      {
+       "at": 65,
+       "url": "/assets/selector-p3bXA53F.js"
+      },
+      {
+       "at": 65,
+       "url": "/assets/HeroAurora-DlRgbleq.js"
+      },
+      {
+       "at": 65,
+       "url": "/assets/color-grammar-CRvuKec1-BqyimW4r.js"
+      },
+      {
+       "at": 65,
+       "url": "/assets/HeroAurora-CJUYErC9.css"
+      },
+      {
+       "at": 172,
+       "url": "/assets/instrument-serif-latin-400-normal-DnYpCC2O.woff2"
+      },
+      {
+       "at": 172,
+       "url": "/assets/instrument-serif-latin-400-italic-Dv3QvL_F.woff2"
+      },
+      {
+       "at": 208,
+       "url": "/assets/SquareScene-ChJSFFU1.js"
+      },
+      {
+       "at": 208,
+       "url": "/assets/arrowNudge-D7YehOEl.js"
+      },
+      {
+       "at": 208,
+       "url": "/assets/useSweepScene-Ckw-0ZKD.js"
+      },
+      {
+       "at": 208,
+       "url": "/assets/useSweepScene-B__ZuSDF.css"
+      },
+      {
+       "at": 208,
+       "url": "/assets/SquareScene-B7GpYqAj.css"
+      },
+      {
+       "at": 208,
+       "url": "/assets/EasingScene-BgY2Trr4.js"
+      },
+      {
+       "at": 208,
+       "url": "/assets/usePainterRegistry-CR6C9kbK.js"
+      },
+      {
+       "at": 208,
+       "url": "/assets/copyWithToast-DubxY-Oc.js"
+      },
+      {
+       "at": 208,
+       "url": "/assets/usePainterRegistry-C0DwymcO.css"
+      },
+      {
+       "at": 208,
+       "url": "/assets/EasingScene-B7P-3tCr.css"
+      },
+      {
+       "at": 208,
+       "url": "/assets/SpringScene-DfcVWCEx.js"
+      },
+      {
+       "at": 208,
+       "url": "/assets/codeTokens-c1Vqa4L7.js"
+      },
+      {
+       "at": 208,
+       "url": "/assets/SpringScene-Bd3fkLgj.css"
+      },
+      {
+       "at": 208,
+       "url": "/assets/SequenceScene-CZvLbUqF.js"
+      },
+      {
+       "at": 208,
+       "url": "/assets/SequenceScene-CztErGj8.css"
+      }
+     ]
+    },
+    {
+     "id": "home-1440",
+     "env": {
+      "load1": 17.28,
+      "memFreePct": 76
+     },
+     "fcp": 172,
+     "lcp": 172,
+     "cls": 0.0101,
+     "tbt": 0,
+     "jsKB": 1353,
+     "jsWireKB": 415,
+     "thirdParty": [],
+     "monaco10s": 0,
+     "three10s": 0,
+     "requests": [
+      {
+       "at": 17,
+       "url": "/"
+      },
+      {
+       "at": 23,
+       "url": "/assets/index-1MzvMTzm.js"
+      },
+      {
+       "at": 23,
+       "url": "/assets/rolldown-runtime-DK3Fl9T5.js"
+      },
+      {
+       "at": 23,
+       "url": "/assets/vendor-reka-ui-4DPhyUsZ.js"
+      },
+      {
+       "at": 23,
+       "url": "/assets/_plugin-vue_export-helper-BWVvCjWZ.js"
+      },
+      {
+       "at": 23,
+       "url": "/assets/preload-helper-kNaey6uv.js"
+      },
+      {
+       "at": 23,
+       "url": "/assets/keyboard-GNZg3Tgs.js"
+      },
+      {
+       "at": 23,
+       "url": "/assets/progress-e88g4GGc.js"
+      },
+      {
+       "at": 23,
+       "url": "/assets/timing-function-CtQ34pOp.js"
+      },
+      {
+       "at": 23,
+       "url": "/assets/binary-search-U2Hj7143.js"
+      },
+      {
+       "at": 23,
+       "url": "/assets/vendor-lucide-BET3I7w3.js"
+      },
+      {
+       "at": 23,
+       "url": "/assets/pointerFieldMappings-DXwlU5uj-D5wIeQ_V.js"
+      },
+      {
+       "at": 23,
+       "url": "/assets/glass-ui-z15VhSzF.js"
+      },
+      {
+       "at": 23,
+       "url": "/assets/index-DvHOzllY.css"
+      },
+      {
+       "at": 66,
+       "url": "/assets/public-B1WMaqMZ.js"
+      },
+      {
+       "at": 66,
+       "url": "/assets/selector-p3bXA53F.js"
+      },
+      {
+       "at": 66,
+       "url": "/assets/HeroAurora-DlRgbleq.js"
+      },
+      {
+       "at": 66,
+       "url": "/assets/color-grammar-CRvuKec1-BqyimW4r.js"
+      },
+      {
+       "at": 66,
+       "url": "/assets/HeroAurora-CJUYErC9.css"
+      },
+      {
+       "at": 172,
+       "url": "/assets/instrument-serif-latin-400-normal-DnYpCC2O.woff2"
+      },
+      {
+       "at": 172,
+       "url": "/assets/instrument-serif-latin-400-italic-Dv3QvL_F.woff2"
+      },
+      {
+       "at": 213,
+       "url": "/assets/SquareScene-ChJSFFU1.js"
+      },
+      {
+       "at": 213,
+       "url": "/assets/arrowNudge-D7YehOEl.js"
+      },
+      {
+       "at": 213,
+       "url": "/assets/useSweepScene-Ckw-0ZKD.js"
+      },
+      {
+       "at": 213,
+       "url": "/assets/useSweepScene-B__ZuSDF.css"
+      },
+      {
+       "at": 213,
+       "url": "/assets/SquareScene-B7GpYqAj.css"
+      },
+      {
+       "at": 213,
+       "url": "/assets/EasingScene-BgY2Trr4.js"
+      },
+      {
+       "at": 213,
+       "url": "/assets/usePainterRegistry-CR6C9kbK.js"
+      },
+      {
+       "at": 213,
+       "url": "/assets/copyWithToast-DubxY-Oc.js"
+      },
+      {
+       "at": 213,
+       "url": "/assets/usePainterRegistry-C0DwymcO.css"
+      },
+      {
+       "at": 213,
+       "url": "/assets/EasingScene-B7P-3tCr.css"
+      },
+      {
+       "at": 213,
+       "url": "/assets/SpringScene-DfcVWCEx.js"
+      },
+      {
+       "at": 213,
+       "url": "/assets/codeTokens-c1Vqa4L7.js"
+      },
+      {
+       "at": 213,
+       "url": "/assets/SpringScene-Bd3fkLgj.css"
+      },
+      {
+       "at": 213,
+       "url": "/assets/SequenceScene-CZvLbUqF.js"
+      },
+      {
+       "at": 213,
+       "url": "/assets/SequenceScene-CztErGj8.css"
+      }
+     ]
+    }
+   ]
+  },
+  "lighthouse": [
+   {
+    "run": 1,
+    "page": "home",
+    "env": {
+     "load1": 16.87,
+     "memFreePct": 76
+    },
+    "perf": 0.74,
+    "fcp": 4164,
+    "lcp": 4560,
+    "tbt": 0,
+    "cls": 0.038,
+    "si": 4164
+   },
+   {
+    "run": 1,
+    "page": "#/spring",
+    "env": {
+     "load1": 18.96,
+     "memFreePct": 77
+    },
+    "perf": 0.75,
+    "fcp": 3835,
+    "lcp": 4510,
+    "tbt": 23,
+    "cls": 0.011,
+    "si": 3835
+   },
+   {
+    "run": 2,
+    "page": "home",
+    "env": {
+     "load1": 19.61,
+     "memFreePct": 76
+    },
+    "perf": 0.74,
+    "fcp": 4150,
+    "lcp": 4542,
+    "tbt": 0,
+    "cls": 0.038,
+    "si": 4150
+   },
+   {
+    "run": 2,
+    "page": "#/spring",
+    "env": {
+     "load1": 18.28,
+     "memFreePct": 76
+    },
+    "perf": 0.75,
+    "fcp": 3834,
+    "lcp": 4508,
+    "tbt": 25,
+    "cls": 0.0109,
+    "si": 3834
+   }
+  ]
+ }
+}

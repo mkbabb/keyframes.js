@@ -1,6 +1,6 @@
 import { nextTick, ref, type Ref } from "vue";
 import { viewTransition, type ViewTransitionHandle } from "@mkbabb/keyframes.js";
-import { loadScene, warmScenesAtIdle } from "../scene/scenes";
+import { allScenes, loadScene, warmScenesAtIdle } from "../scene/scenes";
 
 /**
  * Routes the scene-id mutation through the platform's native View Transitions.
@@ -18,14 +18,13 @@ import { loadScene, warmScenesAtIdle } from "../scene/scenes";
  * DISPATCH. The demo carries NO `::view-transition-*` CSS of its own (S.G2 S11 /
  * proof:icon-paint-live — those animation glyphs are glass-ui-owned).
  *
- * KFA-136 (X.KF.W13V.u) — the swap is UNTYPED. A `forward`/`backward`
- * `view-transition-type` used to be derived from the scene order and passed on
- * every switch, with two unread test hooks beside it, but no stylesheet keyed
- * on either type: the swap was the untyped cross-fade regardless. The dead
- * derivation is deleted. A directional look is a design decision against
- * glass's installed route grammar (`lateral` + `--route-direction`, which also
- * pushes the root, so the chrome would need its own naming) — not a type
- * emitted into the void.
+ * o1105 kf-load L7 — the swap is TYPED `lateral`, glass's route grammar for
+ * moving between siblings, with `--route-direction` on the root: the sign of
+ * the destination's dock index minus the source's (Home = 0). The scene host
+ * carries `gl-route-window` while a transition runs (App.vue), so the window
+ * slides in from the side the dock names. The look is glass's
+ * (view-transition.css); the docks keep their own groups, outside the route
+ * names. A pick of the scene already showing has direction 0.
  *
  * KFA-25 / KFA-76 / KFA-26 / KFA-201 (X.KF.W13X.scene) — the swap is ONE
  * cross-dissolve from the source scene to the destination scene, whole:
@@ -62,8 +61,10 @@ export function useSceneTransition(opts: {
     mutate: (id: string) => void;
     sceneHost: Ref<HTMLElement | null>;
     whenSceneReady: (id: string) => Promise<void>;
+    /** The scene showing now (the swap's source). */
+    currentId: () => string;
 }) {
-    const { mutate, sceneHost, whenSceneReady } = opts;
+    const { mutate, sceneHost, whenSceneReady, currentId } = opts;
 
     // KFA-12 (X.KF.W13V.k) — the backend that carried the LAST switch, read
     // off the dispatch's own handle. `useSceneSwap` stands its spring down only
@@ -96,6 +97,8 @@ export function useSceneTransition(opts: {
         await Promise.allSettled([loadScene(id), settleClosingOverlays()]);
         if (gen !== generation) return;
         performance.measure("scene-swap:prepare", { start });
+        const root = document.documentElement;
+        root.style.setProperty("--route-direction", String(routeDirection(currentId(), id)));
         const { finished, backend } = viewTransition(async () => {
             const commit = performance.now();
             const ready = whenSceneReady(id);
@@ -103,15 +106,22 @@ export function useSceneTransition(opts: {
             await ready;
             await nextTick();
             performance.measure("scene-swap:commit", { start: commit });
-        });
+        }, { types: ["lateral"] });
         lastSwapBackend.value = backend;
         finished.finally(() => {
+            if (gen === generation) root.style.removeProperty("--route-direction");
             performance.measure("scene-swap:total", { start });
             sceneHost.value?.focus();
         });
     }
 
     return { runSceneSwitch, lastSwapBackend, onSceneContent };
+}
+
+/** The sign of the move along the dock's scene order (Home first, at 0). */
+export function routeDirection(from: string, to: string): -1 | 0 | 1 {
+    const order = allScenes.map((s) => s.id);
+    return Math.sign(order.indexOf(to) - order.indexOf(from)) as -1 | 0 | 1;
 }
 
 /**
