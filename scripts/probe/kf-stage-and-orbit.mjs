@@ -38,7 +38,8 @@
  * pinch 2× / 0.5× with its Δy trace, pan ×3 against V, a timestamped CDP
  * flick at 60/120 Hz, double-tap on/off the die, touch at 390, drag and
  * scroll-port frame times (die playing vs at rest), and the embed: bare at
- * rest plus a loopback host page (vertical swipe and plain wheel scroll the
+ * rest plus a host page the context fulfils on an origin the slice frames for
+ * (`--host`, default daraksha.babb.dev) (vertical swipe and plain wheel scroll the
  * host; a horizontal drag turns the die). Extended here, not forked.
  */
 import { mkdirSync, writeFileSync } from "node:fs";
@@ -562,11 +563,12 @@ const traceFrames = (page, ms) =>
 
 async function assayCells(browser, out) {
     const isCr = ENGINE === "chromium";
-    const open = async (vp, { touch = false, prm = true, path = "cube" } = {}) => {
+    const open = async (vp, { touch = false, prm = true, path = "cube", route = null } = {}) => {
         const ctx = await browser.newContext({
             viewport: { width: vp.w, height: vp.h }, deviceScaleFactor: 1,
             isMobile: touch && isCr, hasTouch: touch, reducedMotion: prm ? "reduce" : "no-preference", colorScheme: "dark",
         });
+        if (route) await ctx.route(route.url, (r) => r.fulfill({ status: 200, contentType: "text/html", body: route.body }));
         const page = await ctx.newPage();
         await page.goto(path.startsWith("http") ? path : url(path), { timeout: 45000, waitUntil: "domcontentloaded" });
         await settle(page);
@@ -827,17 +829,19 @@ async function assayCells(browser, out) {
         const r = await read(page);
         return { numerals: r.numerals, axisLines: r.axisLines };
     });
-    const { createServer } = await import("node:http");
-    const host = createServer((_, res) => {
-        res.writeHead(200, { "content-type": "text/html" });
-        res.end(`<!doctype html><meta name=viewport content="width=device-width"><body style="margin:0"><div style="height:300px"></div><iframe id=f src="${embedUrl}" style="display:block;width:100%;aspect-ratio:1;border:0"></iframe><div style="height:3000px"></div></body>`);
-    });
-    await new Promise((r) => host.listen(0, "127.0.0.1", r));
-    const hostUrl = `http://127.0.0.1:${host.address().port}/`;
-    try {
+    // The host page is fulfilled by the context on an origin the slice's
+    // `frame-ancestors` allows (daraksha.babb.dev on prod; any origin for a
+    // local build, whose server sends no CSP). Nothing is served or fetched
+    // from that origin.
+    const hostUrl = arg("host", "https://daraksha.babb.dev/__kf-assay-host");
+    const route = {
+        url: hostUrl,
+        body: `<!doctype html><meta name=viewport content="width=device-width"><body style="margin:0"><div style="height:300px"></div><iframe id=f src="${embedUrl}" style="display:block;width:100%;aspect-ratio:1;border:0"></iframe><div style="height:3000px"></div></body>`,
+    };
+    {
         for (const [vp, touch] of [[P, true], [D, false]]) {
             if (touch && !isCr) continue;
-            await run(`embedhost-${vp.w}`, vp, { touch, path: hostUrl }, async ({ page, cdp }) => {
+            await run(`embedhost-${vp.w}`, vp, { touch, path: hostUrl, route }, async ({ page, cdp }) => {
                 const fr = await (await page.waitForSelector("#f")).contentFrame();
                 await fr.waitForSelector(".graph > div", { timeout: 20000 });
                 await page.waitForTimeout(800);
@@ -882,8 +886,6 @@ async function assayCells(browser, out) {
                 return res;
             });
         }
-    } finally {
-        await new Promise((r) => host.close(r));
     }
 }
 
