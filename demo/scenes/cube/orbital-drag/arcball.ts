@@ -132,6 +132,24 @@ export const applyScreenDelta = (
     G: Readonly<Quat>,
 ): Quat => quatCanonical(quatMultiply(conjugateByAttitude(qs, G), Q0));
 
+/**
+ * The pan's render offset, in the stage's own plane: the container-local
+ * (a, b, 0) whose image under G lands the screen pan (t.x, t.y). `.graph`
+ * carries `perspective`, which acts in ITS local frame before G, so a local
+ * depth magnifies the pan: G⁻¹·t has local z = −0.354·t.x + … and carried the
+ * die 1.15× past the clamp at a 440 px pan. On the plane there is no depth,
+ * so the die's centre lands exactly t. A z pan (the matrix slider) stays G⁻¹·z.
+ */
+export const panInPlane = (G: Readonly<Quat>, t: Readonly<Vec3>): Vec3 => {
+    const gx = rotateVec(G, [1, 0, 0]);
+    const gy = rotateVec(G, [0, 1, 0]);
+    const det = gx[0] * gy[1] - gy[0] * gx[1];
+    const a = (t[0] * gy[1] - gy[0] * t[1]) / det;
+    const b = (gx[0] * t[1] - t[0] * gx[1]) / det;
+    const z = rotateVec(quatConjugate(G), [0, 0, t[2]]);
+    return [a + z[0], b + z[1], z[2]];
+};
+
 /** log(q) for a unit q: axis · (θ/2). */
 export const quatLog = (q: Readonly<Quat>): Vec3 => {
     const c = quatCanonical(q);

@@ -39,6 +39,9 @@ interface UseDoubleTapOptions {
      * far more).
      */
     moveTolerance?: number;
+    /** Whether a tap at this pointer counts at all (a surface wider than
+     *  the thing tapped). A tap it refuses ends the chain. */
+    accept?: (e: PointerEvent) => boolean;
 }
 
 export function useDoubleTap(opts: UseDoubleTapOptions): void {
@@ -70,6 +73,10 @@ export function useDoubleTap(opts: UseDoubleTapOptions): void {
     useEventListener(el, "pointerup", (e: PointerEvent) => {
         // A drag ends the tap chain — it is a scrub, never (half of) a double-tap.
         if (moved) {
+            lastTapAt = 0;
+            return;
+        }
+        if (opts.accept && !opts.accept(e)) {
             lastTapAt = 0;
             return;
         }

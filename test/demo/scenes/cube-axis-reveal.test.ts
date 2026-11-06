@@ -25,7 +25,7 @@
  * that greps its subject proves only that the grep ran.
  */
 import { afterEach, describe, expect, it } from "vitest";
-import { createApp, effectScope, h, nextTick, reactive, shallowRef } from "vue";
+import { createApp, effectScope, h, nextTick, reactive } from "vue";
 import { vec3 } from "gl-matrix";
 import CubeAxisLines from "../../../demo/scenes/cube/CubeAxisLines.vue";
 import OrbitalDrag from "../../../demo/scenes/cube/orbital-drag/OrbitalDrag.vue";
@@ -237,7 +237,8 @@ describe("KF-AX-2 — the latch gates BOTH gesture paths (the one reader, KF-M2)
         const scope = effectScope();
         const gesture = scope.run(() =>
             useOrbitalGesture({
-                containerRef: shallowRef<HTMLElement | null>(container),
+                surfaceRef: () => container,
+                scrollOwner: () => "stage",
                 G,
                 state,
                 frame: () => ({ centre: { x: 0, y: 0 }, side: 200, fit: 1, stage: null }),
@@ -245,6 +246,7 @@ describe("KF-AX-2 — the latch gates BOTH gesture paths (the one reader, KF-M2)
                 requestCommit: () => {},
                 onGestureStart: () => {},
                 onGestureEnd: () => {},
+                onGlide: () => {},
             }),
         )!;
         return {

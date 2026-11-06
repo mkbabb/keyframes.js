@@ -1,9 +1,14 @@
 <template>
     <div
-        class="relative grid h-full w-full max-w-full items-center justify-center justify-items-center overflow-visible"
-        style="touch-action: none; overscroll-behavior: contain"
-        @wheel.prevent
+        ref="surfaceEl"
+        class="relative grid h-full w-full max-w-full place-self-stretch items-center justify-center justify-items-center overflow-visible"
+        :style="surfaceStyle"
     >
+        <!-- THE SURFACE (one root, so a leading comment never makes this a
+             fragment; place-self-stretch, so a centring parent grid cannot
+             shrink it to the die's width): the whole stage reads the orbit (a grab beside the die
+             drives it too), takes the capture, and owns the one touch-action /
+             overscroll binding, from `scrollOwner`. -->
         <div
             ref="graphEl"
             class="graph preserve-3d grid items-center justify-center justify-items-center"
@@ -13,6 +18,8 @@
                 class="preserve-3d relative flex items-center justify-center justify-items-center select-none"
                 v-model="transform"
                 apply-transform-to-container
+                :surface="surfaceEl"
+                :scroll-owner="scrollOwner"
                 :frame="orbitFrame"
                 :bounds="orbitBounds"
                 @pressed-keys="onPressedKeys"
@@ -79,6 +86,7 @@
                                             :style="{ '--face-crayon': side.color, color: side.ink }"
                                         >
                                             <span
+                                                v-if="!bare"
                                                 :class="[
                                                     'face-numeral text-display-2 h-full w-full',
                                                     'relative',
@@ -110,7 +118,7 @@
                  matching axis line lights up so the otherwise-hidden lock becomes
                  spatially legible. Fed the latch OrbitalDrag publishes (no new
                  rAF, no new gesture machinery). -->
-            <CubeAxisLines :lock="axisLock" />
+            <CubeAxisLines v-if="!bare" :lock="axisLock" />
         </div>
     </div>
 </template>
@@ -133,7 +141,7 @@ import { useDoubleTap } from "@composables/useDoubleTap";
 import { useSceneVisibilityPause } from "@composables/scene-runtime/useSceneVisibilityPause";
 import OrbitalDrag from "./orbital-drag/OrbitalDrag.vue";
 import type { TransformBounds, TransformState } from "./orbital-drag/transform";
-import type { OrbitFrame } from "./orbital-drag/composables/useOrbitalGesture";
+import type { OrbitFrame, ScrollOwner } from "./orbital-drag/composables/useOrbitalGesture";
 import type { Box } from "./orbital-drag/similarity";
 import type { PressedKeys } from "./orbital-drag/types";
 import CubeAxisLines from "./CubeAxisLines.vue";
@@ -144,10 +152,18 @@ import {
     transformList,
 } from "./matrix-editor/transformMath";
 
-const props = defineProps<{
-    isPlaying: boolean;
-    skin: CubeSkin;
-}>();
+const props = withDefaults(
+    defineProps<{
+        isPlaying: boolean;
+        skin: CubeSkin;
+        /** The demo's stage owns every scroll over it; an embed yields
+         *  vertical scroll to its host page. */
+        scrollOwner?: ScrollOwner;
+        /** The die alone: no face numerals, no axis lines (the embed slice). */
+        bare?: boolean;
+    }>(),
+    { scrollOwner: "stage", bare: false },
+);
 
 const transform = defineModel<TransformState>("transform", { required: true });
 
@@ -159,6 +175,15 @@ const poseEl = useTemplateRef<HTMLElement>("poseEl");
 // The roll's OWN element (#6/#2's arbitration half): see the Roll block below.
 const rollEl = useTemplateRef<HTMLElement>("rollEl");
 const orbitalRef = useTemplateRef<InstanceType<typeof OrbitalDrag>>("orbitalRef");
+const surfaceEl = useTemplateRef<HTMLElement>("surfaceEl");
+
+// The one touch-action / overscroll binding (the stage: none / contain; an
+// embed: pan-y / auto, so a vertical swipe scrolls its host).
+const surfaceStyle = computed(() =>
+    props.scrollOwner === "page"
+        ? { touchAction: "pan-y", overscrollBehavior: "auto" }
+        : { touchAction: "none", overscrollBehavior: "contain" },
+);
 
 defineExpose({ cubeEl, bobEl, poseEl, graphEl });
 
@@ -470,14 +495,12 @@ const onRoll = async () => {
 // `@dblclick` was mouse-only). Drag-disjoint: an orbit drag never triggers it, so
 // the die-roll egg and the orbital drag coexist on the same surface.
 //
-// #1 — the surface is OrbitalDrag's CAPTURE element, not `.cube`. See the Roll
-// block above: a descendant of the capture element is not on the dispatch path.
-const dragSurfaceEl = computed<HTMLElement | null>(
-    () => orbitalRef.value?.containerRef ?? null,
-);
-
+// #1 — the recognizer sits on the CAPTURE element (a descendant of it is not
+// on the dispatch path). That element is now the whole stage, so a tap counts
+// only on the die: |p − c| ≤ R, the arcball's own domain, never a hit-test.
 useDoubleTap({
-    el: dragSurfaceEl,
+    el: surfaceEl,
+    accept: (e) => orbitalRef.value?.onArcball({ x: e.clientX, y: e.clientY }) ?? false,
     onDoubleTap: () => {
         void onRoll();
     },

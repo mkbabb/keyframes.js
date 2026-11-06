@@ -1,12 +1,16 @@
 <template>
     <!-- The cube slice: the demo's own CubeTarget with its orbital drag, in the
          chosen skin, playing its scene's channels. The stage is square and
-         sizes the die off its own box. -->
+         sizes the die off its own box. The host page owns vertical scroll
+         (a swipe scrolls it; a horizontal drag or a pinch is the die's), and
+         the die stands alone: no numerals, no axis lines. -->
     <div class="embed-cube-stage">
         <CubeTarget
             ref="cubeTargetRef"
             :is-playing="playing"
             :skin="skin"
+            scroll-owner="page"
+            bare
             v-model:transform="transformSliderValues"
         />
     </div>
@@ -57,7 +61,6 @@ onBeforeUnmount(() => animationGroup.value.stop());
     inline-size: 100%;
     aspect-ratio: 1;
     container-type: size;
-    touch-action: none;
 }
 /* The die's side is the stage's, over φ²: its corner-on projection (the √3
    diagonal under the stage perspective) and the garland's sway stay inside

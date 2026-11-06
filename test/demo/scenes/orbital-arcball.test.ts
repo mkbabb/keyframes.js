@@ -21,6 +21,7 @@ import {
     quatFromAxisAngle,
     quatMultiply,
     quatToAxisAngle,
+    panInPlane,
     rotateVec,
     shoemakeArc,
     sphereMap,
@@ -204,13 +205,15 @@ describe("G2.7 SCREEN-FRAME AXES AND PAN", () => {
         expect(Math.abs(a[2])).toBeLessThan(1e-9);
     });
 
-    it("translate3d(G⁻¹·t) displaces the subject by exactly t on screen (Δz < 1e-9)", () => {
+    it("the pan rides the stage plane: local z = 0 (`.graph`'s perspective acts there) and lands t on screen", () => {
+        // kf-cube U5 — translate3d(G⁻¹·t) had local z = −35 at t = (100, 0):
+        // under perspective 1200px the die moved 103 px for a 100 px pan.
         const t: Vec3 = [100, -42, 0];
-        const local = rotateVec(quatConjugate(G), t);
+        const local = panInPlane(G, t);
+        expect(Math.abs(local[2])).toBeLessThan(1e-9);
         const screen = rotateVec(G, local);
         expect(screen[0]).toBeCloseTo(100, 9);
         expect(screen[1]).toBeCloseTo(-42, 9);
-        expect(Math.abs(screen[2])).toBeLessThan(1e-9);
     });
 
     it("conj(q) keeps the angle and turns the axis by G⁻¹", () => {

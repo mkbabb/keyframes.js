@@ -420,20 +420,20 @@ describe("the Roll stack — #1 trigger · #2 paint · #5 continuity · #6 arbit
     };
 
     /** Two genuine down/up pairs on the surface the capture delivers to. */
-    const doubleTap = async (el: Element) => {
+    const doubleTap = async (el: Element, at = 10) => {
         for (let i = 0; i < 2; i++) {
             el.dispatchEvent(
                 new MouseEvent("pointerdown", {
                     bubbles: true,
-                    clientX: 10,
-                    clientY: 10,
+                    clientX: at,
+                    clientY: at,
                 }),
             );
             el.dispatchEvent(
                 new MouseEvent("pointerup", {
                     bubbles: true,
-                    clientX: 10,
-                    clientY: 10,
+                    clientX: at,
+                    clientY: at,
                 }),
             );
         }
@@ -452,6 +452,24 @@ describe("the Roll stack — #1 trigger · #2 paint · #5 continuity · #6 arbit
             // `onRoll` ran: the gesture lock is up. Before the cure the
             // recognizer sat on `.cube`, a DESCENDANT of this element, and no
             // pointerup ever reached it.
+            expect(w.find(".idle-hover--rolling").exists()).toBe(true);
+        } finally {
+            w.unmount();
+        }
+    });
+
+    it("kf-cube U3 — the stage is the surface, but only a double-tap ON the die rolls it", async () => {
+        const w = await mountTarget();
+        try {
+            // The whole stage (CubeTarget's root) takes the capture now.
+            const stage = w.element as HTMLElement;
+            // jsdom lays out nothing: the die sits at (0, 0) with the arcball's
+            // floor radius (96 px), so (200, 200) is beside it.
+            await doubleTap(stage, 200);
+            await nextTick();
+            expect(w.find(".idle-hover--rolling").exists()).toBe(false);
+            await doubleTap(stage, 10);
+            await nextTick();
             expect(w.find(".idle-hover--rolling").exists()).toBe(true);
         } finally {
             w.unmount();

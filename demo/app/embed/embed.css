@@ -1,10 +1,14 @@
 /* The embed ground: transparent, so the slice sits on the host's own ground.
- * Unlayered, so it outranks the demo's `@layer base` html/body ground. */
+ * Unlayered, so it outranks the demo's `@layer base` html/body ground. The
+ * slice's own document never scrolls, so its scroll CHAINS to the host page:
+ * the demo's `overscroll-behavior: none` here stopped every swipe and wheel
+ * dead at the frame's edge. */
 html,
 body {
     background: transparent;
     min-height: 0;
     height: auto;
+    overscroll-behavior: auto;
 }
 
 /* The die's numerals: the demo's display voice, self-hosted here so the slice

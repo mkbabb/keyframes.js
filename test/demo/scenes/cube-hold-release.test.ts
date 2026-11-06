@@ -1,6 +1,6 @@
 // SERVED MODEL: claude-opus-5-5
 import { describe, expect, it } from "vitest";
-import { effectScope, shallowRef } from "vue";
+import { effectScope } from "vue";
 
 import { useOrbitalGesture } from "../../../demo/scenes/cube/orbital-drag/composables/useOrbitalGesture";
 import type { OrbitState } from "../../../demo/scenes/cube/orbital-drag/composables/useOrbitalGesture";
@@ -30,7 +30,8 @@ describe("KFA-82 — a held pointer releases with no fling", () => {
         const scope = effectScope();
         const gesture = scope.run(() =>
             useOrbitalGesture({
-                containerRef: shallowRef<HTMLElement | null>(container),
+                surfaceRef: () => container,
+                scrollOwner: () => "stage",
                 G: attitudeQuat(),
                 state,
                 frame: () => ({ centre: { x: 0, y: 0 }, side: 200, fit: 1, stage: null }),
@@ -38,6 +39,7 @@ describe("KFA-82 — a held pointer releases with no fling", () => {
                 requestCommit: () => {},
                 onGestureStart: () => {},
                 onGestureEnd: (omega) => void released.push(omega),
+                onGlide: () => {},
             }),
         )!;
         return {
