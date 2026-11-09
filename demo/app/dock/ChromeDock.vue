@@ -3,11 +3,8 @@ import { computed, inject, nextTick, ref, watch, useTemplateRef, type Component 
 import { CONTROLS_PANE_HOVER_KEY } from "@components/instrument/transport/injectionKeys";
 import { useMediaQuery } from "@vueuse/core";
 import { Activity, Atom, SlidersHorizontal, Braces, Clock, Grid3X3 } from "@lucide/vue";
-import {
-    GlassDock,
-    DockTrigger,
-    DockSeparator,
-} from "@mkbabb/glass-ui/dock";
+import { GlassDock, DockSeparator } from "@mkbabb/glass-ui/dock";
+import { DockTrigger } from "@mkbabb/glass-ui/dock-trigger";
 import { Button } from "@mkbabb/glass-ui/button";
 import {
     DropdownMenu,

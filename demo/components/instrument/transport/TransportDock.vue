@@ -207,11 +207,8 @@ import {
     Play,
 } from "@lucide/vue";
 
-import {
-    DockControl,
-    DockTrigger,
-    DockSeparator,
-} from "@mkbabb/glass-ui/dock";
+import { DockControl, DockSeparator } from "@mkbabb/glass-ui/dock";
+import { DockTrigger } from "@mkbabb/glass-ui/dock-trigger";
 // T.C1 — the channel-elision RENDER consumes the cardinality model. The
 // authoritative model is T.B5's DFA projection (lane 1); until it lands in-tree
 // this consumes T.B5's DFA projection (dockCardinality — ONE count authority).
