@@ -56,6 +56,9 @@ const SHOTS = arg("shots", null);
 const SCHEMES = (arg("schemes", "dark")).split(",");
 const ENGINE = arg("engine", "chromium");
 const INPUT = arg("input", ENGINE === "chromium" ? "cdp" : "synthetic");
+// The instrument's own falsifier: hold the main thread this many ms in the
+// notch trace's third frame, so one frame runs long (0 = off).
+const PLANT_MS = +arg("plant-long-frame", 0);
 const PW = process.env.PLAYWRIGHT_MODULE ?? "/Users/mkbabb/Programming/value.js/node_modules/playwright/index.mjs";
 const engines = await import(PW);
 const chromium = engines[ENGINE];
@@ -651,22 +654,48 @@ async function assayCells(browser, out) {
         return { centreDeg: turn(a, b).deg, offDieDeg: turn(b, c).deg, offDieGain: turn(b, c).deg / turn(a, b).deg, offDieWheelDeg: turn(c, d).deg };
     });
 
-    // U4 — notch span (motion on): one 100 px notch, then two stacked.
+    // U4 — notch span (motion on): one 100 px notch, then two stacked. The
+    // glide is sampled at elapsed time, so a frame's step is bounded by its own
+    // frame time: ≤ NOTCH·(1 − e^(−k·dt)), 5.6° at 60 Hz. Each step is read
+    // against that bound with the 6/5.6 margin, never a fixed per-frame degree
+    // (a late frame under host load correctly takes a larger step). The wheel is
+    // dispatched inside the trace, before its frame loop is registered, so the
+    // die's frame callback runs first in every frame and each step pairs with
+    // the dt it was taken over.
     await run("notch-1440", D, { prm: false }, async ({ page }) => {
         const r = await read(page);
-        // The idle bob moves the container too: pause the die's own play first.
         const notch = async (n) => {
-            await page.evaluate(({ x, y, n }) => {
+            const tr = await page.evaluate(({ x, y, n, plant }) => new Promise((done) => {
+                const c = document.querySelector(".graph > div");
                 const el = document.elementFromPoint(x, y);
-                for (let i = 0; i < n; i++) setTimeout(() => el.dispatchEvent(new WheelEvent("wheel", { deltaY: 100, bubbles: true, cancelable: true, clientX: x, clientY: y })), i * 60);
-            }, { x: r.die.x, y: r.die.y, n });
-            const tr = await traceFrames(page, 1500);
-            const steps = [];
-            let prev = tr.start;
-            for (const f of tr.out) { steps.push(turn(prev, f.tf).deg); prev = f.tf; }
-            return { framesSpanned: steps.filter((s) => s > 1e-6).length, maxStepDeg: Math.max(...steps), totalDeg: turn(tr.start, tr.out.at(-1).tf).deg };
+                const wheel = () => el.dispatchEvent(new WheelEvent("wheel", { deltaY: 100, bubbles: true, cancelable: true, clientX: x, clientY: y }));
+                requestAnimationFrame((t0) => {
+                    const start = c.style.transform;
+                    const out = [];
+                    wheel();
+                    for (let i = 1; i < n; i++) setTimeout(wheel, i * 60);
+                    const f = (t) => {
+                        out.push({ t, tf: c.style.transform });
+                        if (plant && out.length === 3) { const b = performance.now(); while (performance.now() - b < plant); }
+                        if (t - t0 < 1500) requestAnimationFrame(f); else done({ t0, start, out });
+                    };
+                    requestAnimationFrame(f);
+                });
+            }), { x: r.die.x, y: r.die.y, n, plant: PLANT_MS });
+            const NOTCH = 40, K = 9, MARGIN = 6 / 5.6;
+            let prev = tr.start, tPrev = tr.t0, framesSpanned = 0, maxStepDeg = 0, worst = { ratio: 0 };
+            for (const f of tr.out) {
+                const step = turn(prev, f.tf).deg, dt = f.t - tPrev;
+                const bar = NOTCH * (1 - Math.exp((-K * dt) / 1000)) * MARGIN;
+                if (step > 1e-6) framesSpanned++;
+                maxStepDeg = Math.max(maxStepDeg, step);
+                if (step / bar > worst.ratio) worst = { ratio: step / bar, stepDeg: step, dtMs: dt, barDeg: bar };
+                prev = f.tf;
+                tPrev = f.t;
+            }
+            return { framesSpanned, maxStepDeg, maxDtMs: Math.max(...tr.out.map((f, i) => f.t - (i ? tr.out[i - 1].t : tr.t0))), worst, totalDeg: turn(tr.start, tr.out.at(-1).tf).deg };
         };
-        return { one: await notch(1), two: await notch(2) };
+        return { one: await notch(1), two: await notch(2), plantMs: PLANT_MS };
     });
 
     // U1 — coalesce: k ctrl-wheel events in one task (under the frame cap).
@@ -852,10 +881,18 @@ async function assayCells(browser, out) {
                 const tf = async () => (await fr.evaluate(readAssay)).tf;
                 const res = {};
                 if (touch) {
+                    // A finger's pace on the real clock: a move every 16 ms with
+                    // its true time, then a 300 ms hold so the lift carries no
+                    // velocity (a 30 ms hold flings 166–177 px; labelled times
+                    // ahead of the real clock leave the last move unconsumed).
                     const swipe = async (dx, dy) => {
+                        const t0 = Date.now();
                         await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x: box.x, y: box.y }] });
-                        for (let i = 1; i <= 10; i++) await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: box.x + (dx * i) / 10, y: box.y + (dy * i) / 10 }] });
-                        await page.waitForTimeout(100);
+                        for (let i = 1; i <= 10; i++) {
+                            await page.waitForTimeout(Math.max(0, t0 + 16 * i - Date.now()));
+                            await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: box.x + (dx * i) / 10, y: box.y + (dy * i) / 10 }] });
+                        }
+                        await page.waitForTimeout(300);
                         await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
                         await page.waitForTimeout(400);
                     };
@@ -890,7 +927,11 @@ async function assayCells(browser, out) {
 }
 
 const out = [];
-const browser = await chromium.launch();
+// The assay reads touch scroll in px against a control. Chromium resamples
+// scroll deltas to the vsync, so under host load a missed frame drops travel
+// (a plain host page read 98–117 for one 120 px swipe); without resampling
+// every delta lands (105 in 32/32). The gate reads the page, not the frame clock.
+const browser = await chromium.launch(MODE === "assay" && ENGINE === "chromium" ? { args: ["--disable-features=ResamplingScrollEvents"] } : {});
 try {
     if (MODE === "layout" || MODE === "all") await layoutCells(browser, out);
     if (MODE === "orbit" || MODE === "all") await orbitCells(browser, out);
@@ -934,7 +975,7 @@ for (const c of out) {
     if (c.seamTangential !== undefined && !(Math.abs(c.seamTangential - 1) <= 0.05)) fails.push(`U3 ${c.cell} seam tangential ${c.seamTangential}`);
     if (c.offDieGain !== undefined && !(Math.abs(c.offDieGain - 1) <= 0.05)) fails.push(`U3 ${c.cell} off-die gain ${c.offDieGain}`);
     if (c.offDieRolls !== undefined && (c.offDieRolls !== 0 || c.onDieRolls !== 1)) fails.push(`U3 ${c.cell} double-tap off ${c.offDieRolls} on ${c.onDieRolls}`);
-    if (c.one && !(c.one.framesSpanned >= 12 && c.one.maxStepDeg <= 6)) fails.push(`U4 ${c.cell} notch ${c.one.framesSpanned} frames, max ${c.one.maxStepDeg}°`);
+    if (c.one && !(c.one.framesSpanned >= 12 && c.one.worst.ratio <= 1)) fails.push(`U4 ${c.cell} notch ${c.one.framesSpanned} frames, step ${c.one.worst.stepDeg}° over ${c.one.worst.dtMs} ms (bar ${c.one.worst.barDeg}°)`);
     if (c.coalesceSpread !== undefined && !(c.coalesceSpread <= 0.005)) fails.push(`U1 ${c.cell} coalesce spread ${c.coalesceSpread}`);
     if (c.pinch2 !== undefined && !(Math.abs(c.pinch2 - 2) <= 0.03 && Math.abs(c.pinchHalf - 0.5) <= 0.01)) fails.push(`U2 ${c.cell} pinch ${c.pinch2} / ${c.pinchHalf}`);
     if (c.maxPast !== undefined && !(c.maxPast <= 1 && c.rollDeg < 0.5)) fails.push(`U5 ${c.cell} past V ${c.maxPast}, roll ${c.rollDeg}°`);
