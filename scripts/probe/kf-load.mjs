@@ -613,8 +613,9 @@ try {
     }
     if (CELLS.has("assay")) {
         result.cells.assay = [];
-        for (const from of ["square", "spring", "easing"]) {
-            const r = await assayCell(browser, base, from);
+        // --assay-from square,spring,easing (default); "home" boots #/ (the hero).
+        for (const from of arg("assay-from", "square,spring,easing").split(",")) {
+            const r = await assayCell(browser, base, from === "home" ? "" : from);
             result.cells.assay.push(r);
             console.log(`assay ${from}->cube hot:\n    ${r.hot.slice(0, 12).join("\n    ")}\n  callers:\n    ${r.callers.join("\n    ")}`);
             console.log(`assay ${from}->cube ${JSON.stringify(r.swap)} loaf=${r.loaf.map((f) => `${f.duration}ms[${f.scripts.slice(0, 3).map((x) => `${x.fn || x.invoker}:${x.d}${x.forced ? `/f${x.forced}` : ""}`).join(",")}]`).join(" ")}`);
