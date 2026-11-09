@@ -3,6 +3,13 @@
 <!-- CONVENTION: entries follow the 5.0.0 format — consumer-facing Breaking/Minor/Patch sections,
      no internal wave codes (Wn, Band X, Tranche Y). Keep planning language in docs/tranches/. -->
 
+## 6.4.0
+
+### Minor Changes (additive)
+
+- **Two more colour spaces to animate through.** keyframes.js now runs on `@mkbabb/value.js` 4.3.0, which treats `xyz-d50` and `display-p3-linear` as colour spaces of their own, so `colorSpace` (and `setColorSpace`) accepts both. Both are linear spaces, so a mix in `xyz-d50` lands on the same colour as one in `xyz`, and a mix in `display-p3-linear` on the same colour as one in `srgb-linear`; each is written back in the space you chose. A space value.js doesn't name is still refused with an `AnimationOptionError`.
+- Consumers: `@mkbabb/value.js` moves from 4.2.0 to 4.3.0 (exact). Its parser now reads much more of the newer CSS drafts; its changelog lists the few results that change.
+
 ## 6.3.0
 
 ### Minor Changes (additive)
