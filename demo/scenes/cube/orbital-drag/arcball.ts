@@ -167,10 +167,13 @@ export const quatExp = (v: Readonly<Vec3>): Quat => {
     return [v[0] * s, v[1] * s, v[2] * s, Math.cos(half)];
 };
 
-/** A timestamped attitude, for the release's angular-velocity estimate. */
+/** A timestamped pose, for the release's velocity estimate: the attitude,
+ *  and (OA-17) the pan `p` in screen px and the zoom as ln s. */
 export interface AttitudeSample {
     t: number;
     q: Quat;
+    p?: { x: number; y: number };
+    ls?: number;
 }
 
 /** The estimator's window and its hold rule (KFA-82). */
@@ -179,20 +182,15 @@ export const MIN_VELOCITY_SPAN_MS = 16;
 export const HOLD_RELEASE_MS = 64;
 
 /**
- * The release's angular velocity, per unit TIME (rad/s), as an axis·rate vector
- * in the frame Q is stored in: ω = 2·log(Qₙ·Q_then⁻¹)/Δt over the last 80 ms.
- * Zero when the hand rested more than 64 ms before release (KFA-82), or when the
- * window is too short to read a speed from (fewer than two samples, Δt < 16 ms).
- * The rate is the hand's, whatever the event rate: the same angle delivered in
- * two events or in eight reads the same ω (D-15, KFA-83).
+ * The release window every rate is read over: the first and last samples of
+ * the last 80 ms and the span between them (s), or null when the hand rested
+ * more than 64 ms before release (KFA-82) or the window is too short to read a
+ * speed from (fewer than two samples, Δt < 16 ms).
  */
-export const angularVelocityFromSamples = (
-    samples: readonly AttitudeSample[],
-    releaseAt: number,
-): Vec3 => {
+const releaseWindow = <S extends AttitudeSample>(samples: readonly S[], releaseAt: number) => {
     const last = samples[samples.length - 1];
-    if (!last || samples.length < 2) return [0, 0, 0];
-    if (releaseAt - last.t > HOLD_RELEASE_MS) return [0, 0, 0];
+    if (!last || samples.length < 2) return null;
+    if (releaseAt - last.t > HOLD_RELEASE_MS) return null;
     let first = last;
     for (let i = samples.length - 1; i >= 0; i--) {
         const s = samples[i]!;
@@ -200,10 +198,39 @@ export const angularVelocityFromSamples = (
         first = s;
     }
     const dt = (last.t - first.t) / 1000;
-    if (dt * 1000 < MIN_VELOCITY_SPAN_MS) return [0, 0, 0];
-    const d = quatMultiply(last.q, quatConjugate(first.q));
-    const l = quatLog(d);
-    return [(2 * l[0]) / dt, (2 * l[1]) / dt, (2 * l[2]) / dt];
+    return dt * 1000 < MIN_VELOCITY_SPAN_MS ? null : { first, last, dt };
+};
+
+/**
+ * The release's angular velocity, per unit TIME (rad/s), as an axis·rate vector
+ * in the frame Q is stored in: ω = 2·log(Qₙ·Q_then⁻¹)/Δt over the release
+ * window. The rate is the hand's, whatever the event rate: the same angle
+ * delivered in two events or in eight reads the same ω (D-15, KFA-83).
+ */
+export const angularVelocityFromSamples = (
+    samples: readonly AttitudeSample[],
+    releaseAt: number,
+): Vec3 => {
+    const w = releaseWindow(samples, releaseAt);
+    if (!w) return [0, 0, 0];
+    const l = quatLog(quatMultiply(w.last.q, quatConjugate(w.first.q)));
+    return [(2 * l[0]) / w.dt, (2 * l[1]) / w.dt, (2 * l[2]) / w.dt];
+};
+
+/**
+ * OA-17 — the release's pan velocity (screen px/s) and zoom rate (ln s per
+ * second), over the SAME window and hold rule as ω, so the three channels of
+ * one release are read from one moment of the hand.
+ */
+export const poseRatesFromSamples = (
+    samples: readonly AttitudeSample[],
+    releaseAt: number,
+): { pan: { x: number; y: number }; zoom: number } => {
+    const w = releaseWindow(samples, releaseAt);
+    const a = w?.first;
+    const b = w?.last;
+    if (!w || !a?.p || !b?.p || a.ls === undefined || b.ls === undefined) return { pan: { x: 0, y: 0 }, zoom: 0 };
+    return { pan: { x: (b.p.x - a.p.x) / w.dt, y: (b.p.y - a.p.y) / w.dt }, zoom: (b.ls - a.ls) / w.dt };
 };
 
 /** Unwrap `a` (degrees) onto the turn nearest `prev`. */
