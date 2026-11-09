@@ -19,7 +19,7 @@
                 v-model="transform"
                 apply-transform-to-container
                 :surface="surfaceEl"
-                :scroll-owner="scrollOwner"
+                :scroll-owner="owner"
                 :frame="orbitFrame"
                 :bounds="orbitBounds"
                 @pressed-keys="onPressedKeys"
@@ -134,6 +134,7 @@ import {
     useTemplateRef,
     watch,
 } from "vue";
+import { useEventListener, useResizeObserver } from "@vueuse/core";
 import type { AnimationGroup, CSSKeyframesAnimation, Vars } from "@mkbabb/keyframes.js";
 import { loadAnimationEngine, stagger } from "@mkbabb/keyframes.js";
 import type { CubeSkin } from "@state";
@@ -177,12 +178,38 @@ const rollEl = useTemplateRef<HTMLElement>("rollEl");
 const orbitalRef = useTemplateRef<InstanceType<typeof OrbitalDrag>>("orbitalRef");
 const surfaceEl = useTemplateRef<HTMLElement>("surfaceEl");
 
+// o1105 r2 kf (the 390 off-die swipe ruling) — the demo's stage owns every
+// swipe only while its page has nothing to scroll (scrollHeight == innerHeight).
+// Once the page can scroll, a mostly-vertical swipe beside the die scrolls it
+// ("beside", the embed's scrollOwner law off the die); a touch on the die stays
+// the die's either way.
+const pageScrolls = ref(false);
+// The viewport scrolls by the root's overflow, or the body's when the root's
+// is visible; hidden or clip there (the app shell's own) means no user scroll.
+const readPageScrolls = () => {
+    const root = document.documentElement;
+    const rootY = getComputedStyle(root).overflowY;
+    const y = rootY === "visible" ? getComputedStyle(document.body).overflowY : rootY;
+    const doc = document.scrollingElement ?? root;
+    pageScrolls.value = y !== "hidden" && y !== "clip" && doc.scrollHeight > window.innerHeight + 1;
+};
+const owner = computed<ScrollOwner>(() =>
+    props.scrollOwner === "page" ? "page" : pageScrolls.value ? "beside" : "stage",
+);
+// Read by the observer only (its first delivery is the mount's), never in the
+// mount itself: a forced style read inside a scene swap's commit is the hitch
+// this lane cures.
+if (props.scrollOwner !== "page") {
+    useResizeObserver(() => [document.documentElement, document.body], readPageScrolls);
+    useEventListener(window, "resize", readPageScrolls, { passive: true });
+}
+
 // The one touch-action / overscroll binding (the stage: none / contain; an
-// embed: pan-y / auto, so a vertical swipe scrolls its host).
+// embed, or a page that scrolls: pan-y / auto, so a vertical swipe scrolls it).
 const surfaceStyle = computed(() =>
-    props.scrollOwner === "page"
-        ? { touchAction: "pan-y", overscrollBehavior: "auto" }
-        : { touchAction: "none", overscrollBehavior: "contain" },
+    owner.value === "stage"
+        ? { touchAction: "none", overscrollBehavior: "contain" }
+        : { touchAction: "pan-y", overscrollBehavior: "auto" },
 );
 
 defineExpose({ cubeEl, bobEl, poseEl, graphEl });

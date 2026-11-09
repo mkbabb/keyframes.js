@@ -125,7 +125,7 @@ describe("KFA-25 / KFA-26 / KFA-201 — the switch prepares, then captures the r
     it("finishes the closing overlay's exit before the capture, without awaiting it, then holds the update callback until the scene is ready", async () => {
         const mutate = vi.fn();
         let resolveReady!: () => void;
-        const whenSceneReady = vi.fn(() => new Promise<void>((r) => (resolveReady = r)));
+        const whenSceneReady = vi.fn(() => new Promise<() => void>((r) => (resolveReady = () => r(() => {}))));
         let run!: (id: string) => void;
         const Host = defineComponent({
             setup() {

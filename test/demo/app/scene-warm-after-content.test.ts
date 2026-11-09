@@ -50,7 +50,7 @@ describe("KF-RES-1 — the idle scene warm waits for the first scene's content",
                     ({ onSceneContent } = useSceneTransition({
                         mutate: () => {},
                         sceneHost: ref<HTMLElement | null>(null),
-                        whenSceneReady: () => Promise.resolve(),
+                        whenSceneReady: () => Promise.resolve(() => {}),
                         currentId: () => "cube",
                     }));
                     return () => h("div");

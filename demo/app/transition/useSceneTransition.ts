@@ -60,7 +60,9 @@ import { allScenes, loadScene, warmScenesAtIdle } from "../scene/scenes";
 export function useSceneTransition(opts: {
     mutate: (id: string) => void;
     sceneHost: Ref<HTMLElement | null>;
-    whenSceneReady: (id: string) => Promise<void>;
+    /** Resolves at the scene's commit point with `land`, which starts the
+     *  auto-play the entry owes; it is called once the swap has landed. */
+    whenSceneReady: (id: string) => Promise<() => void>;
     /** The scene showing now (the swap's source). */
     currentId: () => string;
 }) {
@@ -99,11 +101,12 @@ export function useSceneTransition(opts: {
         performance.measure("scene-swap:prepare", { start });
         const root = document.documentElement;
         root.style.setProperty("--route-direction", String(routeDirection(currentId(), id)));
+        let land: (() => void) | null = null;
         const { finished, backend } = viewTransition(async () => {
             const commit = performance.now();
             const ready = whenSceneReady(id);
             mutate(id);
-            await ready;
+            land = await ready;
             await nextTick();
             performance.measure("scene-swap:commit", { start: commit });
         }, { types: ["lateral"] });
@@ -112,6 +115,7 @@ export function useSceneTransition(opts: {
             if (gen === generation) root.style.removeProperty("--route-direction");
             performance.measure("scene-swap:total", { start });
             sceneHost.value?.focus();
+            if (gen === generation) land?.();
         });
     }
 
