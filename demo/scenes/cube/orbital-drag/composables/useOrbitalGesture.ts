@@ -4,6 +4,7 @@ import { ref } from "vue";
 import {
     angularVelocityFromSamples,
     applyScreenDelta,
+    poseRatesFromSamples,
     constrainToAxis,
     quatExp,
     quatFromAxisAngle,
@@ -15,6 +16,7 @@ import type { AttitudeSample, Quat, Vec3 } from "../arcball";
 import { anchoredTranslate, clampToBox, engagePair, readPair, unwrapRadians } from "../similarity";
 import type { Box, Vec2 } from "../similarity";
 import type { GestureEvent, PressedKeys } from "../types";
+import type { OrbitRelease } from "./useOrbitalInertia";
 
 /** What the reader needs from its host, read once per gesture anchor. */
 export interface OrbitFrame {
@@ -59,14 +61,27 @@ export interface OrbitalGestureParams {
     requestCommit: () => void;
     /** A gesture took the subject (the coast stops). */
     onGestureStart: () => void;
-    /** The last pointer left: ω (rad/s, in Q's frame) is the release rate. */
-    onGestureEnd: (omega: Vec3) => void;
+    /** The last pointer left: the release's rates (ω in rad/s in Q's frame,
+     *  the pan in screen px/s, the zoom in ln s/s). */
+    onGestureEnd: (release: OrbitRelease) => void;
     /** A wheel notch's rotation (axis·angle, SCREEN frame), to glide out. */
     onGlide: (rotation: Vec3) => void;
 }
 
 /** The arcball radius' floor (px). */
 export const MIN_ARCBALL_RADIUS = 96;
+/**
+ * OA-17 (owner 2026-11-09) — natural scrolling: a plain wheel (a two-finger
+ * trackpad scroll) PANS, and the content follows the fingers. The wheel's Δ is
+ * the distance the page's content would scroll, already in the user's own
+ * direction (the OS applies its natural-scrolling setting to Δ before the page
+ * sees it), so content that follows moves by −Δ, exactly as a scrolled page's
+ * content does. No platform sniffing. `NATURAL = false` would move the
+ * subject WITH Δ (a camera pan) instead.
+ */
+export const NATURAL = true;
+/** The wheel pan's sign: −1 under NATURAL (the subject moves by −Δ). */
+export const WHEEL_PAN_SIGN = NATURAL ? -1 : 1;
 /** Ctrl/⌘-wheel zoom: s ← s·exp(−ΣΔy/WHEEL_ZOOM_PX) per frame. Chromium
  *  writes a trackpad pinch as ctrl-wheel Δy = −100·ln(scale), so this gear
  *  is the pinch itself. */
@@ -114,6 +129,16 @@ const LATCH_AXES: Record<"x" | "y" | "z", Vec3> = {
 };
 
 /**
+ * OA-17 (owner 2026-11-09) — natural scrolling for all pan and zoom:
+ *   mouse     drag orbits · Shift-drag pans · wheel pans · Ctrl/⌘-wheel zooms
+ *             at the cursor · Alt/Option-wheel orbits (a notch glides);
+ *   trackpad  two-finger scroll pans (content follows the fingers; the OS
+ *             carries its momentum) · pinch zooms · Safari's gesture* pinch
+ *             and twist as before;
+ *   touch     one finger orbits · two fingers pan, pinch and twist together.
+ * A released pointer pan or pinch coasts on the rotation's own decay (one
+ * coast, three channels — useOrbitalInertia).
+ *
  * THE ONE MULTITOUCH SOURCE (KF-M2, D-14): Pointer Events. One finger (or the
  * mouse) orbits on Shoemake's anchored arcball, Shift-drag pans 1:1, two
  * fingers are one similarity — pinch zooms, twist rolls about the view axis,
@@ -198,10 +223,18 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
     let pairA0: Vec2 = { x: 0, y: 0 };
     let pairB0: Vec2 = { x: 0, y: 0 };
     let thetaPrev = 0;
+    /** The pair's last centroid (client px), the zoom coast's anchor. */
+    let releaseCentroid: Vec2 = { x: 0, y: 0 };
 
     const samples: AttitudeSample[] = [];
     const pushSample = (t: number) => {
-        samples.push({ t, q: [state.q[0], state.q[1], state.q[2], state.q[3]] });
+        samples.push({
+            t,
+            q: [state.q[0], state.q[1], state.q[2], state.q[3]],
+            // The pan in screen px (t·fit) and the zoom as ln s (OA-17).
+            p: { x: state.t.x * f.fit, y: state.t.y * f.fit },
+            ls: Math.log(state.s),
+        });
         while (samples.length > 2 && t - samples[0]!.t > 120) samples.shift();
     };
 
@@ -321,6 +354,7 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
         const a = pointers.get(pairIds[0]);
         const b = pointers.get(pairIds[1]);
         if (!a || !b) return;
+        releaseCentroid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
         const raw = readPair(pairA0, pairB0, a, b);
         raw.dTheta = unwrapRadians(raw.dTheta, thetaPrev);
         thetaPrev = raw.dTheta;
@@ -344,8 +378,6 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
             touch: event.pointerType === "touch",
         });
         isActive.value = true;
-        samples.length = 0;
-        pushSample(event.timeStamp);
         // kf-CubeTarget #55 — the acquire is guarded: an inactive pointerId or a
         // disconnected element throws, and the gesture does not depend on
         // capture (the document listeners drive it).
@@ -355,6 +387,9 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
             /* KEEP: capture unavailable — the document listeners still drive it */
         }
         anchor();
+        // After the anchor, so the first sample's pan reads this gesture's fit.
+        samples.length = 0;
+        pushSample(event.timeStamp);
     };
 
     /** "beside": the surface is pan-y, so the browser may take any vertical
@@ -410,11 +445,16 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
             anchor();
             return;
         }
+        // One moment of the hand, three channels (OA-17): ω, the pan and the
+        // zoom. A Shift-pan authors no rotation; a pinch's zoom is anchored
+        // at its last centroid.
         const omega = mode === "pan" ? ([0, 0, 0] as Vec3) : angularVelocityFromSamples(samples, event.timeStamp);
+        const { pan, zoom } = poseRatesFromSamples(samples, event.timeStamp);
+        const at = releaseCentroid;
         mode = "idle";
         isActive.value = false;
         samples.length = 0;
-        onGestureEnd(omega);
+        onGestureEnd({ omega, pan, zoom, at });
     };
 
     const onPointerCancel = (event: PointerEvent) => {
@@ -425,42 +465,64 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
         mode = "idle";
         isActive.value = false;
         samples.length = 0;
-        onGestureEnd([0, 0, 0]);
+        onGestureEnd({ omega: [0, 0, 0] });
     };
 
     // ── Wheel ──────────────────────────────────────────────────────────
     const wheelPx = (event: WheelEvent, d: number) =>
         event.deltaMode === 1 ? d * 16 : event.deltaMode === 2 ? d * 400 : d;
 
-    // The zoom is summed per FRAME and applied once (flushWheel, from the
-    // commit): coalesced or split events land the same scale.
+    /**
+     * Pan by `d` screen px, held inside V. Returns false when the bound held
+     * any of it (the pan coast rests there). Shared by the wheel and the coast.
+     */
+    const panBy = (d: Vec2): boolean => {
+        readFrame();
+        const want = { x: t0.x + d.x / f.fit, y: t0.y + d.y / f.fit };
+        setTranslate(want);
+        return Math.abs(state.t.x - want.x) < 1e-9 && Math.abs(state.t.y - want.y) < 1e-9;
+    };
+
+    /**
+     * Zoom by `ln` (ln s), anchored at `at` (client px): the content under it
+     * stays under it. Returns false when the scale range or the bound held it
+     * (the zoom coast rests there). Shared by the ctrl-wheel and the coast.
+     */
+    const zoomBy = (ln: number, at: Vec2): boolean => {
+        readFrame();
+        const want = s0 * Math.exp(ln);
+        state.s = clampScale(want);
+        const k = state.s / s0;
+        return (
+            panBy({ x: (k - 1) * (c0.x - at.x), y: (k - 1) * (c0.y - at.y) }) &&
+            Math.abs(state.s - want) <= 1e-12 * want
+        );
+    };
+
+    // The zoom and the pan are summed per FRAME and applied once (flushWheel,
+    // from the commit): coalesced or split events land the same pose.
     let zoomLn = 0;
     let zoomAt: Vec2 = { x: 0, y: 0 };
+    let panPx: Vec2 = { x: 0, y: 0 };
     let streamAt = -Infinity;
     let streamFirst = 0;
 
-    /** Apply the frame's summed ctrl-wheel step (the commit calls it). */
+    /** Apply the frame's summed wheel zoom and pan (the commit calls it). */
     const flushWheel = () => {
-        if (zoomLn === 0 || pointers.size > 0) {
-            zoomLn = 0;
-            return;
-        }
-        const step = Math.max(-WHEEL_ZOOM_STEP_CAP, Math.min(WHEEL_ZOOM_STEP_CAP, zoomLn));
+        const ln = zoomLn;
+        const d = panPx;
         zoomLn = 0;
-        readFrame();
-        state.s = clampScale(s0 * Math.exp(step));
-        const k = state.s / s0;
-        // Anchored at the cursor: the content under it stays under it.
-        setTranslate({
-            x: t0.x + ((k - 1) * (c0.x - zoomAt.x)) / f.fit,
-            y: t0.y + ((k - 1) * (c0.y - zoomAt.y)) / f.fit,
-        });
+        panPx = { x: 0, y: 0 };
+        if (pointers.size > 0) return;
+        if (ln !== 0) zoomBy(Math.max(-WHEEL_ZOOM_STEP_CAP, Math.min(WHEEL_ZOOM_STEP_CAP, ln)), zoomAt);
+        if (d.x !== 0 || d.y !== 0) panBy(d);
     };
 
     const handleWheel = (event: WheelEvent) => {
         const zoom = event.ctrlKey || event.metaKey;
+        const orbit = !zoom && event.altKey;
         // An embed yields the plain wheel to its host page.
-        if (!zoom && scrollOwner() === "page") return;
+        if (!zoom && !orbit && scrollOwner() === "page") return;
         event.preventDefault();
         syncModifiers(event);
         const dx = wheelPx(event, event.deltaX);
@@ -476,8 +538,17 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
             requestCommit();
             return;
         }
-        // Orbit through a virtual pointer moved by (−Δx, −Δy). No anchor, no
-        // coast stop: a running glide keeps running and this composes onto it.
+        if (!orbit) {
+            // OA-17 — natural scrolling: the content follows the fingers. The
+            // OS carries a trackpad's momentum in the stream itself, so the
+            // wheel never coasts here.
+            panPx = { x: panPx.x + WHEEL_PAN_SIGN * dx, y: panPx.y + WHEEL_PAN_SIGN * dy };
+            requestCommit();
+            return;
+        }
+        // Alt/Option-wheel orbits through a virtual pointer moved by (−Δx, −Δy).
+        // No anchor, no coast stop: a running glide keeps running and this
+        // composes onto it.
         f = frame();
         R = radius(f);
         axis = latchAxis();
@@ -554,6 +625,8 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
         onTouchStart,
         handleWheel,
         flushWheel,
+        panBy,
+        zoomBy,
         onArcball,
         onGestureStartEvent,
         onGestureChange,
