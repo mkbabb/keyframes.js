@@ -166,14 +166,122 @@ describe("G2.3 — the mounted orbit: one channel per hand motion", () => {
         w.unmount();
     });
 
-    it("pan and zoom never coast", async () => {
+});
+
+/**
+ * OA-17 (owner 2026-11-09: "Natural scrolling for all pan an zoom, in orbital
+ * drag") overturns D-15's "pan and zoom never coast": a released pan or pinch
+ * coasts on the rotation's own decay — one coast, three channels, the closed
+ * form sampled at elapsed time (COAST_GAIN 0.5, k = 9/s, the 1% rest). Born
+ * RED ×2 on b74cc693: a two-finger pan released at 600 px/s coasted 0 px.
+ */
+describe("OA-17 — pan and pinch coast on release", () => {
+    let reduce = false;
+    beforeEach(() => {
+        reduce = false;
+        vi.stubGlobal("matchMedia", (q: string) => ({ matches: reduce && q.includes("reduce") }));
+    });
+
+    const flushAt = async (hz: number, frames: number) => {
+        for (let i = 0; i < frames; i++) {
+            now += 1000 / hz;
+            const due = queue;
+            queue = [];
+            for (const cb of due) cb(now);
+            await nextTick();
+        }
+    };
+
+    /** A two-finger pan down at `v` px/s for 96 px (8 ms a move), released
+     *  2 ms after its last move; then the coast at `hz` for 1.2 s. */
+    const panCoast = async (v: number, hz = 60) => {
         const { w, model, el } = await mountOrbit();
-        await twoFinger(el, [160, 300], [240, 300], [120, 330], [280, 330], 10);
-        const after = { s: model.value.scale.x, ty: model.value.translate.y, q: [...model.value.quaternion!] };
+        const step = (v * 8) / 1000;
+        const n = Math.round(96 / step);
+        let t = 0;
+        el.dispatchEvent(ptr("pointerdown", 1, 170, 200, t));
+        el.dispatchEvent(ptr("pointerdown", 2, 230, 200, t));
+        for (let i = 1; i <= n; i++) {
+            t += 8;
+            document.dispatchEvent(ptr("pointermove", 1, 170, 200 + step * i, t));
+            document.dispatchEvent(ptr("pointermove", 2, 230, 200 + step * i, t));
+            if (i % 2 === 0) await flush();
+        }
+        await flush();
+        document.dispatchEvent(ptr("pointerup", 1, 170, 200 + step * n, t + 2));
+        document.dispatchEvent(ptr("pointerup", 2, 230, 200 + step * n, t + 2));
+        const atRelease = model.value.translate.y;
+        let last = atRelease;
+        let restMs = 0;
+        const frames = Math.round(1.2 * hz);
+        for (let i = 1; i <= frames; i++) {
+            await flushAt(hz, 1);
+            if (model.value.translate.y !== last) restMs = (i * 1000) / hz;
+            last = model.value.translate.y;
+        }
+        const out = { coast: model.value.translate.y - atRelease, restMs, tx: model.value.translate.x, s: model.value.scale.x };
+        w.unmount();
+        return out;
+    };
+
+    it("a two-finger pan released at 600 px/s coasts 33 ± 3 px and rests within 600 ms", async () => {
+        const r = await panCoast(600);
+        expect(Math.abs(r.coast - (0.5 * 600) / 9)).toBeLessThan(3);
+        expect(r.restMs).toBeGreaterThan(0);
+        expect(r.restMs).toBeLessThanOrEqual(600);
+        // Along the hand only: no sideways drift, no zoom.
+        expect(Math.abs(r.tx)).toBeLessThan(1e-9);
+        expect(r.s).toBe(1);
+    });
+
+    it("the pan coast's end at 30, 60 and 120 Hz differs by under 0.5 px", async () => {
+        // One at a time: the rAF clock is shared.
+        const at: number[] = [];
+        for (const hz of [30, 60, 120]) at.push((await panCoast(600, hz)).coast);
+        expect(Math.min(...at)).toBeGreaterThan(30);
+        expect(Math.max(...at) - Math.min(...at)).toBeLessThan(0.5);
+    });
+
+    it("a pinch released while spreading coasts its zoom on the same decay", async () => {
+        const { w, model, el } = await mountOrbit();
+        // Spread 80 → 160 px about a fixed centroid in 160 ms.
+        await twoFinger(el, [160, 300], [240, 300], [120, 300], [280, 300], 20, false);
+        document.dispatchEvent(ptr("pointerup", 1, 120, 300, 162));
+        document.dispatchEvent(ptr("pointerup", 2, 280, 300, 162));
+        const s0 = model.value.scale.x;
+        await flush(80);
+        const coastLn = Math.log(model.value.scale.x / s0);
+        expect(coastLn).toBeGreaterThan(0);
+        // The release window is the last 80 ms: the spread went 120 → 160 px,
+        // a rate of ln(160/120)/0.08 s; the coast is COAST_GAIN·rate/k.
+        const rate = Math.log(160 / 120) / 0.08;
+        expect(Math.abs(coastLn - (0.5 * rate) / 9) / ((0.5 * rate) / 9)).toBeLessThan(0.15);
+        w.unmount();
+    });
+
+    it("the pan coast stops at the stage bound", async () => {
+        const { w, model, el } = await mountOrbit();
+        await twoFinger(el, [170, 300], [230, 300], [170, 540], [230, 540], 20);
         await flush(60);
-        expect(model.value.scale.x).toBe(after.s);
-        expect(model.value.translate.y).toBe(after.ty);
-        expect(model.value.quaternion).toEqual(after.q);
+        expect(CENTRE.y + model.value.translate.y).toBeLessThanOrEqual(STAGE.bottom + 1e-9);
+        w.unmount();
+    });
+
+    it("under reduced motion nothing coasts", async () => {
+        reduce = true;
+        const r = await panCoast(600);
+        expect(r.coast).toBe(0);
+    });
+
+    it("a new grab stops the coast where it stands", async () => {
+        const { w, model, el } = await mountOrbit();
+        await twoFinger(el, [170, 200], [230, 200], [170, 296], [230, 296], 20);
+        await flush(3);
+        const held = model.value.translate.y;
+        el.dispatchEvent(ptr("pointerdown", 3, 400, 400, 1000, "mouse"));
+        await flush(20);
+        expect(model.value.translate.y).toBe(held);
+        document.dispatchEvent(ptr("pointerup", 3, 400, 400, 1300, "mouse"));
         w.unmount();
     });
 });

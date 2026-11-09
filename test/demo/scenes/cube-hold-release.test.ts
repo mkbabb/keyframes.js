@@ -38,7 +38,7 @@ describe("KFA-82 — a held pointer releases with no fling", () => {
                 scaleRange: [0.4, 3],
                 requestCommit: () => {},
                 onGestureStart: () => {},
-                onGestureEnd: (omega) => void released.push(omega),
+                onGestureEnd: (release) => void released.push(release.omega),
                 onGlide: () => {},
             }),
         )!;

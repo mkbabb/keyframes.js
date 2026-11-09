@@ -16,6 +16,10 @@
  *  U5 the true centre: the frame's centre is the REST centre; the pan clamp
  *     holds the die inside V however many pans stack.
  *  U6 the scroll owner: an embed ("page") yields the plain wheel to its host.
+ *  U8 natural scrolling (OA-17, owner 2026-11-09): the plain wheel PANS, the
+ *     content following the fingers (−Δ); Ctrl/⌘-wheel zooms at the cursor;
+ *     the wheel orbit moves to Alt/Option. Born RED ×2 on b74cc693: a +100 px
+ *     wheel turned the die 40° and moved its centre 0 px.
  *
  * Born RED ×2 on fdb5987f (16 of 18): each ctrl-wheel event re-seeded from
  * the uncommitted model, so the last of 4 × −5 won (Δs 0.023 against 1 × −20),
@@ -135,10 +139,10 @@ describe("U1 — one truth: ctrl-wheel and wheel-orbit steps sum per frame", () 
         expect(Math.abs(one - Math.exp(0.2))).toBeLessThan(1e-9);
     });
 
-    it("4 × 4 px of plain wheel in one task turn the die exactly as 1 × 16 px", async () => {
+    it("4 × 4 px of Alt-wheel in one task turn the die exactly as 1 × 16 px", async () => {
         const turn = async (deltas: number[]) => {
             const { w, model, el } = await mountOrbit();
-            for (const d of deltas) el.dispatchEvent(wheel({ deltaY: d }, 1));
+            for (const d of deltas) el.dispatchEvent(wheel({ deltaY: d, altKey: true }, 1));
             await flush();
             const out = q(model.value);
             w.unmount();
@@ -227,7 +231,7 @@ describe("U3 — the stage is the surface", () => {
     });
 });
 
-describe("U4 — a mouse notch glides out; a trackpad stream stays direct", () => {
+describe("U4 — an Alt-wheel notch glides out; a trackpad stream stays direct", () => {
     /** Per-frame angle steps (rad) until the attitude rests. */
     const glideSteps = async (model: { value: TransformState }, frames = 90) => {
         const steps: number[] = [];
@@ -243,7 +247,7 @@ describe("U4 — a mouse notch glides out; a trackpad stream stays direct", () =
 
     it("one 100 px notch: ≥ 12 frames, ≤ 6° a frame, landing exactly on the capped 40°", async () => {
         const { w, model, el } = await mountOrbit();
-        el.dispatchEvent(wheel({ deltaY: 100 }));
+        el.dispatchEvent(wheel({ deltaY: 100, altKey: true }));
         await nextTick();
         // Nothing jumps in the event's own task.
         expect(screenRotation(q(model.value)).angle).toBe(0);
@@ -256,9 +260,9 @@ describe("U4 — a mouse notch glides out; a trackpad stream stays direct", () =
 
     it("notches stack: a second notch mid-glide travels Σθ, monotone", async () => {
         const { w, model, el } = await mountOrbit();
-        el.dispatchEvent(wheel({ deltaY: 100 }, 0));
+        el.dispatchEvent(wheel({ deltaY: 100, altKey: true }, 0));
         await flush(4);
-        el.dispatchEvent(wheel({ deltaY: 100 }, 66));
+        el.dispatchEvent(wheel({ deltaY: 100, altKey: true }, 66));
         const steps = await glideSteps(model);
         expect(steps.every((s) => s >= 0)).toBe(true);
         expect(Math.abs(screenRotation(q(model.value)).angle - (80 / DEG))).toBeLessThan(1e-9);
@@ -267,8 +271,8 @@ describe("U4 — a mouse notch glides out; a trackpad stream stays direct", () =
 
     it("notches on two axes in one task glide as one rotation |θx + θy|", async () => {
         const { w, model, el } = await mountOrbit();
-        el.dispatchEvent(wheel({ deltaY: 100 }, 0));
-        el.dispatchEvent(wheel({ deltaX: 100, deltaY: 0 }, 400));
+        el.dispatchEvent(wheel({ deltaY: 100, altKey: true }, 0));
+        el.dispatchEvent(wheel({ deltaX: 100, deltaY: 0, altKey: true }, 400));
         await glideSteps(model);
         expect(Math.abs(screenRotation(q(model.value)).angle - (40 * Math.SQRT2) / DEG)).toBeLessThan(1e-9);
         w.unmount();
@@ -277,7 +281,7 @@ describe("U4 — a mouse notch glides out; a trackpad stream stays direct", () =
     it("under reduced motion a notch lands in its own frame", async () => {
         reduce = true;
         const { w, model, el } = await mountOrbit();
-        el.dispatchEvent(wheel({ deltaY: 100 }));
+        el.dispatchEvent(wheel({ deltaY: 100, altKey: true }));
         await nextTick();
         expect(Math.abs(screenRotation(q(model.value)).angle - 40 / DEG)).toBeLessThan(1e-9);
         w.unmount();
@@ -288,7 +292,7 @@ describe("U4 — a mouse notch glides out; a trackpad stream stays direct", () =
         const stream = [2, 4, 7, 11, 9, 6, 3, 1];
         let t = 0;
         for (const d of stream) {
-            el.dispatchEvent(wheel({ deltaY: d }, (t += 16)));
+            el.dispatchEvent(wheel({ deltaY: d, altKey: true }, (t += 16)));
             await flush();
         }
         const after = q(model.value);
@@ -408,11 +412,75 @@ describe("U6 — who owns the scroll", () => {
         w.unmount();
     });
 
+    it("page: the Alt-wheel orbit is the die's", async () => {
+        const { w, model, el } = await mountOrbit("page");
+        const e = wheel({ deltaY: 16, altKey: true });
+        el.dispatchEvent(e);
+        await flush();
+        expect(e.defaultPrevented).toBe(true);
+        expect(screenRotation(q(model.value)).angle).toBeCloseTo((2 * 16) / R, 9);
+        w.unmount();
+    });
+
     it("stage: every wheel is the die's", async () => {
         const { w, el } = await mountOrbit("stage");
         const plain = wheel({ deltaY: 40 });
         el.dispatchEvent(plain);
         expect(plain.defaultPrevented).toBe(true);
+        w.unmount();
+    });
+});
+
+describe("U8 — natural scrolling: the wheel pans, the content follows the fingers (OA-17)", () => {
+    it("a +100 px wheel moves the die's centre −100 px and turns nothing", async () => {
+        const { w, model, el } = await mountOrbit();
+        el.dispatchEvent(wheel({ deltaY: 100 }));
+        await flush();
+        expect(model.value.translate.y).toBeCloseTo(-100, 9);
+        expect(model.value.translate.x).toBe(0);
+        expect(screenRotation(q(model.value)).angle).toBe(0);
+        el.dispatchEvent(wheel({ deltaX: -40, deltaY: 0 }));
+        await flush();
+        expect(model.value.translate.x).toBeCloseTo(40, 9);
+        w.unmount();
+    });
+
+    it("split and coalesced pan events land the same pan; nothing coasts after", async () => {
+        const pan = async (deltas: number[]) => {
+            const { w, model, el } = await mountOrbit();
+            for (const d of deltas) el.dispatchEvent(wheel({ deltaY: d }, 1));
+            await flush();
+            const ty = model.value.translate.y;
+            await flush(30);
+            expect(model.value.translate.y).toBe(ty);
+            w.unmount();
+            return ty;
+        };
+        expect(await pan([4, 4, 4, 4])).toBeCloseTo(await pan([16]), 12);
+    });
+
+    it("the wheel pan is held inside V", async () => {
+        const { w, model, el } = await mountOrbit();
+        for (let i = 0; i < 5; i++) {
+            el.dispatchEvent(wheel({ deltaY: 200 }));
+            await flush();
+        }
+        expect(CENTRE.y + model.value.translate.y).toBeCloseTo(STAGE.top, 9);
+        w.unmount();
+    });
+
+    it("Ctrl-wheel −15 zooms e^0.15, the point under the cursor held within 1 px", async () => {
+        const { w, model, el } = await mountOrbit();
+        const at = { x: CENTRE.x + 60, y: CENTRE.y - 40 };
+        el.dispatchEvent(wheel({ deltaY: -15, ctrlKey: true, clientX: at.x, clientY: at.y }));
+        await flush();
+        const k = model.value.scale.x;
+        expect(Math.abs(k - Math.exp(0.15))).toBeLessThan(1e-3);
+        // The content point under the cursor: p' = c' + k·(at − c) must be at.
+        const c = { x: CENTRE.x + model.value.translate.x, y: CENTRE.y + model.value.translate.y };
+        expect(Math.abs(c.x + k * (at.x - CENTRE.x) - at.x)).toBeLessThan(1);
+        expect(Math.abs(c.y + k * (at.y - CENTRE.y) - at.y)).toBeLessThan(1);
+        expect(screenRotation(q(model.value)).angle).toBe(0);
         w.unmount();
     });
 });

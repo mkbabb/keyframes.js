@@ -182,13 +182,25 @@ const readFrame = (): OrbitFrame => {
 const reducedMotion = () =>
     typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-// ── The coast (rotation only) ───────────────────────────────────────
+// ── The coast: rotation, pan and zoom (OA-17) ───────────────────────
+// The pan and zoom channels apply through the reader's own clamped,
+// cursor-anchored setters (declared below; called only once a coast runs).
 const inertia = useOrbitalInertia({
     inertiaFactor: props.inertiaFactor,
     reducedMotion,
     rotateBy: (axis: Vec3, angle: number) => {
         state.q = quatCanonical(quatMultiply(quatFromAxisAngle(axis, angle), state.q));
         writeModel();
+    },
+    panBy: (d) => {
+        const free = gesture.panBy(d);
+        writeModel();
+        return free;
+    },
+    zoomBy: (ln, at) => {
+        const free = gesture.zoomBy(ln, at);
+        writeModel();
+        return free;
     },
     onRest: () => writeModel(true),
 });
@@ -207,9 +219,9 @@ const gesture = useOrbitalGesture({
     // D1 — the state is the truth; a gesture never re-seeds from the model
     // (the external-write watch below does, the moment one lands).
     onGestureStart: () => inertia.stop(),
-    onGestureEnd: (omega) => {
+    onGestureEnd: (release) => {
         commitNow();
-        if (inertia.start(omega) === 0) writeModel(true);
+        if (!inertia.start(release)) writeModel(true);
     },
     // A wheel notch glides out on the coast's own decay, conjugated into Q's
     // frame (G is fixed, so turning the axis by G⁻¹ is the conjugation).

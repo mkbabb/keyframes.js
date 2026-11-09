@@ -41,6 +41,11 @@
  * rest plus a host page the context fulfils on an origin the slice frames for
  * (`--host`, default daraksha.babb.dev) (vertical swipe and plain wheel scroll the
  * host; a horizontal drag turns the die). Extended here, not forked.
+ *
+ * OA-17 (owner 2026-11-09, natural scrolling): `natural-pan-1440` (a real
+ * wheel pans −Δ, a real Ctrl-wheel zooms at the cursor) and `pan-coast-1440`
+ * (+`-prm`): a two-finger pan at 600 px/s and a pinch, each coasting on the
+ * rotation's decay (none under reduced motion). The wheel orbit is Alt-wheel.
  */
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -650,8 +655,11 @@ async function assayCells(browser, out) {
         const b = (await read(page)).tf;
         await held(page, [[ox, oy], [ox, oy + 10], [ox, oy + 20]]);
         const c = (await read(page)).tf;
+        // OA-17: the wheel orbit is Alt/Option-wheel (the plain wheel pans).
         await page.mouse.move(ox, oy);
+        await page.keyboard.down("Alt");
         await page.mouse.wheel(0, 20);
+        await page.keyboard.up("Alt");
         await frame(page, 3);
         const d = (await read(page)).tf;
         return { centreDeg: turn(a, b).deg, offDieDeg: turn(b, c).deg, offDieGain: turn(b, c).deg / turn(a, b).deg, offDieWheelDeg: turn(c, d).deg };
@@ -671,7 +679,7 @@ async function assayCells(browser, out) {
             const tr = await page.evaluate(({ x, y, n, plant }) => new Promise((done) => {
                 const c = document.querySelector(".graph > div");
                 const el = document.elementFromPoint(x, y);
-                const wheel = () => el.dispatchEvent(new WheelEvent("wheel", { deltaY: 100, bubbles: true, cancelable: true, clientX: x, clientY: y }));
+                const wheel = () => el.dispatchEvent(new WheelEvent("wheel", { deltaY: 100, altKey: true, bubbles: true, cancelable: true, clientX: x, clientY: y }));
                 requestAnimationFrame((t0) => {
                     const start = c.style.transform;
                     const out = [];
@@ -700,6 +708,88 @@ async function assayCells(browser, out) {
         };
         return { one: await notch(1), two: await notch(2), plantMs: PLANT_MS };
     });
+
+    // OA-17 (owner 2026-11-09) — natural scrolling. A real +100 px wheel at the
+    // die moves its centre −100 px and turns nothing; a real Ctrl-wheel −15
+    // beside the centre zooms e^0.15 holding the point under the cursor.
+    await run("natural-pan-1440", D, {}, async ({ page }) => {
+        const a = await read(page);
+        await page.mouse.move(a.die.x, a.die.y);
+        await page.mouse.wheel(0, 100);
+        await frame(page, 4);
+        const b = await read(page);
+        const at = { x: b.die.x + 60, y: b.die.y - 40 };
+        await page.mouse.move(at.x, at.y);
+        await page.keyboard.down("Control");
+        await page.mouse.wheel(0, -15);
+        await page.keyboard.up("Control");
+        await frame(page, 4);
+        const c = await read(page);
+        const k = sOf(c.tf) / sOf(b.tf);
+        const anchorErr = Math.hypot(c.die.x - (at.x + k * (b.die.x - at.x)), c.die.y - (at.y + k * (b.die.y - at.y)));
+        return { naturalPan: { dx: b.die.x - a.die.x, dy: b.die.y - a.die.y, turnDeg: turn(a.tf, b.tf).deg, zoomK: k, zoomExpect: Math.exp(0.15), anchorErr, zoomTurnDeg: turn(b.tf, c.tf).deg } };
+    });
+
+    // OA-17 — the pan and pinch coast: two touch pointers, script-dispatched
+    // with labelled timestamps (exactly 600 px/s for 96 px, released 2 ms after
+    // the last move), then the die's centre traced on the rAF clock. Engine-
+    // agnostic (WebKit has no CDP touch). Motion on, and under reduced motion.
+    const coastLeg = async ({ page }) => {
+        const a = await read(page);
+        const res = await page.evaluate(({ x, y }) => new Promise((done) => {
+            const el = document.elementFromPoint(x, y);
+            const T = performance.now() - 400;
+            const pe = (type, id, px, py, t, target) => {
+                const e = new PointerEvent(type, { clientX: px, clientY: py, pointerId: id, pointerType: "touch", isPrimary: id === 11, bubbles: true, cancelable: true });
+                Object.defineProperty(e, "timeStamp", { value: T + t });
+                target.dispatchEvent(e);
+            };
+            const die = () => { const r = document.querySelector(".cube").getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; };
+            const sc = () => +(/scale3d\(([-\d.e]+),/.exec(document.querySelector(".graph > div").style.transform)?.[1] ?? 1);
+            // The pan: 600 px/s, 96 px down, 8 ms a move.
+            pe("pointerdown", 11, x - 30, y - 60, 0, el);
+            pe("pointerdown", 12, x + 30, y - 60, 0, el);
+            for (let i = 1; i <= 20; i++) {
+                pe("pointermove", 11, x - 30, y - 60 + 4.8 * i, 8 * i, document);
+                pe("pointermove", 12, x + 30, y - 60 + 4.8 * i, 8 * i, document);
+            }
+            pe("pointerup", 11, x - 30, y + 36, 162, document);
+            pe("pointerup", 12, x + 30, y + 36, 162, document);
+            const trace = (ms, read) => new Promise((r) => {
+                const out = [];
+                const t0 = performance.now();
+                const f = (t) => { out.push({ t: t - t0, v: read() }); if (t - t0 < ms) requestAnimationFrame(f); else r(out); };
+                requestAnimationFrame(f);
+            });
+            // The pan's own commit lands in the first frame; the coast after it.
+            requestAnimationFrame(() => {
+                const p0 = die();
+                trace(1000, () => die().y).then((panTrace) => {
+                    let restMs = 0;
+                    for (let i = 1; i < panTrace.length; i++) if (Math.abs(panTrace[i].v - panTrace[i - 1].v) > 0.01) restMs = panTrace[i].t;
+                    const panCoast = panTrace.at(-1).v - p0.y;
+                    // The pinch: spread 80 → 160 px about the die in 160 ms.
+                    const c = die();
+                    const T2 = performance.now() - T - 200;
+                    pe("pointerdown", 11, c.x - 40, c.y, T2, el);
+                    pe("pointerdown", 12, c.x + 40, c.y, T2, el);
+                    for (let i = 1; i <= 20; i++) {
+                        pe("pointermove", 11, c.x - 40 - 2 * i, c.y, T2 + 8 * i, document);
+                        pe("pointermove", 12, c.x + 40 + 2 * i, c.y, T2 + 8 * i, document);
+                    }
+                    pe("pointerup", 11, c.x - 80, c.y, T2 + 162, document);
+                    pe("pointerup", 12, c.x + 80, c.y, T2 + 162, document);
+                    requestAnimationFrame(() => {
+                        const s0 = sc();
+                        trace(1000, sc).then((zt) => done({ panCoast, restMs, pinchCoastLn: Math.log(zt.at(-1).v / s0), xDrift: die().x - c.x }));
+                    });
+                });
+            });
+        }), { x: a.die.x, y: a.die.y });
+        return { panCoastLeg: { ...res, panExpect: (0.5 * 600) / 9, pinchExpect: (0.5 * Math.log(160 / 120)) / 0.08 / 9 } };
+    };
+    await run("pan-coast-1440", D, { prm: false }, coastLeg);
+    await run("pan-coast-1440-prm", D, { prm: true }, async (o) => ({ panCoastPrm: (await coastLeg(o)).panCoastLeg }));
 
     // U1 — coalesce: k ctrl-wheel events in one task (under the frame cap).
     await run("coalesce-1440", D, {}, async ({ page }) => {
@@ -1006,6 +1096,17 @@ for (const c of out) {
     if (c.offDieGain !== undefined && !(Math.abs(c.offDieGain - 1) <= 0.05)) fails.push(`U3 ${c.cell} off-die gain ${c.offDieGain}`);
     if (c.offDieRolls !== undefined && (c.offDieRolls !== 0 || c.onDieRolls !== 1)) fails.push(`U3 ${c.cell} double-tap off ${c.offDieRolls} on ${c.onDieRolls}`);
     if (c.one && !(c.one.framesSpanned >= 12 && c.one.worst.ratio <= 1)) fails.push(`U4 ${c.cell} notch ${c.one.framesSpanned} frames, step ${c.one.worst.stepDeg}° over ${c.one.worst.dtMs} ms (bar ${c.one.worst.barDeg}°)`);
+    if (c.naturalPan) {
+        const n = c.naturalPan;
+        if (!(Math.abs(n.dy + 100) <= 1 && Math.abs(n.dx) <= 1 && n.turnDeg < 0.05)) fails.push(`OA-17 ${c.cell} wheel +100: centre Δ (${n.dx.toFixed(1)}, ${n.dy.toFixed(1)}) turn ${n.turnDeg.toFixed(2)}° (want (0, −100), 0°)`);
+        if (!(Math.abs(n.zoomK - n.zoomExpect) <= 1e-3 && n.anchorErr <= 1 && n.zoomTurnDeg < 0.05)) fails.push(`OA-17 ${c.cell} ctrl-wheel −15: k ${n.zoomK.toFixed(4)} (want ${n.zoomExpect.toFixed(4)}), anchor ${n.anchorErr.toFixed(2)} px`);
+    }
+    if (c.panCoastLeg) {
+        const p = c.panCoastLeg;
+        if (!(Math.abs(p.panCoast - p.panExpect) <= 3 && p.restMs > 0 && p.restMs <= 600)) fails.push(`OA-17 ${c.cell} pan coast ${p.panCoast.toFixed(1)} px (want ${p.panExpect.toFixed(1)} ± 3), rest ${p.restMs.toFixed(0)} ms`);
+        if (!(p.pinchCoastLn > 0 && Math.abs(p.pinchCoastLn / p.pinchExpect - 1) <= 0.15)) fails.push(`OA-17 ${c.cell} pinch coast ln ${p.pinchCoastLn.toFixed(4)} (want ${p.pinchExpect.toFixed(4)} ± 15%)`);
+    }
+    if (c.panCoastPrm && !(Math.abs(c.panCoastPrm.panCoast) < 0.01 && Math.abs(c.panCoastPrm.pinchCoastLn) < 1e-4)) fails.push(`OA-17 ${c.cell} reduced motion coasted: pan ${c.panCoastPrm.panCoast}, pinch ln ${c.panCoastPrm.pinchCoastLn}`);
     if (c.coalesceSpread !== undefined && !(c.coalesceSpread <= 0.005)) fails.push(`U1 ${c.cell} coalesce spread ${c.coalesceSpread}`);
     if (c.pinch2 !== undefined && !(Math.abs(c.pinch2 - 2) <= 0.03 && Math.abs(c.pinchHalf - 0.5) <= 0.01)) fails.push(`U2 ${c.cell} pinch ${c.pinch2} / ${c.pinchHalf}`);
     if (c.maxPast !== undefined && !(c.maxPast <= 1 && c.rollDeg < 0.5)) fails.push(`U5 ${c.cell} past V ${c.maxPast}, roll ${c.rollDeg}°`);
