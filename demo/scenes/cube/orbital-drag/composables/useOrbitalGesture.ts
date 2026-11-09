@@ -36,10 +36,15 @@ export interface OrbitState {
     s: number;
 }
 
-/** Who owns a vertical scroll over the surface: the stage (the demo — every
- *  wheel and swipe is the die's) or the page (an embed — vertical swipes and
- *  plain wheels scroll the host; horizontal drags and pinches are the die's). */
-export type ScrollOwner = "stage" | "page";
+/** Who owns a vertical scroll over the surface:
+ *  - "stage": every wheel and swipe is the die's (the demo, its page having
+ *    nothing to scroll);
+ *  - "beside": the demo whose page CAN scroll — a touch on the die's arcball
+ *    is the die's, a mostly-vertical swipe beside it scrolls the page, and the
+ *    off-die drive takes it once it is sideways (the embed's law, off the die);
+ *  - "page": an embed — vertical swipes and plain wheels scroll the host;
+ *    horizontal drags and pinches are the die's. */
+export type ScrollOwner = "stage" | "beside" | "page";
 
 export interface OrbitalGestureParams {
     /** The element that takes pointer capture: the whole stage surface. */
@@ -269,8 +274,10 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
             return;
         }
         axis = latchAxis();
-        pending = p.touch && scrollOwner() === "page";
-        if (Math.hypot(p0.x - c0.x, p0.y - c0.y) > R) {
+        const owner = scrollOwner();
+        const offDie = Math.hypot(p0.x - c0.x, p0.y - c0.y) > R;
+        pending = p.touch && (owner === "page" || (owner === "beside" && offDie));
+        if (offDie) {
             mode = "drive";
             pPrev = p0;
             return;
@@ -350,14 +357,24 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
         anchor();
     };
 
+    /** "beside": the surface is pan-y, so the browser may take any vertical
+     *  swipe as the page's. A touch that starts on the die's arcball (or a
+     *  second finger, a pinch) is the die's, and only a cancelled touchstart
+     *  keeps the browser off it. Beside the die the swipe is left to the page. */
+    const onTouchStart = (event: TouchEvent) => {
+        if (scrollOwner() !== "beside" || !event.cancelable) return;
+        const t = event.touches[0];
+        if (event.touches.length > 1 || (t && onArcball({ x: t.clientX, y: t.clientY }))) event.preventDefault();
+    };
+
     const onPointerMove = (event: PointerEvent) => {
         const p = pointers.get(event.pointerId);
         if (!p) return;
         p.x = event.clientX;
         p.y = event.clientY;
-        // Page mode (pan-y): a one-finger drag is the die's only once it is
-        // horizontal. Until then the browser may still take it as the host's
-        // scroll (a pointercancel), and the die must not have moved.
+        // Page mode, and beside the die (pan-y): a one-finger drag is the die's
+        // only once it is horizontal. Until then the browser may still take it
+        // as the page's scroll (a pointercancel), and the die must not have moved.
         if (pending) {
             const dx = p.x - p0.x;
             const dy = p.y - p0.y;
@@ -534,6 +551,7 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
         pressedKeys,
         pointers,
         onPointerDown,
+        onTouchStart,
         handleWheel,
         flushWheel,
         onArcball,
