@@ -60,9 +60,18 @@ vi.mock("@mkbabb/glass-ui/dock", async () => {
     return {
         GlassDock,
         DockControl: buttonHost("DockControlSeat"),
-        DockTrigger: buttonHost("DockTriggerSeat"),
         DockSeparator,
     };
+});
+vi.mock("@mkbabb/glass-ui/dock-trigger", async () => {
+    const { defineComponent, h } = await import("vue");
+    const DockTrigger = defineComponent({
+        name: "DockTriggerSeat",
+        setup(_, { slots }) {
+            return () => h("button", { type: "button" }, slots.default?.());
+        },
+    });
+    return { DockTrigger };
 });
 
 const { default: TransportDock } =

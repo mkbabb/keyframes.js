@@ -43,7 +43,7 @@ export function criticalCSSPlugin(): Plugin {
     --border: hsl(214.3 31.8% 91.4%);
     --muted-foreground: hsl(215.4 16.3% 46.9%);
     --shadow-color: hsl(0 0% 0%);
-    --radius-pill: 9999px;
+    --radius-pill: 1rem;
     --radius-card: 1rem;
     --glass-bg-medium: color-mix(in srgb, var(--card) 65%, transparent);
     --glass-border-subtle: color-mix(in srgb, var(--foreground) 8%, transparent);

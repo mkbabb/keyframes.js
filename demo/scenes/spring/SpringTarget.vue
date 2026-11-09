@@ -796,7 +796,7 @@ const onKeydown = (e: KeyboardEvent) => {
     height: var(--target-ring);
     margin-left: calc(var(--target-ring) / -2);
     margin-top: calc(var(--target-ring) / -2);
-    border-radius: var(--radius-pill);
+    border-radius: var(--radius-circle);
     /* J.W7a S3 (D11) — the ghost marker reads the tone seam (a no-op for
        spring, whose tone IS the canonical green; the rule stays seam-coherent). */
     border: 2px dashed color-mix(in srgb, var(--ball-tone, var(--color-progress)) 50%, transparent);

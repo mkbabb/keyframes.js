@@ -23,7 +23,11 @@
    from its own layout (the Spring CTA's grid cell stretches it). */
 .btn-playback {
     gap: 0.5rem;
-    border-radius: var(--radius-pill);
+    /* value.js X §0hz.glass11 — no corner here. glass 11 made `--radius-pill`
+       1rem and gave its Button the corner authority (a pill capped at half the
+       rung, `data-shape="bar"` when wide or wrapping); this unlayered pill
+       outranked both, and squared the 36 px Reverse ball whose own
+       `rounded-full` names its circle. One authority paints the corner. */
     /* T.D3 (OD-6 / T-TY2) — the K.W2 display bind dies: transport buttons are
        CONTROLS, so they ride the inherited Jakarta body register at medium
        weight (a display-optical serif at 16px read spindly-then-smudged; the

@@ -222,7 +222,7 @@
     width: var(--ball-size, 36px);
     height: var(--ball-size, 36px);
     margin-top: calc(var(--ball-size, 36px) / -2);
-    border-radius: var(--radius-pill);
+    border-radius: var(--radius-circle);
     background: var(--ball-tone, var(--color-progress));
     pointer-events: none;
 }
@@ -248,7 +248,7 @@
     width: var(--ball-size, 36px);
     height: var(--ball-size, 36px);
     transform: translate(-50%, -50%);
-    border-radius: var(--radius-pill);
+    border-radius: var(--radius-circle);
     background: var(--ball-tone, var(--color-progress));
     pointer-events: none;
 }
