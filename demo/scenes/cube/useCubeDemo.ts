@@ -26,6 +26,9 @@ export function useCubeDemo(
     matrix3dStart: Ref<Matrix3dCall>,
     matrix3dEnd: Ref<Matrix3dCall>,
     skin: Readonly<Ref<CubeSkin>>,
+    /** `settle: false` (the embed slice, which holds still until Play): the
+     *  graph lands on its opening attitude at once, as under reduced motion. */
+    { settle = true }: { settle?: boolean } = {},
 ) {
     // HEAVY surface from the warmed engine (kfEngine(), L.W8 S1 dogfood inversion)
     // — synchronous, since the warm resolves before any scene mounts. `presets`
@@ -169,7 +172,7 @@ export function useCubeDemo(
         const prefersReduced =
             typeof window !== "undefined" &&
             window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-        if (prefersReduced) {
+        if (prefersReduced || !settle) {
             graphEl.style.transform = graphAttitudeCss();
         } else {
             // KFA-81 (the settle limb) · KFA-204 — the sweep's clock starts on

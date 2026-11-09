@@ -208,57 +208,6 @@ const onPlayStateChange = (playing: boolean) => {
     }
 }
 
-/* J.W7a S4 (D19 — the W6-3 substrate-depth fold, the terminal verdict).
-   The former substrate was a single 1rem corner-tick data-URI at 0.10α (+ a
-   duplicated dark twin) — "at display zoom it reads as off-white texture, not
-   a designed grid" (pane-home H4; cross-grid-math C5), leaving the glass plate
-   nothing to refract against (the I.W6 S3 deferral, wave-I.W6.md §6 W6-3).
-   REPLACED (no legacy beside the replacement — both data-URIs die) by a
-   deliberate two-tier engineering graph paper: fine lines at --graph-pitch
-   (1rem) + bolder major lines at --graph-major (5rem), all four layers reading
-   the demo-owned --graph-* tokens (design-idioms.css). The lines mix over
-   --foreground, so the dark theme retints from the SAME rules — the duplicated
-   dark data-URI is retired with its light twin. The major layer's
-   --graph-major-opacity deliberately resolves above the former 0.10α floor:
-   the substrate is PRESENT and legible behind the glass plate (the §Hard-gate
-   clause-g legibility assertion — W6-3 exits on a runtime clause, never
-   deferred again).
-
-   KF-SKEL-20 (W6-N, re-homed from KF.W5) — THE NUMBER IS NOT RESTATED HERE, and
-   the reason is that restating it is exactly what went wrong. Two tokens were
-   carrying THREE different numbers inside a comment that calls itself a
-   hard-gate legibility assertion: this prose said the major tier was 12%, the
-   `var()` fallbacks below said 5% / 12%, and the DECLARATIONS
-   (`design-idioms.css`, `--graph-opacity` / `--graph-major-opacity`) said
-   3% / 11%. An assertion about a floor cannot be audited when the floor is
-   spelled three ways, so the cure gives the pair ONE authority instead of a
-   fourth spelling: the fallbacks are deleted (both tokens are declared at
-   `:root` in a sheet this shell imports, so the defaults were unreachable
-   anyway and existed only to drift), and this comment now names the tokens and
-   the relation — major ABOVE the 10% floor — with the magnitudes read from the
-   declaration at use. Same defect class as KF-SKEL-14 one component up: a
-   comment either becomes true or is deleted. */
-.grid-background {
-    --graph-line-fine: color-mix(
-        in srgb,
-        var(--foreground) var(--graph-opacity),
-        transparent
-    );
-    --graph-line-major: color-mix(
-        in srgb,
-        var(--foreground) var(--graph-major-opacity),
-        transparent
-    );
-    background-image:
-        linear-gradient(to right, var(--graph-line-major) 1px, transparent 1px),
-        linear-gradient(to bottom, var(--graph-line-major) 1px, transparent 1px),
-        linear-gradient(to right, var(--graph-line-fine) 1px, transparent 1px),
-        linear-gradient(to bottom, var(--graph-line-fine) 1px, transparent 1px);
-    background-size:
-        var(--graph-major) var(--graph-major),
-        var(--graph-major) var(--graph-major),
-        var(--graph-pitch) var(--graph-pitch),
-        var(--graph-pitch) var(--graph-pitch);
-    background-repeat: repeat;
-}
+/* The `.grid-background` graph paper itself is a shared idiom now
+   (design-idioms.css), so the embed slice's stage rules the same paper. */
 </style>
