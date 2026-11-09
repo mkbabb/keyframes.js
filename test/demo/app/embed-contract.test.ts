@@ -94,6 +94,26 @@ describe("bridge", () => {
         });
         expect(readHostMessage({ ns: EMBED_NS, v: EMBED_VERSION, type: "set-theme", scheme: "sepia" })).toBeNull();
         expect(readHostMessage("set-theme")).toBeNull();
+        expect(readHostMessage({ ns: EMBED_NS, v: EMBED_VERSION, type: "set-playing", playing: true })).toEqual({
+            type: "set-playing",
+            playing: true,
+        });
+        expect(readHostMessage({ ns: EMBED_NS, v: EMBED_VERSION, type: "set-playing", playing: "yes" })).toBeNull();
+    });
+    it("takes set-playing only from the host origin and the parent window, and posts the transport", () => {
+        const f = framed({ hostname: "keyframes.babb.dev", ancestor: "https://daraksha.babb.dev" });
+        const bridge = createEmbedBridge(f.win);
+        const seen: boolean[] = [];
+        bridge.onSetPlaying((p) => seen.push(p));
+        const data = { ns: EMBED_NS, v: EMBED_VERSION, type: "set-playing", playing: true };
+        f.dispatch({ origin: "https://evil.example", source: f.parent as unknown as Window, data });
+        f.dispatch({ origin: "https://daraksha.babb.dev", source: f.parent as unknown as Window, data });
+        expect(seen).toEqual([true]);
+        bridge.post({ type: "transport", playing: false });
+        expect(f.parent.postMessage).toHaveBeenCalledWith(
+            { ns: EMBED_NS, v: EMBED_VERSION, type: "transport", playing: false },
+            "https://daraksha.babb.dev",
+        );
     });
 });
 

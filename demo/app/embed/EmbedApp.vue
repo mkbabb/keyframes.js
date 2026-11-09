@@ -1,12 +1,23 @@
 <template>
-    <main ref="sliceRoot" class="embed-slice" :data-slice="route.slice ?? 'none'">
-        <EmbedCube v-if="route.slice === 'cube'" :skin="route.skin" />
-    </main>
+    <!-- The transport's tooltips resolve their provider here, as in the app's root. -->
+    <TooltipProvider :delay-duration="100" :skip-delay-duration="0">
+        <main ref="sliceRoot" class="embed-slice" :data-slice="route.slice ?? 'none'">
+            <!-- The framed document's own heading, named as the host titles the frame. -->
+            <h1 v-if="route.slice === 'cube'" class="sr-only">Cube</h1>
+            <EmbedCube
+                v-if="route.slice === 'cube'"
+                ref="cubeRef"
+                :skin="route.skin"
+                @transport="(playing) => bridge.post({ type: 'transport', playing })"
+            />
+        </main>
+    </TooltipProvider>
 </template>
 
 <script setup lang="ts">
 import { nextTick, onMounted, onScopeDispose, useTemplateRef } from "vue";
 import { useGlobalDark } from "@mkbabb/glass-ui/dark";
+import { TooltipProvider } from "@mkbabb/glass-ui/tooltip";
 import { createEmbedBridge, type Scheme } from "./bridge";
 import { parseSliceRoute } from "./params";
 import EmbedCube from "./EmbedCube.vue";
@@ -48,6 +59,10 @@ bridge.onSetTheme((next) => {
 // `ready` once the slice has painted with its faces loaded: the host reveals
 // the frame on it.
 const sliceRoot = useTemplateRef<HTMLElement>("sliceRoot");
+
+// A host that mirrors the transport in its own chrome drives it here.
+const cubeRef = useTemplateRef<InstanceType<typeof EmbedCube>>("cubeRef");
+bridge.onSetPlaying((playing) => cubeRef.value?.setPlaying(playing));
 onMounted(async () => {
     await nextTick();
     await document.fonts?.ready;

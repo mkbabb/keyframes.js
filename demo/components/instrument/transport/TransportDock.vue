@@ -1,13 +1,16 @@
 <template>
     <div
         ref="menubarHostEl"
-        data-dock-tether="bottom"
+        :data-dock-tether="contained ? undefined : 'bottom'"
         :class="[
-            'menubar-safe-pb px-2 py-1.5 m-0 flex items-center justify-center justify-items-center',
-            'fixed left-0 right-0 z-dock pointer-events-none',
+            'px-2 py-1.5 m-0 flex items-center justify-center justify-items-center pointer-events-none',
+            contained ? 'transport-contained' : 'menubar-safe-pb fixed left-0 right-0 z-dock',
         ]"
-        style="bottom: var(--dock-bottom-anchor, var(--work-area-bottom-offset, 0px));"
+        :style="contained ? undefined : 'bottom: var(--dock-bottom-anchor, var(--work-area-bottom-offset, 0px));'"
     >
+        <!-- `contained` (an embed slice): the band sits in its host's flow at
+             the slice's foot instead of fixed to the viewport, and publishes
+             no menubar measure (nothing in an embed anchors on it). -->
         <!--
             The transport rides GlassDock's own collapse: Play is the dock's
             one `#persistent` control (both faces; X.KF.W13W.d) and the rest
@@ -239,7 +242,6 @@ const dockRef = useTemplateRef<InstanceType<typeof GlassDock>>("dockRef");
 // S1); the mechanism and its cycle-freedom are `useMenubarMeasure`'s docblock.
 // The SFC owns the typed template ref and hands it in (TD-17).
 const menubarHostEl = useTemplateRef<HTMLElement>("menubarHostEl");
-useMenubarMeasure(menubarHostEl);
 
 // The play toggle never listens for the synthesised `click` (the dock's
 // collapse crossfade can strand it — DM-1); it actuates from `usePlayActuation`'s
@@ -262,13 +264,17 @@ const {
     onPlayBlur,
 } = usePlayActuation(actuatePlay);
 
-const { storedControls, isPlaying, animationNames, startScreen = false } = defineProps<{
+const { storedControls, isPlaying, animationNames, startScreen = false, contained = false } = defineProps<{
     storedControls: StoredAnimationGroupControlOptions;
     isPlaying: boolean;
     animationNames: string[];
     /** The home start screen: no Reset there (UIA-KF-229). */
     startScreen?: boolean;
+    /** In its host's flow (an embed slice's foot), not fixed to the viewport. */
+    contained?: boolean;
 }>();
+
+if (!contained) useMenubarMeasure(menubarHostEl);
 
 const emit = defineEmits<{
     (e: "togglePlay"): void;
@@ -364,6 +370,11 @@ defineExpose({ resetIconSpin });
      • an @supports-not path supplies the dock-margin baseline directly for
        browsers that do not understand env(safe-area-inset-bottom) at all.
    Happy path (modern Safari/Chrome with a notch) is byte-identical. */
+.transport-contained {
+    position: relative;
+    z-index: 1;
+}
+
 .menubar-safe-pb {
     padding-bottom: max(
         calc(var(--dock-margin) / 2),

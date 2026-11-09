@@ -8,8 +8,10 @@
  * allow-list and against the parent window as its source.
  *
  *   slice → host   ready {slice, scheme, width, height} · size {height} (≤ 1 per
- *                  frame) · theme {scheme} (the acknowledgement) · color {css}
- *   host → slice   set-theme {scheme}
+ *                  frame) · theme {scheme} (the acknowledgement) · color {css} ·
+ *                  transport {playing} (the cube's Play / Pause, on each change)
+ *   host → slice   set-theme {scheme} · set-playing {playing} (a host that
+ *                  mirrors the cube's transport in its own chrome; optional)
  */
 
 export const EMBED_NS = "babb-embed";
@@ -52,9 +54,12 @@ export type SliceMessage =
     | { type: "ready"; slice: string; scheme: Scheme; width: number; height: number }
     | { type: "size"; height: number }
     | { type: "theme"; scheme: Scheme }
-    | { type: "color"; css: string };
+    | { type: "color"; css: string }
+    | { type: "transport"; playing: boolean };
 
-export type HostMessage = { type: "set-theme"; scheme: Scheme };
+export type HostMessage =
+    | { type: "set-theme"; scheme: Scheme }
+    | { type: "set-playing"; playing: boolean };
 
 /** Parse a host message; anything outside the contract is null. */
 export function readHostMessage(data: unknown): HostMessage | null {
@@ -63,6 +68,9 @@ export function readHostMessage(data: unknown): HostMessage | null {
     if (m.ns !== EMBED_NS || m.v !== EMBED_VERSION) return null;
     if (m.type === "set-theme" && (m.scheme === "light" || m.scheme === "dark")) {
         return { type: "set-theme", scheme: m.scheme };
+    }
+    if (m.type === "set-playing" && typeof m.playing === "boolean") {
+        return { type: "set-playing", playing: m.playing };
     }
     return null;
 }
@@ -74,12 +82,14 @@ export interface EmbedBridge {
     /** Report `el`'s block size, at most once per frame, while it changes. */
     observeSize(el: Element): void;
     onSetTheme(handler: (scheme: Scheme) => void): void;
+    onSetPlaying(handler: (playing: boolean) => void): void;
     dispose(): void;
 }
 
 export function createEmbedBridge(win: Window = window): EmbedBridge {
     const hostOrigin = resolveHostOrigin(win);
     const themeHandlers = new Set<(scheme: Scheme) => void>();
+    const playingHandlers = new Set<(playing: boolean) => void>();
     let observer: ResizeObserver | undefined;
     let frame = 0;
     let lastHeight = -1;
@@ -93,6 +103,7 @@ export function createEmbedBridge(win: Window = window): EmbedBridge {
         if (hostOrigin === null || event.origin !== hostOrigin || event.source !== win.parent) return;
         const message = readHostMessage(event.data);
         if (message?.type === "set-theme") for (const handler of themeHandlers) handler(message.scheme);
+        if (message?.type === "set-playing") for (const handler of playingHandlers) handler(message.playing);
     };
     win.addEventListener("message", onMessage);
 
@@ -117,11 +128,15 @@ export function createEmbedBridge(win: Window = window): EmbedBridge {
         onSetTheme(handler) {
             themeHandlers.add(handler);
         },
+        onSetPlaying(handler) {
+            playingHandlers.add(handler);
+        },
         dispose() {
             win.removeEventListener("message", onMessage);
             observer?.disconnect();
             if (frame) win.cancelAnimationFrame(frame);
             themeHandlers.clear();
+            playingHandlers.clear();
         },
     };
 }
