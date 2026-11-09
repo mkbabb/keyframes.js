@@ -815,7 +815,7 @@ function onKeydown(e: KeyboardEvent): void {
     width: 0.4rem;
     height: 0.4rem;
     margin: -0.2rem 0 0 -0.2rem;
-    border-radius: var(--radius-pill, 9999px);
+    border-radius: var(--radius-circle);
     border: 1.5px solid var(--foreground);
     background: var(--background);
     pointer-events: none;
@@ -892,7 +892,7 @@ function onKeydown(e: KeyboardEvent): void {
     height: 0.9rem;
     margin-left: -0.45rem;
     margin-top: -0.45rem;
-    border-radius: var(--radius-pill, 9999px);
+    border-radius: var(--radius-circle);
     border: 2px solid var(--background);
     background: var(--color-progress);
     pointer-events: none;

@@ -44,9 +44,18 @@ export const COAST_GAIN = 0.5;
 /** The coast's starting rate is capped at one turn per second. */
 export const MAX_COAST_RATE = 2 * Math.PI;
 
-/** The coast stops once |ω| has bled to 1% of its start. */
+/** OA-17 — the pan coast's starting speed cap (screen px/s): a coast of at
+ *  most 3000/9 ≈ 333 px. */
+export const MAX_PAN_COAST_RATE = 3000;
+
+/** OA-17 — the zoom coast's starting rate cap (ln s per second): a coast of
+ *  at most e^(4/9) ≈ 1.56×. */
+export const MAX_ZOOM_COAST_RATE = 4;
+
+/** The coast stops once its rate has bled to 1% of its start. */
 export const COAST_REST_FRACTION = 0.01;
 
-/** The coast's starting rate (rad/s) from the hand's release rate (rad/s). */
-export const coastRate = (releaseRate: number, reducedMotion = false): number =>
-    reducedMotion ? 0 : Math.min(COAST_GAIN * Math.abs(releaseRate), MAX_COAST_RATE);
+/** A channel's starting coast rate from the hand's release rate (the same
+ *  gain for every channel; rad/s by default, px/s or ln s/s with their cap). */
+export const coastRate = (releaseRate: number, reducedMotion = false, cap = MAX_COAST_RATE): number =>
+    reducedMotion ? 0 : Math.min(COAST_GAIN * Math.abs(releaseRate), cap);
