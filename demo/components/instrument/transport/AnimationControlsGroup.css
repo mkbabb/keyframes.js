@@ -62,6 +62,17 @@
         var(--spring-dock);
 }
 
+/* o1105 r2 kf — a scene swap has ONE animator. Into a scene from Home (railless)
+   the [rail] track opened 0 → --rail-width on this transition INSIDE the view
+   transition's live new state, so every frame of the hop re-laid out the whole
+   card under the swap's own geometry morph (home → cube: ~16 ms of style a
+   frame for the 210 ms of the track, the hop's frames at half rate). During a
+   swap the track lands at once and the transition's group morph carries the
+   change; the user's own open/close keeps its spring. */
+:root:active-view-transition .controls-layout {
+    transition: none;
+}
+
 /* The open/close + railless track-collapse (the [rail] track between
    var(--rail-width) and 0px) — UNCONDITIONAL beside the base template it drives
    (H.W3.S4; J.W7a XH-1 ghost-rail collapse). On mobile the children are fixed,
