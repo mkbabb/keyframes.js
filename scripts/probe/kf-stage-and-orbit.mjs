@@ -53,6 +53,8 @@ const BASE = arg("base", "http://localhost:5173/");
 const OUT = arg("out", null);
 const MODE = arg("mode", "all");
 const SHOTS = arg("shots", null);
+// --only REGEX: run only the assay cells whose name matches (e.g. touch-390).
+const ONLY = arg("only", null) ? new RegExp(arg("only")) : null;
 const SCHEMES = (arg("schemes", "dark")).split(",");
 const ENGINE = arg("engine", "chromium");
 const INPUT = arg("input", ENGINE === "chromium" ? "cdp" : "synthetic");
@@ -589,6 +591,7 @@ async function assayCells(browser, out) {
         await frame(page);
     };
     const run = async (name, vp, opts, fn) => {
+        if (ONLY && !ONLY.test(name)) return;
         let o;
         try {
             o = await open(vp, opts);
@@ -764,15 +767,42 @@ async function assayCells(browser, out) {
             await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
             await frame(page);
         };
-        const r = await read(page);
-        const res = {};
-        for (const [k, x, y, dx, dy] of [["onH", r.die.x, r.die.y, 60, 0], ["onV", r.die.x, r.die.y, 0, -60], ["offH", r.V.l + 20, r.die.y, 60, 0], ["offV", r.V.l + 20, r.die.y, 0, -60]]) {
-            const a = await read(page);
-            await swipe(x, y, dx, dy);
-            const b = await read(page);
-            res[k] = { deg: turn(a.tf, b.tf).deg, scrollDy: b.scrollY - a.scrollY };
-        }
-        return res;
+        // The o1105 r2 delegate ruling: with nothing to scroll (scrollHeight ==
+        // innerHeight) an off-die drag orbits; once the page CAN scroll, a
+        // mostly-vertical off-die swipe scrolls it and the die holds. The
+        // scrolling leg grows the page by a spacer after the content and opens
+        // the shell's overflow, read from the top, so the stage does not move.
+        const legs = async (grow) => {
+            if (grow) {
+                await page.evaluate(() => {
+                    const s = document.createElement("div");
+                    s.id = "probe-spacer";
+                    s.style.cssText = "height:900px;width:1px";
+                    document.body.append(s);
+                    // The app shell holds the viewport (overflow hidden); the
+                    // scrolling leg opens it, as a page that scrolls would be.
+                    document.documentElement.style.overflowY = "auto";
+                    document.body.style.overflowY = "visible";
+                });
+                await page.waitForTimeout(300);
+            }
+            const geo = await page.evaluate(() => ({ scrollHeight: (document.scrollingElement ?? document.documentElement).scrollHeight, innerHeight }));
+            const res = { ...geo };
+            for (const [k, x, dx, dy] of [["onH", 0, 60, 0], ["onV", 0, 0, -60], ["offH", 1, 60, 0], ["offV", 1, 0, -60]]) {
+                await page.evaluate(() => (document.scrollingElement ?? document.documentElement).scrollTo(0, 0));
+                await frame(page);
+                const a = await read(page);
+                // Off the die is |p − c| > R: at 390 R reaches the stage's half
+                // width, so beside the die is V's corner, not its side.
+                await swipe(x ? a.V.l + 20 : a.die.x, x ? a.V.t + 20 : a.die.y, dx, dy);
+                const b = await read(page);
+                res[k] = { deg: turn(a.tf, b.tf).deg, scrollDy: b.scrollY - a.scrollY };
+            }
+            return res;
+        };
+        const flat = await legs(false);
+        const scrolls = await legs(true);
+        return { ...flat, scrolls };
     });
 
     // Perf — drag frame time during a 1 s drag.

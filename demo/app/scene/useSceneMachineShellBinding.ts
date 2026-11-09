@@ -16,6 +16,7 @@ import {
     getStoredAnimationGroupControlOptions,
     surfacesFor,
     useSceneMachine,
+    type ScenePlayback,
 } from "@state";
 import { sceneMap } from "./scenes";
 import type { SceneExposedApi } from "./sceneExposedApi";
@@ -148,14 +149,48 @@ export function useSceneMachineShellBinding(opts: {
     // the NEW scene bound and its chrome flipped (the one commit point,
     // `resolvedScene`), never the <Suspense> fallback or the pending window.
     // One waiter at a time: a newer switch releases the one it supersedes.
+    //
+    // o1105 r2 kf — the waiter also resolves with `land`, which the transition
+    // calls on `finished`. A playing entry (the cube autoplays, and a return
+    // restores a playing snapshot) ran its loop through every frame of the
+    // swap: the group's paint and the ribbon's 120 Hz read-back stacked on the
+    // transition's own style work. Its loop now paints the entry's first frame
+    // (the one the new-state capture shows) and holds there until the card has
+    // landed; the machine's play intent is untouched, only the loop waits.
     let readyWaiter: { id: string; resolve: () => void } | null = null;
+    let held: { id: string; playback: ScenePlayback | null } | null = null;
 
-    function whenSceneReady(id: string): Promise<void> {
+    function land() {
+        const h = held;
+        held = null;
+        if (!h?.playback) return;
+        if (h.id === currentSceneId.value && machine.status.value === "playing") h.playback.resume();
+    }
+
+    function whenSceneReady(id: string): Promise<() => void> {
         readyWaiter?.resolve();
         readyWaiter = null;
-        if (readyFor === id) return Promise.resolve();
+        land();
+        if (readyFor === id) return Promise.resolve(land);
         return new Promise((resolve) => {
-            readyWaiter = { id, resolve };
+            readyWaiter = { id, resolve: () => resolve(land) };
+        });
+    }
+
+    /** Hold a playing entry's loop at its first painted frame until `land`.
+     *  One entry can drive readiness twice (a fresh group re-binds and
+     *  restores), so the hold reads the adapter bound when it suspends. */
+    function holdForLanding(id: string) {
+        if (held?.id === id || machine.status.value !== "playing") return;
+        const h: { id: string; playback: ScenePlayback | null } = { id, playback: null };
+        held = h;
+        // The loop's first frame was requested at PLAY / the restore; this one
+        // is requested after it, so it runs once that frame has painted.
+        requestAnimationFrame(() => {
+            const playback = sceneRef.value?.facility?.playback;
+            if (held !== h || !playback || machine.status.value !== "playing") return;
+            playback.suspend();
+            h.playback = playback;
         });
     }
 
@@ -207,8 +242,9 @@ export function useSceneMachineShellBinding(opts: {
         bindSceneAdapter();
         readyFor = currentSceneId.value;
         readyGroup = liveGroup;
-        if (readyWaiter?.id === readyFor) {
-            readyWaiter.resolve();
+        const swapInFlight = readyWaiter?.id === readyFor;
+        if (swapInFlight) {
+            readyWaiter!.resolve();
             readyWaiter = null;
         }
 
@@ -225,6 +261,7 @@ export function useSceneMachineShellBinding(opts: {
             machine.dispatch({ type: "PLAY" });
         }
         autoPlayNext.value = false;
+        if (swapInFlight) holdForLanding(readyFor);
     }
 
     // Re-bind + mark ready when the scene's exposed bind-target becomes available

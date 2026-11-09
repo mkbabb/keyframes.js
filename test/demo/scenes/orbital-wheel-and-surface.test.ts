@@ -73,7 +73,7 @@ const flush = async (frames = 1) => {
     }
 };
 
-async function mountOrbit(scrollOwner: "stage" | "page" = "stage") {
+async function mountOrbit(scrollOwner: "stage" | "beside" | "page" = "stage") {
     const model = ref<TransformState>(structuredClone(defaultTransformState));
     const w = mount(OrbitalDrag, {
         props: {
@@ -361,6 +361,50 @@ describe("U6 — who owns the scroll", () => {
         await flush();
         expect(screenRotation(q(model.value)).angle).toBeGreaterThan(0.2);
         document.dispatchEvent(touch("pointerup", CENTRE.x + 48, CENTRE.y + 6, 400));
+        w.unmount();
+    });
+
+    // o1105 r2 kf (the 390 off-die swipe ruling): once the demo's page can
+    // scroll, a mostly-vertical swipe beside the die is the page's; a touch on
+    // the die stays the die's (its touchstart is cancelled, so the browser
+    // never takes it), and a sideways drive beside it still turns the die.
+    it("beside: a vertical swipe off the die leaves it alone; on the die it turns", async () => {
+        const { w, model, el } = await mountOrbit("beside");
+        const touch = (type: string, x: number, y: number, t: number) => {
+            const e = new PointerEvent(type, { clientX: x, clientY: y, pointerId: 9, pointerType: "touch", bubbles: true });
+            Object.defineProperty(e, "timeStamp", { value: t });
+            return e;
+        };
+        const touchStart = (x: number, y: number) => {
+            const e = new Event("touchstart", { cancelable: true, bubbles: true });
+            Object.defineProperty(e, "touches", { value: [{ clientX: x, clientY: y }] });
+            el.dispatchEvent(e);
+            return e.defaultPrevented;
+        };
+        const OFF = { x: STAGE.left + 10, y: STAGE.top + 10 };
+        expect(touchStart(OFF.x, OFF.y)).toBe(false);
+        expect(touchStart(CENTRE.x, CENTRE.y)).toBe(true);
+
+        el.dispatchEvent(touch("pointerdown", OFF.x, OFF.y, 0));
+        for (let i = 1; i <= 6; i++) document.dispatchEvent(touch("pointermove", OFF.x + i, OFF.y + 8 * i, i * 8));
+        await flush();
+        expect(screenRotation(q(model.value)).angle).toBe(0);
+        document.dispatchEvent(touch("pointercancel", OFF.x + 6, OFF.y + 48, 60));
+        await flush();
+
+        el.dispatchEvent(touch("pointerdown", OFF.x, OFF.y, 100));
+        for (let i = 1; i <= 6; i++) document.dispatchEvent(touch("pointermove", OFF.x + 8 * i, OFF.y + i, 100 + i * 8));
+        await flush();
+        const sideways = screenRotation(q(model.value)).angle;
+        expect(sideways).toBeGreaterThan(0.2);
+        document.dispatchEvent(touch("pointerup", OFF.x + 48, OFF.y + 6, 400));
+        await flush();
+
+        el.dispatchEvent(touch("pointerdown", CENTRE.x, CENTRE.y, 600));
+        for (let i = 1; i <= 6; i++) document.dispatchEvent(touch("pointermove", CENTRE.x, CENTRE.y - 8 * i, 600 + i * 8));
+        await flush();
+        expect(screenRotation(q(model.value)).angle).not.toBeCloseTo(sideways, 3);
+        document.dispatchEvent(touch("pointerup", CENTRE.x, CENTRE.y - 48, 900));
         w.unmount();
     });
 

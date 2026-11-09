@@ -321,6 +321,17 @@ export default defineConfig((mode) => {
                                     name: "vendor-prettier",
                                     test: /node_modules[\\/][^\\/]*prettier/,
                                 },
+                                // o1105 r2 kf — value.js (its CSS grammar is
+                                // 250 KB of the entry's 461) is its own chunk:
+                                // the engine needs it before the app mounts,
+                                // so it is still modulepreloaded beside the
+                                // entry, but it fetches in parallel with it
+                                // and, hashed and immutable, survives every
+                                // demo deploy that does not move the pin.
+                                {
+                                    name: "vendor-value",
+                                    test: /node_modules[\\/]@mkbabb[\\/]value\.js/,
+                                },
                                 {
                                     name: "vendor-reka-ui",
                                     test: /node_modules[\\/]reka-ui/,

@@ -252,6 +252,7 @@ onMounted(() => {
         passive: false,
     });
     useEventListener(surface, "pointerdown", gesture.onPointerDown);
+    useEventListener(surface, "touchstart", gesture.onTouchStart, { passive: false });
     // Safari gesture*: page-zoom suppression while fingers are down, and the
     // desktop trackpad pinch when none are.
     useEventListener(surface, "gesturestart", gesture.onGestureStartEvent, { passive: false });
