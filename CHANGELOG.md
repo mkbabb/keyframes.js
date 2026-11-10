@@ -3,6 +3,14 @@
 <!-- CONVENTION: entries follow the 5.0.0 format — consumer-facing Breaking/Minor/Patch sections,
      no internal wave codes (Wn, Band X, Tranche Y). Keep planning language in docs/tranches/. -->
 
+## 6.5.0
+
+### Minor Changes (additive)
+
+- **`settleTime`: the spring's own settle clock.** `settleTime({ response, dampingFraction })` returns the seconds until the spring comes to rest and stays there, so you can take a duration from the spring instead of a hand-tuned clock. It uses the same rest envelope as `SpringProgress` (`settleThreshold`, `velocitySettleThreshold`, both `1e-3` by default) and counts the last time the spring leaves it, so a ringing spring that passes through early is not cut short. Pass `velocitySettleThreshold: Infinity` for a position-only band, `initialVelocity` for a spring that is already moving. It reads the closed form and never steps, and finds an exit however brief. A spring that never settles (undamped, or damped past floating-point range) returns `Infinity`.
+- **`maxDuration: "settle"`** on `springTimingFunction`, `springTimingLUT` and `springLinearStops` spans the curve over exactly `settleTime` of the same options (so `settleTime(options)` reads the span back), and the pinned end stop jumps by at most `settleThreshold`. A spring that never settles, or a zero span, throws a `RangeError`. The default span (`4 × response`) is unchanged.
+- **Seeded spring curves.** `initialVelocity` on the same three functions starts the curve already moving (travel/s on the spring's clock), so a reversed glide picks up its running speed and bends round instead of turning a corner: the first `linear()` segment (and the first piece of `.fn`) leaves at the seed's speed to within 2 % at the default sample counts, from finer stops inside the first interval. Without it, or at 0, every curve is identical to 6.4.0.
+
 ## 6.4.0
 
 ### Minor Changes (additive)

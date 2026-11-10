@@ -22,8 +22,8 @@ export type {
     SpringSubscriber,
     SpringFrameCallback,
 } from "./types";
-export { durationToSpringOptions } from "./solver";
-export type { SpringDurationOptions } from "./solver";
+export { durationToSpringOptions, settleTime } from "./solver";
+export type { SpringDurationOptions, SpringSettleOptions } from "./solver";
 export {
     linearFromSamples,
     springLinearStops,

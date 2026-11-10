@@ -54,11 +54,13 @@ export interface SpringProgressOptions {
      * - `true` — the classic binary snap: under an active query the spring
      *   jumps to target at zero velocity (amplitude scale `0`). SSR-safe.
      * - a `number` ∈ [0, 1] — the AMPLITUDE INTENSITY: under an active query
-     *   the spring keeps its trajectory SHAPE (curve + settle time) but scales
-     *   its displacement-from-rest (`originValue − targetValue`) to this
-     *   fraction. At `0.3` the peak overshoot is 30 % of the full-intensity
-     *   peak; the envelope is preserved by construction (the analytic form
-     *   makes the scaling exact and free). `1` ≈ full motion, `0` ≡ the snap.
+     *   the spring keeps its trajectory SHAPE (the normalised curve) but
+     *   scales its displacement-from-rest (`originValue − targetValue`) to
+     *   this fraction. At `0.3` the peak overshoot is 30 % of the
+     *   full-intensity peak (the analytic form makes the scaling exact and
+     *   free). The thresholds are absolute, so the shorter travel settles
+     *   SOONER: `settleTime` over `s · D` (see `settleTime`). `1` ≈ full
+     *   motion, `0` ≡ the snap.
      *
      * The scale is the CONSUMER's policy (a settings slider, a per-animation
      * field) — the OS exposes only a binary signal; kf provides the mechanism.
