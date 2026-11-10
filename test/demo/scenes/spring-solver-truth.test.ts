@@ -452,19 +452,12 @@ describe("(17) KFA-151 + KFA-212 — the readout leaves rest the moment motion s
     });
 });
 
-describe("(18) KFA-213 — the status badge's skin reads the state its words read", () => {
-    it("the badge class derives from stateLabel, never from liveSettled directly", () => {
-        // X.KF.W13X.sections (A2-KE-L1-8): the badge is authored once, in the
-        // shared SceneStageHeader, whose skin and words both read its `status`;
-        // the spring hands it `stateLabel`.
+describe("(18) KFA-213 → restraint (§0hz.canon K7) — the state is spoken, never painted", () => {
+    it("the stage header carries no status badge; stateLabel is the spring's live region", () => {
         const src = sfc("SpringTarget.vue");
-        const status = src.match(/<SceneStageHeader[^>]*?:status="([^"]*)"/)?.[1] ?? "";
-        expect(status, "the stage header's status binding").not.toBe("");
-        expect(status).toMatch(/stateLabel/);
-        expect(status).not.toMatch(/liveSettled/);
+        expect(src).not.toMatch(/<SceneStageHeader[^>]*?:status=/);
+        expect(src).toMatch(/<span class="sr-only" role="status">\{\{ stateLabel \}\}<\/span>/);
         const header = readFileSync(resolve(process.cwd(), "demo/scenes/SceneStageHeader.vue"), "utf8");
-        const badge = header.match(/class="status-badge[^"]*"\s*:class="([^"]*)"/)?.[1] ?? "";
-        expect(badge, "the status badge's class binding").not.toBe("");
-        expect(badge).toMatch(/\bstatus\b/);
+        expect(header).not.toMatch(/class="status-badge/);
     });
 });

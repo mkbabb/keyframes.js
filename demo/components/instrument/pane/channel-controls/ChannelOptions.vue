@@ -115,8 +115,8 @@
                                      where it leads: an unset op is the default
                                      composite, "replace" (it fell to "", a bare
                                      chevron over an empty value column). -->
-                                <span class="ms-auto min-w-0 truncate font-normal text-muted-foreground">{{
-                                    blendAvailable ? (layerConfig?.op ?? "replace") : "single-target only"
+                                <span v-if="blendAvailable" class="ms-auto min-w-0 truncate font-normal text-muted-foreground">{{
+                                    layerConfig?.op ?? "replace"
                                 }}</span>
                                 <ChevronRight class="icon-sm" />
                             </Button>
@@ -174,18 +174,7 @@
                                  Timeline, Stagger); "layer" is not a CSS term, so it
                                  does not keep the row label's lower-case echo the
                                  way "cubic-bézier" does. -->
-                            <SubPaneHeader ref="layerHeaderEl" title="Layer" @back="closePane">
-                                <!-- X-DS r9 pass 17 (KF-C17-03) — the caption's
-                                     closing phrase is one unbreakable run, so the
-                                     line never breaks at the compound's hyphen
-                                     ('single-' / 'target groups'); with the
-                                     caption's `text-pretty` the break falls before
-                                     it. The copy is unchanged. -->
-                                <template #caption>
-                                    <template v-if="blendAvailable">How this channel blends with the others</template>
-                                    <template v-else>Layer compositing applies to <span class="whitespace-nowrap">single-target groups</span></template>
-                                </template>
-                            </SubPaneHeader>
+                            <SubPaneHeader ref="layerHeaderEl" title="Layer" @back="closePane" />
                             <!-- H.W11.I1 — LayerConfigPanel's rows join the SAME
                                  label-column subgrid idiom (one DRY source,
                                  design-idioms.css §LABEL-subgrid). KF-CO-1 /

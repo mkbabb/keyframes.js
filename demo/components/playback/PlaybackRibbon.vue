@@ -56,6 +56,7 @@
                                 class="py-2"
                                 variant="scrubber"
                                 aria-label="Scrub animation timeline"
+                                :value-text="() => timeReadout"
                                 :min="0"
                                 :max="effectiveDuration"
                                 :step="scrubStep"
@@ -72,7 +73,6 @@
                     <TooltipContent>Scrub animation timeline</TooltipContent>
                 </Tooltip>
             </LabeledField>
-            <output class="param-value" aria-hidden="true">{{ timeReadout }}</output>
         </div>
 
         <!-- UIA-KF-051 · UIA-KF-155 (X.KF.W13X.transport) — ONE TRANSPORT. The
@@ -161,6 +161,7 @@
 </template>
 
 <script setup lang="ts">
+import { formatMs } from "@utils/formatNumber";
 // The `.btn-playback` skin the Reverse cell wears is NOT authored here: it lives in
 // demo/styles/playback-idiom.css, pulled in by design-idioms.css, and lands on
 // glass-ui's <Button> DOM shared with the scene play buttons. This file authors
@@ -343,9 +344,12 @@ const railT = computed<EffectiveMs>(() => gestureT.value ?? currentT);
 /** X-DS pass 10 (KF-C10-02) — the time row's readout: elapsed over the rail's
  *  ONE duration read, in ms; a normalized source (no declared scale) reads as
  *  a percentage, since its rail is [0, 1] and not milliseconds. */
+/** K12 (value.js §0hz.canon) — the playhead's time is spoken, not drawn: a
+ *  readout rewritten every frame beside the rail that already shows it forced
+ *  a layout per frame and restated the rail (C-78: no value label). */
 const timeReadout = computed(() => {
     return railInMs.value
-        ? `${Math.round(railT.value)} / ${Math.round(effectiveDuration.value)} ms`
+        ? `${formatMs(railT.value)} of ${formatMs(effectiveDuration.value)}`
         : `${Math.round(railT.value * 100)} %`;
 });
 

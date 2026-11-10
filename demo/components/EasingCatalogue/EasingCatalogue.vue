@@ -36,8 +36,10 @@
              down (`--type-small`, under the family headings they filter), the
              row no longer wraps, and the collapse to the Select is driven by a
              measured "does not fit one row" as well as the lg floor. -->
+        <!-- K6 (value.js §0hz.canon, C-42) — glass's default tabs (the loupe
+             pill); where the ten families do not fit one row, glass's own
+             responsive Select stands in. -->
         <SegmentedTabs
-            variant="underline"
             semantics="toggle"
             class="catalogue-filter"
             :options="familyOptions"
@@ -51,7 +53,7 @@
              strip's own paper hairline when the strip shows (a second rule
              under it read as a double line), this Separator when the filter
              is glass's collapsed Select. -->
-        <Separator v-if="!filterIsStrip" class="catalogue-divider" />
+        <Separator class="catalogue-divider" />
 
         <!-- X-DS r5 pass 5 (KF-C5-09) — the stage's drawer lands its fold on
              a row (`landDrawer`, the script), as the rail's scrollers do. -->
@@ -651,7 +653,7 @@ watch(
     min-width: 0;
 }
 
-/* ── 1 · the family filter: glass's underline strip, one row ── */
+/* ── 1 · the family filter: glass's default strip, one row ── */
 /* The options keep their own widths (glass's underline is a flex row) and the
    row never wraps: where ten do not fit, the filter is glass's Select
    (`filterIsStrip`, measured). KF-C4-01 — the labels read glass's own type
@@ -871,7 +873,6 @@ watch(
 }
 .specimen-tile[data-state="on"] .tile-name {
     color: var(--foreground);
-    font-weight: 600;
 }
 @media (forced-colors: active) {
     .specimen-tile[data-state="on"] {

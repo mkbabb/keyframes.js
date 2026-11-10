@@ -159,7 +159,8 @@ describe("X.KF.W13X.springd — the Entry view's states and surfaces", () => {
         try {
             const name = w.get(".entry-caption .entry-preset");
             expect(name.text()).toMatch(/smooth/i);
-            expect(name.classes()).toEqual(expect.arrayContaining(["font-medium", "text-foreground"]));
+            expect(name.classes()).toContain("text-foreground");
+            expect(name.classes()).not.toContain("font-medium");
             expect(w.find('[data-stub="Chip"]').exists()).toBe(false);
             expect(w.find(".active-preset-chip").exists()).toBe(false);
         } finally {

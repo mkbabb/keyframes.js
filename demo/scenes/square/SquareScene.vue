@@ -45,7 +45,6 @@
              neither oriented. -->
         <SceneStageHeader
             title="Square"
-            :status="settled ? 'settled' : 'tracking'"
             class="square-telemetry"
             aria-hidden="true"
             title-class="square-telemetry-title leading-none"
@@ -140,13 +139,13 @@
                     Home re-centres it; End sends it to the far corner; press C to
                     trace the travel envelope; double-tap to tumble.
                 </SubjectAxes>
-                drag me
             </div>
         </div>
     </Card>
 </template>
 
 <script setup lang="ts">
+import { formatNumber } from "@utils/formatNumber";
 import {
     computed,
     markRaw,
@@ -246,7 +245,7 @@ const deflY = ref(0);
  * KF-C20-01: the format moved with the header from SquareInstrument to this
  * scene, which owns the deflection it reports.)
  */
-const signed = (v: number) => `${v < 0 ? "−" : "+"}${Math.abs(v).toFixed(2)}`;
+const signed = (v: number) => formatNumber(v, 2, { fixed: true, pad: true });
 const readoutX = computed(() => signed(deflX.value));
 const readoutY = computed(() => signed(deflY.value));
 // C-6 + D-5 — TWO EGGS, TWO DISCLOSURES. One `tumbleHintShown` flag gated two

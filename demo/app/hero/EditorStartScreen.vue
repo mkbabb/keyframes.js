@@ -124,17 +124,6 @@
              phone column can stack it BELOW the cube (the headline sits
              above); on desktop the block flows exactly as the two lines did. -->
         <div class="hero-sub">
-            <!-- X-DS r7 pass 5 (KF-C5-04) — THE SENTENCE NAMES WHERE THINGS
-                 ARE. "from the list ☰ below" was ORIGIN's copy, when the scene
-                 list sat in the bottom toolbar beside Play; the list now lives
-                 in the glass dock at the top, and no list glyph is drawn
-                 anywhere, so the inline glyph named nothing (the canon's
-                 "every glyph has a home"). The deck now points at the dock
-                 above and the Play below, in words; the glyph and its rule
-                 are deleted. -->
-            <h2 class="start-screen-prose hero-deck">
-                    from the dock above, then press Play below.
-            </h2>
             <h2 v-if="hint" class="start-screen-prose hero-hint">
                 {{ hint }}
             </h2>
@@ -280,17 +269,6 @@ h1.hero-display {
    KF-EST-20 — the inert `w-full` utilities are gone from both `<h2>`s: a block
    element already fills its container's inline axis, and neither was overriding
    anything. */
-.hero-deck {
-    margin-block-start: 0.75rem;
-    font-family: var(--font-display);
-    font-style: italic;
-    font-weight: 400;
-    font-size: var(--type-title);
-    line-height: 1.15;
-    color: var(--foreground);
-    opacity: 0.85;
-}
-
 .hero-hint {
     margin-block-start: 0.35rem;
     font-family: var(--font-display);
@@ -378,11 +356,6 @@ h1.hero-display {
         font-size: var(--type-display-4, var(--type-title));
     }
 
-    .hero-deck {
-        text-wrap: balance;
-        font-size: clamp(1.5rem, 6.2cqi, var(--type-title));
-    }
-
     .hero-hint {
         font-size: clamp(1.5rem, 5.4cqi, var(--type-title));
     }
@@ -415,7 +388,6 @@ h1.hero-display {
         grid-row: 1;
         grid-column: 3;
     }
-    .hero-deck,
     .hero-hint {
         font-size: clamp(1rem, 5.5dvh, var(--type-title));
     }

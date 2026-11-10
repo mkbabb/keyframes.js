@@ -397,33 +397,6 @@
     background-repeat: repeat;
 }
 
-/* .status-badge family — the caption-rung status tint, parameterized by --badge-tone.
-   AA-CONTRAST (load-bearing): the tint paints --badge-tone at --badge-tint (14%); the
-   text pushes it toward --foreground at --badge-text-mix (50%) so it reads ≥4.5:1
-   against the tint in both themes. .settled→--color-progress · .tracking→--muted ·
-   .reverse→--rainbow-violet. */
-.status-badge {
-    --badge-tone: var(--color-progress);
-    --badge-tint: 14%;
-    --badge-text-mix: 50%;
-    background: color-mix(in srgb, var(--badge-tone) var(--badge-tint), transparent);
-    color: color-mix(in srgb, var(--badge-tone) var(--badge-text-mix), var(--foreground));
-    /* A status WORD is a UI label, not data: the badge rides the Jakarta body
-       register at medium (call-sites compose text-mono-micro — glass 8.0.0's successor
-       to text-admin-label — plus `uppercase` for the SIZE and case rungs
-       only; this un-layered rule out-cascades that utility's mono family bind). */
-    font-family: var(--font-text);
-    font-weight: 500;
-}
-.settled-badge {
-    --badge-tone: var(--color-progress);
-}
-/* The neutral tracking tint reads --muted directly (overrides the tint + text, not the AA mix). */
-.tracking-badge {
-    background: color-mix(in srgb, var(--muted) 60%, transparent);
-    color: var(--muted-foreground);
-}
-
 /* .disclosure-chevron — X-DS pass 15 (KF-C15-01): the app's ONE chevron-row
    disclosure (a quiet glass Button as the CollapsibleTrigger, a ChevronRight,
    the row's name). It turns a quarter when its trigger is open. Stated once:
@@ -519,7 +492,9 @@
     justify-self: end;
     align-self: start;
     font-family: var(--font-mono);
-    font-size: var(--type-caption);
+    /* K9 (value.js §0hz.canon, C-52) — the value is never smaller than its
+       label: it takes the label's own control rung, which scales with it. */
+    font-size: var(--control-label);
     line-height: var(--type-small--line-height, 1.5);
     font-variant-numeric: tabular-nums;
     color: var(--foreground);

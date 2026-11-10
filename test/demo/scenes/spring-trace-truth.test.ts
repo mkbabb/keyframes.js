@@ -302,26 +302,20 @@ describe("SpringTrace — the mount (N-1 · D-2/N-4 · L-5 · D-6)", () => {
         }
     });
 
-    // X.KF.W13V.y (OA-51; DESIGN-NOTE N-5 · N-6) — the readout is the figure's
-    // ONE legend line, muted: the stage's single violet readout is the ball's
-    // position, so the figure no longer wears the accent. The register clauses
-    // (lowercase ζ, case-preserving mono, tabular) are unchanged.
-    it("(5b) the legend is lowercase ζ in the case-preserving mono register, on one muted line", () => {
+    // §0hz.canon K7 — the figure carries no title row and no legend line (the
+    // "Sampled curve" heading and "ζ … · peak …" restated the pane); the numbers
+    // stay in the figure's accessible name.
+    it("(5b) no standing title or legend; the figure's name keeps ζ and the peak", () => {
         const wrapper = mount(SpringTraceComponent, {
             props: { response: 0.5, dampingFraction: 0.86 },
         });
         try {
-            const readout = wrapper.find("[data-figure-legend].code-token");
-            expect(readout.classes()).not.toContain("readout-accent");
-            expect(readout.classes()).toContain("whitespace-nowrap");
-            expect(readout.exists()).toBe(true);
-            expect(readout.classes()).toContain("tabular-nums");
-            expect(readout.classes()).not.toContain("text-mono-caption");
-            // No ELEMENT wears the uppercasing utility (the template's own comment
-            // names it, so this is a query, not a substring search).
+            expect(wrapper.find("[data-figure-legend]").exists()).toBe(false);
+            expect(wrapper.find("[data-figure-title]").exists()).toBe(false);
             expect(wrapper.findAll(".text-mono-caption")).toHaveLength(0);
-            expect(readout.text()).toContain("ζ 0.86");
-            expect(readout.text()).toContain(`peak ${peakOf(0.5, 0.86).toFixed(3)}`);
+            const label = wrapper.get('[role="img"]').attributes("aria-label") ?? "";
+            expect(label).toContain("ζ 0.86");
+            expect(label).toContain(`peaking at ${peakOf(0.5, 0.86).toFixed(3)}`);
         } finally {
             wrapper.unmount();
         }

@@ -115,10 +115,11 @@ describe("A2-KE-L1-18 — the Square's per-axis values are read-outs, never an i
             // X.KF.W13X.r3res2c (§0fj 3) — the read-outs read the box's painted
             // deflection, so they arrive with the chase, not ahead of it: read
             // them once the springs report rest.
-            const badge = () => wrapper.find(".square-telemetry [class*=badge]").text();
+            // §0hz.canon K7 — no badge: the rest is the legend's data-resting.
+            const resting = () => wrapper.find(".square-legend").attributes("data-resting") !== undefined;
             await vi.waitFor(
                 () => {
-                    expect(badge()).toBe("settled");
+                    expect(resting()).toBe(true);
                     expect(texts()).toEqual(["x 0.25", "y 0.00"]);
                 },
                 { timeout: 4000, interval: 20 },

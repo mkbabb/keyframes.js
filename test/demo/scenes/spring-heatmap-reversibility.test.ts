@@ -363,7 +363,7 @@ describe("X.KF.W11.f (5a) — the heatmap mounts on two models and labels its ow
             field.element.dispatchEvent(up);
             await nextTick();
             expect(wrapper.vm.d).toBe(0.91);
-            expect(wrapper.get('[aria-live="polite"]').text()).toBe("0.50 s, ζ 0.91");
+            expect(wrapper.get('[aria-live="polite"]').text()).toBe("0.5 s, ζ 0.91");
         } finally {
             wrapper.unmount();
         }

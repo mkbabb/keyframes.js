@@ -21,32 +21,6 @@
          figure and takes the figure's remaining height (the plot box grows;
          its viewBox constants are unchanged, `preserveAspectRatio="none"`). -->
     <div class="flex w-full min-h-0 flex-1 flex-col">
-        <!-- The header row keeps the label-row idiom's `mb-2` (D-9; the sibling
-             sweep row it matched folded into this legend, §0dz) — and that 8 px gap is
-             also where the trace's glow lands at the ζ floor (D-13): the drawn peak
-             sits 0.67 px under the frame's top edge after the half-stroke, so the
-             ≤3 px glow extent overruns a 4 px gap and fits inside this one. -->
-        <!-- §0dz — the row WRAPS: with the sweep clause the legend no longer
-             fits beside the title at phone width, so it drops beneath it
-             (one unbroken line itself) instead of running over the title. -->
-        <div class="trace-title-row flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 mb-2">
-            <!-- D-11 — the primary slot names the plot; it no longer dresses the
-                 invariant stop count as a live readout (the count is a fact about
-                 the sampling grid and lives on the time axis, below). -->
-            <!-- X.KF.W13V.y (OA-51; DESIGN-NOTE N-5) — the title names the
-                 figure in plain words (it read the CSS function, `linear()`). -->
-            <span class="text-small text-foreground whitespace-nowrap" data-figure-title>Sampled curve</span>
-            <!-- D-2/N-4 — `.code-token` is the demo's case-preserving mono register:
-                 `text-mono-caption` sets `text-transform: uppercase` at the installed
-                 pin and rendered this ζ as Ζ (U+0396). `tabular-nums` stays (the
-                 mono contract's clause (b) licence). (D-10's accent is retired by X.KF.W13V.y — see below.) -->
-            <!-- X.KF.W13V.y (N-5 · N-6) — the figure's ONE legend line, muted: the
-                 stage's one violet readout is the ball's position (SpringTarget),
-                 so the figure's numbers no longer compete with it. -->
-            <span class="code-token tabular-nums text-muted-foreground whitespace-nowrap" data-figure-legend>
-                <template v-if="sweep !== undefined">sweep {{ sweep.toFixed(3) }} · </template>ζ {{ dampingFraction.toFixed(2) }} · peak {{ peak.toFixed(3) }}
-            </span>
-        </div>
         <!-- One figure for assistive tech: the plot's quantity as a sentence computed
              over the resolved points (never over the mapped {x, y} — K-5), with the
              marks and tick labels presentational beneath it. -->
@@ -141,7 +115,6 @@
                  carries `ms`, so the legend names the axis without restating it. -->
             <div class="flex items-baseline justify-between mt-1" aria-hidden="true">
                 <span class="plot-tick code-token tabular-nums text-muted-foreground">0</span>
-                <span class="text-caption text-muted-foreground">time · {{ points.length }} stops</span>
                 <span class="plot-tick code-token tabular-nums text-muted-foreground">{{ horizonMs }} ms</span>
             </div>
         </div>
@@ -312,10 +285,7 @@ import { computed } from "vue";
 import { useSpringLinearStops } from "./useSpringLinearStops";
 import { springHorizonMs } from "./springHorizon";
 
-// `sweep` — the timing-function sweep's sampled value (the sampler ball's
-// height), printed in the figure's one legend line (§0dz: the stage's stray
-// readout row folded into the figure it describes).
-const props = defineProps<{ response: number; dampingFraction: number; sweep?: number }>();
+const props = defineProps<{ response: number; dampingFraction: number }>();
 
 // The `linear(0, 0.234 4.17%, …, 1)` string from the shared emitter (the
 // springLinearStops() dogfood — the engine's own), resolved to (t, value) points

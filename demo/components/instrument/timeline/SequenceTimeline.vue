@@ -67,9 +67,6 @@
                         <RotateCcw class="icon-sm" />
                     </Button>
                 </template>
-                <p class="text-caption text-muted-foreground tabular-nums m-0" data-readout="secondary">
-                    {{ source.lanes().length }} items &middot; {{ source.duration() }} ms
-                </p>
                 <SequenceLanes :source="source" />
             </ConfiguratorLayer>
         </div>

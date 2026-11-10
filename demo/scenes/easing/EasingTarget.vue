@@ -26,26 +26,14 @@
         class="easing-target easing-gallery flex h-full w-full flex-col gap-4
             overflow-hidden px-(--stage-plate-pad-inline) py-(--stage-plate-pad-block)"
     >
-        <!-- Header: the selected specimen PROMOTED. Left — the curve name at
-             the Instrument-Serif display rung + its COMPLETE re-parseable
-             literal (Fira Code + CopyButton, never truncated). The family filter
-             lives in the catalogue below (X.KF.W13W.p). -->
-        <!-- X.KF.W13X.sections (A2-KE-L1-8) — the ONE SceneStageHeader; the
-             title slot keeps the specimen-name swap (a keyed Transition). -->
+        <!-- K1 (value.js §0hz.canon, C-78 "remove the "ease" title") — the
+             header carries no curve-name title: the selected tile names the
+             curve. It keeps the curve's COMPLETE re-parseable literal and its
+             copy control. -->
         <SceneStageHeader
             class="gallery-header shrink-0"
             id-class="flex flex-wrap items-baseline gap-x-3.5 gap-y-1 min-w-0"
         >
-            <template #title>
-                <Transition name="specimen-name" mode="out-in">
-                    <h2
-                        :key="demo.currentEasingName.value"
-                        class="specimen-name text-display text-foreground"
-                    >
-                        {{ demo.currentEasingName.value }}
-                    </h2>
-                </Transition>
-            </template>
             <template #readouts>
                 <span class="specimen-literal" data-register="code">
                     <!-- UIA-KF-091 — one print per fact: an engine-named

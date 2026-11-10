@@ -298,7 +298,8 @@ describe("ME-42/ME-43 — the digit policy states the EDIT representation", () =
         expect(matrixCellEditText(LOSSY)).toBe(String(LOSSY));
         // The display arm is still the tabular column it always was.
         expect(matrixCellDisplayText(1)).toBe("1");
-        expect(matrixCellDisplayText(-1000)).toBe("-1000");
+        // K10 (value.js §0hz.canon) — the shared formatter's true minus.
+        expect(matrixCellDisplayText(-1000)).toBe("\u22121000");
     });
 
     it("the EDIT representation round-trips; the DISPLAY one is what destroyed precision", () => {

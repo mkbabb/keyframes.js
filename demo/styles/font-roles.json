@@ -21,12 +21,6 @@
             "note": "the home hero, measured at its per-CHAR leaves (T.D10 — the census sees LEAVES, and the h1 hosts only spans): Instrument Serif at its one TRUE weight, roman (T.D2 honest ink; the φ-band seat landed at T.D9, OD-4 APPROVED). KF-AT-24 fold: this row is the ONE home of AnimatedText's two private class strings — `scripts/gates/register-census.mjs` exports them and `scripts/observe/demo/usability.mjs` reads them from there, so a rename to `kf-split` REDs BOTH instruments instead of silently voiding both."
         },
         {
-            "role": "hero-deck",
-            "selector": ".hero-deck",
-            "expect": { "voice": "display", "weight": 400, "style": "italic" },
-            "note": "T.D11 (OD-4) — the home deck joins the poster's voice: Instrument Serif TRUE italic 400 at --type-title (the serif-italic deck ramp; the bold-italic system-sans register is dead)"
-        },
-        {
             "role": "hero-hint",
             "selector": ".hero-hint",
             "expect": { "voice": "display", "weight": 400, "style": "italic" },

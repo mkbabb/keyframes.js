@@ -200,7 +200,7 @@
                              only edge treatment. -->
                         <h3
                             :id="`kf-shortcut-group-${group}`"
-                            class="text-small font-semibold text-foreground mb-1 px-2"
+                            class="text-small text-foreground mb-1 px-2"
                         >
                             {{ group }}
                         </h3>

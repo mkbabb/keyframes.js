@@ -84,7 +84,7 @@
                  reservation still holds. The `toFixed(1)` micro-note ("1.0x"
                  beside a bar whose own guard says otherwise) is carried, not
                  cured here. -->
-            <span class="timeline-zoom-readout text-mono-caption text-muted-foreground shrink-0 tabular-nums">{{ zoomLevel.toFixed(1) }}x</span>
+            <span class="timeline-zoom-readout text-mono-caption text-muted-foreground shrink-0 tabular-nums">{{ formatNumber(zoomLevel, 1) }}x</span>
         </div>
         </div>
         </div>
@@ -284,6 +284,7 @@
 </template>
 
 <script setup lang="ts">
+import { formatNumber } from "@utils/formatNumber";
 import { computed, useId, useTemplateRef } from "vue";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@mkbabb/glass-ui/tooltip";
 import { clamp } from "@mkbabb/value.js/math";
