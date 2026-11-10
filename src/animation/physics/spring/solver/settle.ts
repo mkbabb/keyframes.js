@@ -24,6 +24,8 @@ export interface SpringSettleOptions
 
 /** Backward-scan resolution, as a fraction of `response`. */
 const SCAN_DIVISIONS = 4096;
+/** Halvings of one scan interval before an exit is ruled out (h / 2^20). */
+const LEAF_DEPTH = 20;
 /** Horizon cap, as a multiple of `response`: beyond it the spring never settles. */
 const HORIZON_CAP = 2 ** 32;
 
@@ -34,8 +36,11 @@ const HORIZON_CAP = 2 ** 32;
  * there: the LAST time it is outside. After it, the spring never leaves.
  *
  * Pass `velocitySettleThreshold: Infinity` for an envelope on position alone.
- * Returns `Infinity` for an undamped spring (ζ = 0) that starts outside the
- * envelope. Pure and server-safe; reduced motion is not an input.
+ * Returns `Infinity` when the solver's trajectory never settles: an undamped
+ * spring (ζ = 0) that starts outside the envelope, or one damped so hard
+ * (ζ ≳ 1e8) that the solver's slow root rounds to 0 in floating point and the
+ * spring never moves. An exit is found down to `response / 2^32` s. Pure and
+ * server-safe; reduced motion is not an input.
  *
  * @example
  * settleTime({ response: 0.5, dampingFraction: 0.45 }); // ≈ 1.6 (seconds)
@@ -52,11 +57,11 @@ export function settleTime(opts: SpringSettleOptions): number {
     if (!(response > 0) || !Number.isFinite(response)) {
         throw new RangeError(`settleTime: response must be finite and > 0; got ${response}.`);
     }
-    if (!(zeta >= 0)) {
-        throw new RangeError(`settleTime: dampingFraction must be >= 0; got ${zeta}.`);
+    if (!(zeta >= 0) || !Number.isFinite(zeta)) {
+        throw new RangeError(`settleTime: dampingFraction must be finite and >= 0; got ${zeta}.`);
     }
-    if (!(eps > 0)) {
-        throw new RangeError(`settleTime: settleThreshold must be > 0; got ${eps}.`);
+    if (!(eps > 0) || !Number.isFinite(eps)) {
+        throw new RangeError(`settleTime: settleThreshold must be finite and > 0; got ${eps}.`);
     }
     if (!(epsV > 0)) {
         throw new RangeError(
@@ -75,6 +80,8 @@ export function settleTime(opts: SpringSettleOptions): number {
     // ── Analytic decay bound: E_x(t) ≥ |x(t)|, E_v(t) ≥ |v(t)|, non-increasing
     // from `onset`. Same coefficients as `solvePreparedDampedHarmonic`.
     let bound: (t: number) => [number, number];
+    // sup of the bound over [t, t + w]; the bound itself where it never rises.
+    let supBound: (t: number, w: number) => [number, number] = (t) => bound(t);
     let onset = 0;
     if (zeta < 1) {
         const A = x0;
@@ -95,6 +102,11 @@ export function settleTime(opts: SpringSettleOptions): number {
         bound = (t) => {
             const d = Math.exp(-omega * t);
             return [d * (cA + aB * t), d * (cV + omega * aB * t)];
+        };
+        // e^{−ωs}(c + k·s) ≤ e^{−ωt}(c + k·(t + w)) for s ∈ [t, t + w].
+        supBound = (t, w) => {
+            const d = Math.exp(-omega * t);
+            return [d * (cA + aB * (t + w)), d * (cV + omega * aB * (t + w))];
         };
     } else {
         const disc = omega * Math.sqrt(zeta * zeta - 1);
@@ -128,35 +140,53 @@ export function settleTime(opts: SpringSettleOptions): number {
         else lo = mid;
     }
 
-    // ── Backward scan on the closed form: the last sample outside the envelope.
+    // ── Backward scan on the closed form for the LAST exit. A sample alone
+    // cannot see an exit between samples, so each interval [a, a + w] is
+    // CERTIFIED inside from x(a), v(a) and the decay bound's sup over it
+    // (|x| grows by at most w·sup|v|, |v| by at most w·sup|a|, with
+    // |a| ≤ ω²|x| + 2ζω|v|), and halved where it cannot be.
     const out = { x: 0, v: 0 };
-    const outside = (t: number): boolean => {
+    const solve = (t: number): void => {
         solvePreparedDampedHarmonic(
             x0,
             v0,
             prepareDampedHarmonic(omega, zeta, omegaD, t),
             out,
         );
+    };
+    const outside = (t: number): boolean => {
+        solve(t);
         return !(Math.abs(out.x) < eps && Math.abs(out.v) < epsV);
     };
+    const certified = (a: number, w: number): boolean => {
+        solve(a);
+        const [sx, sv] = supBound(a, w);
+        const sa = omega * omega * sx + 2 * zeta * omega * sv;
+        return Math.abs(out.x) + w * sv < eps && Math.abs(out.v) + w * sa < epsV;
+    };
+    // The rightmost leaf [a, b] of [lo, hi] whose left end is outside (b is
+    // inside, and so is everything after it), or null when [lo, hi] is inside.
+    const lastLeaf = (lo: number, hi: number, depth: number): [number, number] | null => {
+        if (certified(lo, hi - lo)) return null;
+        if (depth === 0) return outside(lo) ? [lo, hi] : null;
+        const mid = (lo + hi) / 2;
+        return lastLeaf(mid, hi, depth - 1) ?? lastLeaf(lo, mid, depth - 1);
+    };
     const h = response / SCAN_DIVISIONS;
-    let hi = H;
-    let t = H - h;
-    while (t > 0 && !outside(t)) {
-        hi = t;
-        t -= h;
+    for (let b = H; b > 0; ) {
+        const a = Math.max(0, b - h);
+        const leaf = lastLeaf(a, b, LEAF_DEPTH);
+        if (leaf) {
+            // Bracket [outside, inside]: bisect to the exit.
+            let [lo, hi] = leaf;
+            for (let i = 0; i < 40; i++) {
+                const mid = (lo + hi) / 2;
+                if (outside(mid)) lo = mid;
+                else hi = mid;
+            }
+            return hi;
+        }
+        b = a;
     }
-    if (t <= 0) {
-        if (!outside(0)) return 0;
-        t = 0;
-    }
-    // Bracket [t outside, hi inside]: bisect to the exit.
-    let a = t;
-    let b = hi;
-    for (let i = 0; i < 40; i++) {
-        const mid = (a + b) / 2;
-        if (outside(mid)) a = mid;
-        else b = mid;
-    }
-    return b;
+    return 0;
 }

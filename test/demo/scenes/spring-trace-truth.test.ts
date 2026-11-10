@@ -184,7 +184,7 @@ describe("SpringTrace — the resolved stops are the engine's own samples (L-10 
 
                 // The horizon the axis names is the horizon the emitter sampled at.
                 const horizonSeconds = springHorizonMs(response) / 1000;
-                const samples = sampleNormalizedSpring({
+                const { positions: samples } = sampleNormalizedSpring({
                     response,
                     dampingFraction,
                     sampleCount: SAMPLE_COUNT,

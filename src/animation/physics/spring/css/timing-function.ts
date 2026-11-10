@@ -34,10 +34,10 @@ export interface SpringTimingFunctionOptions {
      * time that normalized `t = 1` maps to. Default 4 × response
      * (covers ~99% of the envelope for ζ ≥ 0.3). Increase for very
      * underdamped springs (ζ < 0.3) whose tail rings past the cap.
-     * `"settle"` spans the spring's own `settleTime` under
-     * `settleThreshold`, so the pinned `fn(1) = 1` jumps by at most
-     * `settleThreshold`; it throws a `RangeError` for an undamped spring
-     * (ζ = 0).
+     * `"settle"` spans exactly `settleTime(opts)` (call it with the same
+     * options to read the span), so the pinned `fn(1) = 1` jumps by at most
+     * `settleThreshold`; it throws a `RangeError` when that is `Infinity`
+     * (ζ = 0, or ζ past floating-point range) or 0.
      */
     maxDuration?: number | "settle";
     /**
@@ -45,7 +45,9 @@ export interface SpringTimingFunctionOptions {
      * leg's distance, so the curve runs 0 → 1). `> 0` is already moving
      * toward the target; `< 0` is still heading away. Default 0 (the
      * unseeded curve). Time on the curve is `u = t / maxDuration`, so the
-     * slope at `u = 0` is `initialVelocity × maxDuration`.
+     * slope at `u = 0` is `initialVelocity × maxDuration`; `.fn` and `.css`
+     * add finer knots inside their first interval so their first segment
+     * leaves at that slope (within 2 %) instead of a whole step's chord.
      */
     initialVelocity?: number;
 }
@@ -65,15 +67,26 @@ export interface SpringTimingFunctionOptions {
  * const css = linearFromSamples(lut); // "linear(0 0%, … , 1 100%)"
  */
 export function springTimingLUT(opts: SpringTimingFunctionOptions): Float64Array {
+    return sampleSpringCurve(opts, resolveSpringSpan(opts)).lut;
+}
+
+/**
+ * The one sampling pass behind {@link springTimingLUT} and
+ * {@link springTimingFunction}: the evenly spaced table, plus the seeded head
+ * knots inside its first interval as `[u, position]` (empty unseeded).
+ */
+function sampleSpringCurve(
+    opts: SpringTimingFunctionOptions,
+    maxDuration: number,
+): { lut: Float64Array; head: Array<[number, number]> } {
     const sampleCount = opts.sampleCount ?? 64;
     const settleThreshold = opts.settleThreshold ?? 1e-3;
-    const maxDuration = resolveSpringSpan(opts);
 
     // Reuse the shared normalized-spring sampler — the same construct/step setup
     // `springLinearStops` drives (R.W1 §spring). No second integrator. The LUT
     // spaces its `sampleCount` interior points over `sampleCount`
     // sub-intervals; `samples[i]` is the position at normalized t = i / sampleCount.
-    const positions = sampleNormalizedSpring({
+    const { positions, head } = sampleNormalizedSpring({
         response: opts.response,
         dampingFraction: opts.dampingFraction,
         sampleCount,
@@ -88,7 +101,10 @@ export function springTimingLUT(opts: SpringTimingFunctionOptions): Float64Array
     }
     // Pin the final sample to the settled target so f(1) === 1 exactly.
     samples[sampleCount] = 1;
-    return samples;
+    return {
+        lut: samples,
+        head: head.map(([f, x]): [number, number] => [f / sampleCount, x]),
+    };
 }
 
 /**
@@ -121,12 +137,22 @@ export function springTimingFunction(
 ): Easing {
     // Resolve the span once, so `.fn` and `.css` sample the same one.
     const maxDuration = resolveSpringSpan(opts);
-    const samples = springTimingLUT({ ...opts, maxDuration });
+    const { lut: samples, head } = sampleSpringCurve(opts, maxDuration);
     const sampleCount = samples.length - 1;
+    // The seeded head's knots inside [0, 1/n], framed by (0, 0) and the LUT's
+    // first interior sample, so the curve leaves u = 0 at the seed's speed.
+    const knots: Array<[number, number]> = [[0, 0], ...head, [1 / sampleCount, samples[1]!]];
 
     const fn: TimingFunction = (t: number): number => {
         if (t <= 0) return 0;
         if (t >= 1) return 1;
+        if (head.length > 0 && t < knots[knots.length - 1]![0]) {
+            let j = 1;
+            while (knots[j]![0] < t) j++;
+            const [ua, xa] = knots[j - 1]!;
+            const [ub, xb] = knots[j]!;
+            return xa + ((xb - xa) * (t - ua)) / (ub - ua);
+        }
         const x = t * sampleCount;
         const i = Math.floor(x);
         const frac = x - i;

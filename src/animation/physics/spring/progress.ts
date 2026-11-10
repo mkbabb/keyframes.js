@@ -91,8 +91,8 @@ export class SpringProgress {
      * active query); a numeric policy under an active `prefers-reduced-motion`
      * query yields the intensity. `evaluateAt` solves toward a SCALED target
      * `origin + s·(target − origin)`, so the spring still starts at the origin
-     * but travels only `s ×` the full distance — the peak overshoot scales while
-     * the envelope (curve + settle time) is preserved by construction. Re-resolved
+     * but travels only `s ×` the full distance — the peak overshoot scales, the
+     * normalised curve is kept (absolute thresholds: it settles sooner). Re-resolved
      * per re-seat (not per frame) so a live OS toggle is honored at the next
      * target change, and the per-frame `evaluateAt` stays a field read — zero
      * extra `matchMedia` cost in the hot path.

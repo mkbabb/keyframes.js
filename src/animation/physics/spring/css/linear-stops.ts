@@ -26,10 +26,11 @@ export interface SpringLinearStopsOptions {
      * Upper bound on the sampled time span in seconds. Default 4 ×
      * response (covers ~99% of the envelope for ζ ≥ 0.3). Increase
      * if a very-underdamped spring (ζ < 0.3) is being sampled and
-     * the tail keeps ringing past the default cap. `"settle"` spans the
-     * spring's own `settleTime` under `settleThreshold`, so the
-     * pinned end stop jumps by at most `settleThreshold`; it throws a
-     * `RangeError` for an undamped spring (ζ = 0).
+     * the tail keeps ringing past the default cap. `"settle"` spans
+     * exactly `settleTime(opts)` (call it with the same options to read
+     * the span), so the pinned end stop jumps by at most
+     * `settleThreshold`; it throws a `RangeError` when that is `Infinity`
+     * (ζ = 0, or ζ past floating-point range) or 0.
      */
     maxDuration?: number | "settle";
     /**
@@ -62,7 +63,7 @@ export function springLinearStops(opts: SpringLinearStopsOptions): string {
     // The shared normalized-spring sampler (R.W1 §spring): construct → target=1
     // → step the solver. `springLinearStops` spaces its points over
     // `sampleCount + 1` sub-intervals (the implicit 0 + 1 frame the interior).
-    const positions = sampleNormalizedSpring({
+    const { positions, head } = sampleNormalizedSpring({
         response: opts.response,
         dampingFraction: opts.dampingFraction,
         sampleCount,
@@ -72,6 +73,12 @@ export function springLinearStops(opts: SpringLinearStopsOptions): string {
     });
 
     const stops: string[] = ["0"];
+    // A seeded curve's head: finer stops inside the first step, so the first
+    // segment leaves 0 at the seed's speed (finer decimals: the knots reach dt / 4096).
+    for (const [f, v] of head) {
+        const pct = (f / (sampleCount + 1)) * 100;
+        stops.push(`${v.toFixed(9)} ${pct.toFixed(6)}%`);
+    }
     for (let i = 1; i <= sampleCount; i++) {
         const pct = (i / (sampleCount + 1)) * 100;
         const v = positions[i - 1]!;
