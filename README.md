@@ -652,7 +652,8 @@ const seconds = settleTime({ response: 0.5, dampingFraction: 0.45 });
 seconds > 1.6 && seconds < 1.62; // => true
 // Position only (a settle band, no velocity check):
 settleTime({ response: 0.5, dampingFraction: 0.45, velocitySettleThreshold: Infinity }) < seconds; // => true
-settleTime({ response: 0.5, dampingFraction: 0 }); // => Infinity
+// An undamped spring never settles (Infinity):
+Number.isFinite(settleTime({ response: 0.5, dampingFraction: 0 })); // => false
 ```
 
 Options: `response`, `dampingFraction`, `initialVelocity` (travel/s, default 0), `settleThreshold` / `velocitySettleThreshold` (default `1e-3`, the same envelope as `SpringProgress`; `Infinity` drops the velocity check). Throws `RangeError` on a non-positive `response` or threshold, a negative `dampingFraction`, or a non-finite velocity. An undamped spring (ζ = 0) returns `Infinity`. Reduced motion is not an input: under `respectReducedMotion: true` the spring snaps (duration 0); under a numeric intensity the settle time is unchanged. The system is linear, so a live spring over distance `D` with absolute thresholds `ε` / `εv` and velocity `v` settles at `settleTime({ …, initialVelocity: v / D, settleThreshold: ε / D, velocitySettleThreshold: εv / D })`.

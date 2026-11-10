@@ -8,7 +8,7 @@
 import { settleTime } from "../solver/settle";
 
 /** The span inputs a sampled spring curve carries. */
-export interface SpringSpanOptions {
+interface SpringSpanOptions {
     response: number;
     dampingFraction: number;
     initialVelocity?: number;
