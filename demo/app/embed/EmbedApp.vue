@@ -44,11 +44,17 @@ bridge.onSetTheme((next) => {
             await nextTick();
         };
         type ViewTransitionDoc = Document & {
-            startViewTransition?: (cb: () => Promise<void>) => { updateCallbackDone: Promise<void> };
+            startViewTransition?: (cb: () => Promise<void>) => ViewTransition;
         };
         const doc = document as ViewTransitionDoc;
         if (scheme() !== next && doc.startViewTransition && !reducedMotion) {
-            await doc.startViewTransition(apply).updateCallbackDone.catch(() => undefined);
+            // A flip the platform aborts (a second flip, the frame hidden or
+            // navigated away) rejects all three promises; the flip itself has
+            // still applied, so none of them is an error here.
+            const t = doc.startViewTransition(apply);
+            t.ready.catch(() => undefined);
+            t.finished.catch(() => undefined);
+            await t.updateCallbackDone.catch(() => undefined);
         } else {
             await apply();
         }
