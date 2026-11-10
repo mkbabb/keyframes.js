@@ -139,10 +139,10 @@ describe("X.KF.W13W.p · OA-58 — the easing picker's one hierarchy", () => {
             expect(filter.querySelectorAll(".toggle-group__item")).toHaveLength(0);
             const labels = [...filter.querySelectorAll("button")].map((b) => b.textContent?.trim());
             expect(labels).toEqual(["All", ...SPECIMEN_GROUPS.map((g) => g.family)]);
-            // KF-C22-01 — the strip is glass's ruled underline: its own hairline
-            // is the divider, and the catalogue draws no second rule under it.
-            expect(filter.classList.contains("segmented-tabs--underline")).toBe(true);
-            expect(picker.querySelectorAll('[data-slot="separator"]')).toHaveLength(0);
+            // K6 (value.js §0hz.canon, C-42) — glass's default tabs, never the
+            // underline variant; the Separator divides the filter from the grid.
+            expect(filter.classList.contains("segmented-tabs--underline")).toBe(false);
+            expect(picker.querySelectorAll('[data-slot="separator"]')).toHaveLength(1);
             const grid = picker.querySelector(".specimen-grid")!;
             expect(filter.compareDocumentPosition(grid) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
         } finally {

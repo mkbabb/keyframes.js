@@ -169,7 +169,7 @@
                 "
             />
             <output class="weight-readout" aria-hidden="true">{{
-                layerConfig.weight.toFixed(2)
+                formatNumber(layerConfig.weight)
             }}</output>
         </div>
     </LabeledField>
@@ -191,6 +191,7 @@
 </template>
 
 <script setup lang="ts">
+import { formatNumber } from "@utils/formatNumber";
 import type { AnimationLayerConfig } from "@mkbabb/keyframes.js";
 import { LabeledField, LabeledSwitch } from "@mkbabb/glass-ui/labeled-field";
 import { Slider } from "@mkbabb/glass-ui/slider";

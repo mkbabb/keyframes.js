@@ -34,18 +34,6 @@
          y = +1 the box overhangs the field by half its size and ran under these
          lines, muted text printed across the subject's fill. -->
     <div class="square-legend" :data-resting="settled ? '' : undefined" aria-hidden="true">
-        <!-- T.A13 + T.B3 (fold row 69) — the stage caption naming the live
-             interaction. The G2 collapse is CURED: Play now drives the box's
-             honest four-corner tour (the editor panel RETURNED, editing a LIVE
-             anim), while a drag hands the box to the springs (a jump-free
-             takeover). This mono caption names those verbs. -->
-        <span class="text-caption text-muted-foreground"
-            >spring-chased &middot; drag the box, or press Play to tour it</span
-        >
-        <!-- X-DS pass 9 (KF-C9-01) — the case-preserving mono rung, so the
-             legend's x · y match the header readout's (an eyebrow rung printed
-             'X · Y'). -->
-        <span class="text-mono-small text-muted-foreground tabular-nums">x &middot; y &isin; [-1, 1]</span>
         <!-- D-12/D-17 — "double-CLICK" named a mouse-only verb for a recogniser
              (`useDoubleTap`) that exists BECAUSE dblclick was touch-unreachable.
              C-6 — and each hint now has its own flag: one `tumbleHintShown`

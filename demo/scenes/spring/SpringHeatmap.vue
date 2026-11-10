@@ -43,7 +43,7 @@
                          as the response, damping and time labels; `text-small`
                          set it one rung above the parameters it explains. The
                          chevron carries the disclosure. -->
-                    <span class="text-[length:var(--control-label)] leading-(--type-leading-small) font-medium text-foreground">Peak overshoot</span>
+                    <span class="text-[length:var(--control-label)] leading-(--type-leading-small) text-foreground">Peak overshoot</span>
                 </Button>
             </CollapsibleTrigger>
             <!-- X.KF.W13X.spring (UIA-KF-308) — while the pointer hovers the
@@ -54,7 +54,7 @@
                 class="text-caption text-foreground tabular-nums"
                 data-heatmap-hover
                 aria-hidden="true"
-            >{{ hoverNode.r.toFixed(2) }} s · ζ {{ hoverNode.d.toFixed(2) }} → {{ Math.round(overshoot(hoverNode.d) * 100) }} %</span>
+            >{{ formatSeconds(hoverNode.r) }} · ζ {{ formatNumber(hoverNode.d) }} → {{ formatNumber(overshoot(hoverNode.d) * 100, 0) }} %</span>
             <!-- X-DS pass 3 · KF-C3-06 — the legend rides the caption row (it
                  was the scroller's last row at rest, so the rail's end fade
                  ate it to ~1.7:1); KF-C3-11 — the ζ axis title went to its
@@ -82,7 +82,7 @@
                 {{ " " }}<span class="whitespace-nowrap">{{ LEGEND_TAIL }}</span>
             </span>
             <span :id="readoutId" class="sr-only">
-                {{ response.toFixed(2) }} s / ζ {{ dampingFraction.toFixed(2) }}
+                {{ formatSeconds(response) }} / ζ {{ formatNumber(dampingFraction) }}
             </span>
         </div>
 
@@ -187,9 +187,9 @@
 
                 <!-- The response axis. -->
                 <div class="spring-heatmap-x flex items-baseline justify-between gap-2 text-caption text-muted-foreground tabular-nums" aria-hidden="true">
-                    <span>{{ RESPONSE_AXIS.min.toFixed(1) }} s</span>
+                    <span>{{ formatSeconds(RESPONSE_AXIS.min) }}</span>
                     <span>response (s) →</span>
-                    <span>{{ RESPONSE_AXIS.max.toFixed(1) }} s</span>
+                    <span>{{ formatSeconds(RESPONSE_AXIS.max) }}</span>
                 </div>
             </div>
         </CollapsibleContent>
@@ -197,6 +197,7 @@
 </template>
 
 <script lang="ts">
+import { formatNumber, formatSeconds } from "@utils/formatNumber";
 // ── The field's MODEL — pure, exported, the gate witness ──────────────────────
 // The coordinate space the field and the facet's sliders share (one home for the
 // ranges: the sliders read their bounds from HERE), the lattice both input paths
@@ -344,9 +345,9 @@ export const CRITICAL_TOP = `${((1 - axisFraction(1, DAMPING_AXIS)) * 100).toFix
 export const UNDER_TAG_TOP = `${((1 - axisFraction(1, DAMPING_AXIS) / 2) * 100).toFixed(3)}%`;
 
 const ZETA_TICKS = [
-    { label: DAMPING_AXIS.max.toFixed(1), top: "0%" },
+    { label: formatNumber(DAMPING_AXIS.max), top: "0%" },
     { label: "1.0", top: CRITICAL_TOP },
-    { label: DAMPING_AXIS.min.toFixed(1), top: "100%" },
+    { label: formatNumber(DAMPING_AXIS.min), top: "100%" },
 ];
 
 /** The field's legend: the ramp's range and what alone sets it. */
@@ -468,7 +469,7 @@ const announced = ref("");
 function write(r: number, d: number): void {
     if (r !== response.value) response.value = r;
     if (d !== dampingFraction.value) dampingFraction.value = d;
-    announced.value = `${r.toFixed(2)} s, ζ ${d.toFixed(2)}`;
+    announced.value = `${formatSeconds(r)}, ζ ${formatNumber(d)}`;
 }
 
 // ── The marker — positioned by `transform: translate(<cqw>, <cqh>)` against the

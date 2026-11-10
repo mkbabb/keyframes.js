@@ -80,7 +80,7 @@
             class="kf-focus-ring timeline-caret-readout text-mono-caption text-primary leading-none cursor-pointer select-none whitespace-nowrap tabular-nums underline-offset-2"
             :class="
                 isSelected
-                    ? 'font-semibold underline decoration-solid decoration-2'
+                    ? 'underline decoration-solid decoration-2'
                     : 'decoration-dotted hover:underline'
             "
             :aria-controls="markerId"

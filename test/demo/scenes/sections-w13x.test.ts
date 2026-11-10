@@ -13,7 +13,7 @@
  *     glass `Configurator` the demo mounts with a stage and an aside wears
  *     `layout="detached"` (the served `da` probe reads the band itself).
  * (4) A2-KE-L1-8 — the scene stage header is ONE component: every stage site
- *     renders `SceneStageHeader`, and the status-badge markup exists once.
+ *     renders `SceneStageHeader`; no stage paints a status badge (restraint).
  * (5) A2-KE-L3-15 · UIA-KF-179 — the Timeline ribbon is ONE row with a lead
  *     action: the lead is labelled, the rest are named icon commands, no wrap;
  *     the row ends on the overflow that carries the four tools (r4panes).
@@ -98,9 +98,9 @@ describe("(4) A2-KE-L1-8 — one scene stage header", () => {
         expect(src).toMatch(/<SceneStageHeader\b/);
         expect(src).not.toMatch(/<CardHeader\b|<CardTitle\b/);
     });
-    it("the status-badge markup is authored once, in SceneStageHeader", () => {
+    it("no stage paints a status badge (restraint: the motion is the state)", () => {
         const owners = vueFiles("demo").filter((rel) => /class="status-badge\b/.test(read(rel)));
-        expect(owners).toEqual(["demo/scenes/SceneStageHeader.vue"]);
+        expect(owners).toEqual([]);
     });
 });
 

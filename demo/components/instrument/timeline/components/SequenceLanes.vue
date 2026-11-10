@@ -44,7 +44,7 @@
                  and its offset are one muted mono caption. The lane's tone
                  already keys the row. -->
             <span class="seq-lane-label text-mono-caption text-muted-foreground tabular-nums">
-                {{ lane.index + 1 }} @{{ Math.round(lane.at) }}ms
+                {{ formatMs(lane.at) }}
             </span>
         </template>
         <template #lane="{ lane, beginDrag }">
@@ -86,6 +86,7 @@
 </template>
 
 <script setup lang="ts">
+import { formatMs } from "@utils/formatNumber";
 import { computed, ref } from "vue";
 import { clamp } from "@mkbabb/value.js/math";
 import LaneTrack, { type LaneTrackBeginDrag, type LaneTrackTick } from "./LaneTrack.vue";

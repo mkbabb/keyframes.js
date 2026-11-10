@@ -407,7 +407,7 @@ describe("X.KF.W13X.square — the mounted scene rows", () => {
         const fill = fillOf(box);
         expect(fill === "" || deltaE(fill, REST) < 0.02).toBe(true);
         await nextTick();
-        expect(wrapper.find(".square-telemetry [class*=badge]").text()).toBe("settled");
+        expect(wrapper.find(".square-legend").attributes("data-resting")).toBeDefined();
         expect(mode()).toBe("idle");
         box.dispatchEvent(new KeyboardEvent("keydown", { key: "Home", bubbles: true, cancelable: true }));
         settle();

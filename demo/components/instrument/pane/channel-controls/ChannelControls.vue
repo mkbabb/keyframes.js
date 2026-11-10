@@ -203,6 +203,7 @@ const loadKeyframeTimeline = (): void => {
         KeyframeTimeline.value = markRaw(m.default);
     });
 };
+import { loadAnimationEngine } from "@mkbabb/keyframes.js";
 import ChannelOptions from "./ChannelOptions.vue";
 import { getChannelControlsState, getStoredAnimationGroupControlOptions } from "@state";
 
@@ -291,25 +292,28 @@ const keyframesControlsRef = useTemplateRef<InstanceType<typeof KeyframesStringC
 // The mounted timeline, docked or unfolded (one render, one place at a time).
 const timelineRef = shallowRef<InstanceType<typeof KeyframeTimelineComponent> | null>(null);
 
-// X-DS r4 pass 5 (KF-C24-05) — the channel's own parsed @keyframes (the
-// Keyframes surface's buffer, the store's per-channel record) and its stop
-// count, handed to the Timeline so its empty state can name what the scene
-// already runs instead of claiming there are no keyframes. Null on a draft
-// the engine does not hold.
+// The channel's own @keyframes, handed to the Timeline so it opens holding
+// them (K8, value.js §0hz.canon). The Keyframes surface's buffer is the source
+// when it has been projected; before that (a fresh visit straight to the
+// Timeline) the animation is emitted here, so the Timeline never claims "no
+// keyframes" over a scene running its keyframes. Null on a draft the engine
+// does not hold.
 const channelState = getChannelControlsState(animation);
-const sceneKeyframes = computed(() =>
-    channelState.parseState === "parsed" && channelState.keyframesText
-        ? {
-              css: channelState.keyframesText,
-              count: animation.templateFrames.length,
-              // X-DS r6 pass 9 (KF-C9-09) — where those stops sit (percent
-              // selectors only), so the empty track can draw them as ghosts.
-              stops: animation.templateFrames.flatMap((frame) =>
-                  frame.start.kind === "percent" ? [frame.start.value * 100] : [],
-              ),
-          }
-        : null,
-);
+const emittedCss = shallowRef("");
+const sceneKeyframes = computed(() => {
+    if (channelState.parseState !== "parsed") return null;
+    const css = channelState.keyframesText || emittedCss.value;
+    if (!css) return null;
+    return {
+        css,
+        count: animation.templateFrames.length,
+        // X-DS r6 pass 9 (KF-C9-09) — where those stops sit (percent
+        // selectors only), so the empty track can draw them as ghosts.
+        stops: animation.templateFrames.flatMap((frame) =>
+            frame.start.kind === "percent" ? [frame.start.value * 100] : [],
+        ),
+    };
+});
 
 // X-DS r6 pass 5 (KF-C5-01) → r6 pass 6 (KF-C6-01) — ONE SURFACE PER RAIL
 // POSITION, at every width. The timeline is the Timeline surface's body,
@@ -320,6 +324,16 @@ const sceneKeyframes = computed(() =>
 // sheet under it titleless and empty on the Timeline surface.
 const timelineShown = computed(
     () => Boolean(active) && storedControls.selectedControl === "timeline",
+);
+watch(
+    timelineShown,
+    async (shown) => {
+        if (!shown || channelState.keyframesText || emittedCss.value) return;
+        if (animation.templateFrames.length === 0) return;
+        const { CSSKeyframesToString, cssIdent, getAnimationId } = await loadAnimationEngine();
+        emittedCss.value = await CSSKeyframesToString(animation, cssIdent(getAnimationId(animation)));
+    },
+    { immediate: true },
 );
 const renderTimeline = (): VNode | null => {
     const Timeline = KeyframeTimeline.value;

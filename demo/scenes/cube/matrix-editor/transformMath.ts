@@ -1,3 +1,4 @@
+import { formatNumber } from "@utils/formatNumber";
 import type { CssCall, CssList, CssScalar, CssValue } from "@mkbabb/value.js/value";
 import { mat4 } from "gl-matrix";
 
@@ -249,8 +250,7 @@ export const matrix3dCss = (matrix: Matrix3dCall): string =>
    than an expression inlined in a template. */
 
 /** At rest: two decimals, the tabular column the 4×4 lattice reads as a grid. */
-export const matrixCellDisplayText = (value: number): string =>
-    (Math.round(value * 100) / 100).toFixed(2).replace(/\.0*$/, "");
+export const matrixCellDisplayText = (value: number): string => formatNumber(value, 2);
 
 /** While edited (and in the cell's `title`): the cell's FULL stored precision,
  *  so an edit opens on the true value and a committed-unchanged field

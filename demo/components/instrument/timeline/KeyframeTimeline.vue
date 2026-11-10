@@ -195,26 +195,8 @@
              holds it: the hint and its verb are one unit under the track, the
              verb wearing the ribbon's leading emphasis. The ribbon's Import
              stays the persistent one; this one leaves with the empty state. -->
-        <div
-            v-if="state.keyframes.length === 0 && sceneSummary"
-            class="flex flex-col items-start gap-2"
-        >
-            <p class="text-caption text-muted-foreground text-pretty">
-                <!-- X-DS r6 pass 9 (KF-C9-09) — the channel's name in the
-                     sentence's own face (a mono `code` run broke the line). -->
-                <span class="text-foreground">{{ sceneSummary.name }}</span>
-                has {{ sceneSummary.count }} {{ sceneSummary.count === 1 ? "keyframe" : "keyframes" }} in CSS —
-                import {{ sceneSummary.count === 1 ? "it" : "them" }} to edit here.
-            </p>
-            <!-- X-DS r9 pass 9 (KF-C9-04) — the lead IS the act: it imports
-                 the scene's own @keyframes in one press. The ribbon's Import
-                 keeps the paste editor. -->
-            <Button size="sm" emphasis="secondary" @click="importScene()">
-                <Download class="icon-sm" /> Import {{ sceneSummary.name }}
-            </Button>
-        </div>
         <p
-            v-else-if="state.keyframes.length === 0"
+            v-if="state.keyframes.length === 0 && !scene?.count"
             class="text-caption text-muted-foreground text-pretty"
         >
             No keyframes yet — snapshot the target's current pose, or import
@@ -359,15 +341,11 @@
                      never said which was import and which export", again).
                      Words alone, at the transport's slim `px-2`, fit the row
                      beside the lead and the overflow at 1440 and 390. -->
-                <div
-                    class="flex items-center justify-start gap-2"
-                    :class="importLeads ? '-ms-[calc(0.5rem_+_1px)]' : ''"
-                >
+                <div class="flex items-center justify-start gap-2">
                     <Button
                         size="sm"
-                        :emphasis="importLeads ? 'quiet' : 'secondary'"
+                        emphasis="secondary"
                         class="shrink-0 whitespace-nowrap"
-                        :class="importLeads ? 'px-2' : ''"
                         @click="snapshot()"
                     >
                         <Camera class="icon-sm" /> Snapshot
@@ -699,32 +677,25 @@ const openImportDialog = () => {
 };
 
 /**
- * X-DS r9 pass 9 (KF-C9-04) — the empty state's lead imports the scene's own
- * CSS directly; the hint already names what it holds, so a paste editor over a
- * scrim asking for a second "Import" was a detour. The import is awaited; if it
- * rejects, the paste editor opens on the scene's draft with the message in the
- * house toast, so nothing is lost.
+ * K8 (value.js §0hz.canon) — the timeline opens holding the scene's own
+ * @keyframes: when the scene's CSS arrives and the timeline is empty, it is
+ * imported, so the pane never says "No keyframes yet" over a scene running its
+ * keyframes, and no second Import verb is needed beside the ribbon's. Only a
+ * new scene triggers it; a user's Clear all stays cleared.
  */
-const importScene = async () => {
-    const scene = props.scene;
-    if (!scene) return;
-    try {
-        await importCSS(scene.css);
-    } catch (e) {
-        toast({ title: "Couldn't import the animation", description: (e as Error).message });
-        openImportDialog();
-    }
-};
-
-/** KF-C24-05 — the scene's own animation, named as its CSS names it. */
-const sceneSummary = computed(() => {
-    const scene = props.scene;
-    if (!scene || scene.count === 0) return null;
-    const name = /@keyframes\s+([^\s{]+)/.exec(scene.css)?.[1] ?? "This animation";
-    return { name, count: scene.count };
-});
-/** KF-C25-02 — the caption names Import, so Import leads the row. */
-const importLeads = computed(() => state.value.keyframes.length === 0 && sceneSummary.value !== null);
+watch(
+    () => props.scene,
+    async (scene, prev) => {
+        if (!scene || scene.count === 0 || scene === prev) return;
+        if (state.value.keyframes.length !== 0) return;
+        try {
+            await importCSS(scene.css);
+        } catch (e) {
+            console.warn("keyframes: the scene's @keyframes did not import", e);
+        }
+    },
+    { immediate: true },
+);
 
 const openAddCSSDialog = () => {
     addCSSDialogOpen.value = true;

@@ -105,7 +105,7 @@
                             :value-text="(v: number) => `${v.toFixed(2)} seconds`"
                             @update:model-value="(v) => { demo.response.value = v; }"
                         />
-                        <output class="param-value" aria-hidden="true">{{ demo.response.value.toFixed(2) }} s</output>
+                        <output class="param-value" aria-hidden="true">{{ formatSeconds(demo.response.value) }}</output>
                     </div>
                     <div class="param-row">
                         <LabeledSlider
@@ -118,7 +118,7 @@
                             :value-text="(v: number) => `damping ${v.toFixed(2)}`"
                             @update:model-value="(v) => { demo.dampingFraction.value = v; }"
                         />
-                        <output class="param-value" aria-hidden="true">ζ {{ demo.dampingFraction.value.toFixed(2) }}</output>
+                        <output class="param-value" aria-hidden="true">ζ {{ formatNumber(demo.dampingFraction.value) }}</output>
                     </div>
                 </div>
                 <Separator />
@@ -159,7 +159,7 @@
                              tile sets 400 (the producer item's own weight is 600,
                              which the value line inherited and outranked its label
                              with); the name alone wears font-medium. -->
-                        <span class="text-small font-medium text-foreground capitalize">{{ t.preset.name }}</span>
+                        <span class="text-small text-foreground capitalize">{{ t.preset.name }}</span>
                         <!-- X.KF.W13X.spring (A2-KE-L3-12) — the line breaks BETWEEN
                              its two quantities, never inside one: at a coarse phone the
                              unbreakable 'r s · ζ z' ran into the tile's right edge.
@@ -199,6 +199,7 @@
 </template>
 
 <script setup lang="ts">
+import { formatNumber, formatSeconds } from "@utils/formatNumber";
 import { computed, inject } from "vue";
 import { Separator } from "@mkbabb/glass-ui";
 import { Button } from "@mkbabb/glass-ui/button";

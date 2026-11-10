@@ -63,7 +63,6 @@
              further on a wider card). -->
         <SceneStageHeader
             title="Spring"
-            :status="stateLabel"
             class="spring-header flex w-full max-w-3xl shrink-0"
             title-class="whitespace-nowrap leading-none"
             id-class="flex flex-col gap-1 min-w-0"
@@ -88,7 +87,7 @@
                     <div class="stage-readout" data-readout="primary">
                         <span>{{ sweepLeads ? "sweep" : "position" }}</span>
                         <span>{{
-                            (sweepLeads ? demo.sampled.value : demo.liveValue.value).toFixed(3)
+                            formatNumber(sweepLeads ? demo.sampled.value : demo.liveValue.value, 3, { fixed: true, pad: true })
                         }}</span>
                     </div>
                     <!-- X-DS pass 4 (KF-C4-08) — position's peer readout wears the
@@ -99,11 +98,11 @@
                          never renders as "V". -->
                     <div v-if="sweepLeads" class="stage-readout">
                         <span>position</span>
-                        <span>{{ demo.liveValue.value.toFixed(3) }}</span>
+                        <span>{{ formatNumber(demo.liveValue.value, 3, { fixed: true, pad: true }) }}</span>
                     </div>
                     <div v-else class="stage-readout">
                         <span>velocity</span>
-                        <span>{{ demo.liveVelocity.value.toFixed(3) }}</span>
+                        <span>{{ formatNumber(demo.liveVelocity.value, 3, { fixed: true, pad: true }) }}</span>
                     </div>
                 </div>
             </template>
@@ -245,7 +244,7 @@
                             :key="lane.name"
                             class="derby-lane-tag"
                             :style="{ '--ball-tone': lane.tone }"
-                        >{{ lane.name }} · ζ{{ lane.zeta.toFixed(2) }}</span>
+                        >{{ lane.name }} · ζ {{ formatNumber(lane.zeta) }}</span>
                     </div>
                 </div>
                 </Transition>
@@ -293,7 +292,8 @@
                      whose only disc is the dashed ring: a reader could not tell
                      the ring (the target) from the ball (on the curve). One
                      protagonist disc per figure; the copy says which is which. -->
-                <p id="spring-rail-hint" class="stage-prose min-w-0 flex-1 text-caption text-muted-foreground text-pretty">
+                <span class="sr-only" role="status">{{ stateLabel }}</span>
+                <p id="spring-rail-hint" class="sr-only">
                     Tap or drag the rail to move the target (the dashed ring) &mdash; the
                     ball on the curve below springs to it. Tune response and damping in
                     the Physics pane.
@@ -324,7 +324,6 @@
             ref="traceEl"
             :response="demo.response.value"
             :damping-fraction="demo.dampingFraction.value"
-            :sweep="demo.sampled.value"
         >
             <span ref="samplerCarriageEl" class="curve-carriage sampler-carriage">
                 <span class="curve-ball sampler-ball"></span>
@@ -338,6 +337,7 @@
 </template>
 
 <script setup lang="ts">
+import { formatNumber } from "@utils/formatNumber";
 import type { ComponentPublicInstance } from "vue";
 import { computed, inject, onMounted, onScopeDispose, useTemplateRef } from "vue";
 import { Card } from "@mkbabb/glass-ui";

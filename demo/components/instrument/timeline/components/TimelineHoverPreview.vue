@@ -16,10 +16,10 @@
         <div class="flex items-baseline justify-center gap-1 max-w-full">
             <span
                 v-if="keyframe.label"
-                class="text-mono-caption font-semibold truncate"
+                class="text-mono-caption truncate"
                 >{{ keyframe.label }} ·</span
             >
-            <span class="text-mono-caption font-semibold tabular-nums">{{ authoredSelector }}</span>
+            <span class="text-mono-caption tabular-nums">{{ authoredSelector }}</span>
             <span
                 v-if="resolvedPosition"
                 class="text-mono-caption text-muted-foreground tabular-nums"

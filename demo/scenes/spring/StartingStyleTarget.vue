@@ -171,12 +171,12 @@
                      selectable 'on' state), so a fact read as a second action
                      beside Dismiss. Glass rider under O-87: a static Chip
                      should honour `tone`. -->
-                <span class="entry-preset text-caption font-medium text-foreground capitalize">{{
+                <span class="entry-preset text-caption text-foreground capitalize">{{
                     activePresetName
                 }}</span>
                 <span class="text-mono-small text-muted-foreground tabular-nums whitespace-nowrap">
-                    ζ {{ demo.dampingFraction.value.toFixed(2) }} · in {{ timing.enter.durationMs }} ms · out
-                    {{ timing.exit.durationMs }} ms
+                    ζ {{ formatNumber(demo.dampingFraction.value) }} · in {{ formatMs(timing.enter.durationMs) }} · out
+                    {{ formatMs(timing.exit.durationMs) }}
                 </span>
             </p>
         </div>
@@ -220,6 +220,7 @@ export const ENTRY_CONTRACT = {
 </script>
 
 <script setup lang="ts">
+import { formatMs, formatNumber } from "@utils/formatNumber";
 import { computed, inject, ref, useId } from "vue";
 import { ChevronRight } from "@lucide/vue";
 // KF-KE-53's sweep at this file: subpaths where glass publishes one; Alert and

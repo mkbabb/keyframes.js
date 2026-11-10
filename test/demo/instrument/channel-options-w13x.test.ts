@@ -385,19 +385,19 @@ describe("X.KF.W13X.controls — the options form and the layer pane (UIA-KF-166
             const labels = wrapper.findAll(".labeled-field-grid .label").map((l) => l.text());
             expect(labels).toContain("weight");
             expect(labels.some((t) => /\d/.test(t))).toBe(false);
-            expect(wrapper.get("output").text()).toBe("1.00");
+            expect(wrapper.get("output").text()).toBe("1");
         } finally {
             wrapper.unmount();
         }
     });
 
-    it("(10) UIA-KF-082 · 270 — on a multi-target group the pane states why, and z-index is disabled with blend and enabled", async () => {
+    it("(10) UIA-KF-082 · 270 — on a multi-target group the pane carries no caption (restraint), and z-index is disabled with blend and enabled", async () => {
         const { wrapper } = mountCard(2);
         try {
             await layerEntry(wrapper).trigger("click");
             await settle();
             const pane = wrapper.get(`[id="${layerEntry(wrapper).attributes("aria-controls")}"]`);
-            expect(pane.text()).toContain("Layer compositing applies to single-target groups");
+            expect(pane.find("[data-subpane-caption]").exists()).toBe(false);
             expect(pane.get('[data-stub="NumberField"]').attributes()).toHaveProperty("data-disabled");
         } finally {
             wrapper.unmount();

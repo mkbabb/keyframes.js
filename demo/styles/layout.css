@@ -339,5 +339,13 @@
     :root {
         --work-area-max-height: 100dvh;
         --work-area-max-height-stable: 100dvh;
+        /* K16 (value.js §0hz.canon, C-83) — with no slack to float on, the two
+           docks sit the same distance from their edges: the top takes the
+           bottom's margin term (the golden asymmetry reads only where the
+           docks float; here it read as a 2 px top against a 16 px foot). */
+        --dock-top-anchor: calc(
+            max(env(safe-area-inset-top, 0px), 0px) + var(--dock-margin) / var(--phi)
+        );
+        --dock-top-anchor-stable: var(--dock-top-anchor);
     }
 }

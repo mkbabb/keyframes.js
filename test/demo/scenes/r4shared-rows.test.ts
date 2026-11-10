@@ -69,12 +69,9 @@ describe("UIA-KF-064 — the sequence half", () => {
         expect(target).not.toMatch(/status-badge/);
     });
 
-    it("the one header renders the badge only when a status is given", () => {
+    it("the one header never paints a status badge (restraint, §0hz.canon K7)", () => {
         const none = mount(SceneStageHeader, { props: { title: "Sequence" } });
         expect(none.findAll(".status-badge")).toHaveLength(0);
         none.unmount();
-        const some = mount(SceneStageHeader, { props: { title: "Square", status: "settled" } });
-        expect(some.findAll(".status-badge")).toHaveLength(1);
-        some.unmount();
     });
 });
