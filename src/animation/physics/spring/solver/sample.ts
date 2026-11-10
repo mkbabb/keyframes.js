@@ -26,6 +26,11 @@ interface NormalizedSpringSampleOptions {
     /** Settle envelope (both position + velocity). */
     settleThreshold: number;
     /**
+     * Starting velocity in travel/s on the spring's clock (the curve runs
+     * 0 → 1). Default 0 — the unseeded curve.
+     */
+    initialVelocity?: number;
+    /**
      * Per-step `dt` in SECONDS. The two serializers space their points
      * differently (`springLinearStops` over `sampleCount+1` sub-intervals,
      * `springTimingFunction` over `sampleCount`), so the caller passes the exact
@@ -51,9 +56,11 @@ export function sampleNormalizedSpring(
         response: opts.response,
         dampingFraction: opts.dampingFraction,
         initial: 0,
+        initialVelocity: opts.initialVelocity ?? 0,
         settleThreshold: opts.settleThreshold,
         velocitySettleThreshold: opts.settleThreshold,
     });
+    // Re-seat from (0, initialVelocity) toward the target.
     spring.target = 1;
 
     const samples: number[] = [];

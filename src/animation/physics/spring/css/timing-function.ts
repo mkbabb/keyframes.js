@@ -4,6 +4,7 @@ import {
     springLinearStops,
     type SpringLinearStopsOptions,
 } from "./linear-stops";
+import { resolveSpringSpan } from "./span";
 
 /**
  * Options for sampling a spring response curve into a callable
@@ -33,8 +34,20 @@ export interface SpringTimingFunctionOptions {
      * time that normalized `t = 1` maps to. Default 4 × response
      * (covers ~99% of the envelope for ζ ≥ 0.3). Increase for very
      * underdamped springs (ζ < 0.3) whose tail rings past the cap.
+     * `"settle"` spans the spring's own `settleTime` under
+     * `settleThreshold`, so the pinned `fn(1) = 1` jumps by at most
+     * `settleThreshold`; it throws a `RangeError` for an undamped spring
+     * (ζ = 0).
      */
-    maxDuration?: number;
+    maxDuration?: number | "settle";
+    /**
+     * Starting velocity, travel/s on the spring's clock (travel = this
+     * leg's distance, so the curve runs 0 → 1). `> 0` is already moving
+     * toward the target; `< 0` is still heading away. Default 0 (the
+     * unseeded curve). Time on the curve is `u = t / maxDuration`, so the
+     * slope at `u = 0` is `initialVelocity × maxDuration`.
+     */
+    initialVelocity?: number;
 }
 
 /**
@@ -54,7 +67,7 @@ export interface SpringTimingFunctionOptions {
 export function springTimingLUT(opts: SpringTimingFunctionOptions): Float64Array {
     const sampleCount = opts.sampleCount ?? 64;
     const settleThreshold = opts.settleThreshold ?? 1e-3;
-    const maxDuration = opts.maxDuration ?? opts.response * 4;
+    const maxDuration = resolveSpringSpan(opts);
 
     // Reuse the shared normalized-spring sampler — the same construct/step setup
     // `springLinearStops` drives (R.W1 §spring). No second integrator. The LUT
@@ -65,6 +78,7 @@ export function springTimingLUT(opts: SpringTimingFunctionOptions): Float64Array
         dampingFraction: opts.dampingFraction,
         sampleCount,
         settleThreshold,
+        initialVelocity: opts.initialVelocity ?? 0,
         dt: maxDuration / sampleCount,
     });
     const samples = new Float64Array(sampleCount + 1);
@@ -105,7 +119,9 @@ export function springTimingLUT(opts: SpringTimingFunctionOptions): Float64Array
 export function springTimingFunction(
     opts: SpringTimingFunctionOptions,
 ): Easing {
-    const samples = springTimingLUT(opts);
+    // Resolve the span once, so `.fn` and `.css` sample the same one.
+    const maxDuration = resolveSpringSpan(opts);
+    const samples = springTimingLUT({ ...opts, maxDuration });
     const sampleCount = samples.length - 1;
 
     const fn: TimingFunction = (t: number): number => {
@@ -128,9 +144,11 @@ export function springTimingFunction(
     const stopOpts: SpringLinearStopsOptions = {
         response: opts.response,
         dampingFraction: opts.dampingFraction,
+        maxDuration,
     };
     if (opts.settleThreshold !== undefined)
         stopOpts.settleThreshold = opts.settleThreshold;
-    if (opts.maxDuration !== undefined) stopOpts.maxDuration = opts.maxDuration;
+    if (opts.initialVelocity !== undefined)
+        stopOpts.initialVelocity = opts.initialVelocity;
     return { fn, css: springLinearStops(stopOpts) };
 }

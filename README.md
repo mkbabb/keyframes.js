@@ -628,7 +628,34 @@ Math.max(...Array.from({ length: 101 }, (_, i) => spring.fn(i / 100))) > 1; // =
 spring.css === springLinearStops({ response: 0.5, dampingFraction: 0.45 }); // => true
 ```
 
-Options (both): `response`, `dampingFraction`, `sampleCount` (default 24 stops / 64 samples), `settleThreshold` (default `1e-3`), `maxDuration` (default `4 × response` — raise it for very underdamped springs, ζ < 0.3).
+Options (both): `response`, `dampingFraction`, `sampleCount` (default 24 stops / 64 samples), `settleThreshold` (default `1e-3`), `maxDuration` (default `4 × response` — raise it for very underdamped springs, ζ < 0.3; or `"settle"` to span the spring's own `settleTime`, so the pinned end stop jumps by at most `settleThreshold`), `initialVelocity` (default 0; see below).
+
+**Seeded curves.** `initialVelocity` starts the curve already moving, in travel/s on the spring's clock (travel is the leg's distance, so the curve still runs 0 → 1; `< 0` is still heading away). A reversed glide picks up the running speed and bends round instead of turning a corner. Time on the curve is `u = t / T` (`T` the resolved `maxDuration`), so for a motion moving at `v` units/s that now has `D = to − current` to go and plays over `P` seconds, pass `initialVelocity = (v / D) · (P / T)` (just `v / D` when `P = T`). Prefer `maxDuration: "settle"`, so `T` includes the seed. If `D` is about 0, there is no curve to seed: hand the motion to a live `SpringProgress` (`reset(x, v)`, then `target`).
+
+```ts run
+const seeded = springTimingFunction({
+    response: 0.5,
+    dampingFraction: 0.86,
+    initialVelocity: -2, // still moving away from the new target
+    maxDuration: "settle",
+});
+seeded.fn(0.02) < 0; // => true
+seeded.fn(1); // => 1
+```
+
+### `settleTime`
+
+The spring's own settle clock: the seconds until the `0 → 1` step response enters the rest envelope `|x − 1| < settleThreshold` and `|v| < velocitySettleThreshold` and stays there (the last exit, so a ringing spring that passes through the envelope early is not counted as settled). It reads the closed form and never steps. Take a duration from the spring itself instead of a hand-tuned clock.
+
+```ts run
+const seconds = settleTime({ response: 0.5, dampingFraction: 0.45 });
+seconds > 1.6 && seconds < 1.62; // => true
+// Position only (a settle band, no velocity check):
+settleTime({ response: 0.5, dampingFraction: 0.45, velocitySettleThreshold: Infinity }) < seconds; // => true
+settleTime({ response: 0.5, dampingFraction: 0 }); // => Infinity
+```
+
+Options: `response`, `dampingFraction`, `initialVelocity` (travel/s, default 0), `settleThreshold` / `velocitySettleThreshold` (default `1e-3`, the same envelope as `SpringProgress`; `Infinity` drops the velocity check). Throws `RangeError` on a non-positive `response` or threshold, a negative `dampingFraction`, or a non-finite velocity. An undamped spring (ζ = 0) returns `Infinity`. Reduced motion is not an input: under `respectReducedMotion: true` the spring snaps (duration 0); under a numeric intensity the settle time is unchanged. The system is linear, so a live spring over distance `D` with absolute thresholds `ε` / `εv` and velocity `v` settles at `settleTime({ …, initialVelocity: v / D, settleThreshold: ε / D, velocitySettleThreshold: εv / D })`.
 
 ### `RAFPlayback`
 

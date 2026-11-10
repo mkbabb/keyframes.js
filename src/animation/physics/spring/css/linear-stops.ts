@@ -1,4 +1,5 @@
 import { sampleNormalizedSpring } from "../solver/sample";
+import { resolveSpringSpan } from "./span";
 
 /**
  * Options for sampling a spring response curve into CSS `linear()` stops.
@@ -25,9 +26,19 @@ export interface SpringLinearStopsOptions {
      * Upper bound on the sampled time span in seconds. Default 4 ×
      * response (covers ~99% of the envelope for ζ ≥ 0.3). Increase
      * if a very-underdamped spring (ζ < 0.3) is being sampled and
-     * the tail keeps ringing past the default cap.
+     * the tail keeps ringing past the default cap. `"settle"` spans the
+     * spring's own `settleTime` under `settleThreshold`, so the
+     * pinned end stop jumps by at most `settleThreshold`; it throws a
+     * `RangeError` for an undamped spring (ζ = 0).
      */
-    maxDuration?: number;
+    maxDuration?: number | "settle";
+    /**
+     * Starting velocity, travel/s on the spring's clock (travel = this
+     * leg's distance, so the curve runs 0 → 1). `> 0` is already moving
+     * toward the target; `< 0` is still heading away. Default 0 (the
+     * unseeded curve).
+     */
+    initialVelocity?: number;
 }
 
 /**
@@ -46,7 +57,7 @@ export interface SpringLinearStopsOptions {
 export function springLinearStops(opts: SpringLinearStopsOptions): string {
     const sampleCount = opts.sampleCount ?? 24;
     const settleThreshold = opts.settleThreshold ?? 1e-3;
-    const maxDuration = opts.maxDuration ?? opts.response * 4;
+    const maxDuration = resolveSpringSpan(opts);
 
     // The shared normalized-spring sampler (R.W1 §spring): construct → target=1
     // → step the solver. `springLinearStops` spaces its points over
@@ -56,6 +67,7 @@ export function springLinearStops(opts: SpringLinearStopsOptions): string {
         dampingFraction: opts.dampingFraction,
         sampleCount,
         settleThreshold,
+        initialVelocity: opts.initialVelocity ?? 0,
         dt: maxDuration / (sampleCount + 1),
     });
 
