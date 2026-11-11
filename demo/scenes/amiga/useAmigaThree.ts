@@ -140,6 +140,27 @@ const shortestTurn = (a: number, b: number): number =>
 const afterPaint = (): Promise<void> =>
     new Promise((resolve) => requestAnimationFrame(() => setTimeout(resolve)));
 
+/** True while a View Transition runs (false where the platform has none). */
+const swapping = (): boolean => {
+    try {
+        return document.documentElement.matches(":active-view-transition");
+    } catch {
+        return false;
+    }
+};
+
+/**
+ * o1111 kfamiga — resolve once no View Transition is running: at once outside
+ * one, else on the first frame after it has finished. A swap into amiga mounts
+ * the scene inside the transition's update callback, so "past the first paint"
+ * alone put every build stage inside the visible cross-fade (four 50-90 ms
+ * frames of the dissolve at CPU 4x on the GPU witness, the one hop out of the
+ * cube that hitched). Checked once per frame; no clock.
+ */
+const swapLanded = async (): Promise<void> => {
+    while (swapping()) await new Promise((resolve) => requestAnimationFrame(resolve));
+};
+
 interface AmigaThreeHandle {
     /**
      * Build the Three.js room. Call once at mount, after the canvas ref is live.
@@ -525,7 +546,9 @@ export function useAmigaThree(
     //
     // X.KF.W13X · KFA-76 (heavy-scene-init limb, ESC-r4shell-1, COHESION §0fa
     // item 3) — the room is built PAST THE DESTINATION'S FIRST PAINT, one stage
-    // per frame. Built inline at mount it was one ~540 ms task of three.js init
+    // per frame, and (o1111 kfamiga) past the swap that mounted it: the
+    // cross-fade dissolves into the ball's breathing silhouette, and the room
+    // builds once the transition has landed. Built inline at mount it was one ~540 ms task of three.js init
     // (graph, context, program compile, the first texture upload and draw)
     // inside the swap's own frame, so the new scene could not present until the
     // ball was ready. Now the scene paints its stage under the skeleton first;
@@ -541,6 +564,8 @@ export function useAmigaThree(
         const live = () => epoch === buildEpoch && !failed.value;
         booting.value = true;
         try {
+            await swapLanded();
+            if (!live()) return;
             await afterPaint();
             if (!live()) return;
             buildGraph();
