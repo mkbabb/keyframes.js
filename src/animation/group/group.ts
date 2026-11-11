@@ -154,6 +154,11 @@ export class AnimationGroup<V extends Vars> {
      * still runs its shadow transport loop so events and completion retain the
      * rAF contract, but it does not overwrite native compositor output. */
     _waapiDelegated = false;
+    /** True from a reduced-motion snap until the next rewind. The snap paints
+     * every child's FINAL frame and then settles (each child's `started` and
+     * `t` back to 0), so nothing else records that the pixels left the initial
+     * frame; `reset()` reads this to rewind them. INTERNAL (`./lifecycle`). */
+    _snappedToFinal = false;
     resolvePromise: ((value: void | PromiseLike<void>) => void) | null = null;
     /** The ONE held play promise the `finished` front-door exposes. INTERNAL
      * (S.B5) — read/written by the transport free functions in `./lifecycle`. */

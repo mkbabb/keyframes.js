@@ -135,6 +135,7 @@ export function playReducedMotion<V extends Vars>(
     }
 
     group.settle();
+    group._snappedToFinal = true;
 
     return Promise.resolve();
 }
@@ -198,14 +199,18 @@ export function settle<V extends Vars>(group: AnimationGroup<V>): void {
  * (X.KF.W13X.r4lib): a stage scrubbed before any Play has no started child, and
  * the started-only rewind left the scrub's pose standing. */
 export function reset<V extends Vars>(group: AnimationGroup<V>): void {
+    // A reduced-motion snap left every child painted at its final frame but
+    // settled (not started, t = 0): it is rewound too.
+    const snapped = group._snappedToFinal;
     for (const entry of group.getEntries()) {
         const anim = entry.animation;
-        if ((anim.started || anim.t !== 0) && anim.frames.length > 0) {
+        if ((snapped || anim.started || anim.t !== 0) && anim.frames.length > 0) {
             anim.interpFrames(0, true);
         }
     }
 
     group.settle();
+    group._snappedToFinal = false;
 }
 
 /** Halt the draw loop, rewind to the initial frame (the transport-stop semantic
