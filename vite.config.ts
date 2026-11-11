@@ -11,6 +11,7 @@ import {
     criticalCSSPlugin,
     deferLazyCSSPlugin,
     engineDtsRollupPlugin,
+    notFoundPagePlugin,
 } from "./scripts/build/vite";
 
 import tailwindcss from "@tailwindcss/postcss";
@@ -349,6 +350,7 @@ export default defineConfig((mode) => {
                 ...defaultPlugins,
                 deferLazyCSSPlugin(["vendor-monaco"]),
                 criticalCSSPlugin(),
+                notFoundPagePlugin(),
                 // KF_ANALYZE=1: dump each chunk's import edges + the modules
                 // that landed in it, to dist/gh-pages/_chunks.json — the
                 // instrument for hunting eager-leak regressions (inv γ).
