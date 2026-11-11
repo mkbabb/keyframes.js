@@ -99,6 +99,22 @@ describe("bridge", () => {
             playing: true,
         });
         expect(readHostMessage({ ns: EMBED_NS, v: EMBED_VERSION, type: "set-playing", playing: "yes" })).toBeNull();
+        expect(readHostMessage({ ns: EMBED_NS, v: EMBED_VERSION, type: "reset" })).toEqual({ type: "reset" });
+        expect(readHostMessage({ ns: EMBED_NS, v: 2, type: "reset" })).toBeNull();
+    });
+    it("takes reset only from the host origin and the parent window", () => {
+        const f = framed({ hostname: "keyframes.babb.dev", ancestor: "https://daraksha.babb.dev" });
+        const bridge = createEmbedBridge(f.win);
+        let resets = 0;
+        bridge.onReset(() => resets++);
+        const data = { ns: EMBED_NS, v: EMBED_VERSION, type: "reset" };
+        f.dispatch({ origin: "https://evil.example", source: f.parent as unknown as Window, data });
+        f.dispatch({ origin: "https://daraksha.babb.dev", source: {} as Window, data });
+        f.dispatch({ origin: "https://daraksha.babb.dev", source: f.parent as unknown as Window, data });
+        expect(resets).toBe(1);
+        bridge.dispose();
+        f.dispatch({ origin: "https://daraksha.babb.dev", source: f.parent as unknown as Window, data });
+        expect(resets).toBe(1);
     });
     it("takes set-playing only from the host origin and the parent window, and posts the transport", () => {
         const f = framed({ hostname: "keyframes.babb.dev", ancestor: "https://daraksha.babb.dev" });
@@ -123,13 +139,19 @@ describe("route", () => {
             slice: "cube",
             skin: "daraksha",
             scheme: "dark",
+            transport: "own",
         });
+    });
+    it("reads transport=host: the host draws the cube's transport", () => {
+        expect(parseSliceRoute("#/cube?skin=daraksha&scheme=dark&transport=host").transport).toBe("host");
+        expect(parseSliceRoute("#/cube?transport=elsewhere").transport).toBe("own");
     });
     it("falls back to the crayon die and the platform scheme", () => {
         expect(parseSliceRoute("#/cube?skin=velvet&scheme=sepia")).toEqual({
             slice: "cube",
             skin: "crayon",
             scheme: null,
+            transport: "own",
         });
         expect(parseSliceRoute("#/square").slice).toBeNull();
     });

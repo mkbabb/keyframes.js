@@ -1,6 +1,8 @@
 /**
  * The slice route, read from the entry's hash: `#/cube?skin=daraksha&scheme=dark`.
- * Only the cube is a slice; its skin is one of the demo's own.
+ * Only the cube is a slice; its skin is one of the demo's own. `transport=host`:
+ * the host carries Play / Pause and Reset in its own chrome (over the bridge's
+ * `set-playing` / `reset`), so the slice draws no transport of its own.
  */
 import type { CubeSkin } from "@state";
 import type { Scheme } from "./bridge";
@@ -9,6 +11,8 @@ export interface SliceRoute {
     slice: "cube" | null;
     skin: CubeSkin;
     scheme: Scheme | null;
+    /** Who draws the transport: the slice ("own", the default) or the host. */
+    transport: "own" | "host";
 }
 
 const SKINS: readonly CubeSkin[] = ["crayon", "ppmycota", "daraksha"];
@@ -24,5 +28,6 @@ export function parseSliceRoute(hash: string): SliceRoute {
         slice: path === "cube" ? "cube" : null,
         skin: skin && SKINS.includes(skin) ? skin : "crayon",
         scheme: scheme === "dark" || scheme === "light" ? scheme : null,
+        transport: query.get("transport") === "host" ? "host" : "own",
     };
 }
