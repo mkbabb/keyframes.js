@@ -10,8 +10,9 @@
  *   slice → host   ready {slice, scheme, width, height} · size {height} (≤ 1 per
  *                  frame) · theme {scheme} (the acknowledgement) · color {css} ·
  *                  transport {playing} (the cube's Play / Pause, on each change)
- *   host → slice   set-theme {scheme} · set-playing {playing} (a host that
- *                  mirrors the cube's transport in its own chrome; optional)
+ *   host → slice   set-theme {scheme} · set-playing {playing} · reset {} (a host
+ *                  that carries the cube's transport in its own chrome, framed
+ *                  with `transport=host`; optional, additive within v1)
  */
 
 export const EMBED_NS = "babb-embed";
@@ -59,7 +60,8 @@ export type SliceMessage =
 
 export type HostMessage =
     | { type: "set-theme"; scheme: Scheme }
-    | { type: "set-playing"; playing: boolean };
+    | { type: "set-playing"; playing: boolean }
+    | { type: "reset" };
 
 /** Parse a host message; anything outside the contract is null. */
 export function readHostMessage(data: unknown): HostMessage | null {
@@ -72,6 +74,7 @@ export function readHostMessage(data: unknown): HostMessage | null {
     if (m.type === "set-playing" && typeof m.playing === "boolean") {
         return { type: "set-playing", playing: m.playing };
     }
+    if (m.type === "reset") return { type: "reset" };
     return null;
 }
 
@@ -83,6 +86,7 @@ export interface EmbedBridge {
     observeSize(el: Element): void;
     onSetTheme(handler: (scheme: Scheme) => void): void;
     onSetPlaying(handler: (playing: boolean) => void): void;
+    onReset(handler: () => void): void;
     dispose(): void;
 }
 
@@ -90,6 +94,7 @@ export function createEmbedBridge(win: Window = window): EmbedBridge {
     const hostOrigin = resolveHostOrigin(win);
     const themeHandlers = new Set<(scheme: Scheme) => void>();
     const playingHandlers = new Set<(playing: boolean) => void>();
+    const resetHandlers = new Set<() => void>();
     let observer: ResizeObserver | undefined;
     let frame = 0;
     let lastHeight = -1;
@@ -104,6 +109,7 @@ export function createEmbedBridge(win: Window = window): EmbedBridge {
         const message = readHostMessage(event.data);
         if (message?.type === "set-theme") for (const handler of themeHandlers) handler(message.scheme);
         if (message?.type === "set-playing") for (const handler of playingHandlers) handler(message.playing);
+        if (message?.type === "reset") for (const handler of resetHandlers) handler();
     };
     win.addEventListener("message", onMessage);
 
@@ -131,12 +137,16 @@ export function createEmbedBridge(win: Window = window): EmbedBridge {
         onSetPlaying(handler) {
             playingHandlers.add(handler);
         },
+        onReset(handler) {
+            resetHandlers.add(handler);
+        },
         dispose() {
             win.removeEventListener("message", onMessage);
             observer?.disconnect();
             if (frame) win.cancelAnimationFrame(frame);
             themeHandlers.clear();
             playingHandlers.clear();
+            resetHandlers.clear();
         },
     };
 }

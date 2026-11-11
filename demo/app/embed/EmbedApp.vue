@@ -8,6 +8,7 @@
                 v-if="route.slice === 'cube'"
                 ref="cubeRef"
                 :skin="route.skin"
+                :host-transport="route.transport === 'host'"
                 @transport="(playing) => bridge.post({ type: 'transport', playing })"
             />
         </main>
@@ -69,6 +70,7 @@ const sliceRoot = useTemplateRef<HTMLElement>("sliceRoot");
 // A host that mirrors the transport in its own chrome drives it here.
 const cubeRef = useTemplateRef<InstanceType<typeof EmbedCube>>("cubeRef");
 bridge.onSetPlaying((playing) => cubeRef.value?.setPlaying(playing));
+bridge.onReset(() => cubeRef.value?.reset());
 onMounted(async () => {
     await nextTick();
     await document.fonts?.ready;

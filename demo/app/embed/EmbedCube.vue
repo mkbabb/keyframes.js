@@ -5,8 +5,11 @@
          The stage owns every gesture over it (one finger orbits; two pan,
          pinch and twist; the wheel is the orbit's, OA-17), so a pan never
          scrolls the host. The paper and its axes ride the orbit's pan and zoom,
-         so panning reads as moving across paper. The die stands alone: no
-         numerals, no axis-lock lines. -->
+         so panning reads as moving across paper. The die keeps its face
+         numerals, as in the app; the axis-lock lines stay the app's. Under
+         `transport=host` the host carries Play / Pause and Reset in its own
+         dock (the bridge's set-playing / reset), so no transport is drawn
+         here; Space still toggles. -->
     <div class="embed-cube">
         <div class="embed-cube-stage" :data-skin="skin" :style="paperVars">
             <div class="embed-cube-paper grid-background" aria-hidden="true"></div>
@@ -24,6 +27,7 @@
             />
         </div>
         <TransportDock
+            v-if="!hostTransport"
             contained
             :stored-controls="storedControls"
             :is-playing="playing"
@@ -46,7 +50,7 @@ import { useTransformState } from "../../scenes/cube/matrix-editor/useTransformS
 import TransportDock from "../../components/instrument/transport/TransportDock.vue";
 import { isSpaceActivationTarget } from "../../components/instrument/transport/composables/useControlsKeyboardShortcuts";
 
-const props = defineProps<{ skin: CubeSkin }>();
+const props = defineProps<{ skin: CubeSkin; hostTransport?: boolean }>();
 const skin = computed(() => props.skin);
 
 const emit = defineEmits<{ (e: "transport", playing: boolean): void }>();
@@ -131,7 +135,7 @@ onBeforeUnmount(() => {
     animationGroup.value.stop();
 });
 
-defineExpose({ setPlaying });
+defineExpose({ setPlaying, reset });
 </script>
 
 <style scoped>

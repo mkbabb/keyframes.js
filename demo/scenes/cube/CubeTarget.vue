@@ -86,7 +86,6 @@
                                             :style="{ '--face-crayon': side.color, color: side.ink }"
                                         >
                                             <span
-                                                v-if="!bare"
                                                 :class="[
                                                     'face-numeral text-display-2 h-full w-full',
                                                     'relative',
@@ -160,7 +159,7 @@ const props = withDefaults(
         /** The demo's stage owns every scroll over it; an embed yields
          *  vertical scroll to its host page. */
         scrollOwner?: ScrollOwner;
-        /** The die alone: no face numerals, no axis lines (the embed slice). */
+        /** No axis-lock lines (the embed slice); the face numerals stay. */
         bare?: boolean;
     }>(),
     { scrollOwner: "stage", bare: false },
