@@ -3,3 +3,4 @@ export { chunkAnalyzerPlugin } from "./chunk-analyzer";
 export { criticalCSSPlugin } from "./critical-css";
 export { deferLazyCSSPlugin } from "./defer-lazy-css";
 export { engineDtsRollupPlugin } from "./engine-dts-rollup";
+export { notFoundPagePlugin } from "./not-found-page";

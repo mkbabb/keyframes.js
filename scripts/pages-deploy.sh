@@ -162,6 +162,19 @@ done
 
 if [ -n "$served_ok" ]; then
     log "Round-trip VALIDATED: $PROD_ORIGIN serves the built bundle ($built_hash), HTTP 200."
+    # A path the build does not hold is a 404 nobody keeps (404.html), never the
+    # shell as 200: under `/assets/*` that answer would be cached for a year as
+    # the asset (the immutable rule in demo/app/public/_headers).
+    absent="$PROD_ORIGIN/assets/absent-$(date +%s).js"
+    absent_head="$(curl -sS -o /dev/null -D - "$absent" 2>/dev/null || true)"
+    absent_code="$(printf '%s' "$absent_head" | awk 'toupper($1) ~ /^HTTP/ {c=$2} END {print c}')"
+    absent_cache="$(printf '%s' "$absent_head" | tr -d '\r' | awk -F': ' 'tolower($1)=="cache-control" {print $2}')"
+    if [ "$absent_code" != "404" ] || printf '%s' "$absent_cache" | grep -qE 'immutable|max-age=[1-9]'; then
+        err "Post-deploy validation FAILED: $absent answers ${absent_code:-<none>} (${absent_cache}); a missing asset must be an uncached 404."
+        err "  ROLLBACK with: npx wrangler pages deployment rollback ${ROLLBACK_ID:-<id>} --project-name $PAGES_PROJECT"
+        exit 1
+    fi
+    log "Missing asset VALIDATED: $absent answers 404 (${absent_cache:-no cache-control})."
 else
     err "Post-deploy validation FAILED: $PROD_ORIGIN did not serve the built bundle."
     err "  built:  $built_hash"
