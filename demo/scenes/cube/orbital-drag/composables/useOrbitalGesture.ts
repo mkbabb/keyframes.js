@@ -13,10 +13,12 @@ import {
     sphereMap,
 } from "../arcball";
 import type { AttitudeSample, Quat, Vec3 } from "../arcball";
-import { anchoredTranslate, clampToBox, engagePair, readPair, unwrapRadians } from "../similarity";
+import { anchoredTranslate, engagePair, readPair, unwrapRadians } from "../similarity";
 import type { Box, Vec2 } from "../similarity";
+import { UNBOUNDED, ZOOM_BAND_LN, banded, clampTo, panInterval, unbanded } from "../bounds";
+import type { Interval } from "../bounds";
 import type { GestureEvent, PressedKeys } from "../types";
-import type { OrbitRelease } from "./useOrbitalInertia";
+import type { OrbitPose, OrbitRelease } from "./useOrbitalInertia";
 
 /** What the reader needs from its host, read once per gesture anchor. */
 export interface OrbitFrame {
@@ -66,6 +68,11 @@ export interface OrbitalGestureParams {
     onGestureEnd: (release: OrbitRelease) => void;
     /** A wheel notch's rotation (axis·angle, SCREEN frame), to glide out. */
     onGlide: (rotation: Vec3) => void;
+    /** A pan or zoom wheel stream has ended: spring back what stands past a
+     *  bound, anchored at the stream's last point. */
+    onSettle?: (at: Vec2) => void;
+    /** Reduced motion: the bounds are hard walls (no rubber band). */
+    reducedMotion?: () => boolean;
 }
 
 /** The arcball radius' floor (px). */
@@ -101,6 +108,10 @@ export const NOTCH_MAX_RAD = (40 * Math.PI) / 180;
 export const PAGE_TOUCH_SLOP_PX = 10;
 /** A wheel stream ends after this quiet gap (ms). */
 const WHEEL_STREAM_GAP_MS = 300;
+/** A pan or zoom wheel stream holds the rubber band until this long after its
+ *  last event (the OS's own momentum arrives as events, so it is the throw);
+ *  then the spring takes over (ms). */
+export const WHEEL_LIVE_MS = 80;
 
 /**
  * driveBy — the virtual-pointer law the wheel and an off-die grab share: a
@@ -170,6 +181,8 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
         onGestureStart,
         onGestureEnd,
         onGlide,
+        onSettle,
+        reducedMotion,
     } = params;
 
     const pointers = new Map<number, { x: number; y: number; touch: boolean }>();
@@ -190,7 +203,14 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
         pressedKeys.value.meta = event.metaKey;
     };
 
-    const clampScale = (s: number) => Math.min(scaleRange[1], Math.max(scaleRange[0], s));
+    /** The scale range in ln s, the zoom's bound. */
+    const lnRange: Interval = { lo: Math.log(scaleRange[0]), hi: Math.log(scaleRange[1]) };
+    /** The hand holds the die past a bound with resistance (bounds.ts), except
+     *  under reduced motion, where the bounds are hard walls. */
+    const banding = () => !(reducedMotion?.() ?? false);
+    /** The shown scale for a raw ln s: banded while the hand holds it. */
+    const showScale = (ln: number) =>
+        Math.exp(banding() ? banded(ln, lnRange, ZOOM_BAND_LN) : clampTo(ln, lnRange));
 
     /** The latched axis in the SCREEN frame (a_s = G·a_graph), or null. */
     const latchAxis = (): Vec3 | null => {
@@ -207,8 +227,13 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
     let f: OrbitFrame = { centre: { x: 0, y: 0 }, side: 0, fit: 1, stage: null };
     let R = MIN_ARCBALL_RADIUS;
     let q0: Quat = [0, 0, 0, 1];
+    /** The anchor's pan and scale as the hand holds them: under the rubber
+     *  band these are the raw pose (the band's inverse of what shows), so a
+     *  die re-grabbed past its bound is picked up where it shows. */
     let t0: Vec2 = { x: 0, y: 0 };
     let s0 = 1;
+    /** The anchor's scale as shown. */
+    let sShow0 = 1;
     /** The projected centre at the anchor, and at t = 0. */
     let c0: Vec2 = { x: 0, y: 0 };
     let cRest: Vec2 = { x: 0, y: 0 };
@@ -247,16 +272,36 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
         return Math.max(MIN_ARCBALL_RADIUS, Math.min(2 * h, Math.max(MIN_ARCBALL_RADIUS, cap)));
     };
 
+    /** The centre's allowed intervals at scale `s` (no PAN_OUT of the die
+     *  leaves V on a side, bounds.ts) and the band's reach on each axis. */
+    const panLimits = (s: number) => {
+        const st = f.stage;
+        if (!st || st.right < st.left || st.bottom < st.top) return { x: UNBOUNDED, y: UNBOUNDED, dx: 0, dy: 0 };
+        const D = f.side * s * f.fit;
+        return {
+            x: panInterval(st.left, st.right, D),
+            y: panInterval(st.top, st.bottom, D),
+            dx: st.right - st.left,
+            dy: st.bottom - st.top,
+        };
+    };
+
     const readFrame = () => {
         f = frame();
         R = radius(f);
         q0 = [state.q[0], state.q[1], state.q[2], state.q[3]];
-        t0 = { ...state.t };
-        s0 = state.s;
+        sShow0 = state.s;
         // D5 — the frame's centre is the REST centre; the panned centre is it
         // plus the pan the state holds.
         cRest = { ...f.centre };
-        c0 = { x: cRest.x + t0.x * f.fit, y: cRest.y + t0.y * f.fit };
+        c0 = { x: cRest.x + state.t.x * f.fit, y: cRest.y + state.t.y * f.fit };
+        // The raw pose under the band (exact inverse while it shows inside).
+        s0 = Math.exp(unbanded(Math.log(state.s), lnRange, ZOOM_BAND_LN));
+        const L = panLimits(state.s);
+        t0 = {
+            x: (unbanded(c0.x, L.x, L.dx) - cRest.x) / f.fit,
+            y: (unbanded(c0.y, L.y, L.dy) - cRest.y) / f.fit,
+        };
     };
 
     /** Is `p` on the die's arcball (|p − c| ≤ R), the die where it stands? */
@@ -276,10 +321,15 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
     const perpendicular = (): Vec3 =>
         (axis && (constrainToAxis([1, 0, 0], axis) ?? constrainToAxis([0, 1, 0], axis))) || [1, 0, 0];
 
-    /** Set t so the projected centre lands at `t` (stage px) held inside V. */
+    /** Set the raw pan `t`: the projected centre lands inside its bound, or
+     *  past it on the rubber band while the hand holds it (a hard wall under
+     *  reduced motion). */
     const setTranslate = (t: Vec2) => {
-        const c = clampToBox({ x: cRest.x + t.x * f.fit, y: cRest.y + t.y * f.fit }, f.stage);
-        state.t = { x: (c.x - cRest.x) / f.fit, y: (c.y - cRest.y) / f.fit };
+        const L = panLimits(state.s);
+        const c = { x: cRest.x + t.x * f.fit, y: cRest.y + t.y * f.fit };
+        const x = banding() ? banded(c.x, L.x, L.dx) : clampTo(c.x, L.x);
+        const y = banding() ? banded(c.y, L.y, L.dy) : clampTo(c.y, L.y);
+        state.t = { x: (x - cRest.x) / f.fit, y: (y - cRest.y) / f.fit };
     };
 
     const anchor = () => {
@@ -339,11 +389,31 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
         state.q = applyScreenDelta(q0, shoemakeArc(v0, vn), G);
     };
 
+    /**
+     * A grab off the die: the move's radial part (toward or away from the
+     * die's centre) drives it as the wheel does, and its tangential part, the
+     * angle swept about the centre, rolls it about the view axis by that angle
+     * (the rim roll, owner 2026-11-11: a twist where the platform has none).
+     * A pure arc about the centre only rolls; a pure radial move only drives.
+     */
     const applyDrive = (p: Vec2) => {
-        const d = { x: p.x - pPrev.x, y: p.y - pPrev.y };
+        const a = { x: pPrev.x - c0.x, y: pPrev.y - c0.y };
+        const b = { x: p.x - c0.x, y: p.y - c0.y };
         // A copy: `p` is the live pointer record, rewritten every move.
         pPrev = { x: p.x, y: p.y };
-        turnBy(latched(driveVector(d, R)));
+        const la = Math.hypot(a.x, a.y);
+        const lb = Math.hypot(b.x, b.y);
+        const mx = a.x + b.x;
+        const my = a.y + b.y;
+        const lm = Math.hypot(mx, my);
+        if (la === 0 || lb === 0 || lm === 0) {
+            turnBy(latched(driveVector({ x: b.x - a.x, y: b.y - a.y }, R)));
+            return;
+        }
+        const dr = lb - la;
+        const w = driveVector({ x: (mx / lm) * dr, y: (my / lm) * dr }, R);
+        const roll = Math.atan2(a.x * b.y - a.y * b.x, a.x * b.x + a.y * b.y);
+        turnBy(latched([w[0], w[1], roll]));
     };
 
     const applyPan = (p: Vec2) => {
@@ -359,8 +429,8 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
         raw.dTheta = unwrapRadians(raw.dTheta, thetaPrev);
         thetaPrev = raw.dTheta;
         const eff = engagePair(raw);
-        state.s = clampScale(s0 * eff.k);
-        const k = state.s / s0;
+        state.s = showScale(Math.log(s0 * eff.k));
+        const k = state.s / sShow0;
         const tScreen = anchoredTranslate({ x: 0, y: 0 }, eff.dm, k, c0, raw.m0);
         setTranslate({ x: t0.x + tScreen.x / f.fit, y: t0.y + tScreen.y / f.fit });
         state.q = applyScreenDelta(q0, quatFromAxisAngle([0, 0, 1], eff.dTheta), G);
@@ -472,31 +542,48 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
     const wheelPx = (event: WheelEvent, d: number) =>
         event.deltaMode === 1 ? d * 16 : event.deltaMode === 2 ? d * 400 : d;
 
-    /**
-     * Pan by `d` screen px, held inside V. Returns false when the bound held
-     * any of it (the pan coast rests there). Shared by the wheel and the coast.
-     */
-    const panBy = (d: Vec2): boolean => {
+    /** Pan by `d` screen px from where the die stands (raw under the band). */
+    const panBy = (d: Vec2) => {
         readFrame();
-        const want = { x: t0.x + d.x / f.fit, y: t0.y + d.y / f.fit };
-        setTranslate(want);
-        return Math.abs(state.t.x - want.x) < 1e-9 && Math.abs(state.t.y - want.y) < 1e-9;
+        setTranslate({ x: t0.x + d.x / f.fit, y: t0.y + d.y / f.fit });
     };
 
     /**
      * Zoom by `ln` (ln s), anchored at `at` (client px): the content under it
-     * stays under it. Returns false when the scale range or the bound held it
-     * (the zoom coast rests there). Shared by the ctrl-wheel and the coast.
+     * stays under it. Past the scale range or the pan's bound the die rides
+     * the rubber band (a hard wall under reduced motion).
      */
-    const zoomBy = (ln: number, at: Vec2): boolean => {
+    const zoomBy = (ln: number, at: Vec2) => {
         readFrame();
-        const want = s0 * Math.exp(ln);
-        state.s = clampScale(want);
-        const k = state.s / s0;
-        return (
-            panBy({ x: (k - 1) * (c0.x - at.x), y: (k - 1) * (c0.y - at.y) }) &&
-            Math.abs(state.s - want) <= 1e-12 * want
-        );
+        state.s = showScale(Math.log(s0) + ln);
+        const k = state.s / sShow0;
+        setTranslate({ x: t0.x + ((k - 1) * (c0.x - at.x)) / f.fit, y: t0.y + ((k - 1) * (c0.y - at.y)) / f.fit });
+    };
+
+    /**
+     * The pose the let-go pan and zoom move (useOrbitalInertia): the shown
+     * centre and ln s and their bounds; the setters write unclamped (the
+     * coast and the spring own the bound).
+     */
+    const pose: OrbitPose = {
+        read: () => {
+            readFrame();
+            const L = panLimits(state.s);
+            return { c: { ...c0 }, ln: Math.log(state.s), x: L.x, y: L.y, z: lnRange };
+        },
+        setCentre: (c) => {
+            state.t = { x: (c.x - cRest.x) / f.fit, y: (c.y - cRest.y) / f.fit };
+        },
+        setZoom: (ln, at) => {
+            readFrame();
+            const s1 = Math.exp(ln);
+            const k = s1 / state.s;
+            state.s = s1;
+            state.t = {
+                x: state.t.x + ((k - 1) * (c0.x - at.x)) / f.fit,
+                y: state.t.y + ((k - 1) * (c0.y - at.y)) / f.fit,
+            };
+        },
     };
 
     // The zoom and the pan are summed per FRAME and applied once (flushWheel,
@@ -518,6 +605,16 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
         if (d.x !== 0 || d.y !== 0) panBy(d);
     };
 
+    /** The pan / zoom stream's end: the rubber band lets go (the spring). */
+    let liveTimer: ReturnType<typeof setTimeout> | undefined;
+    const holdLive = () => {
+        clearTimeout(liveTimer);
+        liveTimer = setTimeout(() => {
+            liveTimer = undefined;
+            onSettle?.(zoomAt);
+        }, WHEEL_LIVE_MS);
+    };
+
     const handleWheel = (event: WheelEvent) => {
         const zoom = event.ctrlKey || event.metaKey;
         const orbit = !zoom && event.altKey;
@@ -532,6 +629,11 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
         const major = Math.abs(dy) >= Math.abs(dx) ? dy : dx;
         if (event.timeStamp - streamAt > WHEEL_STREAM_GAP_MS) streamFirst = major;
         streamAt = event.timeStamp;
+        if (zoom || !orbit) {
+            // A live pan or zoom stream takes the die from a let-go spring.
+            if (!liveTimer) onGestureStart();
+            holdLive();
+        }
         if (zoom) {
             zoomLn += -dy / WHEEL_ZOOM_PX;
             zoomAt = { x: event.clientX, y: event.clientY };
@@ -542,6 +644,7 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
             // OA-17 — natural scrolling: the content follows the fingers. The
             // OS carries a trackpad's momentum in the stream itself, so the
             // wheel never coasts here.
+            zoomAt = { x: event.clientX, y: event.clientY };
             panPx = { x: panPx.x + WHEEL_PAN_SIGN * dx, y: panPx.y + WHEEL_PAN_SIGN * dy };
             requestCommit();
             return;
@@ -568,16 +671,45 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
         requestCommit();
     };
 
-    // ── Safari gesture* ────────────────────────────────────────────────
+    // ── Safari gesture* (and the host's relay of it) ────────────────────
+    // Desktop Safari's trackpad pinch and twist arrive as gesture* with no
+    // finger down: s = s₀·scale anchored at the cursor (the content under it
+    // stays), roll = rotation about the view axis, both in one gesture. A host
+    // that frames the slice relays the gesture* the browser hands to IT
+    // (`relayGesture`, babb-embed v1); the slice ignores a relayed gesture
+    // while it is receiving its own, so nothing is applied twice.
     const touchDown = () => [...pointers.values()].some((p) => p.touch);
     let trackpad = false;
+    let relayed = false;
+    let gestureAt: Vec2 = { x: 0, y: 0 };
+
+    const gestureBegin = (at: Vec2) => {
+        onGestureStart();
+        readFrame();
+        gestureAt = Number.isFinite(at.x) && Number.isFinite(at.y) ? { ...at } : { ...c0 };
+    };
+
+    const gestureApply = (scale: number, rotationDeg: number) => {
+        state.s = showScale(Math.log(s0 * (scale > 0 ? scale : 1)));
+        const k = state.s / sShow0;
+        setTranslate({
+            x: t0.x + ((k - 1) * (c0.x - gestureAt.x)) / f.fit,
+            y: t0.y + ((k - 1) * (c0.y - gestureAt.y)) / f.fit,
+        });
+        state.q = applyScreenDelta(q0, quatFromAxisAngle([0, 0, 1], ((rotationDeg || 0) * Math.PI) / 180), G);
+        requestCommit();
+    };
+
+    /** The gesture lets go: whatever stands past a bound springs back. */
+    const gestureFinish = () => onGestureEnd({ omega: [0, 0, 0] });
 
     const onGestureStartEvent = (event: Event) => {
         event.preventDefault();
         if (touchDown()) return;
+        const e = event as GestureEvent;
+        relayed = false;
         trackpad = true;
-        onGestureStart();
-        readFrame();
+        gestureBegin({ x: e.clientX, y: e.clientY });
     };
 
     const onGestureChange = (event: Event) => {
@@ -585,15 +717,28 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
         event.preventDefault();
         if (!trackpad) return;
         const e = event as GestureEvent;
-        state.s = clampScale(s0 * (e.scale || 1));
-        state.q = applyScreenDelta(q0, quatFromAxisAngle([0, 0, 1], ((e.rotation || 0) * Math.PI) / 180), G);
-        requestCommit();
+        gestureApply(e.scale, e.rotation);
     };
 
     const onGestureEndEvent = (event: Event) => {
         if (!trackpad) return;
         event.preventDefault();
         trackpad = false;
+        gestureFinish();
+    };
+
+    /** A gesture the host relays (its own gesture*, in this frame's client px). */
+    const relayGesture = (phase: "start" | "change" | "end", scale: number, rotationDeg: number, at: Vec2) => {
+        if (phase === "start") {
+            if (trackpad || pointers.size > 0) return;
+            relayed = true;
+            gestureBegin(at);
+        } else if (phase === "change") {
+            if (relayed && !trackpad) gestureApply(scale, rotationDeg);
+        } else if (relayed) {
+            relayed = false;
+            if (!trackpad) gestureFinish();
+        }
     };
 
     /** The axis latch's one setter (the registry's X/Y/Z bindings drive it). A
@@ -627,6 +772,8 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
         flushWheel,
         panBy,
         zoomBy,
+        pose,
+        relayGesture,
         onArcball,
         onGestureStartEvent,
         onGestureChange,

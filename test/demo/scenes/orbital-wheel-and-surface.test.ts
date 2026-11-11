@@ -33,6 +33,8 @@ import { mount } from "@vue/test-utils";
 import { nextTick, ref } from "vue";
 import OrbitalDrag from "../../../demo/scenes/cube/orbital-drag/OrbitalDrag.vue";
 import { defaultTransformState, type TransformState } from "../../../demo/scenes/cube/orbital-drag/transform";
+import { BAND, PAN_OUT, band } from "../../../demo/scenes/cube/orbital-drag/bounds";
+import { WHEEL_LIVE_MS } from "../../../demo/scenes/cube/orbital-drag/composables/useOrbitalGesture";
 import {
     quatAngleBetween,
     quatConjugate,
@@ -187,14 +189,30 @@ describe("U2 — the zoom gear is the pinch itself", () => {
 });
 
 describe("U3 — the stage is the surface", () => {
-    it("a grab beside the die turns it at the arcball's centre gain (2|d|/R)", async () => {
+    it("a radial grab beside the die turns it at the arcball's centre gain (2|d|/R)", async () => {
         const { w, model, el } = await mountOrbit();
-        const x0 = CENTRE.x + R + 30;
-        await drag(el, [[x0, CENTRE.y], [x0, CENTRE.y + 10], [x0, CENTRE.y + 20]]);
+        const y0 = CENTRE.y + R + 30;
+        await drag(el, [[CENTRE.x, y0], [CENTRE.x, y0 + 10], [CENTRE.x, y0 + 20]]);
         const r = screenRotation(q(model.value));
         expect(r.angle).toBeCloseTo((2 * 20) / R, 9);
         // A vertical move tumbles about the screen x axis, as on the die.
         expect(Math.abs(r.axis[0])).toBeCloseTo(1, 9);
+        w.unmount();
+    });
+
+    it("the rim roll: an arc about the die, off it, rolls it about the view axis by the angle swept", async () => {
+        const { w, model, el } = await mountOrbit();
+        const r0 = R + 20;
+        const path: [number, number][] = [];
+        for (let i = 0; i <= 45; i++) {
+            const a = (i * 2 * Math.PI) / 180;
+            path.push([CENTRE.x + r0 * Math.cos(a), CENTRE.y + r0 * Math.sin(a)]);
+        }
+        await drag(el, path);
+        const r = screenRotation(q(model.value));
+        // A clockwise quarter (y down) rolls +90° about the view axis, nothing else.
+        expect(r.angle * DEG).toBeCloseTo(90, 6);
+        expect(r.axis[2]).toBeCloseTo(1, 9);
         w.unmount();
     });
 
@@ -216,18 +234,21 @@ describe("U3 — the stage is the surface", () => {
         expect(screenRotation(back).angle).toBeLessThan(1e-9);
     });
 
-    it("the seam: a tangential move at R − 2 and at R + 2 turns the die within ±5 %", async () => {
+    it("the seam: a tangential move at R − 2 and at R + 2 both roll about the view axis", async () => {
         const turn = async (r: number) => {
             const { w, model, el } = await mountOrbit();
             const x = CENTRE.x + r;
             await drag(el, [[x, CENTRE.y], [x, CENTRE.y + 2]]);
-            const a = screenRotation(q(model.value)).angle;
+            const a = screenRotation(q(model.value));
             w.unmount();
             return a;
         };
+        // Shoemake's rim rolls twice the arc; the rim roll rolls the arc itself.
         const inside = await turn(R - 2);
         const outside = await turn(R + 2);
-        expect(Math.abs(outside / inside - 1)).toBeLessThan(0.05);
+        expect(Math.abs(inside.axis[2])).toBeGreaterThan(0.95);
+        expect(Math.abs(outside.axis[2])).toBeCloseTo(1, 3);
+        expect(outside.angle).toBeCloseTo(Math.atan2(2, R + 2), 5);
     });
 });
 
@@ -305,14 +326,53 @@ describe("U4 — an Alt-wheel notch glides out; a trackpad stream stays direct",
 });
 
 describe("U5 — the frame's centre is the rest centre; the pan holds the die in V", () => {
-    it("three +250 px pans keep the die's centre inside V", async () => {
+    /** The centre's bound: no more than PAN_OUT of the die leaves V (bounds.ts). */
+    const RIGHT = STAGE.right - (0.5 - PAN_OUT) * SIDE;
+    it("three +250 px pans rest with no more than a quarter of the die past V", async () => {
         const { w, model, el } = await mountOrbit();
         for (let i = 0; i < 3; i++) {
             const x = CENTRE.x + model.value.translate.x;
             await drag(el, [[x, CENTRE.y], [x + 125, CENTRE.y], [x + 250, CENTRE.y]], true);
-            expect(CENTRE.x + model.value.translate.x).toBeLessThanOrEqual(STAGE.right + 1e-9);
+            await flush(120);
+            expect(CENTRE.x + model.value.translate.x).toBeLessThanOrEqual(RIGHT + 1e-9);
         }
-        expect(CENTRE.x + model.value.translate.x).toBeCloseTo(STAGE.right, 9);
+        expect(CENTRE.x + model.value.translate.x).toBeCloseTo(RIGHT, 9);
+        w.unmount();
+    });
+
+    it("past the bound the hand meets the rubber band; let go, the spring brings it home without overshoot", async () => {
+        const { w, model, el } = await mountOrbit();
+        let t = 0;
+        el.dispatchEvent(ptr("pointerdown", CENTRE.x, CENTRE.y, t, true));
+        document.dispatchEvent(ptr("pointermove", CENTRE.x + 400, CENTRE.y, (t += 8), true));
+        await flush();
+        const held = CENTRE.x + model.value.translate.x;
+        const raw = CENTRE.x + 400 - RIGHT;
+        expect(held - RIGHT).toBeCloseTo(band(raw, STAGE.right - STAGE.left), 9);
+        expect(held - RIGHT).toBeLessThan(raw * BAND);
+        document.dispatchEvent(ptr("pointerup", CENTRE.x + 400, CENTRE.y, t + 200, true));
+        const xs: number[] = [];
+        for (let i = 0; i < 90; i++) {
+            await flush();
+            xs.push(CENTRE.x + model.value.translate.x);
+        }
+        for (let i = 1; i < xs.length; i++) expect(xs[i]!).toBeLessThanOrEqual(xs[i - 1]! + 1e-9);
+        expect(Math.min(...xs)).toBeGreaterThanOrEqual(RIGHT - 1e-9);
+        expect(xs.at(-1)).toBe(RIGHT);
+        w.unmount();
+    });
+
+    it("under reduced motion the bound is a hard wall", async () => {
+        reduce = true;
+        const { w, model, el } = await mountOrbit();
+        let t = 0;
+        el.dispatchEvent(ptr("pointerdown", CENTRE.x, CENTRE.y, t, true));
+        document.dispatchEvent(ptr("pointermove", CENTRE.x + 400, CENTRE.y, (t += 8), true));
+        await flush();
+        expect(CENTRE.x + model.value.translate.x).toBeCloseTo(RIGHT, 9);
+        document.dispatchEvent(ptr("pointerup", CENTRE.x + 400, CENTRE.y, t + 200, true));
+        await flush(5);
+        expect(CENTRE.x + model.value.translate.x).toBeCloseTo(RIGHT, 9);
         w.unmount();
     });
 
@@ -459,13 +519,20 @@ describe("U8 — natural scrolling: the wheel pans, the content follows the fing
         expect(await pan([4, 4, 4, 4])).toBeCloseTo(await pan([16]), 12);
     });
 
-    it("the wheel pan is held inside V", async () => {
+    it("the wheel pan rides the band past the bound, then springs back to it", async () => {
+        const TOP = STAGE.top + (0.5 - PAN_OUT) * SIDE;
         const { w, model, el } = await mountOrbit();
         for (let i = 0; i < 5; i++) {
             el.dispatchEvent(wheel({ deltaY: 200 }));
             await flush();
         }
-        expect(CENTRE.y + model.value.translate.y).toBeCloseTo(STAGE.top, 9);
+        // Live: past the bound, on the band.
+        expect(CENTRE.y + model.value.translate.y).toBeLessThan(TOP);
+        expect(CENTRE.y + model.value.translate.y).toBeGreaterThan(TOP - (STAGE.bottom - STAGE.top));
+        // The stream ends WHEEL_LIVE_MS after its last event; the spring takes over.
+        await new Promise((r) => setTimeout(r, WHEEL_LIVE_MS + 20));
+        await flush(120);
+        expect(CENTRE.y + model.value.translate.y).toBe(TOP);
         w.unmount();
     });
 

@@ -643,7 +643,10 @@ async function assayCells(browser, out) {
             await held(page, [[x, y], [(x + to[0]) / 2, (y + to[1]) / 2], to]);
             res[k] = turn(a, (await read(page)).tf).deg;
         }
-        return { R, seamTangential: res.outT / res.inT, seamRadial: res.inR > 0 ? res.outR / res.inR : null, ...res };
+        // Off the die a tangential move is the rim roll (owner 2026-11-11): it
+        // rolls by the angle swept about the centre, atan(4 / (R + 2)).
+        const rimRoll = (Math.atan2(4, R + 2) * 180) / Math.PI;
+        return { R, seamRoll: res.outT / rimRoll, seamTangential: res.outT / res.inT, seamRadial: res.inR > 0 ? res.outR / res.inR : null, ...res };
     });
 
     // U3 — wheel and swipe beside the die; a centre grab for the gain.
@@ -653,7 +656,8 @@ async function assayCells(browser, out) {
         const a = (await read(page)).tf;
         await held(page, [[r.die.x, r.die.y], [r.die.x, r.die.y + 10], [r.die.x, r.die.y + 20]]);
         const b = (await read(page)).tf;
-        await held(page, [[ox, oy], [ox, oy + 10], [ox, oy + 20]]);
+        // A radial grab beside the die (a tangential one is the rim roll).
+        await held(page, [[ox + 20, oy], [ox + 10, oy], [ox, oy]]);
         const c = (await read(page)).tf;
         // OA-17: the wheel orbit is Alt/Option-wheel (the plain wheel pans).
         await page.mouse.move(ox, oy);
@@ -1092,7 +1096,7 @@ for (const c of out) {
     if (c.touchmoveAloneWrites) fails.push(`K-D3c ${c.cell} touchmove alone wrote the orbit`);
     // kf-cube assay gates.
     if (c.grabHit !== undefined && c.grabHit !== 81) fails.push(`U3 ${c.cell} grab map ${c.grabHit}/81 inside V`);
-    if (c.seamTangential !== undefined && !(Math.abs(c.seamTangential - 1) <= 0.05)) fails.push(`U3 ${c.cell} seam tangential ${c.seamTangential}`);
+    if (c.seamRoll !== undefined && !(Math.abs(c.seamRoll - 1) <= 0.05)) fails.push(`U3 ${c.cell} rim roll at R + 2 ${c.seamRoll} of the swept angle`);
     if (c.offDieGain !== undefined && !(Math.abs(c.offDieGain - 1) <= 0.05)) fails.push(`U3 ${c.cell} off-die gain ${c.offDieGain}`);
     if (c.offDieRolls !== undefined && (c.offDieRolls !== 0 || c.onDieRolls !== 1)) fails.push(`U3 ${c.cell} double-tap off ${c.offDieRolls} on ${c.onDieRolls}`);
     if (c.one && !(c.one.framesSpanned >= 12 && c.one.worst.ratio <= 1)) fails.push(`U4 ${c.cell} notch ${c.one.framesSpanned} frames, step ${c.one.worst.stepDeg}° over ${c.one.worst.dtMs} ms (bar ${c.one.worst.barDeg}°)`);

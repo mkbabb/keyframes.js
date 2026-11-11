@@ -241,3 +241,24 @@ export const unwrapDegrees = (a: number, prev: number) =>
  *  the readout runs unwrapped through a gesture and folds at its end. */
 export const foldDegrees = (a: number) =>
     Math.abs(a) > 360 ? a - 360 * Math.trunc(a / 360) : a;
+
+/** Spherical interpolation from `a` to `b` at `t` ∈ [0, 1], the short way round. */
+export const quatSlerp = (a: Quat, b: Quat, t: number): Quat => {
+    let d = quatDot(a, b);
+    const s = d < 0 ? -1 : 1;
+    d = Math.min(1, Math.abs(d));
+    if (d > 1 - 1e-9) {
+        const q: Quat = [
+            a[0] + (s * b[0] - a[0]) * t,
+            a[1] + (s * b[1] - a[1]) * t,
+            a[2] + (s * b[2] - a[2]) * t,
+            a[3] + (s * b[3] - a[3]) * t,
+        ];
+        const n = Math.hypot(q[0], q[1], q[2], q[3]) || 1;
+        return [q[0] / n, q[1] / n, q[2] / n, q[3] / n];
+    }
+    const th = Math.acos(d);
+    const sa = Math.sin((1 - t) * th) / Math.sin(th);
+    const sb = (s * Math.sin(t * th)) / Math.sin(th);
+    return [a[0] * sa + b[0] * sb, a[1] * sa + b[1] * sb, a[2] * sa + b[2] * sb, a[3] * sa + b[3] * sb];
+};

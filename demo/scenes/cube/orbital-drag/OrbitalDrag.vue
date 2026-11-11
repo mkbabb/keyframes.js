@@ -10,7 +10,7 @@
 <script setup lang="ts">
 // SERVED MODEL: claude-opus-5-5
 import { registerShortcut } from "@mkbabb/glass-ui/keyboard";
-import { useEventListener } from "@vueuse/core";
+import { useEventListener, useRafFn } from "@vueuse/core";
 import { computed, onMounted, onUnmounted, shallowRef, useTemplateRef, watch } from "vue";
 import { attitudeQuat } from "../graphAttitude";
 import {
@@ -19,6 +19,7 @@ import {
     quatDot,
     quatFromAxisAngle,
     quatMultiply,
+    quatSlerp,
     quatToAxisAngle,
     panInPlane,
     rotateVec,
@@ -183,8 +184,8 @@ const reducedMotion = () =>
     typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 // ── The coast: rotation, pan and zoom (OA-17) ───────────────────────
-// The pan and zoom channels apply through the reader's own clamped,
-// cursor-anchored setters (declared below; called only once a coast runs).
+// The pan and zoom channels move the reader's pose (declared below; read only
+// once a coast runs), inside its bounds or springing back to them.
 const inertia = useOrbitalInertia({
     inertiaFactor: props.inertiaFactor,
     reducedMotion,
@@ -192,16 +193,12 @@ const inertia = useOrbitalInertia({
         state.q = quatCanonical(quatMultiply(quatFromAxisAngle(axis, angle), state.q));
         writeModel();
     },
-    panBy: (d) => {
-        const free = gesture.panBy(d);
-        writeModel();
-        return free;
+    pose: {
+        read: () => gesture.pose.read(),
+        setCentre: (c) => gesture.pose.setCentre(c),
+        setZoom: (ln, at) => gesture.pose.setZoom(ln, at),
     },
-    zoomBy: (ln, at) => {
-        const free = gesture.zoomBy(ln, at);
-        writeModel();
-        return free;
-    },
+    commit: () => writeModel(),
     onRest: () => writeModel(true),
 });
 
@@ -218,7 +215,10 @@ const gesture = useOrbitalGesture({
     requestCommit,
     // D1 — the state is the truth; a gesture never re-seeds from the model
     // (the external-write watch below does, the moment one lands).
-    onGestureStart: () => inertia.stop(),
+    onGestureStart: () => {
+        home = null;
+        inertia.stop();
+    },
     onGestureEnd: (release) => {
         commitNow();
         if (!inertia.start(release)) writeModel(true);
@@ -226,7 +226,50 @@ const gesture = useOrbitalGesture({
     // A wheel notch glides out on the coast's own decay, conjugated into Q's
     // frame (G is fixed, so turning the axis by G⁻¹ is the conjugation).
     onGlide: (w) => void inertia.glide(rotateVec(Ginv, w)),
+    // A pan / zoom wheel stream that ended past a bound springs back.
+    onSettle: (at) => inertia.settle(at),
+    reducedMotion,
 });
+
+// ── Home: Reset returns the orbit to its load pose on the settle spring ──
+// The attitude, pan and zoom travel together on p(t) = 1 − (1 + k·t)·e^(−k·t)
+// (the critically damped spring at the coast's own k: zero velocity at both
+// ends, no overshoot), sampled at elapsed time. A gesture takes it over;
+// under reduced motion it is a cut.
+const HOME_REST = 1e-4;
+let home: { t0: number; q: Quat; t: { x: number; y: number }; ln: number } | null = null;
+const homeLoop = useRafFn(
+    ({ timestamp }) => {
+        if (!home) return homeLoop.pause();
+        if (home.t0 < 0) home.t0 = timestamp;
+        const k = inertia.friction;
+        const tau = (timestamp - home.t0) / 1000;
+        const left = (1 + k * tau) * Math.exp(-k * tau);
+        const done = left < HOME_REST;
+        const p = done ? 1 : 1 - left;
+        state.q = done ? [0, 0, 0, 1] : quatCanonical(quatSlerp(home.q, [0, 0, 0, 1], p));
+        state.t = { x: home.t.x * (1 - p), y: home.t.y * (1 - p) };
+        state.s = Math.exp(home.ln * (1 - p));
+        if (done) {
+            home = null;
+            homeLoop.pause();
+            writeModel(true);
+        } else writeModel();
+    },
+    { immediate: false },
+);
+const goHome = () => {
+    inertia.stop();
+    if (reducedMotion()) {
+        state.q = [0, 0, 0, 1];
+        state.t = { x: 0, y: 0 };
+        state.s = 1;
+        writeModel(true);
+        return;
+    }
+    home = { t0: -1, q: [state.q[0], state.q[1], state.q[2], state.q[3]], t: { ...state.t }, ln: Math.log(state.s) };
+    homeLoop.resume();
+};
 
 // ── The axis latch — KF-AX-1 ≡ OD-3/OD-4/OD-5/OD-6/OD-25/OD-31 ──────
 // THE ONE REGISTRY. Holding X, Y or Z constrains the orbit to that axis. The
@@ -284,6 +327,10 @@ defineExpose({
     containerRef,
     resetPressedKeys: gesture.resetPressedKeys,
     onArcball: gesture.onArcball,
+    /** A host's relayed gesture* (babb-embed v1, in this frame's client px). */
+    relayGesture: gesture.relayGesture,
+    /** Return to the load pose on the settle spring (Reset). */
+    home: goHome,
 });
 
 // The reverse path: an EXTERNAL write to the readout (Reset, a slider, a
