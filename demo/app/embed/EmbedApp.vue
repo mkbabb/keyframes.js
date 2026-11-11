@@ -72,6 +72,7 @@ const sliceRoot = useTemplateRef<HTMLElement>("sliceRoot");
 const cubeRef = useTemplateRef<InstanceType<typeof EmbedCube>>("cubeRef");
 bridge.onSetPlaying((playing) => cubeRef.value?.setPlaying(playing));
 bridge.onReset(() => cubeRef.value?.reset());
+bridge.onGesture((g) => cubeRef.value?.relayGesture(g.phase, g.scale, g.rotation, g.x, g.y));
 onMounted(async () => {
     await nextTick();
     await document.fonts?.ready;
@@ -85,6 +86,8 @@ onMounted(async () => {
         scheme: scheme(),
         width: Math.round(box.width),
         height: Math.ceil(box.height),
+        // The cube's own Play seat's look, for a host that carries it.
+        ...(cubeRef.value ? { transport: cubeRef.value.transportLook() } : {}),
     });
     // A filled stage takes the host's box; only a square one reports its own.
     if (route.stage !== "fill") bridge.observeSize(el);

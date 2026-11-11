@@ -211,7 +211,13 @@ const surfaceStyle = computed(() =>
         : { touchAction: "pan-y", overscrollBehavior: "auto" },
 );
 
-defineExpose({ cubeEl, bobEl, poseEl, graphEl });
+/** Reset's orbit half: the load pose, on the settle spring. */
+const homeOrbit = () => orbitalRef.value?.home();
+/** A host's relayed gesture* (babb-embed v1). */
+const relayGesture: InstanceType<typeof OrbitalDrag>["relayGesture"] = (phase, scale, rotation, at) =>
+    orbitalRef.value?.relayGesture(phase, scale, rotation, at);
+
+defineExpose({ cubeEl, bobEl, poseEl, graphEl, homeOrbit, relayGesture });
 
 // ── KF-M2 · KF-M1 — what the orbit anchors on (read once per gesture) ───────
 // The projected centre is `.graph`'s (the parked stage, rotated by G only);
@@ -219,9 +225,10 @@ defineExpose({ cubeEl, bobEl, poseEl, graphEl });
 // stage glide's live scale (`.stage-glide`, AnimationControlsGroup: the OPEN
 // rung shrinks the subject into the region above the sheet); and the stage is
 // the visible-stage box V — the `.stage-cell` content box, whose padding IS
-// the reserve (top band, transport band + the sheet's settled peek).
+// the reserve (top band, transport band + the sheet's settled peek), or an
+// embed's own stage (`[data-orbit-stage]`, the frame's box).
 const stageBox = (): Box | null => {
-    const cell = graphEl.value?.closest<HTMLElement>(".stage-cell");
+    const cell = graphEl.value?.closest<HTMLElement>(".stage-cell, [data-orbit-stage]");
     if (!cell) return null;
     const r = cell.getBoundingClientRect();
     const cs = getComputedStyle(cell);

@@ -3,15 +3,23 @@
          chosen skin, on the demo's own graph paper, under the demo's own
          transport. The die holds still at its opening attitude until Play.
          The stage owns every gesture over it (one finger orbits; two pan,
-         pinch and twist; the wheel pans and Ctrl-wheel zooms, OA-17), so a
-         pan never scrolls the host. The paper and its axes ride the orbit's pan and zoom,
+         pinch and twist; the wheel pans and Ctrl-wheel zooms, OA-17; a drag
+         around the die off it rolls it), so a pan never scrolls the host. The
+         stage is the orbit's bound: no more than a quarter of the die leaves
+         it, and a die thrown past springs back. The paper and its axes ride the orbit's pan and zoom,
          so panning reads as moving across paper. The die keeps its face
          numerals, as in the app; the axis-lock lines stay the app's. Under
          `transport=host` the host carries Play / Pause and Reset in its own
          dock (the bridge's set-playing / reset), so no transport is drawn
          here; Space still toggles. -->
     <div class="embed-cube">
-        <div class="embed-cube-stage" :class="{ 'embed-cube-stage--fill': fill }" :data-skin="skin" :style="paperVars">
+        <div
+            class="embed-cube-stage"
+            :class="{ 'embed-cube-stage--fill': fill }"
+            data-orbit-stage
+            :data-skin="skin"
+            :style="paperVars"
+        >
             <div class="embed-cube-paper grid-background" aria-hidden="true"></div>
             <div class="embed-cube-axes" aria-hidden="true">
                 <div class="embed-cube-axis stage-field-x"></div>
@@ -48,6 +56,8 @@ import { CUBE_SCENE_ID } from "../../scenes/cube/cubeKeys";
 import { useCubeDemo } from "../../scenes/cube/useCubeDemo";
 import { useTransformState } from "../../scenes/cube/matrix-editor/useTransformState";
 import TransportDock from "../../components/instrument/transport/TransportDock.vue";
+import { PLAY_FILL } from "../../components/instrument/transport/playFill";
+import type { GesturePhase, TransportLook } from "./bridge";
 import { isSpaceActivationTarget } from "../../components/instrument/transport/composables/useControlsKeyboardShortcuts";
 
 const props = defineProps<{ skin: CubeSkin; hostTransport?: boolean; fill?: boolean }>();
@@ -87,16 +97,12 @@ const setPlaying = (next: boolean) => {
 const togglePlay = () => setPlaying(!playing.value);
 
 /** Reset: rewind every channel to its first frame and hold there, and return
- *  the orbit (attitude, pan, zoom) to the opening one, so the die stands as it
- *  loaded. */
+ *  the orbit (attitude, pan, zoom) to the opening one on the settle spring, so
+ *  the die eases back to where it loaded. */
 const reset = () => {
     animationGroup.value.stop();
     started.value = false;
-    const orbit = transformSliderValues.value;
-    orbit.rotate.x = orbit.rotate.y = orbit.rotate.z = 0;
-    orbit.quaternion = [0, 0, 0, 1];
-    orbit.translate.x = orbit.translate.y = orbit.translate.z = 0;
-    orbit.scale.x = orbit.scale.y = orbit.scale.z = 1;
+    cubeTargetRef.value?.homeOrbit();
     if (playing.value) {
         playing.value = false;
         emit("transport", false);
@@ -142,7 +148,29 @@ onBeforeUnmount(() => {
     animationGroup.value.stop();
 });
 
-defineExpose({ setPlaying, reset });
+/** A gesture* the host relays (its own, over the frame), in this frame's px. */
+const relayGesture = (phase: GesturePhase, scale: number, rotation: number, x: number, y: number) =>
+    cubeTargetRef.value?.relayGesture(phase, scale, rotation, { x, y });
+
+/** The Play seat's look in this scheme, read from a hidden seat carrying its
+ *  fill (TransportDock's own classes), for a host that draws the transport. */
+const transportLook = (): TransportLook => {
+    const seat = document.createElement("span");
+    seat.setAttribute("aria-hidden", "true");
+    seat.style.cssText = "position:absolute;inline-size:1px;block-size:1px;visibility:hidden;pointer-events:none";
+    document.body.append(seat);
+    const read = (fill: string) => {
+        seat.className = `${PLAY_FILL.ink} ${fill}`;
+        const cs = getComputedStyle(seat);
+        return { bg: cs.backgroundImage, ink: cs.color };
+    };
+    const rest = read(PLAY_FILL.rest);
+    const playing = read(PLAY_FILL.playing);
+    seat.remove();
+    return { rest: rest.bg, playing: playing.bg, ink: rest.ink };
+};
+
+defineExpose({ setPlaying, reset, relayGesture, transportLook });
 </script>
 
 <style scoped>

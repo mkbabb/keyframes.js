@@ -159,10 +159,13 @@ describe("G2.3 — the mounted orbit: one channel per hand motion", () => {
         w.unmount();
     });
 
-    it("(f) the clamp holds the projected centre inside the stage", async () => {
+    it("(f) the bound holds the projected centre: at rest no more than a quarter of the die leaves the stage", async () => {
         const { w, model, el } = await mountOrbit();
         await twoFinger(el, [170, 300], [230, 300], [170, 900], [230, 900]);
-        expect(CENTRE.y + model.value.translate.y).toBeLessThanOrEqual(STAGE.bottom + 1e-9);
+        await flush(120);
+        // The die's extent at the scale it rests at (the release may carry a zoom).
+        const D = 160 * model.value.scale.x;
+        expect(CENTRE.y + model.value.translate.y).toBeLessThanOrEqual(STAGE.bottom - 0.25 * D + 1e-9);
         w.unmount();
     });
 
@@ -325,6 +328,78 @@ describe("G2.4 — ONE multitouch source (D-14)", () => {
         await flush();
         expect(Math.abs(model.value.scale.x - 1.5)).toBeLessThan(1e-6);
         window.dispatchEvent(gestureEvent("gestureend", 1.5, 0));
+        w.unmount();
+    });
+
+    it("Safari's pinch and twist in one gesture: s ×1.5 anchored at the cursor, 30° about the view axis", async () => {
+        const { w, model, el } = await mountOrbit();
+        const at = { x: CENTRE.x + 60, y: CENTRE.y - 40 };
+        const g = (type: string, scale: number, rotation: number) => {
+            const e = gestureEvent(type, scale, rotation);
+            Object.defineProperty(e, "clientX", { value: at.x });
+            Object.defineProperty(e, "clientY", { value: at.y });
+            return e;
+        };
+        el.dispatchEvent(g("gesturestart", 1, 0));
+        window.dispatchEvent(g("gesturechange", 1.5, 30));
+        await flush();
+        const k = model.value.scale.x;
+        expect(k).toBeCloseTo(1.5, 9);
+        const c = { x: CENTRE.x + model.value.translate.x, y: CENTRE.y + model.value.translate.y };
+        expect(Math.abs(c.x + k * (at.x - CENTRE.x) - at.x)).toBeLessThan(1e-6);
+        expect(Math.abs(c.y + k * (at.y - CENTRE.y) - at.y)).toBeLessThan(1e-6);
+        const r = screenRotation(model.value.quaternion!);
+        expect((r.angle * 180) / Math.PI).toBeCloseTo(30, 6);
+        expect(Math.abs(r.axis[2])).toBeCloseTo(1, 9);
+        window.dispatchEvent(g("gestureend", 1.5, 30));
+        w.unmount();
+    });
+
+    it("a host's relayed gesture does the same; its own gesture* takes precedence over a relay", async () => {
+        const { w, model, el } = await mountOrbit();
+        const orbit = w.vm as unknown as { relayGesture: (p: string, s: number, r: number, at: { x: number; y: number }) => void };
+        const at = { x: CENTRE.x - 50, y: CENTRE.y + 20 };
+        orbit.relayGesture("start", 1, 0, at);
+        orbit.relayGesture("change", 1.5, 30, at);
+        await flush();
+        const k = model.value.scale.x;
+        expect(k).toBeCloseTo(1.5, 9);
+        const c = { x: CENTRE.x + model.value.translate.x, y: CENTRE.y + model.value.translate.y };
+        expect(Math.abs(c.x + k * (at.x - CENTRE.x) - at.x)).toBeLessThan(1e-6);
+        orbit.relayGesture("end", 1.5, 30, at);
+        await flush(5);
+        // While its own gesture runs, a relay writes nothing.
+        el.dispatchEvent(gestureEvent("gesturestart", 1, 0));
+        const before = model.value.scale.x;
+        orbit.relayGesture("start", 1, 0, at);
+        orbit.relayGesture("change", 2, 0, at);
+        await flush();
+        expect(model.value.scale.x).toBe(before);
+        window.dispatchEvent(gestureEvent("gestureend", 1, 0));
+        w.unmount();
+    });
+
+    it("home: Reset eases the orbit to its load pose on the settle spring (no cut)", async () => {
+        const { w, model, el } = await mountOrbit();
+        await twoFinger(el, [160, 300], [240, 300], [120, 330], [280, 330], 10);
+        await flush(120);
+        const orbit = w.vm as unknown as { home: () => void };
+        const s0 = model.value.scale.x;
+        expect(s0).toBeGreaterThan(1.5);
+        orbit.home();
+        const ss: number[] = [];
+        for (let i = 0; i < 90; i++) {
+            await flush();
+            ss.push(model.value.scale.x);
+        }
+        const travel = s0 - 1;
+        const steps = ss.map((v, i) => Math.abs(v - (i ? ss[i - 1]! : s0)));
+        expect(Math.max(...steps) / travel).toBeLessThan(0.15);
+        expect(steps[0]! / travel).toBeLessThan(0.04);
+        expect(ss.filter((v, i) => v !== (i ? ss[i - 1] : s0)).length).toBeGreaterThanOrEqual(6);
+        expect(ss.at(-1)).toBe(1);
+        expect(model.value.translate.x).toBe(0);
+        expect(screenRotation(model.value.quaternion!).angle).toBeLessThan(1e-9);
         w.unmount();
     });
 

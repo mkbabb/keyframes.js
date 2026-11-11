@@ -80,7 +80,7 @@
                         <DockControl
                             shape="icon"
                             :aria-label="isPlaying ? 'Pause animation' : 'Play animation'"
-                            :class="['text-white', isPlaying ? 'rainbow-vivid' : 'rainbow-pastel']"
+                            :class="[PLAY_FILL.ink, isPlaying ? PLAY_FILL.playing : PLAY_FILL.rest]"
                             @pointerdown="onPlayPointerDown($event)"
                             @pointerup="onPlayPointerUp($event)"
                             @pointercancel="onPlayPointerCancel($event)"
@@ -232,6 +232,7 @@ import { DOCK_POPUP_GAP } from "@composables/dockEdge";
 import { usePlayActuation } from "./composables/usePlayActuation";
 import { useMenubarMeasure } from "./composables/useMenubarMeasure";
 import { useIconSpin } from "./composables/useIconSpin";
+import { PLAY_FILL } from "./playFill";
 import type { StoredAnimationGroupControlOptions } from "@state";
 
 const dockRef = useTemplateRef<InstanceType<typeof GlassDock>>("dockRef");
