@@ -19,7 +19,10 @@
  *  (2) the build is staged a frame apart: the graph lands after the first
  *      frame, the GL context after the next, and the present loop arms (the
  *      skeleton lifts) only after the program compile has settled;
- *  (3) a dispose mid-build retires the build: no GL context is created after.
+ *  (3) a dispose mid-build retires the build: no GL context is created after;
+ *  (4) o1111 kfamiga — a mount inside a running View Transition (every swap
+ *      into amiga) builds nothing until the transition has finished, so no
+ *      build stage lands in the visible cross-fade.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { defineComponent, h, ref } from "vue";
@@ -155,5 +158,36 @@ describe("X.KF.W13X.r4init — KFA-76: the Amiga room builds past the first pain
         await built;
         expect(gl.renderers).toBe(0);
         expect(handle.running).toBe(false);
+    });
+
+    it("(4) a mount inside a running View Transition builds nothing until it has finished", async () => {
+        let transition = true;
+        const matches = Element.prototype.matches;
+        vi.spyOn(Element.prototype, "matches").mockImplementation(function (this: Element, selector: string) {
+            if (selector === ":active-view-transition") return transition;
+            return matches.call(this, selector);
+        });
+        const { handle, wrapper } = mountRoom();
+        const built = handle.setup();
+        await settleTasks();
+        // Three frames of the cross-fade: no graph, no context, still booting.
+        for (let i = 0; i < 3; i++) await paintFrame();
+        expect(handle.getSphere()).toBeUndefined();
+        expect(gl.renderers).toBe(0);
+        expect(handle.booting.value).toBe(true);
+        // The transition finishes: the first frame after it sees none running,
+        // and the staged build starts a frame later, exactly as outside a swap.
+        transition = false;
+        await paintFrame();
+        expect(handle.getSphere()).toBeUndefined();
+        await paintFrame();
+        expect(handle.getSphere()).toBeDefined();
+        expect(gl.renderers).toBe(0);
+        await paintFrame();
+        expect(gl.renderers).toBe(1);
+        await paintFrame();
+        await built;
+        expect(handle.running).toBe(true);
+        wrapper.unmount();
     });
 });
