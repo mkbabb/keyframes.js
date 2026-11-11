@@ -9,6 +9,7 @@
                 ref="cubeRef"
                 :skin="route.skin"
                 :host-transport="route.transport === 'host'"
+                :fill="route.stage === 'fill'"
                 @transport="(playing) => bridge.post({ type: 'transport', playing })"
             />
         </main>
@@ -85,6 +86,7 @@ onMounted(async () => {
         width: Math.round(box.width),
         height: Math.ceil(box.height),
     });
-    bridge.observeSize(el);
+    // A filled stage takes the host's box; only a square one reports its own.
+    if (route.stage !== "fill") bridge.observeSize(el);
 });
 </script>

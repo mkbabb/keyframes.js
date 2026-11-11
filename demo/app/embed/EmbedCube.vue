@@ -3,15 +3,15 @@
          chosen skin, on the demo's own graph paper, under the demo's own
          transport. The die holds still at its opening attitude until Play.
          The stage owns every gesture over it (one finger orbits; two pan,
-         pinch and twist; the wheel is the orbit's, OA-17), so a pan never
-         scrolls the host. The paper and its axes ride the orbit's pan and zoom,
+         pinch and twist; the wheel pans and Ctrl-wheel zooms, OA-17), so a
+         pan never scrolls the host. The paper and its axes ride the orbit's pan and zoom,
          so panning reads as moving across paper. The die keeps its face
          numerals, as in the app; the axis-lock lines stay the app's. Under
          `transport=host` the host carries Play / Pause and Reset in its own
          dock (the bridge's set-playing / reset), so no transport is drawn
          here; Space still toggles. -->
     <div class="embed-cube">
-        <div class="embed-cube-stage" :data-skin="skin" :style="paperVars">
+        <div class="embed-cube-stage" :class="{ 'embed-cube-stage--fill': fill }" :data-skin="skin" :style="paperVars">
             <div class="embed-cube-paper grid-background" aria-hidden="true"></div>
             <div class="embed-cube-axes" aria-hidden="true">
                 <div class="embed-cube-axis stage-field-x"></div>
@@ -50,7 +50,7 @@ import { useTransformState } from "../../scenes/cube/matrix-editor/useTransformS
 import TransportDock from "../../components/instrument/transport/TransportDock.vue";
 import { isSpaceActivationTarget } from "../../components/instrument/transport/composables/useControlsKeyboardShortcuts";
 
-const props = defineProps<{ skin: CubeSkin; hostTransport?: boolean }>();
+const props = defineProps<{ skin: CubeSkin; hostTransport?: boolean; fill?: boolean }>();
 const skin = computed(() => props.skin);
 
 const emit = defineEmits<{ (e: "transport", playing: boolean): void }>();
@@ -86,10 +86,17 @@ const setPlaying = (next: boolean) => {
 
 const togglePlay = () => setPlaying(!playing.value);
 
-/** Reset: rewind every channel to its first frame and hold there. */
+/** Reset: rewind every channel to its first frame and hold there, and return
+ *  the orbit (attitude, pan, zoom) to the opening one, so the die stands as it
+ *  loaded. */
 const reset = () => {
     animationGroup.value.stop();
     started.value = false;
+    const orbit = transformSliderValues.value;
+    orbit.rotate.x = orbit.rotate.y = orbit.rotate.z = 0;
+    orbit.quaternion = [0, 0, 0, 1];
+    orbit.translate.x = orbit.translate.y = orbit.translate.z = 0;
+    orbit.scale.x = orbit.scale.y = orbit.scale.z = 1;
     if (playing.value) {
         playing.value = false;
         emit("transport", false);
@@ -154,6 +161,13 @@ defineExpose({ setPlaying, reset });
     overscroll-behavior: contain;
     /* The paper fades into the host's ground at the stage's rim. */
     --paper-fade: radial-gradient(closest-side, #000 62%, transparent);
+}
+
+/* stage=fill: the frame's own box, whatever the host makes it. */
+.embed-cube-stage--fill {
+    aspect-ratio: auto;
+    block-size: 100vh;
+    block-size: 100dvh;
 }
 
 /* Her inks rule the paper under her skin: jamun on light, gulabi on dark
