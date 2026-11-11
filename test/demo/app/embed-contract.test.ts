@@ -140,11 +140,16 @@ describe("route", () => {
             skin: "daraksha",
             scheme: "dark",
             transport: "own",
+            stage: "square",
         });
     });
     it("reads transport=host: the host draws the cube's transport", () => {
         expect(parseSliceRoute("#/cube?skin=daraksha&scheme=dark&transport=host").transport).toBe("host");
         expect(parseSliceRoute("#/cube?transport=elsewhere").transport).toBe("own");
+    });
+    it("reads stage=fill: the stage takes the frame's box", () => {
+        expect(parseSliceRoute("#/cube?stage=fill").stage).toBe("fill");
+        expect(parseSliceRoute("#/cube?stage=wide").stage).toBe("square");
     });
     it("falls back to the crayon die and the platform scheme", () => {
         expect(parseSliceRoute("#/cube?skin=velvet&scheme=sepia")).toEqual({
@@ -152,6 +157,7 @@ describe("route", () => {
             skin: "crayon",
             scheme: null,
             transport: "own",
+            stage: "square",
         });
         expect(parseSliceRoute("#/square").slice).toBeNull();
     });
