@@ -7,12 +7,22 @@
  * never a wildcard, and every message received is checked against the same
  * allow-list and against the parent window as its source.
  *
- *   slice → host   ready {slice, scheme, width, height} · size {height} (≤ 1 per
- *                  frame) · theme {scheme} (the acknowledgement) · color {css} ·
- *                  transport {playing} (the cube's Play / Pause, on each change)
+ *   slice → host   ready {slice, scheme, width, height, transport?} · size
+ *                  {height} (≤ 1 per frame) · theme {scheme} (the
+ *                  acknowledgement) · color {css} · transport {playing} (the
+ *                  cube's Play / Pause, on each change)
  *   host → slice   set-theme {scheme} · set-playing {playing} · reset {} (a host
  *                  that carries the cube's transport in its own chrome, framed
- *                  with `transport=host`; optional, additive within v1)
+ *                  with `transport=host`; optional, additive within v1) ·
+ *                  gesture {phase, scale, rotation, x, y} (a gesture* the
+ *                  browser handed to the host over the frame, relayed in the
+ *                  frame's own client px; additive within v1)
+ *
+ * `ready.transport` (the cube, additive within v1): the look of the slice's
+ * own Play seat, as CSS strings read from its computed style in the current
+ * scheme: `rest` (the seat's fill at rest), `playing` (its fill while
+ * playing) and `ink` (the glyph's colour), so a host that carries the
+ * transport draws it exactly as this app does.
  */
 
 export const EMBED_NS = "babb-embed";
@@ -51,8 +61,24 @@ export function resolveHostOrigin(win: Window): string | null {
     return origin && isAllowedHost(origin, win.location.hostname) ? origin : null;
 }
 
+/** The slice's own Play seat's look (computed CSS strings). */
+export interface TransportLook {
+    rest: string;
+    playing: string;
+    ink: string;
+}
+
+export type GesturePhase = "start" | "change" | "end";
+
 export type SliceMessage =
-    | { type: "ready"; slice: string; scheme: Scheme; width: number; height: number }
+    | {
+          type: "ready";
+          slice: string;
+          scheme: Scheme;
+          width: number;
+          height: number;
+          transport?: TransportLook;
+      }
     | { type: "size"; height: number }
     | { type: "theme"; scheme: Scheme }
     | { type: "color"; css: string }
@@ -61,7 +87,10 @@ export type SliceMessage =
 export type HostMessage =
     | { type: "set-theme"; scheme: Scheme }
     | { type: "set-playing"; playing: boolean }
-    | { type: "reset" };
+    | { type: "reset" }
+    | { type: "gesture"; phase: GesturePhase; scale: number; rotation: number; x: number; y: number };
+
+const finite = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v);
 
 /** Parse a host message; anything outside the contract is null. */
 export function readHostMessage(data: unknown): HostMessage | null {
@@ -75,6 +104,17 @@ export function readHostMessage(data: unknown): HostMessage | null {
         return { type: "set-playing", playing: m.playing };
     }
     if (m.type === "reset") return { type: "reset" };
+    if (
+        m.type === "gesture" &&
+        (m.phase === "start" || m.phase === "change" || m.phase === "end") &&
+        finite(m.scale) &&
+        m.scale > 0 &&
+        finite(m.rotation) &&
+        finite(m.x) &&
+        finite(m.y)
+    ) {
+        return { type: "gesture", phase: m.phase, scale: m.scale, rotation: m.rotation, x: m.x, y: m.y };
+    }
     return null;
 }
 
@@ -87,6 +127,7 @@ export interface EmbedBridge {
     onSetTheme(handler: (scheme: Scheme) => void): void;
     onSetPlaying(handler: (playing: boolean) => void): void;
     onReset(handler: () => void): void;
+    onGesture(handler: (gesture: Extract<HostMessage, { type: "gesture" }>) => void): void;
     dispose(): void;
 }
 
@@ -95,6 +136,7 @@ export function createEmbedBridge(win: Window = window): EmbedBridge {
     const themeHandlers = new Set<(scheme: Scheme) => void>();
     const playingHandlers = new Set<(playing: boolean) => void>();
     const resetHandlers = new Set<() => void>();
+    const gestureHandlers = new Set<(gesture: Extract<HostMessage, { type: "gesture" }>) => void>();
     let observer: ResizeObserver | undefined;
     let frame = 0;
     let lastHeight = -1;
@@ -110,6 +152,7 @@ export function createEmbedBridge(win: Window = window): EmbedBridge {
         if (message?.type === "set-theme") for (const handler of themeHandlers) handler(message.scheme);
         if (message?.type === "set-playing") for (const handler of playingHandlers) handler(message.playing);
         if (message?.type === "reset") for (const handler of resetHandlers) handler();
+        if (message?.type === "gesture") for (const handler of gestureHandlers) handler(message);
     };
     win.addEventListener("message", onMessage);
 
@@ -140,6 +183,9 @@ export function createEmbedBridge(win: Window = window): EmbedBridge {
         onReset(handler) {
             resetHandlers.add(handler);
         },
+        onGesture(handler) {
+            gestureHandlers.add(handler);
+        },
         dispose() {
             win.removeEventListener("message", onMessage);
             observer?.disconnect();
@@ -147,6 +193,7 @@ export function createEmbedBridge(win: Window = window): EmbedBridge {
             themeHandlers.clear();
             playingHandlers.clear();
             resetHandlers.clear();
+            gestureHandlers.clear();
         },
     };
 }

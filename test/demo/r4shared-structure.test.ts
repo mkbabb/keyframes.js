@@ -118,6 +118,7 @@ describe("limb (a) — the pane is instrument/pane; transport/ keeps the dock an
             "TransportDock.vue",
             "composables",
             "injectionKeys.ts",
+            "playFill.ts",
             "transportSource.ts",
         ]);
     });
