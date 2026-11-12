@@ -29,10 +29,5 @@ defineExpose({
     facility,
     // C-13 — the exposed KEY is the shell's contract and keeps its name.
     superKey: AMIGA_SCENE_ID,
-    // owner-1112 (item 5) — the Boing IS the scene: it bounces on its first
-    // entry of a page load, as the cube plays (it rested mid-air at home until
-    // Play was pressed, the one subject that arrived still). A return resumes
-    // the captured snapshot, so a paused Boing stays paused (item 7).
-    autoPlays: true,
 });
 </script>

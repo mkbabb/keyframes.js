@@ -1,7 +1,7 @@
 /**
  * owner-1112 (item 5, "#/amiga — animation is not correct") — the Boing's
  * bounce is the exact parabola (constant gravity), its shadow reads on the dark
- * ground, and it bounces on arrival like the cube plays.
+ * ground.
  */
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
@@ -31,9 +31,5 @@ describe("the Boing bounce is the parabola (owner-1112 item 5)", () => {
     it("the dark-theme contact shadow has the alpha to read on a near-black ground", () => {
         const m = read("demo/scenes/amiga/useAmigaThree.ts").match(/SHADOW_PEAK = \{ light: ([\d.]+), dark: ([\d.]+) \}/);
         expect(Number(m![2])).toBeGreaterThanOrEqual(0.8);
-    });
-    it("the scene bounces on its first entry (autoPlays), as the cube plays", () => {
-        const sfc = read("demo/scenes/amiga/AmigaScene.vue").replace(/\/\/.*$/gm, "");
-        expect(sfc).toMatch(/defineExpose\(\{[\s\S]*autoPlays:\s*true/);
     });
 });

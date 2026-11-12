@@ -53,7 +53,7 @@
         <canvas
             ref="canvas"
             class="amiga-canvas kf-focus-ring h-full w-full"
-            :class="{ 'amiga-canvas--unavailable': roomFailed, 'amiga-canvas--booting': roomBooting }"
+            :class="{ 'amiga-canvas--unavailable': roomFailed }"
             role="group"
             :aria-label="
                 roomFailed
@@ -85,9 +85,10 @@
              the stage presents at once and the ball's silhouette holds its seat
              under glass's Skeleton breathe until the room's first frame is
              armed. Decorative: the canvas carries `aria-busy` meanwhile. -->
-        <!-- owner-1112 (item 6) — the room ARRIVES: the skeleton fades out
-             while the canvas fades in over the same beat, where the room used
-             to replace the silhouette in one frame. -->
+        <!-- owner-1112 (item 6) — the silhouette LEAVES: it fades out over the
+             room's first frames, where it vanished in one frame. The canvas is
+             the subject from mount (it stays visible, its room drawing in under
+             the fading silhouette). -->
         <Transition name="amiga-boot">
             <Skeleton
                 v-if="roomBooting"
@@ -561,9 +562,6 @@ onBeforeUnmount(() => {
    and AT affordances are on the element itself (D-2), and the touch-visible
    affordance is MISSED-A's declared residual. */
 .amiga-canvas {
-    /* owner-1112 (item 6) — the room fades in on its first frame (see the
-       skeleton's Transition): nothing appears in a frame. */
-    transition: opacity var(--duration-normal, 240ms) var(--ease-standard, ease);
     touch-action: pinch-zoom;
     cursor: grab;
     /* KF.W6 W6-H — THE STAGE SURFACE, decided once (MISSED-B · D-10 · C-7).
@@ -608,9 +606,6 @@ onBeforeUnmount(() => {
 /* KFA-76 — the ball's silhouette while the room builds: a round Skeleton at the
    home seat (the camera frames the ball at the stage's centre), sized to the
    ball's framed diameter band. It takes no pointer, so the stage stays live. */
-.amiga-canvas--booting {
-    opacity: 0;
-}
 .amiga-boot-leave-active {
     transition: opacity var(--duration-normal, 240ms) var(--ease-standard, ease);
 }

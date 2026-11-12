@@ -83,7 +83,7 @@
                      may wrap at a narrow card; it never spreads. -->
                 <!-- owner-1112 (item 8) — the readouts sit in one glass Chip, the
                      stage readout's container in every scene (Square's x/y). -->
-                <Chip size="md" class="flex-wrap items-baseline gap-x-6 gap-y-1 self-start">
+                <Chip size="md" class="w-fit items-baseline gap-x-5 self-start">
                     <div class="stage-readout" data-readout="primary">
                         <span>{{ sweepLeads ? "sweep" : "position" }}</span>
                         <span>{{
