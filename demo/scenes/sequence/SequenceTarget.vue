@@ -70,7 +70,7 @@
                          at the shared primary rung, as Square's x/y and
                          Spring's position are: one place and one size for a
                          stage's live readout in every scene. -->
-                    <Chip size="md" class="shrink-0 self-start">
+                    <Chip size="md" class="w-fit shrink-0 self-start">
                         <div class="stage-readout" data-readout="primary">
                             <span>clock</span>
                             <span>{{ clockMs }} ms</span>

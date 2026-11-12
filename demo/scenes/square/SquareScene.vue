@@ -52,7 +52,7 @@
                 <!-- X-DS pass 7 (KF-C7-07) — the one stage readout anatomy
                      (`.stage-readout`, design-idioms.css): a sans muted label, then
                      the violet tabular value. -->
-                <Chip size="md" class="square-telemetry-axes">
+                <Chip size="md" class="square-telemetry-axes w-fit">
                     <span class="stage-readout" data-readout="primary"><span>x</span><span>{{ readoutX }}</span></span>
                     <span class="stage-readout" data-readout="primary"><span>y</span><span>{{ readoutY }}</span></span>
                 </Chip>
