@@ -109,6 +109,7 @@
                     <component
                         :is="OPTION_GLYPHS[stored.animationOptions[field.key] ?? field.fallback]"
                         class="option-glyph"
+                        :data-glyph-motion="OPTION_GLYPH_MOTION[stored.animationOptions[field.key] ?? field.fallback]"
                         :stroke-width="1.5"
                         aria-hidden="true"
                     />
@@ -125,6 +126,7 @@
                                 <component
                                     :is="OPTION_GLYPHS[item]"
                                     class="option-glyph"
+                                    :data-glyph-motion="OPTION_GLYPH_MOTION[item]"
                                     :stroke-width="1.5"
                                     aria-hidden="true"
                                 />{{ item }}
@@ -153,7 +155,7 @@ import {
 } from "@mkbabb/glass-ui";
 import { LabeledField, LabeledInput } from "@mkbabb/glass-ui/labeled-field";
 import { ref } from "vue";
-import { OPTION_GLYPHS } from "./optionGlyphs";
+import { OPTION_GLYPH_MOTION, OPTION_GLYPHS } from "./optionGlyphs";
 import { kfEngine } from "@kf-engine";
 
 const props = defineProps<{ animation: KeyframesAnimation<any> }>();

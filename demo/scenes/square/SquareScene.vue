@@ -44,20 +44,18 @@
              ("Transform", KF-R6C4-02): the two titles repeated one word, so
              neither oriented. -->
         <SceneStageHeader
-            title="Square"
             class="square-telemetry"
             aria-hidden="true"
-            title-class="square-telemetry-title leading-none"
             id-class="flex flex-col gap-1"
         >
             <template #readouts>
                 <!-- X-DS pass 7 (KF-C7-07) — the one stage readout anatomy
                      (`.stage-readout`, design-idioms.css): a sans muted label, then
                      the violet tabular value. -->
-                <div class="square-telemetry-axes">
+                <Chip size="md" class="square-telemetry-axes">
                     <span class="stage-readout" data-readout="primary"><span>x</span><span>{{ readoutX }}</span></span>
                     <span class="stage-readout" data-readout="primary"><span>y</span><span>{{ readoutY }}</span></span>
-                </div>
+                </Chip>
             </template>
         </SceneStageHeader>
         <!-- X.KF.W13X · UIA-KF-090 / UIA-KF-296 / KFA-4 — the ARENA: the plate is
@@ -158,6 +156,7 @@ import {
     watch,
 } from "vue";
 import { Card } from "@mkbabb/glass-ui/card";
+import { Chip } from "@mkbabb/glass-ui/chip";
 import { registerShortcut } from "@mkbabb/glass-ui/keyboard";
 import { kfEngine } from "@kf-engine";
 import { useDragScrub } from "@composables/useDragScrub";

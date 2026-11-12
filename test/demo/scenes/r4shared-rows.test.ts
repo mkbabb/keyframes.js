@@ -70,7 +70,7 @@ describe("UIA-KF-064 — the sequence half", () => {
     });
 
     it("the one header never paints a status badge (restraint, §0hz.canon K7)", () => {
-        const none = mount(SceneStageHeader, { props: { title: "Sequence" } });
+        const none = mount(SceneStageHeader);
         expect(none.findAll(".status-badge")).toHaveLength(0);
         none.unmount();
     });

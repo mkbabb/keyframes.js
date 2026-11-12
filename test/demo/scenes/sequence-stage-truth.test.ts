@@ -124,11 +124,13 @@ describe("the stage is the subject — A2-KE-L3-7 · UIA-KF-210", () => {
         }
     });
 
-    it("UIA-KF-210 — the header is the title and ONE clock readout: no reel, no caption, no badge", { timeout: 30_000 }, async () => {
+    it("UIA-KF-210 · owner-1112 item 10 — the header is ONE clock readout (no title): no reel, no caption, no badge", { timeout: 30_000 }, async () => {
         const m = await mountTarget();
         try {
             const header = m.host.querySelector(".seq-target")!.firstElementChild as HTMLElement;
-            expect(header.querySelector("h2")?.textContent).toBe("Sequence");
+            // owner-1112 (item 10) — the stage carries no title; the dock names the scene.
+            expect(header.querySelector("h2")).toBeNull();
+            expect(header.textContent).not.toMatch(/Sequence/);
             // X-DS pass 7 (KF-C7-07) — the one stage readout anatomy: a
             // lowercase label and the value with its unit adjacent.
             expect(header.querySelectorAll('[data-readout="primary"]').length).toBe(1);

@@ -32,3 +32,24 @@ export const OPTION_GLYPHS: Record<EnumOption, Component> = {
     backwards: ArrowLeftToLine,
     both: MoveHorizontal,
 };
+
+/**
+ * owner-1112 (item 2, "these and other icons should animate on hover") — each
+ * glyph's hover motion, keyed beside its glyph: the arrow leans the way it
+ * points (`lean-end` / `lean-start`), the two rows of a two-way arrow slide
+ * apart in their own directions (`swap`), an arrow-to-line steps up to its
+ * line (`to-line-end` / `to-line-start`), the double-headed arrow opens
+ * (`spread`), and the dashed ring turns a notch (`turn`). The motion itself is
+ * one CSS idiom (`svg[data-glyph-motion]`, design-idioms.css): a
+ * transition while the control is hovered or highlighted, returning on leave.
+ */
+export const OPTION_GLYPH_MOTION: Record<EnumOption, string> = {
+    normal: "lean-end",
+    reverse: "lean-start",
+    alternate: "swap",
+    "alternate-reverse": "swap-reverse",
+    none: "turn",
+    forwards: "to-line-end",
+    backwards: "to-line-start",
+    both: "spread",
+};

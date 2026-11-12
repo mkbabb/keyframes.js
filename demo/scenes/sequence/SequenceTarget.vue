@@ -54,9 +54,7 @@
                  was five wrapped lines). -->
             <!-- X.KF.W13X.sections (A2-KE-L1-8) — the ONE SceneStageHeader. -->
             <SceneStageHeader
-                title="Sequence"
                 class="seq-header flex flex-nowrap items-center justify-between gap-3 px-(--stage-plate-pad-inline) py-(--stage-plate-pad-block) shrink-0"
-                title-class="whitespace-nowrap m-0"
                 id-class="flex flex-col gap-1 min-w-0"
             >
                 <template #readouts>
@@ -72,10 +70,12 @@
                          at the shared primary rung, as Square's x/y and
                          Spring's position are: one place and one size for a
                          stage's live readout in every scene. -->
-                    <div class="stage-readout shrink-0" data-readout="primary">
-                        <span>clock</span>
-                        <span>{{ clockMs }} ms</span>
-                    </div>
+                    <Chip size="md" class="shrink-0 self-start">
+                        <div class="stage-readout" data-readout="primary">
+                            <span>clock</span>
+                            <span>{{ clockMs }} ms</span>
+                        </div>
+                    </Chip>
                 </template>
             </SceneStageHeader>
 
@@ -159,6 +159,7 @@ import { computed, inject, onMounted } from "vue";
 import { clamp } from "@mkbabb/value.js/math";
 import { useTypedTrigger } from "./useTypedTrigger";
 import { Card } from "@mkbabb/glass-ui";
+import { Chip } from "@mkbabb/glass-ui/chip";
 // Glass 7 canonical poster-metric primitive.
 import SceneStageHeader from "../SceneStageHeader.vue";
 

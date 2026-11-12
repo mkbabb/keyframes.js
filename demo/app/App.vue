@@ -398,7 +398,14 @@ const activeSceneProps = computed(() => {
 // only ever holds projections of the single authority. The dock itself renders
 // only DFA-valid tabs, so this is normally an identity — the projection is the
 // belt against a mid-transition emit racing the store key.
-function onDockSelectControl(v: string) {
+// owner-1112 (item 4) — a latent facet row (cube's Matrix) names its channel:
+// the channel is selected first and the derived surface set re-fed at once, so
+// the facet is a valid projection on this same press.
+function onDockSelectControl(v: string, channel?: string) {
+    if (channel) {
+        storedControls.value.selectedAnimation = channel;
+        if (sceneBoundToCurrent.value) machine.setActiveSurfaces(derivedSurfaces.value);
+    }
     storedControls.value.selectedControl =
         machine.selectedControlSurface(v) ?? v;
 }

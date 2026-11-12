@@ -78,7 +78,8 @@ function mountDock(props: Record<string, unknown>) {
                     homeScene: { id: "home", label: "Home", icon: Glyph },
                     isControlsPanelOpen: false,
                     onToggleControlsPanel: () => onToggle.push(1),
-                    onUpdateSelectedControl: (v: unknown) => onSelect.push(v),
+                    onUpdateSelectedControl: (v: unknown, channel?: unknown) =>
+                        onSelect.push(channel === undefined ? v : [v, channel]),
                     ...props,
                 }),
             ),
@@ -226,8 +227,9 @@ describe("ChromeDock: one surface trigger whose menu opens the shared pane", () 
         expect(seq.onToggle).toEqual([]);
         seq.wrapper.unmount();
 
-        // A latent facet's disabled row is titled by the facet and carries its
-        // reason as the row's description (C2-KF-03).
+        // owner-1112 (item 4) — a latent facet's row is titled by the facet and
+        // is LIVE (it was a greyed row whose reason only a screen reader heard):
+        // choosing it selects the facet's channel and opens the facet.
         const cube = mountDock({
             currentSceneId: "cube",
             scenes: [{ id: "cube", label: "Cube", icon: Glyph }],
@@ -239,10 +241,12 @@ describe("ChromeDock: one surface trigger whose menu opens the shared pane", () 
         await openMenu(cube.wrapper);
         const facet = rows()[3]!;
         expect(facet.textContent?.trim()).toBe("Matrix");
-        expect(facet.getAttribute("aria-description")).toBe("Select the Matrix channel");
-        expect(facet.hasAttribute("data-disabled")).toBe(true);
-        // The enabled rows carry no description: only a disabled row has a reason.
-        for (const row of rows().slice(0, 3)) expect(row.hasAttribute("aria-description")).toBe(false);
+        expect(facet.hasAttribute("data-disabled")).toBe(false);
+        expect(facet.getAttribute("aria-disabled")).not.toBe("true");
+        facet.click();
+        await flushPromises();
+        expect(cube.onSelect).toEqual([["matrix-controls", "Matrix"]]);
+        expect(cube.onToggle).toEqual([1]);
         cube.wrapper.unmount();
 
         const home = mountDock({ currentSceneId: "home", controlSurfaces: [] });
@@ -283,8 +287,8 @@ describe("the one surface registry (X.KF.W13X.esc1)", () => {
             label: "Matrix",
             icon: SURFACE_META["matrix-controls"].icon,
             title: "Matrix",
-            reason: "Select the Matrix channel",
-            enabled: false,
+            channel: "Matrix",
+            enabled: true,
         });
         const selected = dockSurfaceItems(surfacesFor({ channels, facets: [] }, "Matrix"), facets);
         expect(selected[3]).toMatchObject({ label: "Matrix", title: "Matrix", enabled: true });

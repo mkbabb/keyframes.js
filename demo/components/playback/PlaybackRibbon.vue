@@ -120,6 +120,7 @@
                                  Reverse, at the eye disc's 1rem glyph rung. -->
                             <component
                                 :is="OPTION_GLYPHS.reverse"
+                                :data-glyph-motion="OPTION_GLYPH_MOTION.reverse"
                                 :class="[
                                     'size-4 transition-transform duration-fast',
                                     userReversed ? 'scale-x-[-1]' : '',
@@ -184,7 +185,7 @@ import { useDragScrub } from "@composables/useDragScrub";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@mkbabb/glass-ui/tooltip";
 import { LabeledField } from "@mkbabb/glass-ui/labeled-field";
 import { Eye, EyeOff } from "@lucide/vue";
-import { OPTION_GLYPHS } from "@components/instrument/pane/channel-controls/optionGlyphs";
+import { OPTION_GLYPH_MOTION, OPTION_GLYPHS } from "@components/instrument/pane/channel-controls/optionGlyphs";
 import AnimationVisualizer from "./AnimationVisualizer.vue";
 import { PREVIEW_EASE } from "./PreviewToggle.vue";
 
