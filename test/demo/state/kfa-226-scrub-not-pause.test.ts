@@ -157,7 +157,7 @@ describe("KFA-226 — the group transport's scrub seam dispatches the scrub, not
         const emit = vi.fn();
         const { onScrubStart, onScrubEnd } = useAnimationGroupPlayback(
             () => group,
-            storedOptions(),
+            () => storedOptions(),
             emit,
         );
         onScrubStart();

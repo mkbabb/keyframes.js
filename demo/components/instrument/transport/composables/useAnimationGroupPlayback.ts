@@ -36,7 +36,9 @@ interface AnimationGroupPlaybackEmit {
  */
 export function useAnimationGroupPlayback(
     getAnimationGroup: () => AnimationGroup<any>,
-    storedControls: StoredAnimationGroupControlOptions,
+    /** The current scene's control store (a getter: the host outlives a
+     *  scene swap and reads the store the swap lands on). */
+    getStoredControls: () => StoredAnimationGroupControlOptions,
     emit: AnimationGroupPlaybackEmit,
 ) {
     // The SINGLE authority: `isPlaying` is derived from the machine status, never
@@ -72,7 +74,7 @@ export function useAnimationGroupPlayback(
     // loop painting nothing while the dock read 'Pause'). Play is the dock's
     // Play (and Space); the Select only chooses what the pane shows.
     const onSelectAnimation = (name: string) => {
-        storedControls.selectedAnimation = name;
+        getStoredControls().selectedAnimation = name;
     };
 
     const toggleAnimationGroup = () => {
@@ -92,6 +94,7 @@ export function useAnimationGroupPlayback(
         // default it, then let the machine start it via the emit (PLAY →
         // adapter.resume() → group.play()). A started group toggles play/pause —
         // the emit of the flipped state drives PLAY/PAUSE through the machine.
+        const storedControls = getStoredControls();
         if (!animationGroup.started && !storedControls.selectedAnimation) {
             const allNames = Object.keys(animationGroup.animations);
             storedControls.selectedAnimation = allNames[0] ?? null;
@@ -133,7 +136,7 @@ export function useAnimationGroupPlayback(
 
     /** The selected animation's normalized t ∈ [0,1] (0 when nothing selected). */
     const getActiveT = (): number => {
-        const name = storedControls.selectedAnimation;
+        const name = getStoredControls().selectedAnimation;
         if (!name) return 0;
         const groupObj = getAnimationGroup().animations[name];
         if (!groupObj) return 0;
@@ -144,7 +147,7 @@ export function useAnimationGroupPlayback(
 
     /** Scrub the selected animation to a normalized fraction (clamped). */
     const scrubActive = (fraction: number) => {
-        const name = storedControls.selectedAnimation;
+        const name = getStoredControls().selectedAnimation;
         if (!name) return;
         const groupObj = getAnimationGroup().animations[name];
         if (!groupObj) return;
@@ -159,7 +162,7 @@ export function useAnimationGroupPlayback(
     const cycleAnimation = (direction: number) => {
         const names = Object.keys(getAnimationGroup().animations);
         if (names.length === 0) return;
-        const currentIdx = names.indexOf(storedControls.selectedAnimation ?? "");
+        const currentIdx = names.indexOf(getStoredControls().selectedAnimation ?? "");
         const nextIdx = (currentIdx + direction + names.length) % names.length;
         onSelectAnimation(names[nextIdx]!);
     };

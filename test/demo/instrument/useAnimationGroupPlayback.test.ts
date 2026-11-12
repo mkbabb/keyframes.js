@@ -79,7 +79,7 @@ describe("useAnimationGroupPlayback.sliderUpdate", () => {
 
         const { sliderUpdate } = useAnimationGroupPlayback(
             () => group,
-            storedControls,
+            () => storedControls,
             emit,
         );
 
@@ -112,7 +112,7 @@ describe("useAnimationGroupPlayback.sliderUpdate", () => {
 
         const { sliderUpdate } = useAnimationGroupPlayback(
             () => group,
-            storedControls,
+            () => storedControls,
             emit,
         );
 
@@ -147,7 +147,7 @@ describe("useAnimationGroupPlayback.sliderUpdate", () => {
 
         const { sliderUpdate } = useAnimationGroupPlayback(
             () => group,
-            storedControls,
+            () => storedControls,
             emit,
         );
 

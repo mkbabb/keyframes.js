@@ -33,8 +33,15 @@
              empty-set scene render ZERO `.controls-pane-wrapper` nodes — the
              mobile-sheet occlusion recurrence (an empty sheet with a grab handle
              over a void) cannot mount. proof:panel-naked-rail asserts this. -->
+        <!-- owner-1112 (item 6) — the PANE is the scene's own subtree: it
+             is keyed on the scene's store key, so a swap mounts the incoming
+             scene's pane fresh (no channel host, open select or scroll
+             position carries from one scene into the next). The group around
+             it is NOT keyed: the stage cell (and the scene host inside it)
+             and the transport dock stay mounted across every swap. -->
         <ControlsPaneWrapper
             v-if="hasControlSurfaces"
+            :key="superKey ?? ''"
             :animation-group="animationGroup"
             :blend-available="animationGroup.singleTarget"
             :channels="channels"
@@ -172,7 +179,13 @@ const { superKey, animationGroup, channels, autoPlay, hideControls, stageMode, h
     hasControlSurfaces?: boolean;
 }>();
 
-const storedControls = getStoredAnimationGroupControlOptions(superKey);
+// owner-1112 (item 6) — the store follows the scene's key. The group used to be
+// remounted on every swap (EditorShell keyed it on the store key), which tore
+// down the stage cell with the scene host inside it: every swap mounted the
+// incoming scene TWICE (once in the leaving group, once in the new one) and
+// remounted the transport dock, all inside the swap's one long frame. The
+// group now lives for the shell's life and reads the current scene's store.
+const storedControls = computed(() => getStoredAnimationGroupControlOptions(superKey));
 
 // X.KF.W13X.esc1 (ESC-scene-1 · KFA-80 · UIA-KF-067 · UIA-KF-125 hard-load
 // limb) — THE SCENE IS PENDING: a scene route (not the home start screen) whose
@@ -194,7 +207,7 @@ const transportNames = computed(
 
 /** The selected channel (facility scenes only; undefined on the group path). */
 const selectedChannel = computed(() =>
-    channels?.find((c) => c.name === storedControls.selectedAnimation),
+    channels?.find((c) => c.name === storedControls.value.selectedAnimation),
 );
 
 // X.KF.W13X.r4pane · A2-KE-L1-23 — THE SELECTED CHANNEL'S COMMANDS, ONE SEAT.
@@ -222,10 +235,10 @@ watchEffect(() => {
         channels?.map((c) => c.name) ?? Object.keys(animationGroup.animations);
     if (
         validNames.length > 0 &&
-        storedControls.selectedAnimation &&
-        !validNames.includes(storedControls.selectedAnimation)
+        storedControls.value.selectedAnimation &&
+        !validNames.includes(storedControls.value.selectedAnimation)
     ) {
-        storedControls.selectedAnimation = null;
+        storedControls.value.selectedAnimation = null;
     }
 });
 
@@ -246,7 +259,7 @@ const {
     getActiveT: groupGetActiveT,
     scrubActive: groupScrubActive,
     cycleAnimation,
-} = useAnimationGroupPlayback(() => animationGroup, storedControls, emit);
+} = useAnimationGroupPlayback(() => animationGroup, () => storedControls.value, emit);
 
 // T.B1-β STAGE 1 — the CHANNEL-capable scrub seam. A scrub whose animation is a
 // facility channel's routes through THAT channel's `setProgress` (the uniform
@@ -345,7 +358,7 @@ const stageReserveVars = computed(() => {
 // K.WZ proof:demo-no-oversize seam; zero behavior change).
 const { updateLayerConfig, keyframesUpdate, reset, clear } = useAnimationGroupActions({
     getGroup: () => animationGroup,
-    storedControls,
+    getStoredControls: () => storedControls.value,
     findAnimationGroupObject,
     syncPlayState,
 });

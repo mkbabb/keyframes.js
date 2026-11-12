@@ -64,8 +64,8 @@
              lives HERE — above `.scene-host` (App.vue's swap host, three levels
              down through `#animation-content`) in the one wrapper that outlives
              every suspension: the shell mounts once for the app's life, while
-             `AnimationControlsGroup` below is `:key`ed to `superKey` and
-             remounts on every swap. The in-tree idiom is `CopyButton.vue`'s
+             the scene's pane inside `AnimationControlsGroup` is `:key`ed to
+             `superKey` and remounts on every swap. The in-tree idiom is `CopyButton.vue`'s
              sr-only `role="status" aria-live="polite"` span, which likewise
              persists across its own updates. The transient fallback now WRITES
              here through `SCENE_ANNOUNCER_KEY` instead of carrying a region of
@@ -76,7 +76,6 @@
 
         <main class="grid place-items-center place-self-stretch">
         <AnimationControlsGroup
-            :key="superKey ?? ''"
             :animation-group="animationGroup"
             :channels="channels"
             :super-key="superKey"

@@ -82,7 +82,7 @@ describe("proof:no-shadow-playback-authority — group-scene scrub persistence (
         const anim = group.animations["spin"]!.animation;
         const { sliderUpdate } = useAnimationGroupPlayback(
             () => group,
-            storedOptions({ selectedAnimation: "spin" }),
+            () => storedOptions({ selectedAnimation: "spin" }),
             emit,
         );
         sliderUpdate({ t: 555, animation: anim as any });
@@ -102,7 +102,7 @@ describe("proof:no-shadow-playback-authority — group-scene scrub persistence (
         const emit = vi.fn();
         const { sliderUpdate } = useAnimationGroupPlayback(
             () => group,
-            storedOptions({ selectedAnimation: "spin" }),
+            () => storedOptions({ selectedAnimation: "spin" }),
             emit,
         );
         sliderUpdate({ t: 300, animation: anim as any });

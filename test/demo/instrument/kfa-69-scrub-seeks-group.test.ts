@@ -28,7 +28,8 @@ describe("X.KF.W13X.r4transport — the group playback seam", () => {
         const bob = make(1500, "bob");
         const group = new AnimationGroup(spin as never, bob as never);
         group.setChildTime(spin as never, 400).setChildTime(bob as never, 400);
-        const { sliderUpdate } = useAnimationGroupPlayback(() => group as never, stored(), vi.fn());
+        const store = stored();
+        const { sliderUpdate } = useAnimationGroupPlayback(() => group as never, () => store, vi.fn());
         sliderUpdate({ t: 700, animation: spin as never });
         expect(spin.t).toBeCloseTo(700, 6);
         expect(bob.t).toBeCloseTo(700, 6);

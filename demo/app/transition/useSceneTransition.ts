@@ -1,6 +1,6 @@
 import { nextTick, ref, type Ref } from "vue";
 import { viewTransition, type ViewTransitionHandle } from "@mkbabb/keyframes.js";
-import { allScenes, loadScene, warmScenesAtIdle } from "../scene/scenes";
+import { allScenes, loadScene, prepareScene, warmScenesAtIdle } from "../scene/scenes";
 
 /**
  * Routes the scene-id mutation through the platform's native View Transitions.
@@ -96,7 +96,13 @@ export function useSceneTransition(opts: {
         const start = performance.mark("scene-swap:start").startTime;
         // A rejected chunk is not handled here: the mount below surfaces it
         // through <Suspense>, exactly as an un-preloaded switch would.
-        await Promise.allSettled([loadScene(id), settleClosingOverlays()]);
+        // owner-1112 (item 6) — and the scene's own pre-swap work (the Amiga's
+        // room) runs here too, while the leaving scene still shows: the
+        // cross-fade starts only once the incoming scene can present whole.
+        await Promise.allSettled([
+            loadScene(id).then(() => prepareScene(id)),
+            settleClosingOverlays(),
+        ]);
         if (gen !== generation) return;
         performance.measure("scene-swap:prepare", { start });
         const root = document.documentElement;

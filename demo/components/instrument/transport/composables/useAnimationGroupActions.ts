@@ -7,8 +7,8 @@ import { resetAllStores, useSceneMachine } from "@state";
 interface UseAnimationGroupActionsDeps {
     /** The active animation group (getter — the prop swaps on scene switch). */
     getGroup: () => AnimationGroup<any>;
-    /** The shared per-group control store. */
-    storedControls: StoredAnimationGroupControlOptions;
+    /** The current scene's control store (a getter: the host outlives a swap). */
+    getStoredControls: () => StoredAnimationGroupControlOptions;
     /** Resolve the group object backing an Animation (from useAnimationGroupPlayback). */
     findAnimationGroupObject: (animation: KeyframesAnimation<any>) => any;
     /** Emit the play/start INTENT to the host (from useAnimationGroupPlayback).
@@ -35,7 +35,7 @@ interface UseAnimationGroupActionsReturn {
 export function useAnimationGroupActions(
     deps: UseAnimationGroupActionsDeps,
 ): UseAnimationGroupActionsReturn {
-    const { getGroup, storedControls, findAnimationGroupObject, syncPlayState } =
+    const { getGroup, getStoredControls, findAnimationGroupObject, syncPlayState } =
         deps;
 
     const updateLayerConfig = (
@@ -66,7 +66,7 @@ export function useAnimationGroupActions(
     const clear = () => {
         getGroup().stop();
         syncPlayState(false);
-        storedControls.selectedAnimation = null;
+        getStoredControls().selectedAnimation = null;
         // resetAllStores() now also wipes the scene-machine persist key, so the
         // active-scene fact resets to HOME_SCENE_ID on reload. The old raw
         // `localStorage.setItem("keyframes-js-active-scene", "home")` write is

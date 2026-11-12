@@ -91,9 +91,12 @@
                     <!-- J.W2 S2 — the v-for is KEYED by the animation name so an
                          ChannelControls instance is BORN with its animation (and
                          dies with it). T.B1-β STAGE 1 — the hosts derive from the
-                         CHANNEL axis when the scene exposes a facility. -->
+                         CHANNEL axis when the scene exposes a facility.
+                         owner-1112 (item 6) — `shownControlHosts`: inside a
+                         scene swap the host arrives after the cross-fade's
+                         first frame, fading in (see the script). -->
                     <template
-                        v-for="host in selectedControlHosts"
+                        v-for="host in shownControlHosts"
                         :key="host.animation.id"
                     >
                         <!-- X.KF.W13V.c (C1-1) — `.controls-surface` is the
@@ -113,7 +116,7 @@
                                       }
                             "
                             :data-fold-key="host.animation.id"
-                            class="controls-surface"
+                            :class="['controls-surface', { 'controls-surface--arriving': hostArrives }]"
                         >
                             <!-- LP-1 — THE WRITE→RENDER EDGE. `host.layer` and
                                  `host.blendAvailable` are re-read from the engine
@@ -296,7 +299,10 @@ import {
     type ComponentPublicInstance,
     computed,
     nextTick,
+    onBeforeUnmount,
+    onMounted,
     provide,
+    ref,
     shallowRef,
     useTemplateRef,
     watch,
@@ -455,6 +461,43 @@ const controlHosts = computed<ControlHost[]>(() => {
 const selectedControlHosts = computed(() =>
     controlHosts.value.filter((h) => h.name === props.storedControls.selectedAnimation),
 );
+
+// owner-1112 (item 6, "page transitions are slow, jittery, and laggy") — THE
+// HOST ARRIVES AFTER THE SWAP'S CAPTURE. The pane is the scene's own (keyed on
+// its store key), so a swap mounts it inside the View Transition's update
+// callback, while the platform holds the page's rendering. The selected
+// channel's host (its sliders, fields, selects and facet) was most of that
+// callback: served, 1440 x 900, GPU, the swap's one long frame fell from
+// 43 ms (median over every scene pair) to 32 ms with the host left out, and
+// the pane's frame (its plate, ribbon and sheet) cost almost nothing. A pane
+// mounted inside a running transition therefore mounts its host two frames
+// later: after the frame whose paint the platform captures as the new state,
+// so it lands in the live new view, early in the cross-fade, fading in (the
+// motion law: a fade, under reduced motion too). Outside a swap (the first
+// load, a panel opening) the host mounts with the pane, as before.
+const swapRunning = (): boolean => {
+    try {
+        return document.documentElement.matches(":active-view-transition");
+    } catch {
+        return false;
+    }
+};
+const hostArrives = swapRunning();
+const hostShown = ref(!hostArrives);
+let arrivalFrame = 0;
+onMounted(() => {
+    if (hostShown.value) return;
+    arrivalFrame = requestAnimationFrame(() => {
+        arrivalFrame = requestAnimationFrame(() => {
+            arrivalFrame = 0;
+            hostShown.value = true;
+        });
+    });
+});
+onBeforeUnmount(() => {
+    if (arrivalFrame) cancelAnimationFrame(arrivalFrame);
+});
+const shownControlHosts = computed(() => (hostShown.value ? selectedControlHosts.value : []));
 
 // X.KF.W13V.s2 — the master-clock channels (Sequence): the Timeline pane's
 // Sequence mode mounts on these instead of a ChannelControls host.
