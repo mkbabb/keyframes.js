@@ -3,11 +3,17 @@
  * "you should not be able to pan off screen so far ... if you throw the cube
  * out of bounds, it springs back smoothly"). Pure, Vue-free.
  *
- * Pan: no more than PAN_OUT of the die's projected extent D may leave the
- * stage on any side, so the allowed centre on an axis is
- * [min + (0.5 − PAN_OUT)·D, max − (0.5 − PAN_OUT)·D]; when the die is wider
- * than that the two ends swap, so a zoomed die may move while it still covers
- * the stage. Zoom: ln s inside the scale range.
+ * Pan: the die rests wholly inside the stage (PAN_OUT = 0 of its extent may
+ * leave it), D being the extent of its painted silhouette in every attitude:
+ * the face's side · s · 2 (the cube's circumscribed diameter, √3, widened by the
+ * scene's perspective at its near corner; the embed probe measured the faces'
+ * union at up to 2.01 · side · s), so no corner of a turned die is cut by the
+ * screen; and the allowed centre on an axis is
+ * [min + (0.5 − PAN_OUT)·D, max − (0.5 − PAN_OUT)·D]. A die zoomed larger than
+ * the stage swaps those ends, so it may move while it still covers the stage,
+ * continuously from the size at which it just fits. (Owner 2026-11-11, after a
+ * quarter of the die rested past the edge: "you should not be able to pan off
+ * screen so far".) Zoom: ln s inside the scale range.
  *
  * While the hand (or a live wheel stream) holds the die past a bound it
  * follows with resistance, the overshoot shown as d·(1 − 1/(o·BAND/d + 1)) of
@@ -19,7 +25,9 @@
  */
 
 /** The share of the die's projected extent that may leave the stage on a side. */
-export const PAN_OUT = 0.25;
+export const PAN_OUT = 0;
+/** The die's painted silhouette per unit of its face's side, in any attitude: √3 under the scene's perspective. */
+export const SILHOUETTE = 2;
 /** The rubber band's resistance at the bound (the shown overshoot's slope). */
 export const BAND = 0.55;
 /** The zoom band's reach past either end of the scale range (ln s). */

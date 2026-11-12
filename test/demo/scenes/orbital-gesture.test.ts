@@ -1,3 +1,4 @@
+import { SILHOUETTE } from "../../../demo/scenes/cube/orbital-drag/bounds";
 // SERVED MODEL: claude-opus-5-5
 /**
  * KF-M2 · G2.3 / G2.4 (value.js COHESION §0hm) — the mounted OrbitalDrag
@@ -149,23 +150,24 @@ describe("G2.3 — the mounted orbit: one channel per hand motion", () => {
         w.unmount();
     });
 
-    it("(c) a two-finger 100 px drag pans 100 ± 1 px, no zoom, no roll", async () => {
+    // 80 px stays inside the bound (the whole die on the stage: the centre's bottom bound is 545 − ½·160·2 = 385).
+    it("(c) a two-finger 80 px drag pans 80 ± 1 px, no zoom, no roll", async () => {
         const { w, model, el } = await mountOrbit();
-        await twoFinger(el, [170, 300], [230, 300], [170, 400], [230, 400]);
-        expect(Math.abs(model.value.translate.y - 100)).toBeLessThan(1);
+        await twoFinger(el, [170, 300], [230, 300], [170, 380], [230, 380]);
+        expect(Math.abs(model.value.translate.y - 80)).toBeLessThan(1);
         expect(Math.abs(model.value.translate.x)).toBeLessThan(1e-9);
         expect(model.value.scale.x).toBe(1);
         expect(screenRotation(model.value.quaternion!).angle).toBeLessThan(1e-12);
         w.unmount();
     });
 
-    it("(f) the bound holds the projected centre: at rest no more than a quarter of the die leaves the stage", async () => {
+    it("(f) the bound holds the projected centre: at rest the die's whole silhouette is inside the stage", async () => {
         const { w, model, el } = await mountOrbit();
         await twoFinger(el, [170, 300], [230, 300], [170, 900], [230, 900]);
         await flush(120);
         // The die's extent at the scale it rests at (the release may carry a zoom).
-        const D = 160 * model.value.scale.x;
-        expect(CENTRE.y + model.value.translate.y).toBeLessThanOrEqual(STAGE.bottom - 0.25 * D + 1e-9);
+        const D = 160 * model.value.scale.x * SILHOUETTE;
+        expect(CENTRE.y + model.value.translate.y).toBeLessThanOrEqual(STAGE.bottom - 0.5 * D + 1e-9);
         w.unmount();
     });
 
@@ -200,7 +202,8 @@ describe("OA-17 — pan and pinch coast on release", () => {
     const panCoast = async (v: number, hz = 60) => {
         const { w, model, el } = await mountOrbit();
         const step = (v * 8) / 1000;
-        const n = Math.round(96 / step);
+        // 48 px of pan and its coast stay inside the bound (the whole die inside the stage).
+        const n = Math.round(48 / step);
         let t = 0;
         el.dispatchEvent(ptr("pointerdown", 1, 170, 200, t));
         el.dispatchEvent(ptr("pointerdown", 2, 230, 200, t));
@@ -358,7 +361,8 @@ describe("G2.4 — ONE multitouch source (D-14)", () => {
     it("a host's relayed gesture does the same; its own gesture* takes precedence over a relay", async () => {
         const { w, model, el } = await mountOrbit();
         const orbit = w.vm as unknown as { relayGesture: (p: string, s: number, r: number, at: { x: number; y: number }) => void };
-        const at = { x: CENTRE.x - 50, y: CENTRE.y + 20 };
+        // An anchor whose ×1.5 keeps the die's centre inside the bound (bounds.ts), so the band never acts.
+        const at = { x: CENTRE.x - 20, y: CENTRE.y - 34 };
         orbit.relayGesture("start", 1, 0, at);
         orbit.relayGesture("change", 1.5, 30, at);
         await flush();

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
     BAND,
     PAN_OUT,
+    SILHOUETTE,
     axisMotion,
     band,
     banded,
@@ -22,18 +23,30 @@ import { COAST_REST_FRACTION } from "../../../demo/scenes/cube/orbital-drag/comp
 const K = 9;
 
 describe("the pan interval", () => {
-    it("lets no more than PAN_OUT of the die leave the stage on a side", () => {
+    it("keeps the whole die inside the stage (PAN_OUT = 0)", () => {
+        expect(PAN_OUT).toBe(0);
         const iv = panInterval(0, 1000, 200);
-        expect(iv.lo).toBeCloseTo((0.5 - PAN_OUT) * 200, 12);
-        expect(iv.hi).toBeCloseTo(1000 - (0.5 - PAN_OUT) * 200, 12);
-        // At the bound, a quarter of the die is past the edge.
-        expect((iv.hi + 100 - 1000) / 200).toBeCloseTo(PAN_OUT, 12);
+        expect(iv.lo).toBeCloseTo(100, 12);
+        expect(iv.hi).toBeCloseTo(900, 12);
+        // At the bound the die's edge meets the stage's edge: none of it is past.
+        expect(iv.hi + 100).toBeCloseTo(1000, 12);
+    });
+
+    it("bounds the painted silhouette in every attitude: at least the circumscribed diameter", () => {
+        expect(SILHOUETTE).toBeGreaterThanOrEqual(Math.sqrt(3));
     });
 
     it("swaps its ends for a die wider than the stage, so it can still be moved while it covers it", () => {
         const iv = panInterval(0, 100, 400);
         expect(iv.lo).toBeLessThan(iv.hi);
-        expect(iv).toEqual({ lo: 100 - 100, hi: 0 + 100 });
+        expect(iv).toEqual({ lo: 100 - 200, hi: 0 + 200 });
+    });
+
+    it("is continuous where the die just fits: the interval closes to the centre from both sides", () => {
+        const at = panInterval(0, 100, 100);
+        expect(at).toEqual({ lo: 50, hi: 50 });
+        const over = panInterval(0, 100, 100 + 1e-9);
+        expect(over.hi - over.lo).toBeLessThan(1e-8);
     });
 });
 

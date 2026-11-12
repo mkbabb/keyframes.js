@@ -33,7 +33,7 @@ import { mount } from "@vue/test-utils";
 import { nextTick, ref } from "vue";
 import OrbitalDrag from "../../../demo/scenes/cube/orbital-drag/OrbitalDrag.vue";
 import { defaultTransformState, type TransformState } from "../../../demo/scenes/cube/orbital-drag/transform";
-import { BAND, PAN_OUT, band } from "../../../demo/scenes/cube/orbital-drag/bounds";
+import { BAND, PAN_OUT, SILHOUETTE, band } from "../../../demo/scenes/cube/orbital-drag/bounds";
 import { WHEEL_LIVE_MS } from "../../../demo/scenes/cube/orbital-drag/composables/useOrbitalGesture";
 import {
     quatAngleBetween,
@@ -326,9 +326,9 @@ describe("U4 — an Alt-wheel notch glides out; a trackpad stream stays direct",
 });
 
 describe("U5 — the frame's centre is the rest centre; the pan holds the die in V", () => {
-    /** The centre's bound: no more than PAN_OUT of the die leaves V (bounds.ts). */
-    const RIGHT = STAGE.right - (0.5 - PAN_OUT) * SIDE;
-    it("three +250 px pans rest with no more than a quarter of the die past V", async () => {
+    /** The centre's bound: the die's whole silhouette stays in V (bounds.ts). */
+    const RIGHT = STAGE.right - (0.5 - PAN_OUT) * SIDE * SILHOUETTE;
+    it("three +250 px pans rest with the whole die inside V", async () => {
         const { w, model, el } = await mountOrbit();
         for (let i = 0; i < 3; i++) {
             const x = CENTRE.x + model.value.translate.x;
@@ -492,16 +492,18 @@ describe("U6 — who owns the scroll", () => {
 });
 
 describe("U8 — natural scrolling: the wheel pans, the content follows the fingers (OA-17)", () => {
-    it("a +100 px wheel moves the die's centre −100 px and turns nothing", async () => {
+    // Inside the bound (the whole die's silhouette inside V: the centre's top bound is 107 + ½·160·2 = 267).
+    it("a +30 px wheel moves the die's centre −30 px and turns nothing", async () => {
         const { w, model, el } = await mountOrbit();
-        el.dispatchEvent(wheel({ deltaY: 100 }));
+        el.dispatchEvent(wheel({ deltaY: 30 }));
         await flush();
-        expect(model.value.translate.y).toBeCloseTo(-100, 9);
+        expect(model.value.translate.y).toBeCloseTo(-30, 9);
         expect(model.value.translate.x).toBe(0);
         expect(screenRotation(q(model.value)).angle).toBe(0);
-        el.dispatchEvent(wheel({ deltaX: -40, deltaY: 0 }));
+        // 10 px across (the right bound is 374 − ½·160·2 = 214).
+        el.dispatchEvent(wheel({ deltaX: -10, deltaY: 0 }));
         await flush();
-        expect(model.value.translate.x).toBeCloseTo(40, 9);
+        expect(model.value.translate.x).toBeCloseTo(10, 9);
         w.unmount();
     });
 
@@ -520,7 +522,7 @@ describe("U8 — natural scrolling: the wheel pans, the content follows the fing
     });
 
     it("the wheel pan rides the band past the bound, then springs back to it", async () => {
-        const TOP = STAGE.top + (0.5 - PAN_OUT) * SIDE;
+        const TOP = STAGE.top + (0.5 - PAN_OUT) * SIDE * SILHOUETTE;
         const { w, model, el } = await mountOrbit();
         for (let i = 0; i < 5; i++) {
             el.dispatchEvent(wheel({ deltaY: 200 }));
