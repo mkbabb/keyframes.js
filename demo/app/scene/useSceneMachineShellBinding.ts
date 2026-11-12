@@ -202,6 +202,9 @@ export function useSceneMachineShellBinding(opts: {
      * group watcher — the once-per-(entry × group) guard makes the double-drive
      * safe AND re-drives against a fresh group when the scene remounts.
      */
+    /** The scenes entered at least once since this page loaded (item 7). */
+    const enteredThisLoad = new Set<string>();
+
     function markSceneReady() {
         // The live bind-target identity the scene currently exposes. A group
         // scene exposes `animationGroup` (stable); a facility-only scene
@@ -256,7 +259,17 @@ export function useSceneMachineShellBinding(opts: {
         // scene plays only on an explicit gesture (`autoPlayNext`/the home Play).
         // Otherwise the restore honors the snapshot's `playing` (a paused cube
         // stays paused on return).
-        const autoPlays = sceneRef.value?.autoPlays === true;
+        //
+        // owner-1112 (item 7, "the animation state should suspend and resume,
+        // fully encapsulated per page") — `autoPlays` is the scene's ENTRY
+        // state, so it applies on the scene's first entry of this page load
+        // only. It used to fire on EVERY entry and override the restore: a cube
+        // paused at 3150 ms came back playing (served: paused 3150 → playing
+        // 4159 on return). A return now resumes exactly the captured snapshot,
+        // its clock and its play intent; a reload is a fresh load and plays.
+        const autoPlays =
+            sceneRef.value?.autoPlays === true && !enteredThisLoad.has(currentSceneId.value);
+        enteredThisLoad.add(currentSceneId.value);
         if (!isHome.value && (autoPlays || autoPlayNext.value)) {
             machine.dispatch({ type: "PLAY" });
         }
