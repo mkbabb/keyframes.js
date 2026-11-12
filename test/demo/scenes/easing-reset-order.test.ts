@@ -87,7 +87,7 @@ describe("easing · the dock Reset / R / Escape rest the sweep at phase 0 (§0fj
                     const group = makeGroup();
                     const actions = useAnimationGroupActions({
                         getGroup: () => group,
-                        storedControls: storedOptions(),
+                        getStoredControls: () => storedOptions(),
                         findAnimationGroupObject: () => undefined,
                         syncPlayState: () => {},
                     });

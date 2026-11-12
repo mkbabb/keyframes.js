@@ -105,7 +105,7 @@ describe("square · the axis read-out derives from the live transform (§0fj 3)"
                 setup() {
                     const actions = useAnimationGroupActions({
                         getGroup: () => facility.group as never,
-                        storedControls: {} as never,
+                        getStoredControls: () => ({}) as never,
                         findAnimationGroupObject: () => undefined,
                         syncPlayState: () => {},
                     });

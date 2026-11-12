@@ -361,7 +361,7 @@ describe("X.KF.W13X.transport — the group playback seam", () => {
         const group = new AnimationGroup(a as never);
         const emit = vi.fn();
         const stored = storedOptions({ selectedAnimation: "" });
-        const { onSelectAnimation, cycleAnimation } = useAnimationGroupPlayback(() => group, stored, emit);
+        const { onSelectAnimation, cycleAnimation } = useAnimationGroupPlayback(() => group, () => stored, emit);
         onSelectAnimation("alpha");
         expect(stored.selectedAnimation).toBe("alpha");
         // the keyboard twin (the shortcut's cycle) is a selection too

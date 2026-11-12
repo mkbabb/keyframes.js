@@ -117,7 +117,7 @@ describe("KFA-39 — the dock's Reset is the machine's RESET", () => {
         const group = makeGroup();
         const { reset } = useAnimationGroupActions({
             getGroup: () => group,
-            storedControls: storedOptions(),
+            getStoredControls: () => storedOptions(),
             findAnimationGroupObject: () => undefined,
             syncPlayState: vi.fn(),
         });
