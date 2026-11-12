@@ -20,15 +20,20 @@
  *      frame, the GL context after the next, and the present loop arms (the
  *      skeleton lifts) only after the program compile has settled;
  *  (3) a dispose mid-build retires the build: no GL context is created after;
- *  (4) o1111 kfamiga — a mount inside a running View Transition (every swap
- *      into amiga) builds nothing until the transition has finished, so no
- *      build stage lands in the visible cross-fade.
+ *  (4) o1111 kfamiga — a mount inside a running View Transition with no room
+ *      prepared (the hard load's path) builds nothing until the transition
+ *      has finished, so no build stage lands in the visible cross-fade;
+ *  (5) owner-1112 (item 6) — a room PREPARED before the swap (the switch's
+ *      prepare step, staged a frame apart while the leaving scene shows) is
+ *      adopted whole by a mount inside the transition: no skeleton, no second
+ *      context, the present loop armed, the first frame drawn, in the mount's
+ *      own step, so the room is in the new-state capture and the cross-fade.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { defineComponent, h, ref } from "vue";
 import { mount } from "@vue/test-utils";
 
-const gl = vi.hoisted(() => ({ renderers: 0, compiles: 0 }));
+const gl = vi.hoisted(() => ({ renderers: 0, compiles: 0, renders: 0 }));
 
 vi.mock("three", async (importOriginal) => {
     const real = await importOriginal<typeof import("three")>();
@@ -45,7 +50,9 @@ vi.mock("three", async (importOriginal) => {
             gl.compiles++;
             return Promise.resolve();
         }
-        render() {}
+        render() {
+            gl.renders++;
+        }
         dispose() {}
         forceContextLoss() {}
     }
@@ -56,7 +63,11 @@ vi.mock("@mkbabb/glass-ui", () => ({
     resolveCanvasColor: (color: string) => (color.includes("--amiga-red") ? "rgb(220, 40, 40)" : "rgb(28, 25, 23)"),
 }));
 
-import { useAmigaThree } from "../../../demo/scenes/amiga/useAmigaThree";
+import {
+    discardPreparedAmigaRoom,
+    prepareAmigaRoom,
+    useAmigaThree,
+} from "../../../demo/scenes/amiga/useAmigaThree";
 
 /** The hand-driven frame queue. */
 let frames: FrameRequestCallback[] = [];
@@ -101,6 +112,7 @@ describe("X.KF.W13X.r4init — KFA-76: the Amiga room builds past the first pain
     beforeEach(() => {
         gl.renderers = 0;
         gl.compiles = 0;
+        gl.renders = 0;
         frames = [];
         vi.stubGlobal("requestAnimationFrame", (cb: FrameRequestCallback) => {
             frames.push(cb);
@@ -109,6 +121,7 @@ describe("X.KF.W13X.r4init — KFA-76: the Amiga room builds past the first pain
         vi.stubGlobal("cancelAnimationFrame", () => {});
     });
     afterEach(() => {
+        discardPreparedAmigaRoom();
         vi.unstubAllGlobals();
         vi.restoreAllMocks();
     });
@@ -188,6 +201,47 @@ describe("X.KF.W13X.r4init — KFA-76: the Amiga room builds past the first pain
         await paintFrame();
         await built;
         expect(handle.running).toBe(true);
+        wrapper.unmount();
+    });
+    it("(5) a room prepared before the swap is adopted whole by a mount inside it", async () => {
+        vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockImplementation(
+            () =>
+                ({
+                    createRadialGradient: () => ({ addColorStop: () => {} }),
+                    fillRect: () => {},
+                    clearRect: () => {},
+                    set fillStyle(_v: unknown) {},
+                }) as never,
+        );
+        // The switch's prepare step, before the transition starts: staged.
+        const ready = prepareAmigaRoom();
+        await settleTasks();
+        expect(gl.renderers).toBe(0);
+        await paintFrame();
+        expect(gl.renderers).toBe(0);
+        await paintFrame();
+        expect(gl.renderers).toBe(1);
+        await paintFrame();
+        await ready;
+        expect(gl.compiles).toBe(1);
+        const drawnAhead = gl.renders;
+        expect(drawnAhead).toBe(1);
+
+        // The mount, inside the running transition.
+        const matches = Element.prototype.matches;
+        vi.spyOn(Element.prototype, "matches").mockImplementation(function (this: Element, selector: string) {
+            if (selector === ":active-view-transition") return true;
+            return matches.call(this, selector);
+        });
+        const { handle, wrapper } = mountRoom();
+        expect(handle.booting.value).toBe(false);
+        await handle.setup();
+        // Adopted in the mount's own step: no new context, drawn, looping.
+        expect(gl.renderers).toBe(1);
+        expect(handle.getSphere()).toBeDefined();
+        expect(handle.booting.value).toBe(false);
+        expect(handle.running).toBe(true);
+        expect(gl.renders).toBe(drawnAhead + 1);
         wrapper.unmount();
     });
 });

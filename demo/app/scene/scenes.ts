@@ -91,6 +91,14 @@ export interface SceneDescriptor {
      * glyph — the permanent cure for the D8 regression class.
      */
     icon: Component;
+    /**
+     * owner-1112 (item 6) — work the scene needs done BEFORE its swap starts,
+     * run by the switch after the chunk resolves and before the cross-fade
+     * (`prepareScene`). The Amiga builds its WebGL room here, while the leaving
+     * scene still shows, so its mount inside the transition adopts a finished
+     * room instead of building one after the cross-fade.
+     */
+    prepare?: () => Promise<unknown>;
 }
 
 // id → the raw dynamic-import thunk. Built from the SAME loader the scene's
@@ -123,6 +131,16 @@ function lazyScene(id: string, loader: SceneLoader, { idleWarm = true } = {}): C
  */
 export function loadScene(id: string): Promise<unknown> {
     return sceneLoaders.get(id)?.() ?? Promise.resolve();
+}
+
+/**
+ * owner-1112 (item 6) — a scene's pre-swap work (`SceneDescriptor.prepare`);
+ * resolved for a scene with none. A failed prepare is the scene's to report at
+ * mount (the Amiga then builds its room there), so it never blocks the swap.
+ */
+export function prepareScene(id: string): Promise<unknown> {
+    const prepare = sceneMap.get(id)?.prepare;
+    return prepare ? prepare().catch(() => {}) : Promise.resolve();
 }
 
 /**
@@ -211,6 +229,8 @@ export const scenes: SceneDescriptor[] = [
         component: lazyScene(AMIGA_SCENE_ID, () => import("../../scenes/amiga/AmigaScene.vue"), {
             idleWarm: false,
         }),
+        prepare: () =>
+            import("../../scenes/amiga/useAmigaThree").then((m) => m.prepareAmigaRoom()),
     },
     {
         id: SQUARE_SCENE_ID,

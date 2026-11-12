@@ -1,4 +1,4 @@
-import { markRaw, onBeforeUnmount, ref, type Ref } from "vue";
+import { markRaw, onBeforeUnmount, ref, shallowRef, type Ref } from "vue";
 import {
     useEventListener,
     usePreferredReducedMotion,
@@ -316,6 +316,205 @@ const SHADOW_DEPTH = SHADOW_PLATE * 0.5;
 export const contactShadowScale = (px: number, lift: number): number =>
     Math.min(1 + 0.9 * lift, (BOX_SIZE / 2 - Math.abs(px)) / (SHADOW_PLATE / 2));
 
+/** The CPU half of a room: scene, camera, lights, grids, shadow, ball. */
+interface RoomGraph {
+    scene: THREE.Scene;
+    camera: THREE.PerspectiveCamera;
+    sphere: ReturnType<typeof tesselateSphere>;
+    shadow: THREE.Mesh;
+    grids: Array<{ grid: THREE.LineSegments; role: "floor" | "wall" }>;
+}
+/** A built room: its graph and the GL context on its own render surface. */
+interface PreparedRoom extends RoomGraph {
+    renderer: THREE.WebGLRenderer;
+}
+
+/** Ink a room's grids for a theme (KFA-67 / UIA-KF-195). */
+function paintGrids(grids: RoomGraph["grids"], palette: RoomPalette): void {
+    const strength = GRID_OPACITY[palette.dark ? "dark" : "light"];
+    for (const { grid, role } of grids) {
+        const material = grid.material as THREE.LineBasicMaterial;
+        material.color.copy(palette.ink);
+        material.opacity = strength[role];
+    }
+}
+
+function buildRoomGraph(): RoomGraph {
+    const scene = new THREE.Scene();
+    const grids: RoomGraph["grids"] = [];
+
+    // T.A9 — the camera frames the ROOM (the whole BOX_SIZE cube), not the
+    // rest pose, so the authored wall-to-wall / floor↔apex arc renders at
+    // authored scale. Subject = pivot = framing (the look-at is the centred
+    // home). The lift keeps the floor + shadow readable and carries D-11's
+    // φ bias (the derivation is at the constants).
+    const camera = new THREE.PerspectiveCamera(CAMERA_FOV, 1, 0.1, 1000);
+    camera.position.set(0, CAMERA_LIFT, CAMERA_Z);
+
+    // Lighting: a soft sky/ground fill + a gentle top-front key that only
+    // MODELS the ball (diffuse form), never a highlight.
+    // X.KF.W13X · KFA-195 — three's lights are physical (r155+): the Lambert
+    // term divides by π and a spot light falls off with the square of its
+    // distance (decay 2). At the rig's old numbers the fill lit a white tile
+    // to ~0.5 linear (served ~181 of 255: a mid-grey "white"). The key carries
+    // no falloff (decay 0: a studio key, not a bulb in the room) and the fill
+    // is set so a sky-facing white tile reads white.
+    // X-DS pass 2 · KF-C2-01 — the ball is Lambert (no specular lobe), so the
+    // key has no highlight to make; it is lowered 1.4 → 0.8 so the tonal step
+    // from the lit crown to the flank stays restrained (flat-to-soft).
+    const hemi = new THREE.HemisphereLight("white", "#c8c8c8", 2.4);
+    scene.add(hemi);
+    const key = new THREE.SpotLight("white", 0.8, 0, Math.PI / 2, 0.9, 0);
+    key.position.set(0, BOX_SIZE, BOX_SIZE / 2);
+    scene.add(key);
+
+    // T.A10 — the grid-room: a paper-grid FLOOR and WALLS over the theme
+    // backdrop (the gray Lambert box is gone); the CSS grid-bg shows through
+    // the transparent composite behind them. Unit squares, inked per theme.
+    const palette = resolveRoomPalette();
+    const panel = (role: "floor" | "wall", width: number, height: number) => {
+        const lines = ruledPanel(width, height);
+        grids.push({ grid: lines, role });
+        scene.add(lines);
+        return lines;
+    };
+    const floor = panel("floor", BOX_SIZE, FLOOR_DEPTH);
+    floor.rotation.x = -Math.PI / 2;
+    floor.position.set(0, CONTACT_FLOOR, FLOOR_FRONT - FLOOR_DEPTH / 2);
+    // KFA-64 — the back wall STANDS on the floor: its bottom edge is the
+    // floor line (it used to be centred on home and hang a unit below it,
+    // showing through the translucent floor).
+    const WALL_CENTRE_Y = CONTACT_FLOOR + WALL_HEIGHT / 2;
+    panel("wall", BOX_SIZE, WALL_HEIGHT).position.set(0, WALL_CENTRE_Y, -BOX_SIZE / 2);
+    // KFA-194 — the ball reverses at ±WALL_X, one radius from walls that now
+    // exist: two side walls standing on the floor, from the back wall to the
+    // ball's plane (the half of the room the ball lives in; a full-depth wall
+    // would rule the whole foreground).
+    for (const side of [-1, 1]) {
+        const wall = panel("wall", BOX_SIZE / 2, WALL_HEIGHT);
+        wall.rotation.y = Math.PI / 2;
+        wall.position.set((side * BOX_SIZE) / 2, WALL_CENTRE_Y, -BOX_SIZE / 4);
+    }
+
+    // T.A10 — the fake contact-shadow blob on the floor plane, tracked to the
+    // ball's x + scaled/faded by height each frame (by the scene's compose).
+    // The plane lies flat (−π/2 about x maps its local +y onto world −z),
+    // so a +y half-depth translate seats it behind z = 0.
+    const shadow = new THREE.Mesh(
+        new THREE.PlaneGeometry(SHADOW_PLATE, SHADOW_DEPTH).translate(0, SHADOW_DEPTH / 2, 0),
+        new THREE.MeshBasicMaterial({
+            map: makeShadowTexture(palette),
+            transparent: true,
+            depthWrite: false,
+        }),
+    );
+    shadow.rotation.x = -Math.PI / 2;
+    shadow.position.set(0, SHADOW_PLANE_Y, 0);
+    scene.add(shadow);
+    paintGrids(grids, palette);
+
+    // The Boing-Ball: the crayon-red checker sphere, re-sourced to
+    // var(--amiga-red) (→ var(--rainbow-red), single-sourced in
+    // design-idioms.css). Seated at the centred home so a centre-drag HITS it.
+    const sphere = tesselateSphere("#ffffff", "var(--amiga-red)", SPHERE_RADIUS);
+    sphere.position.set(SPHERE_HOME, SPHERE_HOME, SPHERE_HOME);
+    scene.add(sphere);
+    return { scene, camera, sphere, shadow, grids };
+}
+
+/**
+ * X.KF.W13X · KFA-76 (heavy-scene-init limb, ESC-r4shell-1) — the GL half: the
+ * context, its pixel ratio and clear, on the room's own render surface (a
+ * canvas the room creates; owner-1112 item 6 — see `attachSurface`). The
+ * surface fills the scene root behind the subject canvas and takes no pointer.
+ */
+function createRoomRenderer(): THREE.WebGLRenderer {
+    const surface = document.createElement("canvas");
+    surface.setAttribute("aria-hidden", "true");
+    surface.className = "amiga-surface";
+    Object.assign(surface.style, {
+        position: "absolute",
+        inset: "0",
+        width: "100%",
+        height: "100%",
+        pointerEvents: "none",
+    });
+    const renderer = new THREE.WebGLRenderer({
+        antialias: true,
+        alpha: true,
+        canvas: surface,
+    });
+    // A2 — cap DPR at 2 (MSAA carries edge quality; extra super-sampling is
+    // pure fill-rate waste on retina).
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    // T.A10 — clear to TRANSPARENT so the canvas composites over the themed
+    // CSS paper-grid backdrop instead of a foreign gray slab.
+    renderer.setClearColor(0xffffff, 0);
+    return renderer;
+}
+
+/** Release a room no scene adopted (its GPU objects and its context). */
+function discardRoom(room: PreparedRoom): void {
+    room.scene.traverse((obj) => {
+        const drawable = obj as Partial<THREE.Mesh>;
+        drawable.geometry?.dispose();
+        const material = drawable.material;
+        for (const m of Array.isArray(material) ? material : material ? [material] : []) {
+            (m as THREE.MeshBasicMaterial).map?.dispose();
+            m.dispose();
+        }
+    });
+    room.renderer.forceContextLoss();
+    room.renderer.dispose();
+}
+
+// owner-1112 (item 6) — the ONE prepared room: built by the scene switch before
+// a swap into the Amiga starts its cross-fade, taken whole by the mount.
+let prepared: PreparedRoom | undefined;
+let preparing: Promise<void> | undefined;
+
+/**
+ * owner-1112 (item 6) — build the Amiga room AHEAD of the swap that shows it:
+ * the graph, the GL context, the program compile and a first draw (which
+ * uploads the textures), one per frame while the leaving scene still shows.
+ * The scene switch awaits it before the View Transition starts, so the mount
+ * inside the transition adopts a finished room in one synchronous step. A
+ * failure is swallowed: the mount then builds its own and reports it.
+ */
+export function prepareAmigaRoom(): Promise<void> {
+    if (prepared) return Promise.resolve();
+    preparing ??= (async () => {
+        try {
+            await afterPaint();
+            const graph = buildRoomGraph();
+            await afterPaint();
+            const renderer = createRoomRenderer();
+            await afterPaint();
+            await renderer.compileAsync(graph.scene, graph.camera);
+            renderer.render(graph.scene, graph.camera);
+            prepared = { ...graph, renderer };
+        } catch (error) {
+            console.warn("[amiga] the WebGL room could not be prepared", error);
+        } finally {
+            preparing = undefined;
+        }
+    })();
+    return preparing;
+}
+
+/** The prepared room, handed over once (the mount owns it from here). */
+function takePreparedRoom(): PreparedRoom | undefined {
+    const room = prepared;
+    prepared = undefined;
+    return room;
+}
+
+/** Release a prepared room no mount took (tests; a superseded swap). */
+export function discardPreparedAmigaRoom(): void {
+    const room = takePreparedRoom();
+    if (room) discardRoom(room);
+}
+
 /**
  * @param canvasEl  the `<canvas>` template ref.
  * @param onFrame   per-frame injection (compose pose+gesture onto the mesh ·
@@ -358,14 +557,9 @@ export function useAmigaThree(
 
     // KFA-67 / UIA-KF-195 — the room's grids, re-inked on every theme flip.
     const roomGrids: Array<{ grid: THREE.LineSegments; role: "floor" | "wall" }> = [];
-    const applyPalette = (palette: RoomPalette): void => {
-        const strength = GRID_OPACITY[palette.dark ? "dark" : "light"];
-        for (const { grid, role } of roomGrids) {
-            const material = grid.material as THREE.LineBasicMaterial;
-            material.color.copy(palette.ink);
-            material.opacity = strength[role];
-        }
-    };
+    const applyPalette = (palette: RoomPalette): void => paintGrids(roomGrids, palette);
+    /** The room's render surface once a room is seated (its GL events). */
+    const surfaceEl = shallowRef<HTMLCanvasElement | null>(null);
     /** Re-resolve the ink after a theme flip has settled, and re-paint. */
     const retheme = (): void => {
         if (!scene) return;
@@ -418,111 +612,32 @@ export function useAmigaThree(
         renderDirty = true;
     };
 
-    /** The CPU half of the room: scene, camera, lights, grids, shadow, ball. */
-    const buildGraph = () => {
-        disposed = false;
-
-        scene = new THREE.Scene();
-
-        // T.A9 — the camera frames the ROOM (the whole BOX_SIZE cube), not the
-        // rest pose, so the authored wall-to-wall / floor↔apex arc renders at
-        // authored scale. Subject = pivot = framing (the look-at is the centred
-        // home). The lift keeps the floor + shadow readable and carries D-11's
-        // φ bias (the derivation is at the constants).
-        camera = new THREE.PerspectiveCamera(CAMERA_FOV, 1, 0.1, 1000);
-        camera.position.set(0, CAMERA_LIFT, CAMERA_Z);
-
-        // Lighting: a soft sky/ground fill + a gentle top-front key that only
-        // MODELS the ball (diffuse form), never a highlight.
-        // X.KF.W13X · KFA-195 — three's lights are physical (r155+): the Lambert
-        // term divides by π and a spot light falls off with the square of its
-        // distance (decay 2). At the rig's old numbers the fill lit a white tile
-        // to ~0.5 linear (served ~181 of 255: a mid-grey "white"). The key carries
-        // no falloff (decay 0: a studio key, not a bulb in the room) and the fill
-        // is set so a sky-facing white tile reads white.
-        // X-DS pass 2 · KF-C2-01 — the ball is Lambert (no specular lobe), so the
-        // key has no highlight to make; it is lowered 1.4 → 0.8 so the tonal step
-        // from the lit crown to the flank stays restrained (flat-to-soft).
-        const hemi = new THREE.HemisphereLight("white", "#c8c8c8", 2.4);
-        scene.add(hemi);
-        const key = new THREE.SpotLight("white", 0.8, 0, Math.PI / 2, 0.9, 0);
-        key.position.set(0, BOX_SIZE, BOX_SIZE / 2);
-        scene.add(key);
-
-        // T.A10 — the grid-room: a paper-grid FLOOR and WALLS over the theme
-        // backdrop (the gray Lambert box is gone); the CSS grid-bg shows through
-        // the transparent composite behind them. Unit squares, inked per theme.
-        const palette = resolveRoomPalette();
-        const panel = (role: "floor" | "wall", width: number, height: number) => {
-            const lines = ruledPanel(width, height);
-            roomGrids.push({ grid: lines, role });
-            scene!.add(lines);
-            return lines;
-        };
-        const floor = panel("floor", BOX_SIZE, FLOOR_DEPTH);
-        floor.rotation.x = -Math.PI / 2;
-        floor.position.set(0, CONTACT_FLOOR, FLOOR_FRONT - FLOOR_DEPTH / 2);
-        // KFA-64 — the back wall STANDS on the floor: its bottom edge is the
-        // floor line (it used to be centred on home and hang a unit below it,
-        // showing through the translucent floor).
-        const WALL_CENTRE_Y = CONTACT_FLOOR + WALL_HEIGHT / 2;
-        panel("wall", BOX_SIZE, WALL_HEIGHT).position.set(0, WALL_CENTRE_Y, -BOX_SIZE / 2);
-        // KFA-194 — the ball reverses at ±WALL_X, one radius from walls that now
-        // exist: two side walls standing on the floor, from the back wall to the
-        // ball's plane (the half of the room the ball lives in; a full-depth wall
-        // would rule the whole foreground).
-        for (const side of [-1, 1]) {
-            const wall = panel("wall", BOX_SIZE / 2, WALL_HEIGHT);
-            wall.rotation.y = Math.PI / 2;
-            wall.position.set((side * BOX_SIZE) / 2, WALL_CENTRE_Y, -BOX_SIZE / 4);
-        }
-
-        // T.A10 — the fake contact-shadow blob on the floor plane, tracked to the
-        // ball's x + scaled/faded by height each frame (by the scene's compose).
-        // The plane lies flat (−π/2 about x maps its local +y onto world −z),
-        // so a +y half-depth translate seats it behind z = 0.
-        contactShadow = new THREE.Mesh(
-            new THREE.PlaneGeometry(SHADOW_PLATE, SHADOW_DEPTH).translate(0, SHADOW_DEPTH / 2, 0),
-            new THREE.MeshBasicMaterial({
-                map: makeShadowTexture(palette),
-                transparent: true,
-                depthWrite: false,
-            }),
-        );
-        contactShadow.rotation.x = -Math.PI / 2;
-        contactShadow.position.set(0, SHADOW_PLANE_Y, 0);
-        scene.add(contactShadow);
-        applyPalette(palette);
-
-        // The Boing-Ball: the crayon-red checker sphere, re-sourced to
-        // var(--amiga-red) (→ var(--rainbow-red), single-sourced in
-        // design-idioms.css). Seated at the centred home so a centre-drag HITS it.
-        sphereMesh = tesselateSphere("#ffffff", "var(--amiga-red)", SPHERE_RADIUS);
-        sphereMesh.position.set(SPHERE_HOME, SPHERE_HOME, SPHERE_HOME);
-        scene.add(sphereMesh);
-
+    /** Seat a built graph as this room's own (the compose reads these). */
+    const adoptGraph = (graph: RoomGraph): void => {
+        scene = graph.scene;
+        camera = graph.camera;
+        sphereMesh = graph.sphere;
+        contactShadow = graph.shadow;
+        roomGrids.length = 0;
+        roomGrids.push(...graph.grids);
     };
 
     /**
-     * X.KF.W13X · KFA-76 (heavy-scene-init limb, ESC-r4shell-1) — the GL half:
-     * the context, its pixel ratio and clear, and the orbit controls bound to
-     * the canvas. Split from the graph so each lands in its own frame.
+     * owner-1112 (item 6) — the room's render surface is its OWN canvas
+     * (`renderer.domElement`), seated behind the scene's canvas, which stays
+     * the operable, named subject (role, keys, the pointer gesture, the
+     * fallback read-outs) and paints nothing. Two surfaces, so a room can be
+     * BUILT BEFORE the scene mounts (`prepareAmigaRoom`, run by the scene
+     * switch before its cross-fade starts) and handed to the mount whole.
+     * The orbit controls bind to the subject canvas, where the pointer lands.
      */
-    const attachRenderer = () => {
-        const canvas = canvasEl.value!;
-        renderer = new THREE.WebGLRenderer({
-            antialias: true,
-            alpha: true,
-            canvas,
-        });
-        // A2 — cap DPR at 2 (MSAA carries edge quality; extra super-sampling is
-        // pure fill-rate waste on retina).
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-        // T.A10 — clear to TRANSPARENT so the canvas composites over the themed
-        // CSS paper-grid backdrop instead of a foreign gray slab.
-        renderer.setClearColor(0xffffff, 0);
-
-        controls = new OrbitControls(camera!, renderer.domElement);
+    const attachSurface = (): void => {
+        const subject = canvasEl.value!;
+        const surface = renderer!.domElement;
+        if (surface.parentNode !== subject.parentNode || surface.nextSibling !== subject) {
+            subject.before(surface);
+        }
+        controls = new OrbitControls(camera!, subject);
         controls.enableDamping = true;
         controls.dampingFactor = 0.05;
         controls.screenSpacePanning = false;
@@ -535,8 +650,9 @@ export function useAmigaThree(
             renderDirty = true;
         });
 
-        frameRoom(canvas.clientWidth, canvas.clientHeight);
+        frameRoom(subject.clientWidth, subject.clientHeight);
         renderDirty = true;
+        surfaceEl.value = surface;
     };
 
     /**
@@ -550,33 +666,57 @@ export function useAmigaThree(
      */
     //
     // X.KF.W13X · KFA-76 (heavy-scene-init limb, ESC-r4shell-1, COHESION §0fa
-    // item 3) — the room is built PAST THE DESTINATION'S FIRST PAINT, one stage
-    // per frame, and (o1111 kfamiga) past the swap that mounted it: the
-    // cross-fade dissolves into the ball's breathing silhouette, and the room
-    // builds once the transition has landed. Built inline at mount it was one ~540 ms task of three.js init
-    // (graph, context, program compile, the first texture upload and draw)
-    // inside the swap's own frame, so the new scene could not present until the
-    // ball was ready. Now the scene paints its stage under the skeleton first;
-    // then the graph, the GL context, the program compile and the first draw
-    // each take a frame of their own (`afterPaint`: no fixed delay, the next
-    // rendering opportunity and one task past it). `booting` holds the
-    // skeleton until the first frame of the room is drawn. A dispose (or a
-    // context loss that rebuilds) mid-build retires the stale build by epoch.
+    // item 3) — a room built AT the mount is built past the scene's first
+    // paint, one stage per frame: the graph, the GL context, the program
+    // compile, each in a frame of its own (`afterPaint`), and (o1111 kfamiga)
+    // past a View Transition running at the mount. `booting` holds the
+    // skeleton until the room's first frame is armed. A dispose (or a context
+    // loss that rebuilds) mid-build retires the stale build by epoch.
+    //
+    // owner-1112 (item 6, "the room arrives after the cross-fade") — that path
+    // is now the hard load's only. Every in-app swap into the Amiga prepares
+    // the room BEFORE its cross-fade starts (`prepareAmigaRoom`, the switch's
+    // prepare step, while the leaving scene still shows), so the mount takes a
+    // built, compiled, drawn room in one synchronous step: the new-state
+    // capture holds the room, the skeleton never shows, and no build stage
+    // lands in the cross-fade or after it.
     let buildEpoch = 0;
-    const booting = ref(true);
+    // A prepared room is adopted at mount: the stage never boots (no skeleton
+    // is rendered, so none fades over the room inside the cross-fade).
+    const booting = ref(prepared === undefined);
     const setup = async (): Promise<void> => {
         const epoch = ++buildEpoch;
         const live = () => epoch === buildEpoch && !failed.value;
+        disposed = false;
+        const prepared = takePreparedRoom();
+        if (prepared) {
+            try {
+                adoptGraph(prepared);
+                renderer = prepared.renderer;
+                attachSurface();
+                applyPalette(resolveRoomPalette());
+                failed.value = false;
+                renderer.render(scene!, camera!);
+                start();
+            } catch (error) {
+                failed.value = true;
+                stop();
+                console.warn("[amiga] the WebGL room could not be built", error);
+            }
+            booting.value = false;
+            return;
+        }
         booting.value = true;
         try {
             await swapLanded();
             if (!live()) return;
             await afterPaint();
             if (!live()) return;
-            buildGraph();
+            adoptGraph(buildRoomGraph());
             await afterPaint();
             if (!live()) return;
-            attachRenderer();
+            renderer = createRoomRenderer();
+            attachSurface();
             await afterPaint();
             if (!live() || !renderer || !scene || !camera) return;
             await renderer.compileAsync(scene, camera);
@@ -727,7 +867,9 @@ export function useAmigaThree(
         // between "released now" and "released whenever".
         renderer?.forceContextLoss();
         renderer?.dispose();
+        renderer?.domElement.remove();
         renderer = undefined;
+        surfaceEl.value = null;
     };
 
     // L-i8 — `dispose` is BOTH auto-registered on scope dispose and exposed on
@@ -755,12 +897,12 @@ export function useAmigaThree(
     // the browser promise a restore; without it the canvas stays blank forever
     // and — composed with C-9 limb 1 — the loop spins on a dead context. Neither
     // event was handled anywhere in demo/ or src/.
-    useEventListener(canvasEl, "webglcontextlost", (event: Event) => {
+    useEventListener(surfaceEl, "webglcontextlost", (event: Event) => {
         event.preventDefault();
         failed.value = true;
         stop();
     });
-    useEventListener(canvasEl, "webglcontextrestored", () => {
+    useEventListener(surfaceEl, "webglcontextrestored", () => {
         disposeGraph();
         failed.value = false;
         void setup();

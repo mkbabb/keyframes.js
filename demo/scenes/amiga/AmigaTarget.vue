@@ -314,7 +314,34 @@ const poseMoved = (): boolean =>
     pose.py !== lastPose.py ||
     pose.spin !== lastPose.spin;
 
+// owner-1112 (item 3, "not correct, and smooth") — THE COMPOSE READS THIS
+// FRAME'S POSE. C-17 above bounded the read at one frame stale and called it
+// harmless; measured, it was not. The room's present loop is armed when the
+// room is built and the group's loop at Play, so in every frame the present
+// loop ran FIRST and drew the pose the group wrote one frame earlier: the ball
+// moved each frame by the PREVIOUS frame's interval. On an uneven cadence that
+// is a judder (served, dev probe, 1440 at 120 Hz: the horizontal speed, which
+// is constant by definition at 2.5 u/s, read 1.79 to 3.23 u/s across the 5th
+// to 95th percentile of frames, each long frame followed by a fast one). The
+// order is now kept: when the group paints in a frame the present loop has
+// already drawn, the present loop is re-armed once that frame's group callback
+// has returned, so from the next frame on it runs after the group and draws
+// the pose written in the same frame.
+let presentedAt = -1;
+let reorderQueued = false;
+const stopOrderWatch = animationGroup.onRender((t) => {
+    if (t !== presentedAt || reorderQueued) return;
+    reorderQueued = true;
+    queueMicrotask(() => {
+        reorderQueued = false;
+        if (!three.running) return;
+        three.stop();
+        three.start();
+    });
+});
+
 function onFrame(now: number): boolean {
+    presentedAt = now;
     // L-m6 — the glide's liveness is the value `tickGlide()` RETURNS. The scene
     // used to drop that return on the floor and re-derive the answer from
     // `isGliding()`, which reports the SAMPLER'S EXISTENCE — one frame stale
@@ -538,6 +565,7 @@ useIntersectionObserver(
 );
 
 onBeforeUnmount(() => {
+    stopOrderWatch();
     sphereSpin.detach();
     delete window.__kfAmigaProbe;
     // (the Three.js room + IntersectionObserver auto-release on scope dispose)
@@ -562,6 +590,11 @@ onBeforeUnmount(() => {
    and AT affordances are on the element itself (D-2), and the touch-visible
    affordance is MISSED-A's declared residual. */
 .amiga-canvas {
+    /* owner-1112 (item 6) — the subject canvas paints nothing: the room draws
+       on its own surface seated behind it (useAmigaThree `attachSurface`), and
+       this canvas stacks above that surface to take the pointer and the focus
+       ring. */
+    position: relative;
     touch-action: pinch-zoom;
     cursor: grab;
     /* KF.W6 W6-H — THE STAGE SURFACE, decided once (MISSED-B · D-10 · C-7).
