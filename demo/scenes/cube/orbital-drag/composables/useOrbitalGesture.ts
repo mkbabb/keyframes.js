@@ -15,7 +15,7 @@ import {
 import type { AttitudeSample, Quat, Vec3 } from "../arcball";
 import { anchoredTranslate, engagePair, readPair, unwrapRadians } from "../similarity";
 import type { Box, Vec2 } from "../similarity";
-import { UNBOUNDED, ZOOM_BAND_LN, banded, clampTo, panInterval, unbanded } from "../bounds";
+import { SILHOUETTE, UNBOUNDED, ZOOM_BAND_LN, banded, clampTo, panInterval, unbanded } from "../bounds";
 import type { Interval } from "../bounds";
 import type { GestureEvent, PressedKeys } from "../types";
 import type { OrbitPose, OrbitRelease } from "./useOrbitalInertia";
@@ -272,12 +272,12 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
         return Math.max(MIN_ARCBALL_RADIUS, Math.min(2 * h, Math.max(MIN_ARCBALL_RADIUS, cap)));
     };
 
-    /** The centre's allowed intervals at scale `s` (no PAN_OUT of the die
-     *  leaves V on a side, bounds.ts) and the band's reach on each axis. */
+    /** The centre's allowed intervals at scale `s` (the die's whole silhouette
+     *  inside V, bounds.ts) and the band's reach on each axis. */
     const panLimits = (s: number) => {
         const st = f.stage;
         if (!st || st.right < st.left || st.bottom < st.top) return { x: UNBOUNDED, y: UNBOUNDED, dx: 0, dy: 0 };
-        const D = f.side * s * f.fit;
+        const D = f.side * s * f.fit * SILHOUETTE;
         return {
             x: panInterval(st.left, st.right, D),
             y: panInterval(st.top, st.bottom, D),

@@ -24,7 +24,8 @@
  * Legs (each reads the die inside the frame: the pan from the orbit
  * container's translate3d carried back by G, the scale, the attitude):
  *   pan-bound    wheel the die hard toward each side and corner; at rest each
- *                axis keeps ≥ 75 % of the die's extent D = side·s inside the stage.
+ *                axis keeps the die's whole painted silhouette (its faces' union)
+ *                inside the stage (≥ 99.5 %, for subpixel rounding).
  *   throw-back   release a pan moving toward the right edge; per frame after the
  *                release: the centre passes the bound, peaks, returns
  *                monotonically, rests on the bound; largest step ≤ 12 % of the
@@ -94,8 +95,11 @@ function readPose() {
     const g = document.querySelector(".graph").getBoundingClientRect();
     const st = document.querySelector("[data-orbit-stage], .embed-cube-stage").getBoundingClientRect();
     const side = document.querySelector(".cube")?.offsetWidth ?? 0;
+    // The die's painted silhouette: the union of its faces' boxes (3D transforms and perspective included).
+    const faces = [...(document.querySelector(".cube")?.children ?? [])].map((e) => e.getBoundingClientRect()).filter((r) => r.width > 0 && r.height > 0);
+    const sil = faces.length ? { l: Math.min(...faces.map((r) => r.left)), t: Math.min(...faces.map((r) => r.top)), r: Math.max(...faces.map((r) => r.right)), b: Math.max(...faces.map((r) => r.bottom)) } : null;
     return {
-        tf, s, side,
+        tf, s, side, sil,
         c: { x: g.left + g.width / 2 + t[0], y: g.top + g.height / 2 + t[1] },
         rest: { x: g.left + g.width / 2, y: g.top + g.height / 2 },
         stage: { l: st.left, t: st.top, r: st.right, b: st.bottom },
@@ -133,15 +137,15 @@ const turn = (tf0, tf1) => {
 };
 const r2 = (v) => Math.round(v * 100) / 100;
 
-/** Each axis's share of the die's extent inside the stage, and the area share. */
+/** Each axis's share of the die's painted silhouette inside the stage, and the area share. */
 const inside = (p) => {
-    const D = p.side * p.s;
-    const fx = Math.max(0, Math.min(p.c.x + D / 2, p.stage.r) - Math.max(p.c.x - D / 2, p.stage.l)) / D;
-    const fy = Math.max(0, Math.min(p.c.y + D / 2, p.stage.b) - Math.max(p.c.y - D / 2, p.stage.t)) / D;
+    const b = p.sil ?? { l: p.c.x - (p.side * p.s) / 2, r: p.c.x + (p.side * p.s) / 2, t: p.c.y - (p.side * p.s) / 2, b: p.c.y + (p.side * p.s) / 2 };
+    const fx = Math.max(0, Math.min(b.r, p.stage.r) - Math.max(b.l, p.stage.l)) / (b.r - b.l);
+    const fy = Math.max(0, Math.min(b.b, p.stage.b) - Math.max(b.t, p.stage.t)) / (b.b - b.t);
     return { fx: r2(fx), fy: r2(fy), area: r2(fx * fy) };
 };
-/** The centre's bound on x (the design's: a quarter of D may leave). */
-const boundX = (p) => p.stage.r - 0.25 * p.side * p.s;
+/** The centre's bound on x (the design's: the whole silhouette, ½·side·s·√3, inside; bounds.ts). */
+const boundX = (p) => p.stage.r - 0.5 * Math.sqrt(3) * p.side * p.s;
 
 const out = [];
 // WebKit: glass's harness pin (build 2287) when present — the bundled build
@@ -248,7 +252,7 @@ try {
                 res.push({ dir: [dx, dy], ...inside(b), c: { x: r2(b.c.x), y: r2(b.c.y) } });
             }
             const minAxis = Math.min(...res.map((r) => Math.min(r.fx, r.fy)));
-            return { panBound: res, minAxis, minArea: Math.min(...res.map((r) => r.area)), pass: res.length > 0 && minAxis >= 0.745 };
+            return { panBound: res, minAxis, minArea: Math.min(...res.map((r) => r.area)), pass: res.length > 0 && minAxis >= 0.995 };
         });
 
         await leg("throw-back", async ({ page, read, reset, off, touch, phone, prm, record }) => {
@@ -273,6 +277,8 @@ try {
             if (phone) await touch("touchEnd", []);
             else { await page.mouse.up(); await page.keyboard.up("Shift"); }
             const tr = await recP;
+            // At rest after the throw, the die's whole painted silhouette is on the stage.
+            const restIn = inside(await read());
             const xs = tr.map((p) => p.x - hi);
             let peakI = 0;
             for (let i = 1; i < xs.length; i++) if (xs[i] > xs[peakI]) peakI = i;
@@ -285,8 +291,8 @@ try {
             let restMs = null;
             for (let i = 0; i < xs.length; i++) if (xs.slice(i).every((v) => Math.abs(v) <= 1)) { restMs = tr[i].t; break; }
             const end = xs.at(-1);
-            const passMotion = prm ? peak <= 0.5 && Math.abs(end) <= 0.5 : peak > 0 && monotone && Math.abs(end) <= 0.5 && restMs !== null && restMs <= 800 && travel > 0 && maxStep / travel <= 0.12;
-            return { throwBack: { bound: r2(hi), peak: r2(peak), monotone, end: r2(end), restMs: restMs && Math.round(restMs), travel: r2(travel), maxStepShare: travel ? r2(maxStep / travel) : null, frames: xs.length, first: xs.slice(0, 6).map(r2) }, pass: passMotion };
+            const passMotion = restIn.fx >= 0.995 && restIn.fy >= 0.995 && (prm ? peak <= 0.5 && Math.abs(end) <= 0.5 : peak > 0 && monotone && Math.abs(end) <= 0.5 && restMs !== null && restMs <= 800 && travel > 0 && maxStep / travel <= 0.12);
+            return { throwBack: { restInside: restIn, bound: r2(hi), peak: r2(peak), monotone, end: r2(end), restMs: restMs && Math.round(restMs), travel: r2(travel), maxStepShare: travel ? r2(maxStep / travel) : null, frames: xs.length, first: xs.slice(0, 6).map(r2) }, pass: passMotion };
         });
 
         if (!phone) await leg("pinch-chrome", async ({ page, read, reset, off }) => {
