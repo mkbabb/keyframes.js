@@ -150,10 +150,11 @@ describe("G2.3 — the mounted orbit: one channel per hand motion", () => {
         w.unmount();
     });
 
-    it("(c) a two-finger 100 px drag pans 100 ± 1 px, no zoom, no roll", async () => {
+    // 80 px stays inside the bound (the whole die on the stage: the centre's bottom bound is 545 − ½·160·2 = 385).
+    it("(c) a two-finger 80 px drag pans 80 ± 1 px, no zoom, no roll", async () => {
         const { w, model, el } = await mountOrbit();
-        await twoFinger(el, [170, 300], [230, 300], [170, 400], [230, 400]);
-        expect(Math.abs(model.value.translate.y - 100)).toBeLessThan(1);
+        await twoFinger(el, [170, 300], [230, 300], [170, 380], [230, 380]);
+        expect(Math.abs(model.value.translate.y - 80)).toBeLessThan(1);
         expect(Math.abs(model.value.translate.x)).toBeLessThan(1e-9);
         expect(model.value.scale.x).toBe(1);
         expect(screenRotation(model.value.quaternion!).angle).toBeLessThan(1e-12);

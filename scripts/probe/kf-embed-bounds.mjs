@@ -144,8 +144,8 @@ const inside = (p) => {
     const fy = Math.max(0, Math.min(b.b, p.stage.b) - Math.max(b.t, p.stage.t)) / (b.b - b.t);
     return { fx: r2(fx), fy: r2(fy), area: r2(fx * fy) };
 };
-/** The centre's bound on x (the design's: the whole silhouette, ½·side·s·√3, inside; bounds.ts). */
-const boundX = (p) => p.stage.r - 0.5 * Math.sqrt(3) * p.side * p.s;
+/** The centre's bound on x (the design's: the whole silhouette, ½·side·s·2, inside; bounds.ts). */
+const boundX = (p) => p.stage.r - 0.5 * 2 * p.side * p.s;
 
 const out = [];
 // WebKit: glass's harness pin (build 2287) when present — the bundled build
@@ -315,7 +315,9 @@ try {
         for (const where of ["frame", "host"]) await leg(`gesture-${where}`, async ({ page, frame, read, reset, off }) => {
             await reset();
             const a = await read();
-            const at = { x: a.c.x - 90, y: a.c.y + 60 };
+            // Near the centre, so the ×1.5 die still rests inside its bound (the whole die on the stage) and
+            // the anchor is read without the spring back acting.
+            const at = { x: a.c.x - 12, y: a.c.y + 8 };
             const dispatch = ({ x, y, host }) => {
                 const target = host ? document.querySelector(".motion .scene, .scene") : document.elementFromPoint(x, y);
                 const g = (type, scale, rotation, el) => {

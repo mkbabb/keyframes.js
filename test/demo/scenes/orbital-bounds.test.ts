@@ -32,8 +32,8 @@ describe("the pan interval", () => {
         expect(iv.hi + 100).toBeCloseTo(1000, 12);
     });
 
-    it("bounds the silhouette in every attitude: the circumscribed diameter", () => {
-        expect(SILHOUETTE).toBeCloseTo(Math.sqrt(3), 12);
+    it("bounds the painted silhouette in every attitude: at least the circumscribed diameter", () => {
+        expect(SILHOUETTE).toBeGreaterThanOrEqual(Math.sqrt(3));
     });
 
     it("swaps its ends for a die wider than the stage, so it can still be moved while it covers it", () => {

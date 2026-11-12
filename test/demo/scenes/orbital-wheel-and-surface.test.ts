@@ -492,18 +492,18 @@ describe("U6 — who owns the scroll", () => {
 });
 
 describe("U8 — natural scrolling: the wheel pans, the content follows the fingers (OA-17)", () => {
-    // Inside the bound (the whole die's silhouette inside V: the centre's top bound is 107 + ½·160·√3 ≈ 245.6).
-    it("a +40 px wheel moves the die's centre −40 px and turns nothing", async () => {
+    // Inside the bound (the whole die's silhouette inside V: the centre's top bound is 107 + ½·160·2 = 267).
+    it("a +30 px wheel moves the die's centre −30 px and turns nothing", async () => {
         const { w, model, el } = await mountOrbit();
-        el.dispatchEvent(wheel({ deltaY: 40 }));
+        el.dispatchEvent(wheel({ deltaY: 30 }));
         await flush();
-        expect(model.value.translate.y).toBeCloseTo(-40, 9);
+        expect(model.value.translate.y).toBeCloseTo(-30, 9);
         expect(model.value.translate.x).toBe(0);
         expect(screenRotation(q(model.value)).angle).toBe(0);
-        // 30 px across (the right bound is 374 − ½·160·√3 ≈ 235.4).
-        el.dispatchEvent(wheel({ deltaX: -30, deltaY: 0 }));
+        // 10 px across (the right bound is 374 − ½·160·2 = 214).
+        el.dispatchEvent(wheel({ deltaX: -10, deltaY: 0 }));
         await flush();
-        expect(model.value.translate.x).toBeCloseTo(30, 9);
+        expect(model.value.translate.x).toBeCloseTo(10, 9);
         w.unmount();
     });
 
