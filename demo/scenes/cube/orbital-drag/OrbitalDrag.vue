@@ -226,8 +226,12 @@ const gesture = useOrbitalGesture({
     // A wheel notch glides out on the coast's own decay, conjugated into Q's
     // frame (G is fixed, so turning the axis by G⁻¹ is the conjugation).
     onGlide: (w) => void inertia.glide(rotateVec(Ginv, w)),
-    // A pan / zoom wheel stream that ended past a bound springs back.
-    onSettle: (at) => inertia.settle(at),
+    // A wheel stream's end settles: a pan or zoom past a bound springs back,
+    // and with nothing left moving the readout folds.
+    onSettle: (at) => {
+        inertia.settle(at);
+        if (!inertia.coasting()) writeModel(true);
+    },
     reducedMotion,
 });
 
@@ -307,6 +311,8 @@ onMounted(() => {
         passive: false,
     });
     useEventListener(surface, "pointerdown", gesture.onPointerDown);
+    // A right-button drag pans: the stage keeps the context menu off it.
+    useEventListener(surface, "contextmenu", (event) => event.preventDefault());
     useEventListener(surface, "touchstart", gesture.onTouchStart, { passive: false });
     // Safari gesture*: page-zoom suppression while fingers are down, and the
     // desktop trackpad pinch when none are.

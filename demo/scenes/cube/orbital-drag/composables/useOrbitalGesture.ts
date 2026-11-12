@@ -78,13 +78,14 @@ export interface OrbitalGestureParams {
 /** The arcball radius' floor (px). */
 export const MIN_ARCBALL_RADIUS = 96;
 /**
- * OA-17 (owner 2026-11-09) — natural scrolling: a plain wheel (a two-finger
- * trackpad scroll) PANS, and the content follows the fingers. The wheel's Δ is
- * the distance the page's content would scroll, already in the user's own
- * direction (the OS applies its natural-scrolling setting to Δ before the page
- * sees it), so content that follows moves by −Δ, exactly as a scrolled page's
- * content does. No platform sniffing. `NATURAL = false` would move the
- * subject WITH Δ (a camera pan) instead.
+ * The wheel PAN (Shift + scroll, owner 2026-11-12) follows the fingers: the
+ * wheel's Δ is the distance the page's content would scroll, already in the
+ * user's own direction (the OS applies its natural-scrolling setting to Δ
+ * before the page sees it), so content that follows moves by −Δ, exactly as a
+ * scrolled page's content does. No platform sniffing. `NATURAL = false` would
+ * move the subject WITH Δ (a camera pan) instead. (OA-17, 2026-11-09, made the
+ * plain wheel pan; the owner reversed that on 2026-11-12: "scrolling with
+ * multitouch should rotate, not pan".)
  */
 export const NATURAL = true;
 /** The wheel pan's sign: −1 under NATURAL (the subject moves by −Δ). */
@@ -121,9 +122,19 @@ export const WHEEL_LIVE_MS = 80;
  */
 export const driveVector = (d: Vec2, R: number): Vec3 => [(-2 * d.y) / R, (2 * d.x) / R, 0];
 
-/** How many notches this wheel event is: 0 for a pixel stream (a trackpad),
- *  1 for deltaMode LINE/PAGE, else n when |Δ| ≥ 50 px is n × the stream's
- *  first event (coalesced notches arrive as one multiple). */
+/**
+ * A mouse wheel or a trackpad? A mouse wheel speaks in NOTCHES: deltaMode LINE
+ * or PAGE (Firefox), or a pixel delta of at least NOTCH_MIN_PX that is an
+ * integer multiple of its stream's first event (Chromium and Safari write a
+ * notch as 100 or 120 px, or a multiple when notches coalesce). A trackpad
+ * writes a continuous pixel stream of small, unequal deltas that ramps up and
+ * bleeds out on the OS's own momentum. A notch glides out on the coast's decay
+ * (one quantum of travel must not jump); a trackpad stream is applied as it
+ * comes, since it is already continuous.
+ *
+ * How many notches this wheel event is: 0 for a pixel stream (a trackpad),
+ * 1 for deltaMode LINE/PAGE, else n when |Δ| ≥ 50 px is n × the stream's
+ * first event (coalesced notches arrive as one multiple). */
 export const notchCount = (deltaMode: number, d: number, first: number): number => {
     if (deltaMode !== 0) return 1;
     const a = Math.abs(d);
@@ -140,15 +151,23 @@ const LATCH_AXES: Record<"x" | "y" | "z", Vec3> = {
 };
 
 /**
- * OA-17 (owner 2026-11-09) — natural scrolling for all pan and zoom:
- *   mouse     drag orbits · Shift-drag pans · wheel pans · Ctrl/⌘-wheel zooms
- *             at the cursor · Alt/Option-wheel orbits (a notch glides);
- *   trackpad  two-finger scroll pans (content follows the fingers; the OS
- *             carries its momentum) · pinch zooms · Safari's gesture* pinch
- *             and twist as before;
- *   touch     one finger orbits · two fingers pan, pinch and twist together.
- * A released pointer pan or pinch coasts on the rotation's own decay (one
- * coast, three channels — useOrbitalInertia).
+ * THE GESTURE MAP (owner 2026-11-12: "scrolling with multitouch should
+ * rotate, not pan. Ensure ALL of our multitouch gestures map to their
+ * befitting actions"; the map the orbit had from March to October 2026,
+ * before OA-17 made the plain wheel pan):
+ *   trackpad  two-finger scroll ORBITS (Δx yaws, Δy pitches, the surface
+ *             following the fingers; the OS's own momentum events carry the
+ *             throw) · pinch (ctrl-wheel; Safari gesture* scale) zooms at the
+ *             cursor · Safari's twist (gesture* rotation) rolls · Shift +
+ *             scroll pans;
+ *   mouse     left drag orbits · Shift-drag, middle-drag or right-drag pans ·
+ *             the wheel orbits, a notch gliding out (notchCount) ·
+ *             Ctrl/⌘-wheel zooms at the cursor · Shift-wheel pans;
+ *   touch     one finger orbits · two fingers pan, pinch and twist together
+ *             (the pair's centroid, distance and angle, one similarity).
+ * Every end eases: a released drag, pan or pinch coasts on the one decay (one
+ * coast, three channels — useOrbitalInertia) and whatever stands past a bound
+ * springs back; a wheel stream's end settles the same way.
  *
  * THE ONE MULTITOUCH SOURCE (KF-M2, D-14): Pointer Events. One finger (or the
  * mouse) orbits on Shoemake's anchored arcball, Shift-drag pans 1:1, two
@@ -241,6 +260,8 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
     let pPrev: Vec2 = { x: 0, y: 0 };
     /** A page-mode touch grab not yet known to be sideways. */
     let pending = false;
+    /** This grab is a middle- or right-button mouse drag: it pans. */
+    let buttonPan = false;
     let v0: Vec3 = [0, 0, 1];
     let vPrev: Vec3 = [0, 0, 1];
     let axis: Vec3 | null = null;
@@ -352,7 +373,7 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
         }
         const p = pointers.get(ids[0]!)!;
         p0 = { x: p.x, y: p.y };
-        if (pressedKeys.value.shift) {
+        if (pressedKeys.value.shift || buttonPan) {
             mode = "pan";
             return;
         }
@@ -441,7 +462,11 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
         // Keep iOS Safari from starting its own gesture handling.
         event.preventDefault();
         syncModifiers(event);
-        if (pointers.size === 0) onGestureStart();
+        if (pointers.size === 0) {
+            onGestureStart();
+            // A middle (1) or right (2) mouse button pans, as Shift-drag does.
+            buttonPan = event.pointerType === "mouse" && (event.button === 1 || event.button === 2);
+        }
         pointers.set(event.pointerId, {
             x: event.clientX,
             y: event.clientY,
@@ -489,7 +514,7 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
         const shift = event.shiftKey;
         syncModifiers(event);
         // A modifier change mid-drag re-anchors (orbit ↔ pan), never jumps.
-        if ((mode === "pan") !== shift && pointers.size === 1) anchor();
+        if ((mode === "pan") !== (shift || buttonPan) && pointers.size === 1) anchor();
         if (mode === "orbit") applyOrbit(p);
         else if (mode === "drive") applyDrive(p);
         else if (mode === "pan") applyPan(p);
@@ -522,6 +547,7 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
         const { pan, zoom } = poseRatesFromSamples(samples, event.timeStamp);
         const at = releaseCentroid;
         mode = "idle";
+        buttonPan = false;
         isActive.value = false;
         samples.length = 0;
         onGestureEnd({ omega, pan, zoom, at });
@@ -533,6 +559,7 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
         pointers.clear();
         releaseCapture(event);
         mode = "idle";
+        buttonPan = false;
         isActive.value = false;
         samples.length = 0;
         onGestureEnd({ omega: [0, 0, 0] });
@@ -607,19 +634,23 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
 
     /** The pan / zoom stream's end: the rubber band lets go (the spring). */
     let liveTimer: ReturnType<typeof setTimeout> | undefined;
+    /** A pan or zoom wheel stream is live (it took the die from any coast). */
+    let poseLive = false;
     const holdLive = () => {
         clearTimeout(liveTimer);
         liveTimer = setTimeout(() => {
             liveTimer = undefined;
+            poseLive = false;
             onSettle?.(zoomAt);
         }, WHEEL_LIVE_MS);
     };
 
     const handleWheel = (event: WheelEvent) => {
         const zoom = event.ctrlKey || event.metaKey;
-        const orbit = !zoom && event.altKey;
-        // An embed yields the plain wheel to its host page.
-        if (!zoom && !orbit && scrollOwner() === "page") return;
+        const pan = !zoom && event.shiftKey;
+        // An embed ("page") yields the plain wheel to its host page; Alt/Option
+        // claims it for the orbit there.
+        if (!zoom && !pan && !event.altKey && scrollOwner() === "page") return;
         event.preventDefault();
         syncModifiers(event);
         const dx = wheelPx(event, event.deltaX);
@@ -629,29 +660,31 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
         const major = Math.abs(dy) >= Math.abs(dx) ? dy : dx;
         if (event.timeStamp - streamAt > WHEEL_STREAM_GAP_MS) streamFirst = major;
         streamAt = event.timeStamp;
-        if (zoom || !orbit) {
+        zoomAt = { x: event.clientX, y: event.clientY };
+        if ((zoom || pan) && !poseLive) {
             // A live pan or zoom stream takes the die from a let-go spring.
-            if (!liveTimer) onGestureStart();
-            holdLive();
+            poseLive = true;
+            onGestureStart();
         }
+        // Every stream's end settles (a pan or zoom past a bound springs back).
+        holdLive();
         if (zoom) {
             zoomLn += -dy / WHEEL_ZOOM_PX;
-            zoomAt = { x: event.clientX, y: event.clientY };
             requestCommit();
             return;
         }
-        if (!orbit) {
-            // OA-17 — natural scrolling: the content follows the fingers. The
-            // OS carries a trackpad's momentum in the stream itself, so the
-            // wheel never coasts here.
-            zoomAt = { x: event.clientX, y: event.clientY };
+        if (pan) {
+            // Shift + scroll pans, the content following the fingers. The OS
+            // carries a trackpad's momentum in the stream itself, so the wheel
+            // never coasts here; its end springs back inside the bound.
             panPx = { x: panPx.x + WHEEL_PAN_SIGN * dx, y: panPx.y + WHEEL_PAN_SIGN * dy };
             requestCommit();
             return;
         }
-        // Alt/Option-wheel orbits through a virtual pointer moved by (−Δx, −Δy).
-        // No anchor, no coast stop: a running glide keeps running and this
-        // composes onto it.
+        // The two-finger scroll ORBITS through a virtual pointer moved by
+        // (−Δx, −Δy): the die's near face follows the fingers, Δx yawing about
+        // the screen's vertical, Δy pitching about its horizontal. No anchor,
+        // no coast stop: a running glide keeps running and this composes onto it.
         f = frame();
         R = radius(f);
         axis = latchAxis();
@@ -665,8 +698,8 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
             onGlide([w[0] * k, w[1] * k, w[2] * k]);
             return;
         }
-        // A trackpad's pixel stream is already continuous (and the OS carries
-        // its momentum): direct.
+        // A trackpad's pixel stream is already continuous, and the OS's own
+        // momentum events carry its throw: direct.
         turnBy(w);
         requestCommit();
     };

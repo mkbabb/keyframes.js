@@ -16,10 +16,10 @@
  *  U5 the true centre: the frame's centre is the REST centre; the pan clamp
  *     holds the die inside V however many pans stack.
  *  U6 the scroll owner: an embed ("page") yields the plain wheel to its host.
- *  U8 natural scrolling (OA-17, owner 2026-11-09): the plain wheel PANS, the
- *     content following the fingers (−Δ); Ctrl/⌘-wheel zooms at the cursor;
- *     the wheel orbit moves to Alt/Option. Born RED ×2 on b74cc693: a +100 px
- *     wheel turned the die 40° and moved its centre 0 px.
+ *  U8 the wheel pan, the content following the fingers (−Δ): OA-17 (owner
+ *     2026-11-09) put it on the plain wheel; the owner moved it to Shift +
+ *     scroll on 2026-11-12 ("scrolling with multitouch should rotate, not
+ *     pan"), the plain wheel orbiting again (orbital-gesture-map.test.ts).
  *
  * Born RED ×2 on fdb5987f (16 of 18): each ctrl-wheel event re-seeded from
  * the uncommitted model, so the last of 4 × −5 won (Δs 0.023 against 1 × −20),
@@ -299,11 +299,13 @@ describe("U4 — an Alt-wheel notch glides out; a trackpad stream stays direct",
         w.unmount();
     });
 
-    it("under reduced motion a notch lands in its own frame", async () => {
+    it("under reduced motion a notch's glide is shortened, never cut (it lands within 12 frames)", async () => {
         reduce = true;
         const { w, model, el } = await mountOrbit();
         el.dispatchEvent(wheel({ deltaY: 100, altKey: true }));
         await nextTick();
+        expect(screenRotation(q(model.value)).angle).toBe(0);
+        await flush(12);
         expect(Math.abs(screenRotation(q(model.value)).angle - 40 / DEG)).toBeLessThan(1e-9);
         w.unmount();
     });
@@ -491,17 +493,17 @@ describe("U6 — who owns the scroll", () => {
     });
 });
 
-describe("U8 — natural scrolling: the wheel pans, the content follows the fingers (OA-17)", () => {
+describe("U8 — Shift + scroll pans, the content following the fingers", () => {
     // Inside the bound (the whole die's silhouette inside V: the centre's top bound is 107 + ½·160·2 = 267).
-    it("a +30 px wheel moves the die's centre −30 px and turns nothing", async () => {
+    it("a +30 px Shift-wheel moves the die's centre −30 px and turns nothing", async () => {
         const { w, model, el } = await mountOrbit();
-        el.dispatchEvent(wheel({ deltaY: 30 }));
+        el.dispatchEvent(wheel({ deltaY: 30, shiftKey: true }));
         await flush();
         expect(model.value.translate.y).toBeCloseTo(-30, 9);
         expect(model.value.translate.x).toBe(0);
         expect(screenRotation(q(model.value)).angle).toBe(0);
         // 10 px across (the right bound is 374 − ½·160·2 = 214).
-        el.dispatchEvent(wheel({ deltaX: -10, deltaY: 0 }));
+        el.dispatchEvent(wheel({ deltaX: -10, deltaY: 0, shiftKey: true }));
         await flush();
         expect(model.value.translate.x).toBeCloseTo(10, 9);
         w.unmount();
@@ -510,7 +512,7 @@ describe("U8 — natural scrolling: the wheel pans, the content follows the fing
     it("split and coalesced pan events land the same pan; nothing coasts after", async () => {
         const pan = async (deltas: number[]) => {
             const { w, model, el } = await mountOrbit();
-            for (const d of deltas) el.dispatchEvent(wheel({ deltaY: d }, 1));
+            for (const d of deltas) el.dispatchEvent(wheel({ deltaY: d, shiftKey: true }, 1));
             await flush();
             const ty = model.value.translate.y;
             await flush(30);
@@ -525,7 +527,7 @@ describe("U8 — natural scrolling: the wheel pans, the content follows the fing
         const TOP = STAGE.top + (0.5 - PAN_OUT) * SIDE * SILHOUETTE;
         const { w, model, el } = await mountOrbit();
         for (let i = 0; i < 5; i++) {
-            el.dispatchEvent(wheel({ deltaY: 200 }));
+            el.dispatchEvent(wheel({ deltaY: 200, shiftKey: true }));
             await flush();
         }
         // Live: past the bound, on the band.

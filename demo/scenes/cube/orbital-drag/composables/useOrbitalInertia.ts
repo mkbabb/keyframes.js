@@ -10,6 +10,7 @@ import { axisMotion, clampTo, excess, sampleAxis } from "../bounds";
 import type { AxisMotion, Interval } from "../bounds";
 import {
     COAST_REST_FRACTION,
+    REDUCED_MOTION_SETTLE_SPEEDUP,
     MAX_PAN_COAST_RATE,
     MAX_ZOOM_COAST_RATE,
     coastRate,
@@ -86,8 +87,9 @@ interface Channel {
  * notch's rotation θ (an axis·angle vector) drains at r₀ = |θ|·k and lands
  * EXACTLY on θ at the 1% rest. Notches stack: a new one adds into the
  * remaining-rotation vector (any axis), so two notches travel Σθ. Under
- * reduced motion it applies at once. A glide leaves a running pan or zoom
- * coast alone.
+ * reduced motion it is shortened, never cut: the same decay at
+ * REDUCED_MOTION_SETTLE_SPEEDUP × k (owner's motion law, 2026-11-12). A glide
+ * leaves a running pan or zoom coast alone.
  */
 export function useOrbitalInertia(params: OrbitalInertiaParams) {
     const { inertiaFactor, rotateBy, pose, commit, onRest, reducedMotion } = params;
@@ -112,8 +114,8 @@ export function useOrbitalInertia(params: OrbitalInertiaParams) {
         if (was) onRest?.();
     };
 
-    const channel = (rate0: number, apply: Channel["apply"], total = -1, now = -1): Channel => ({
-        sample: decay({ velocity: rate0, friction }),
+    const channel = (rate0: number, apply: Channel["apply"], total = -1, now = -1, k = friction): Channel => ({
+        sample: decay({ velocity: rate0, friction: k }),
         rate0,
         startedAt: now,
         travelled: 0,
@@ -276,17 +278,9 @@ export function useOrbitalInertia(params: OrbitalInertiaParams) {
         const angle = norm3(v);
         if (angle === 0) return 0;
         const dir: Vec3 = [v[0] / angle, v[1] / angle, v[2] / angle];
-        if (reducedMotion?.() ?? false) {
-            rotation = null;
-            rotateBy(dir, angle);
-            if (!coasting()) {
-                pause();
-                onRest?.();
-            }
-            return 0;
-        }
+        const k = (reducedMotion?.() ?? false) ? friction * REDUCED_MOTION_SETTLE_SPEEDUP : friction;
         axis = dir;
-        rotation = channel(angle * friction, rotate(dir), angle, now ?? -1);
+        rotation = channel(angle * k, rotate(dir), angle, now ?? -1, k);
         resume();
         return rotation.rate0;
     };

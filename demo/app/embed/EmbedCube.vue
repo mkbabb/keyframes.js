@@ -3,8 +3,9 @@
          chosen skin, on the demo's own graph paper, under the demo's own
          transport. The die holds still at its opening attitude until Play.
          The stage owns every gesture over it (one finger orbits; two pan,
-         pinch and twist; the wheel pans and Ctrl-wheel zooms, OA-17; a drag
-         around the die off it rolls it), so a pan never scrolls the host. The
+         pinch and twist; a two-finger scroll orbits, Shift-scroll pans,
+         a pinch or Ctrl-wheel zooms, Safari's twist rolls; a drag around the
+         die off it rolls it), so no gesture over it scrolls the host. The
          stage is the orbit's bound: no more than a quarter of the die leaves
          it, and a die thrown past springs back. The paper and its axes ride the orbit's pan and zoom,
          so panning reads as moving across paper. The die keeps its face
