@@ -43,10 +43,18 @@ export function useSceneSwap(
     // plate 26.8; with no transform at rest, the material's 2.8 / 1.6). The
     // fade is unchanged while it runs; the opacity stays the host's one
     // readable channel (1 at rest, which makes no stacking context).
+    // owner-1112 (the motion law, "reduced motion is a fade, never a cut") —
+    // under reduced motion the leg is the same fade with the scale left out.
+    // The spring used to snap to 1 there (`respectReducedMotion`), so every
+    // reduced-motion swap was a cut: the View Transition stands down under the
+    // query and hands its swap to this fade.
+    const reducedLeg = ref(false);
     const sceneSwapStyle = computed(() => ({
         opacity: sceneOpacity.value,
         // lerp(0.97, 1, v): subtle scale-up as the scene settles in.
-        ...(sceneOpacity.value < 1 ? { transform: `scale(${0.97 + 0.03 * sceneOpacity.value})` } : {}),
+        ...(sceneOpacity.value < 1 && !reducedLeg.value
+            ? { transform: `scale(${0.97 + 0.03 * sceneOpacity.value})` }
+            : {}),
     }));
 
     // KFA-12 (X.KF.W13V.k) — the spring stands down ONLY for a swap a native
@@ -58,7 +66,7 @@ export function useSceneSwap(
     // the dispatch resolves the destination chunk first (KFA-25), so the key
     // flip mounts the resolved scene and this spring fades IT in, never the
     // <Suspense> fallback (UIA-KF-125).
-    const sceneSwapSpring = new SpringProgress({ respectReducedMotion: true });
+    const sceneSwapSpring = new SpringProgress({ respectReducedMotion: false });
     // The host opacity reads the spring's whole value stream (`subscribe`:
     // every reset, re-target, snap and tick), so each leg's first value lands
     // synchronously with the mutation that asked for it: no frame paints the
@@ -75,6 +83,9 @@ export function useSceneSwap(
      * (X.KF.W13X.r4fade).
      */
     function fadeSceneIn() {
+        reducedLeg.value =
+            typeof window.matchMedia === "function" &&
+            window.matchMedia("(prefers-reduced-motion: reduce)").matches;
         sceneSwapSpring.reset(0);
         sceneSwapSpring.target = 1;
         sceneSwapSpring.play();

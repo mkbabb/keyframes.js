@@ -6,9 +6,11 @@
  * its fallback while the cold chunk loads, then resolves the scene in place.
  * That resolve is a swap no View Transition carried, so it takes the house
  * swap fade — the same `useSceneSwap` spring a key swap runs — and honours
- * reduced motion as the swap does (an instant snap to 1 — the served read at
- * the parent bytes left a reduced-motion host at opacity 0, a blank stage,
- * because the leg was seated after `play()` read the query). A warm mount (no
+ * reduced motion as the swap does: owner-1112 (the motion law, "reduced motion
+ * is a fade, never a cut") — the same fade, without the scale (it was an
+ * instant snap to 1, a cut; before that the served read at the parent bytes
+ * left a reduced-motion host at opacity 0, a blank stage, because the leg was
+ * seated after `play()` read the query). A warm mount (no
  * fallback shown) never fades, so an in-app switch is never faded twice.
  *
  * The host wires the composable to a real keyed <Suspense> exactly as App.vue
@@ -155,7 +157,7 @@ describe("UIA-KF-125 motion half — the hard-load resolve takes the house swap 
         expect(Math.min(...(await trace(host.opacity)))).toBe(1);
     });
 
-    it("reduced motion: the resolve snaps, exactly as the swap does", async () => {
+    it("reduced motion: the resolve fades, exactly as the swap does (a fade, never a cut)", async () => {
         stubReducedMotion();
         const host = mountHost(true);
         await nextTick();
@@ -171,7 +173,12 @@ describe("UIA-KF-125 motion half — the hard-load resolve takes the house swap 
         warm.key.value = "amiga";
         await nextTick();
         const swap = await trace(warm.opacity, 3);
-        expect(resolve).toEqual(swap);
-        expect(resolve).toEqual([1, 1, 1]);
+        // Both legs fade (the same spring; the frame each trace starts on
+        // differs, so the samples are compared by shape, not by value).
+        for (const leg of [resolve, swap]) {
+            expect(leg[0]).toBeLessThan(1);
+            expect(leg[1]).toBeGreaterThan(leg[0]!);
+            expect(leg[2]).toBeGreaterThan(leg[1]!);
+        }
     });
 });
