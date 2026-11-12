@@ -91,12 +91,27 @@ describe("(4) A2-KE-L1-8 — one scene stage header", () => {
         "demo/scenes/sequence/SequenceTarget.vue",
         "demo/scenes/easing/EasingTarget.vue",
         "demo/scenes/square/SquareScene.vue",
-        "demo/scenes/spring/StartingStyleTarget.vue",
     ];
     it.each(SITES)("%s renders SceneStageHeader", (rel) => {
         const src = read(rel);
         expect(src).toMatch(/<SceneStageHeader\b/);
         expect(src).not.toMatch(/<CardHeader\b|<CardTitle\b/);
+    });
+    // owner-1112 (item 10, "remove the header like 'Spring'") — the stage
+    // names nothing: the dock says which scene this is. The one header has
+    // no title seat, no stage passes it a name, and no stage draws its own
+    // display-rung heading (the @starting-style card's title row is gone too).
+    it("no stage renders a title (owner-1112 item 10)", () => {
+        const header = read("demo/scenes/SceneStageHeader.vue");
+        expect(header).not.toMatch(/name="title"|CardTitle|\btitle\?:/);
+        const stages = [...SITES, "demo/scenes/spring/StartingStyleTarget.vue"];
+        for (const rel of stages) {
+            const src = read(rel).replace(/<!--[\s\S]*?-->/g, "");
+            const tags = [...src.matchAll(/<SceneStageHeader\b[^>]*>/g)].map((m) => m[0]);
+            for (const tag of tags) expect(tag, rel).not.toMatch(/\stitle=|:title=/);
+            expect(src, rel).not.toMatch(/<h2\b[^>]*text-display/);
+        }
+        expect(read("demo/scenes/spring/StartingStyleTarget.vue")).not.toMatch(/title="@starting-style"/);
     });
     it("no stage paints a status badge (restraint: the motion is the state)", () => {
         const owners = vueFiles("demo").filter((rel) => /class="status-badge\b/.test(read(rel)));

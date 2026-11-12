@@ -343,10 +343,12 @@ export interface DockSurfaceItem {
     label: string;
     icon: string;
     title: string;
-    /** C2-KF-03 — why a disabled row is disabled ("Select the Matrix
-     *  channel"). The row's title stays the surface's name; the reason is its
-     *  accessible description, never the title. */
-    reason?: string;
+    /** owner-1112 (item 4, "why is Matrix grayed out?") — the channel a
+     *  latent facet belongs to. The row was disabled (greyed) until that
+     *  channel was selected in the Controls pane, a reason told only to a
+     *  screen reader. The row is now live: choosing it selects this channel
+     *  and opens the facet, in one press. */
+    channel?: string;
     enabled: boolean;
 }
 
@@ -425,8 +427,8 @@ export function dockSurfaceItems(
                     label: meta.label,
                     icon: meta.icon ?? "SlidersHorizontal",
                     title: meta.label,
-                    reason: `Select the ${channel} channel`,
-                    enabled: false,
+                    channel,
+                    enabled: true,
                 };
             })
           : [{ ...EMPTY_FACET_SLOT }];

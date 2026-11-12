@@ -50,7 +50,8 @@
                                 aria-hidden="true"
                             >
                                 <path
-                                    :d="curveGlyphs.get(selectedCurveKey)"
+                                    ref="glyphPath"
+                                    :d="glyphD ?? curveGlyphs.get(selectedCurveKey)"
                                     vector-effect="non-scaling-stroke"
                                 />
                             </svg>
@@ -85,32 +86,46 @@
              trailing slot, a sibling of the trigger (a button never nests in a
              button), so the field reads as picker plus edit, and the label
              column is bare. -->
-        <Button
-            emphasis="quiet"
-            icon-only
-            size="sm"
-            class="absolute inset-y-0 end-1 my-auto"
+        <!-- owner-1112 (item 1c, "the edit button icon doesn't shrink like a
+             click") — glass Button's JS press is the liquid squish (measured
+             at 1440: x 1.03 · y 0.92 at the hold), which reads as a squash, not
+             a press. The pencil keeps glass's quiet icon-only button skin (the
+             `.button` contract: `data-emphasis` / `data-size` /
+             `data-icon-only`) and takes glass's CSS press, `.tap-squish`
+             (`--scale-press`, uniform), the same press the trigger beside it
+             wears. Relayed to glass (a uniform press option on Button); when
+             glass ships it this returns to `<Button>`. -->
+        <button
+            type="button"
+            class="button tap-squish focus-ring absolute inset-y-0 end-1 my-auto"
+            data-slot="button"
+            data-emphasis="quiet"
+            data-size="sm"
+            data-icon-only
             aria-label="Edit easing curve"
             @click.stop="(e: MouseEvent) => emit('edit', e.currentTarget as HTMLElement)"
         >
             <Pencil class="icon-sm" />
-        </Button>
+        </button>
         </div>
     </div>
 </template>
 
 <script setup lang="ts">
 import type { TimingFunction } from "@mkbabb/keyframes.js";
-import { Button, Separator } from "@mkbabb/glass-ui";
+import { NumericAnimation } from "@mkbabb/keyframes.js";
+import { easeInOutCubic } from "@mkbabb/value.js/easing";
+import { Separator } from "@mkbabb/glass-ui";
 import { Label } from "@mkbabb/glass-ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@mkbabb/glass-ui/popover";
 import { ChevronDown, Pencil } from "@lucide/vue";
-import { useId, useTemplateRef } from "vue";
+import { onScopeDispose, ref, useId, useTemplateRef, watch } from "vue";
+import { useMediaQuery } from "@vueuse/core";
 import EasingCatalogue from "@components/EasingCatalogue/EasingCatalogue.vue";
 import { EASING_GROUPS } from "@utils/reference-data/easingGroups";
 import { isDraftKind } from "./composables/useTimingFunctionEditor";
 
-defineProps<{
+const props = defineProps<{
     /** The catalogue key the stored curve selects (a name or a draft kind). */
     selectedCurveKey: string;
     /** Every catalogue row's curve glyph, keyed by row name. */
@@ -134,6 +149,67 @@ const valueId = useId();
 const CURVE_PLACEHOLDER = "Pick a curve";
 
 const triggerEl = useTemplateRef<HTMLButtonElement>("triggerEl");
+
+// ── owner-1112 (item 1b) — THE TRIGGER'S GLYPH MORPHS TO THE CHOSEN CURVE ──
+// Every glyph is the same sampled polyline (`generateCurveSVGPath`: n + 1
+// points on one x grid, y = 1 − f(x)), so a choice tweens each sample's y from
+// the old curve to the new one: the line bends into its new shape instead of
+// being swapped in a frame. The tween is the library's `NumericAnimation`
+// over one `t`; `glyphD` holds the in-between path and is cleared on arrival,
+// so at rest the glyph is exactly the map's path. Reduced motion: no bend,
+// the new glyph fades up from the old one's place (a fade, never a cut).
+const GLYPH_MORPH_MS = 420;
+const reducedMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
+const glyphD = ref<string | null>(null);
+const glyphPath = useTemplateRef<SVGPathElement>("glyphPath");
+const parseGlyph = (d: string | undefined): [number, number][] | null => {
+    if (!d?.startsWith("M ")) return null;
+    const pts = d
+        .slice(2)
+        .split(" L ")
+        .map((pair) => pair.split(",").map(Number) as [number, number]);
+    return pts.every(([x, y]) => Number.isFinite(x) && Number.isFinite(y)) ? pts : null;
+};
+const morph = new NumericAnimation<{ t: number }>([{ t: 0 }, { t: 1 }], {
+    duration: GLYPH_MORPH_MS,
+    timingFunction: easeInOutCubic,
+});
+let morphRun = 0;
+const fade = new NumericAnimation<{ o: number }>([{ o: 0.25 }, { o: 1 }], { duration: 200 });
+onScopeDispose(() => {
+    morph.stop();
+    fade.stop();
+});
+watch(
+    () => props.curveGlyphs.get(props.selectedCurveKey),
+    (next, prev) => {
+        if (!next || !prev || next === prev) return;
+        morph.stop();
+        fade.stop();
+        if (reducedMotion.value) {
+            glyphD.value = null;
+            void fade.play(({ o }) => glyphPath.value?.style.setProperty("opacity", o.toFixed(3)));
+            return;
+        }
+        // Bend from what is drawn now (a choice mid-morph starts from there).
+        const from = parseGlyph(glyphD.value ?? prev);
+        const to = parseGlyph(next);
+        if (!from || !to || from.length !== to.length) {
+            glyphD.value = null;
+            return;
+        }
+        const run = ++morphRun;
+        void morph
+            .play(({ t }) => {
+                glyphD.value = `M ${from
+                    .map(([x, y], i) => `${x.toFixed(3)},${(y + (to[i]![1] - y) * t).toFixed(3)}`)
+                    .join(" L ")}`;
+            })
+            .then(() => {
+                if (run === morphRun) glyphD.value = null;
+            });
+    },
+);
 /** Where focus returns when an editor opened from a draft-kind pick closes. */
 defineExpose({
     triggerControl: (): HTMLElement | null => triggerEl.value ?? null,
@@ -149,7 +225,8 @@ defineExpose({
     height: 1em;
     fill: none;
     stroke: currentColor;
-    stroke-width: 1.5;
+    /* owner-1112 (item 9) — the curve strokes are thicker across the demo. */
+    stroke-width: 2;
     stroke-linecap: round;
     stroke-linejoin: round;
 }

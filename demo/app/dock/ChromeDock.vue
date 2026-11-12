@@ -216,7 +216,8 @@ const emit = defineEmits<{
     (e: "switchScene", id: string): void;
     (e: "warmScene", id: string): void;
     (e: "toggleControlsPanel"): void;
-    (e: "updateSelectedControl", value: ControlSurface): void;
+    /** `channel`: a latent facet's channel, selected before the surface opens. */
+    (e: "updateSelectedControl", value: ControlSurface, channel?: string): void;
 }>();
 
 // X.KF.W13U.d · OA-33 — the shortcuts dialog, its open state and its `?`
@@ -243,7 +244,7 @@ function onSurfaceItem(item: DockSurfaceItem): void {
         emit("toggleControlsPanel");
         return;
     }
-    emit("updateSelectedControl", item.surface);
+    emit("updateSelectedControl", item.surface, item.channel);
     if (!props.isControlsPanelOpen) emit("toggleControlsPanel");
 }
 
@@ -572,7 +573,6 @@ watch(isSelectOpen, (open) => {
                                             :data-surface="item.surface"
                                             :text-value="item.title"
                                             :disabled="!item.enabled"
-                                            :aria-description="item.reason"
                                             class="gap-2.5 py-1"
                                             @select="onSurfaceItem(item)"
                                         >

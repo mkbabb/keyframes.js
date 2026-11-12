@@ -146,13 +146,27 @@
    (0.56 x size) with its 0.5 rem ring, still lands inside the plate.
      1440x900 (arena 814x535): the block term binds, ~156 px (unchanged)
      390x844 (arena 334x545): the inline term binds, ~98 px (was ~92) */
+/* owner-1112 (item 8, "the grid should be bigger of area") — THE FIELD
+   OUTGROWS THE BOX. The travel was the box's own size, so the [-1,1]² field was
+   two boxes wide and the subject filled most of it. The travel is now 1.4 x the
+   size (`--square-reach`), and the two inequalities above carry the new ratio:
+   block, travel + 0.56 x size = 1.96 x size <= the arena's half-extent less
+   1.5 rem; inline, the field plus the box (2 x 1.4 + 1 = 3.8 x size) <= the
+   arena's measure less its pad. The swollen box still lands on the plate at
+   full travel; the field takes ~25 % more of the plate on each side.
+     1440x900: size ~140 px · field ~392 px (was 156 · 313)
+     390x844:  size ~80 px · field ~224 px (was 100 · 200) */
 .square-arena > :deep(*) {
+    --square-reach: 1.4;
     --square-size: clamp(
-        5rem,
-        min(calc((50cqb - 1.5rem) / 1.56), calc((100cqi - 2 * var(--stage-plate-pad-inline)) / 3)),
+        4.5rem,
+        min(
+            calc((50cqb - 1.5rem) / (var(--square-reach) + 0.56)),
+            calc((100cqi - 2 * var(--stage-plate-pad-inline)) / (2 * var(--square-reach) + 1))
+        ),
         12rem
     );
-    --square-travel: var(--square-size);
+    --square-travel: calc(var(--square-reach) * var(--square-size));
 }
 
 /* ── L.W11 S4 — the instrument telemetry strip (TYPOGRAPHY register) ──
@@ -174,19 +188,18 @@
     z-index: calc(var(--z-content, 1) + 1);
 }
 /* The title renders inside SceneStageHeader, out of this file's scope. */
-.square-telemetry :deep(.square-telemetry-title) {
-    color: var(--foreground);
-    opacity: 0.92;
-}
 /* X-DS r7 pass 8 (KF-C8r-02) — ONE PAIR RUNG. Inside a pair the label sits
    0.5rem from its value (`.stage-readout`); between pairs the gap was only
    0.75rem, so `y` sat almost as close to x's value as to its own and the row
    read as one string. The pairs now stand Spring's pair rung apart (1.5rem,
    its `gap-x-6`, KF-C3-04), so each pair reads as a unit. */
+/* owner-1112 (item 8, "put the x/y in a container") — the pair sits in ONE
+   glass Chip (static), the readout's own small box; the pairs keep their rung
+   apart inside it. */
 .square-telemetry-axes {
-    display: flex;
-    column-gap: 1.5rem;
+    column-gap: 1.25rem;
     align-items: baseline;
+    align-self: flex-start;
 }
 
 /* The instrument layer (field · tether · telemetry · legend) is styled inside

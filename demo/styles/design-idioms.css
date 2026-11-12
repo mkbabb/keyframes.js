@@ -560,3 +560,54 @@ body.is-dragging ::selection {
         border: 0;
     }
 }
+
+/* svg[data-glyph-motion] — owner-1112 (item 2): THE OPTION GLYPHS MOVE ON
+   HOVER. A glyph from `OPTION_GLYPHS` carries its motion name
+   (`OPTION_GLYPH_MOTION`); while its control is hovered (a button, the Select
+   trigger) or highlighted (a Select item, by pointer or keys) its strokes lean
+   the way the glyph points, and they settle back when the control is left.
+   A transition, not a one-shot keyframe: leaving mid-way returns from where
+   the strokes are, so nothing snaps. The lean is ~2 px at the glyph's 1em
+   rung (3 of lucide's 24 units). Reduced motion: no lean (nothing appears or
+   vanishes, so there is nothing to fade). */
+svg[data-glyph-motion] > * {
+    transition: translate var(--duration-normal, 240ms) var(--ease-standard, ease),
+        rotate var(--duration-normal, 240ms) var(--ease-standard, ease);
+    transform-box: view-box;
+    transform-origin: 50% 50%;
+}
+@media (prefers-reduced-motion: no-preference) {
+    :is([data-highlighted], button:hover) svg[data-glyph-motion="lean-end"] > * {
+        translate: 3px 0;
+    }
+    :is([data-highlighted], button:hover) svg[data-glyph-motion="lean-start"] > * {
+        translate: -3px 0;
+    }
+    :is([data-highlighted], button:hover) svg[data-glyph-motion="swap"] > :nth-child(-n + 2) {
+        translate: 3px 0;
+    }
+    :is([data-highlighted], button:hover) svg[data-glyph-motion="swap"] > :nth-child(n + 3) {
+        translate: -3px 0;
+    }
+    :is([data-highlighted], button:hover) svg[data-glyph-motion="swap-reverse"] > :nth-child(-n + 2) {
+        translate: -3px 0;
+    }
+    :is([data-highlighted], button:hover) svg[data-glyph-motion="swap-reverse"] > :nth-child(n + 3) {
+        translate: 3px 0;
+    }
+    :is([data-highlighted], button:hover) svg[data-glyph-motion="to-line-end"] > :nth-child(-n + 2) {
+        translate: 3px 0;
+    }
+    :is([data-highlighted], button:hover) svg[data-glyph-motion="to-line-start"] > :nth-child(n + 2) {
+        translate: -3px 0;
+    }
+    :is([data-highlighted], button:hover) svg[data-glyph-motion="spread"] > :nth-child(1) {
+        translate: 2px 0;
+    }
+    :is([data-highlighted], button:hover) svg[data-glyph-motion="spread"] > :nth-child(3) {
+        translate: -2px 0;
+    }
+    :is([data-highlighted], button:hover) svg[data-glyph-motion="turn"] > * {
+        rotate: 45deg;
+    }
+}

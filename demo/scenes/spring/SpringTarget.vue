@@ -62,9 +62,7 @@
              ran the card's full width and sat 2 px outside the figure at 1440,
              further on a wider card). -->
         <SceneStageHeader
-            title="Spring"
             class="spring-header flex w-full max-w-3xl shrink-0"
-            title-class="whitespace-nowrap leading-none"
             id-class="flex flex-col gap-1 min-w-0"
         >
             <template #readouts>
@@ -83,7 +81,9 @@
                      header's two edges (the aside, `justify-between`), ~650 px
                      apart at 1440, so the partner read as an orphan. The row
                      may wrap at a narrow card; it never spreads. -->
-                <div class="flex flex-wrap items-baseline gap-x-6 gap-y-1">
+                <!-- owner-1112 (item 8) — the readouts sit in one glass Chip, the
+                     stage readout's container in every scene (Square's x/y). -->
+                <Chip size="md" class="flex-wrap items-baseline gap-x-6 gap-y-1 self-start">
                     <div class="stage-readout" data-readout="primary">
                         <span>{{ sweepLeads ? "sweep" : "position" }}</span>
                         <span>{{
@@ -104,7 +104,7 @@
                         <span>velocity</span>
                         <span>{{ formatNumber(demo.liveVelocity.value, 3, { fixed: true, pad: true }) }}</span>
                     </div>
-                </div>
+                </Chip>
             </template>
         </SceneStageHeader>
 
@@ -341,6 +341,7 @@ import { formatNumber } from "@utils/formatNumber";
 import type { ComponentPublicInstance } from "vue";
 import { computed, inject, onMounted, onScopeDispose, useTemplateRef } from "vue";
 import { Card } from "@mkbabb/glass-ui";
+import { Chip } from "@mkbabb/glass-ui/chip";
 import { Button } from "@mkbabb/glass-ui/button";
 import { Shuffle } from "@lucide/vue";
 import SceneStageHeader from "../SceneStageHeader.vue";

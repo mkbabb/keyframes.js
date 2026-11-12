@@ -85,11 +85,29 @@
                             :aria-describedby="descriptionId(item.name)"
                             data-surface="opaque"
                             class="specimen-tile flex-col gap-1.5 px-2 py-2.5"
+                            @pointerenter="onTileEnter(item.name, $event)"
+                            @pointerleave="onTileLeave(item.name, $event)"
                         >
                             <span class="tile-stage" aria-hidden="true">
                                 <span class="tile-plot">
                                     <svg
                                         class="tile-sparkline"
+                                        :viewBox="plotFor(item.name).viewBox"
+                                        preserveAspectRatio="none"
+                                    >
+                                        <path
+                                            :d="plotFor(item.name).d"
+                                            vector-effect="non-scaling-stroke"
+                                        />
+                                    </svg>
+                                    <!-- owner-1112 (item 1a) — THE HOVER TRACE: the
+                                         same stroke in the foreground ink, revealed
+                                         left to right as a hover draws the curve
+                                         (`--trace-draw`, the time fraction the ball
+                                         is at) and faded out on leave (`--trace-ink`).
+                                         The resting stroke under it never changes. -->
+                                    <svg
+                                        class="tile-sparkline tile-trace"
                                         :viewBox="plotFor(item.name).viewBox"
                                         preserveAspectRatio="none"
                                     >
@@ -155,7 +173,8 @@ import { Separator } from "@mkbabb/glass-ui/separator";
 import { FadingScroll } from "@mkbabb/glass-ui/fading-scroll";
 import { SegmentedTabs, type SegmentedTabOption } from "@mkbabb/glass-ui/tabs";
 import { ToggleGroup, ToggleGroupItem } from "@mkbabb/glass-ui/toggle-group";
-import type { TimingFunction } from "@mkbabb/keyframes.js";
+import { NumericAnimation, type TimingFunction } from "@mkbabb/keyframes.js";
+import { easeOutCubic } from "@mkbabb/value.js/easing";
 
 import { unitEasingPlot, type CurvePlot } from "@utils/curvePlot";
 
@@ -624,10 +643,84 @@ const wirePainter = async () => {
     unregisterPainter = clock.register(paintTileDots);
 };
 
+// ── owner-1112 (item 1a) — THE HOVER DRAW ──────────────────────────────
+// A hover draws the tile's curve once: the trace (the foreground stroke over
+// the resting one) is revealed left to right while the ball rides the curve
+// at the same time fraction, so the ball moves by the tile's own easing (x is
+// time, y is the curve's value). Leaving fades the trace out and walks the
+// ball calmly home. Nothing appears or vanishes in a frame: the trace starts
+// at zero length and leaves by its ink. On the clocked stage the ball belongs
+// to the sweep clock, so the hover draws the trace alone. Reduced motion: the
+// hover keeps its ink change (CSS) and draws nothing. The tween is the
+// library's own `NumericAnimation` (one rAF loop per moving tile, stopped on
+// leave and on unmount).
+type TraceState = { p: number; draw: number; ink: number };
+const DRAW_MS = 900;
+const RETURN_MS = 520;
+const traces = new Map<string, { state: TraceState; tween: NumericAnimation<TraceState> | null }>();
+
+const paintTrace = (tile: HTMLElement, name: string, s: TraceState) => {
+    tile.style.setProperty("--trace-draw", s.draw.toFixed(4));
+    tile.style.setProperty("--trace-ink", s.ink.toFixed(4));
+    if (props.clock) return; // the sweep clock owns the ball on the stage
+    const carriage = tile.querySelector<HTMLElement>(".tile-carriage");
+    if (carriage) carriage.style.transform = plotFor(name).place(s.p);
+};
+
+const runTrace = (
+    tile: HTMLElement,
+    name: string,
+    to: TraceState,
+    duration: number,
+    options: { positions?: number[]; mid?: TraceState; ease?: TimingFunction } = {},
+) => {
+    const entry = traces.get(name) ?? { state: { p: 0, draw: 0, ink: 0 }, tween: null };
+    traces.set(name, entry);
+    entry.tween?.stop();
+    const from = { ...entry.state };
+    const frames = options.mid ? [from, options.mid, to] : [from, to];
+    const tween = new NumericAnimation<TraceState>(frames, {
+        duration,
+        positions: options.positions,
+        timingFunction: options.ease,
+    });
+    entry.tween = tween;
+    void tween.play((s) => {
+        entry.state = { ...s };
+        paintTrace(tile, name, entry.state);
+    });
+};
+
+const onTileEnter = (name: string, e: PointerEvent) => {
+    if (reducedMotion.value) return;
+    const tile = e.currentTarget as HTMLElement;
+    const at = traces.get(name)?.state ?? { p: 0, draw: 0, ink: 0 };
+    // A re-entry mid-return carries on from where the ball is; a fresh hover
+    // starts the trace at zero length (it is invisible there, so nothing cuts).
+    const start = at.ink > 0.01 ? at : { p: at.p, draw: at.p, ink: at.ink };
+    traces.set(name, { state: start, tween: traces.get(name)?.tween ?? null });
+    const remaining = Math.max(0.15, 1 - start.p);
+    runTrace(tile, name, { p: 1, draw: 1, ink: 1 }, DRAW_MS * remaining, {
+        mid: { p: start.p + (1 - start.p) * 0.12, draw: start.draw + (1 - start.draw) * 0.12, ink: 1 },
+        positions: [0, 12, 100],
+    });
+};
+
+const onTileLeave = (name: string, e: PointerEvent) => {
+    const entry = traces.get(name);
+    if (!entry || reducedMotion.value) return;
+    const tile = e.currentTarget as HTMLElement;
+    runTrace(tile, name, { p: 0, draw: entry.state.draw, ink: 0 }, RETURN_MS, {
+        ease: easeOutCubic,
+    });
+};
+
 onMounted(() => wirePainter());
 onScopeDispose(() => {
     unregisterPainter?.();
     io?.disconnect();
+    for (const { tween } of traces.values()) tween?.stop();
+    traces.clear();
 });
 
 watch([visibleGroups, plots, reducedMotion], () => wirePainter());
@@ -718,7 +811,12 @@ watch(
 .catalogue-family {
     /* KF-C8-05 — the drawer's snap position (see `.specimen-drawer`). */
     scroll-snap-align: start;
-    color: var(--foreground);
+    /* owner-1112 (item 9, "better design hierarchy") — the family name is a
+       section LABEL under the curves it groups: muted ink at the medium
+       weight (restraint: a title is not bold), so the curves lead, the
+       selected tile next, the labels last. */
+    color: var(--muted-foreground);
+    font-weight: var(--font-weight-medium, 500);
     text-transform: none;
 }
 /* X-DS pass 16 (KF-C16-03) — below lg the display rung is fluid and shrinks
@@ -825,7 +923,9 @@ watch(
 .tile-sparkline path {
     fill: none;
     stroke: var(--muted-foreground);
-    stroke-width: 1.25;
+    /* owner-1112 (item 9, "lines on the easing page should be thicker") —
+       the curve is the tile's content, drawn at 2 px (was 1.25). */
+    stroke-width: 2;
     stroke-linecap: round;
     stroke-linejoin: round;
 }
@@ -869,10 +969,26 @@ watch(
 }
 .specimen-tile[data-state="on"] .tile-sparkline path {
     stroke: var(--foreground);
-    stroke-width: 1.5;
+    stroke-width: 2.5;
+}
+/* owner-1112 (item 1a) — the hover trace (see `onTileEnter`): the foreground
+   stroke revealed to the ball's time fraction, faded by its ink. The clip's
+   block and start insets stay open so an overshooting curve and the round cap
+   are never cut. */
+.tile-trace {
+    opacity: var(--trace-ink, 0);
+    clip-path: inset(-100% calc((1 - var(--trace-draw, 0)) * 100%) -100% -0.5rem);
+}
+.tile-trace path {
+    stroke: var(--foreground);
+    stroke-width: 2.5;
 }
 .specimen-tile[data-state="on"] .tile-name {
     color: var(--foreground);
+    /* owner-1112 (item 9) — the selected name is marked by ink alone, at the
+       same weight as its siblings (glass's resting item weight, 500;
+       restraint: options are not bold). */
+    font-weight: 500;
 }
 @media (forced-colors: active) {
     .specimen-tile[data-state="on"] {
