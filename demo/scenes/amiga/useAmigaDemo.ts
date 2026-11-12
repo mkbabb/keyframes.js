@@ -295,8 +295,17 @@ export function useAmigaDemo(onPose?: (pose: Readonly<AmigaPose>) => void) {
     // truth. Authored through `addFrame`, which takes the per-frame timing
     // function `fromKeyframes` has no seat for — the frame's easing governs the
     // interval that STARTS at it.
-    const FALL = "cubic-bezier(0.42, 0, 1, 1)"; // ease-in: slow → fast (down)
-    const RISE = "cubic-bezier(0, 0, 0.58, 1)"; // ease-out: fast → slow (up)
+    //
+    // owner-1112 (item 5, "animation is not correct") — the curves are now the
+    // EXACT parabola, not CSS's ease-in / ease-out. A cubic Bézier with its
+    // control x at 1/3 and 2/3 runs x = t, and y = t² takes control y 0 and
+    // 1/3 (the rise, its mirror 1 − (1 − t)², takes 2/3 and 1): constant
+    // gravity, the ball leaving the floor at the speed it struck it (slope 2 at
+    // the slam, 0 at the apex). The CSS pair reached the floor at slope 1.72
+    // and fell 26 % too far by mid-flight (0.315 against t² = 0.25), a soft,
+    // floaty drop.
+    const FALL = "cubic-bezier(0.3333, 0, 0.6667, 0.3333)"; // y = t²: accelerates into the floor
+    const RISE = "cubic-bezier(0.3333, 0.6667, 0.6667, 1)"; // y = 1 − (1 − t)²: decelerates into the apex
     const bouncingY = new CSSKeyframesAnimation<AmigaVars>({
         duration: Y_PERIOD_MS,
         iterationCount: Infinity,

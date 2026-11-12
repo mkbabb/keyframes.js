@@ -238,7 +238,12 @@ const GRID_OPACITY = {
  * the ink on paper (a dark ink), black on the dark ground; and its peak is soft
  * (dark needs more alpha to read against a near-black ground at all).
  */
-const SHADOW_PEAK = { light: 0.25, dark: 0.5 } as const;
+// owner-1112 (item 5, "shadow") — at 0.5 the black pool on the dark ground
+// darkened it by ~5 of 255 levels and the floor's grid lines under it hardly at
+// all: in dark the ball cast no visible shadow (since 96ebfbf4, 2026-10-07,
+// when the pool turned subtractive). It still subtracts; at 0.85 it reads, the
+// grid lines under the ball dimming where it lands.
+const SHADOW_PEAK = { light: 0.25, dark: 0.85 } as const;
 const shadowTone = (palette: RoomPalette): THREE.Color =>
     palette.dark ? new THREE.Color(0, 0, 0) : palette.ink;
 
