@@ -52,6 +52,11 @@ export const MAX_PAN_COAST_RATE = 3000;
  *  at most e^(4/9) ≈ 1.56×. */
 export const MAX_ZOOM_COAST_RATE = 4;
 
+/** Reduced motion shortens a settle, never cuts it (owner's motion law,
+ *  2026-11-12): a wheel notch's glide runs at this multiple of k (9/s → 36/s,
+ *  resting in ~130 ms instead of ~510 ms). */
+export const REDUCED_MOTION_SETTLE_SPEEDUP = 4;
+
 /** The coast stops once its rate has bled to 1% of its start. */
 export const COAST_REST_FRACTION = 0.01;
 

@@ -43,9 +43,9 @@
  * host; a horizontal drag turns the die). Extended here, not forked.
  *
  * OA-17 (owner 2026-11-09, natural scrolling): `natural-pan-1440` (a real
- * wheel pans −Δ, a real Ctrl-wheel zooms at the cursor) and `pan-coast-1440`
+ * Shift-wheel, since owner 2026-11-12, pans −Δ, a real Ctrl-wheel zooms at the cursor) and `pan-coast-1440`
  * (+`-prm`): a two-finger pan at 600 px/s and a pinch, each coasting on the
- * rotation's decay (none under reduced motion). The wheel orbit is Alt-wheel.
+ * rotation's decay (none under reduced motion). The plain wheel orbits.
  */
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -659,7 +659,7 @@ async function assayCells(browser, out) {
         // A radial grab beside the die (a tangential one is the rim roll).
         await held(page, [[ox + 20, oy], [ox + 10, oy], [ox, oy]]);
         const c = (await read(page)).tf;
-        // OA-17: the wheel orbit is Alt/Option-wheel (the plain wheel pans).
+        // The plain wheel orbits (owner 2026-11-12); Alt/Option-wheel too.
         await page.mouse.move(ox, oy);
         await page.keyboard.down("Alt");
         await page.mouse.wheel(0, 20);
@@ -713,13 +713,16 @@ async function assayCells(browser, out) {
         return { one: await notch(1), two: await notch(2), plantMs: PLANT_MS };
     });
 
-    // OA-17 (owner 2026-11-09) — natural scrolling. A real +100 px wheel at the
-    // die moves its centre −100 px and turns nothing; a real Ctrl-wheel −15
+    // The wheel pan (OA-17, on Shift + scroll since owner 2026-11-12). A real
+    // +100 px Shift-wheel at the die moves its centre −100 px and turns
+    // nothing; a real Ctrl-wheel −15
     // beside the centre zooms e^0.15 holding the point under the cursor.
     await run("natural-pan-1440", D, {}, async ({ page }) => {
         const a = await read(page);
         await page.mouse.move(a.die.x, a.die.y);
+        await page.keyboard.down("Shift");
         await page.mouse.wheel(0, 100);
+        await page.keyboard.up("Shift");
         await frame(page, 4);
         const b = await read(page);
         const at = { x: b.die.x + 60, y: b.die.y - 40 };
