@@ -1,20 +1,23 @@
 # Merge correctness and publish-boundary workflow for @mkbabb/keyframes.js.
 #
-# U.A6 collapsed the merge path to the library mechanisms: the Vitest
-# correctness suite and proof:publish (boundary, published surface, dependency
-# floor). X.KF.W4 widens it to the DEMO: the jsdom demo project and the lint
-# tier run as blocking steps of the library-gates job, and the browser roster
-# below is no longer event-gated. The producer library graph has no Glass
-# dependency; the later demo-consumer commit owns that registry edge.
+# One job of cheap gates: types, build, the library and jsdom demo suites,
+# lint, and proof:publish. No browser runs in Actions (owner order 2026-11-13):
+# the browser oracles, the demo roster and Lighthouse run locally before a ship
+# via `npm run preship` (scripts/preship.sh). deploy-pages ships on this
+# workflow's green master push.
 name: ci
 
 on:
     pull_request:
         branches: [master]
+        paths-ignore:
+            - "docs/**"
+            - "**/*.md"
     push:
         branches: [master]
-    schedule:
-        - cron: "17 3 * * 1"
+        paths-ignore:
+            - "docs/**"
+            - "**/*.md"
     workflow_dispatch: {}
 
 concurrency:
@@ -31,142 +34,14 @@ jobs:
         timeout-minutes: 10 # hang guard, not a perf bar: ~2.2x the measured step sum ~4m31s (npm ci 35s, types 22s, build 9s, correctness 56s, demo correctness 1m55s, lint 5s, proof:publish 16s); COHESION §0hg
         steps:
             - uses: actions/checkout@v5
-              with:
-                  fetch-depth: 0
             - uses: actions/setup-node@v5
               with:
                   node-version: 24
                   cache: "npm"
             - name: npm ci
               run: npm ci
-            - name: check library types
-              run: npm run check:lib
-            # X.KF.W4 (G-KFW4-1) — THE SFC TYPE GATE ON THE MERGE PATH. The step
-            # above is `tsc -p tsconfig.lib.json` over `include: ["src/"]`: plain
-            # `tsc` cannot parse an SFC, so before this line NO `.vue` file was
-            # typechecked anywhere in this repo, on any path, and a broken
-            # template could not fail a build. `check` is the wave's redefined
-            # composite — `vue-tsc -p tsconfig.json` (src + demo, SFCs included)
-            # && `tsc -p tsconfig.test.json` && `proof:structure`.
-            #
-            # DECLARED RED, not a green no-op: this step fails today. The wave's
-            # goal criterion is that a `.vue` file CAN fail a build on the merge
-            # path, and the honest way to reach it is to wire the gate that
-            # measures it and let it report, never to wire a softened one. The
-            # diagnostics it reports are booked with named owners (KF.W5 for the
-            # `src/` `noUnusedLocals` residues, KF.W6 / KF.W7 / the UNIT packets
-            # for the demo surface); `continue-on-error`, `|| true` and a
-            # known-violations allowlist are each forbidden by this wave's own
-            # standing law, and none is used here.
-            - name: check types (SFC + tests + structure)
-              run: npm run check
-            - name: build library
-              run: npm run build:lib
-            - name: correctness suite
-              run: npm run test:lib
-            # X.KF.W4 — the demo lane is a MERGE-PATH gate, not a weekly
-            # observation. `test:demo` is the jsdom vitest project (27 specs);
-            # `lint` is the source-graph cruise over src + demo plus the
-            # eslint-plugin-vue ESSENTIALS tier over the SFC templates. Both
-            # block. A demo defect that used to surface (at best) in a weekly run
-            # whose colour nobody read now fails the pull request that authors it.
-            #
-            # X.KF.W10 G-7 (the `v/w9-staging` landing) — MR4 CONVERGED HERE.
-            # The staged branch carried its own `demo suite` step running the
-            # identical `npm run test:demo`; X.KF.W4 reached the same cure first
-            # and named it `demo correctness suite`. MR4's goal criterion ("the
-            # demo vitest project runs in NO CI job today") is MET by this step,
-            # so the staged duplicate is DROPPED at the landing rather than
-            # wired twice — a second identical run is waste and a false second
-            # signal. MR4's package.json leg (`test:demo`) was already applied
-            # verbatim at the frontier. Recorded, not silently discarded.
-            - name: demo correctness suite
-              run: npm run test:demo
-            - name: lint (source graph + SFC templates)
-              run: npm run lint
-            - name: publish boundary
-              run: npm run proof:publish
-
-    # X.KF.W4 (G-KFW4-2) — the demo roster is now a MERGE-PATH job. U.A7 had it
-    # behind `schedule || workflow_dispatch` with the standing note that "a
-    # scheduled red is recorded for deploy ancestry; it does not block library
-    # merges" — so the demo's only browser-level correctness instrument could go
-    # red indefinitely without stopping a single merge. The event gate is
-    # REMOVED: the roster runs on pull_request and push as well, and it blocks.
-    # The schedule/dispatch triggers survive for deploy ancestry, which is the
-    # one thing the weekly run was genuinely for.
-    demo-correctness:
-        name: demo correctness (browser roster)
-        permissions:
-            contents: write
-        runs-on: ubuntu-latest
-        timeout-minutes: 50
-        steps:
-            - uses: actions/checkout@v5
-            - uses: actions/setup-node@v5
-              with:
-                  node-version: 24
-                  cache: "npm"
-            - name: npm ci (demo consumer graph)
-              run: npm ci
-            - name: install playwright
-              run: npm i --no-save @playwright/test
-            - name: install chromium
-              run: npx playwright install --with-deps chromium
-            # MR2 (V.W9) — the 5 EN-a/VT/entry/a11y/trigger browser oracles run
-            # HERE, where a real chromium exists. They skipIf(!chromium) in every
-            # other job (GS-01/TC-1); under a browser they pass 14/14 (R2-04 AV-2),
-            # so wiring them is pure signal-add. resolveChromium() finds the pinned
-            # revision via the installed @playwright/test + KF_PLAYWRIGHT_DIR; the
-            # per-test light bundles are rolldown-built from source (no demo build
-            # needed). WATCH ITEM (device parity): R2-04 ran the oracles under
-            # system Chrome (channel:'chrome'); these launch a plain
-            # chromium.launch(), so the pinned-revision launch on the Linux runner
-            # is the unverified edge (the device-dependence history).
-            - name: browser oracles (EN-a / VT / entry / a11y / trigger)
-              env:
-                  KF_PLAYWRIGHT_DIR: ${{ github.workspace }}
-              run: >-
-                  npx vitest run --project library
-                  test/compile/entry-roundtrip.test.ts
-                  test/compile/view-transition-roundtrip.test.ts
-                  test/orchestration/split-a11y-oracle.test.ts
-                  test/engine/en-fix-oracle.test.ts
-                  test/scroll/trigger-oracle.test.ts
-            - name: build demo
-              run: npm run gh-pages
-            - name: publish artifact boundary (post-build)
-              run: npm run proof:publish
-            - name: demo roster (report-all)
-              run: npm run demo:correctness -- --timeout=600
-              env:
-                  KF_REQUIRE_BROWSER: "1"
-                  KF_MWG_OPTIONAL: "1"
-            # A successful push/schedule run publishes the SHA consumed by
-            # deploy-pages. Pull-request runs are excluded by event, not by
-            # convenience: `github.sha` is the ephemeral merge commit there, and
-            # a fork PR's token carries no `contents: write` — tagging deploy
-            # ancestry from either would be false ancestry.
-            - name: record last-demo-green
-              if: >-
-                  success() && (github.event_name == 'push' ||
-                  github.event_name == 'schedule')
-              env:
-                  GH_TOKEN: ${{ github.token }}
-              run: |
-                  gh api --method POST "repos/${{ github.repository }}/git/refs" \
-                    -f "ref=refs/tags/last-demo-green" \
-                    -f "sha=${{ github.sha }}" 2>/dev/null || \
-                  gh api --method PATCH "repos/${{ github.repository }}/git/refs/tags/last-demo-green" \
-                    -f "sha=${{ github.sha }}" -F force=true
-            # Device-dependent observers are co-scheduled with the weekly roster
-            # and remain explicitly non-blocking; no separate merge-path job or
-            # demo-device-observe apparatus survives U.A6.
-            - name: install browser observers (recorded)
-              if: always()
-              run: npm i --no-save lighthouse || echo "observer install unavailable; recorded"
-            - name: lighthouse audit (recorded)
-              if: always()
-              run: npm run audit:lighthouse || echo "lighthouse observer red; recorded"
-              env:
-                  KF_REQUIRE_BROWSER: "1"
+            # The gate: one script (package.json `ci:actions`), the same one a
+            # local run calls: library types, SFC/test types + structure, the
+            # library and jsdom demo suites, lint, the publish boundary.
+            - name: gate (npm run ci:actions)
+              run: npm run ci:actions
