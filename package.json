@@ -54,6 +54,7 @@
         "demo:correctness": "node scripts/run-demo-roster.mjs",
         "audit:lighthouse": "node scripts/observe/lighthouse.mjs",
         "release:changelog": "node scripts/release/changelog.mjs",
+        "ci:actions": "npm run check:lib && npm run check && npm run test:lib && npm run test:demo && npm run lint && npm run proof:publish",
         "preship": "scripts/preship.sh"
     },
     "repository": {
