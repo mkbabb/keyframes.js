@@ -896,9 +896,15 @@ npm run bench        # vitest bench
 npm test -- --run && npm run proof:publish  # correctness + packaged public surface
 ```
 
-### Local CI repro
+### Browser checks (local, before a ship)
 
-A macOS-pass / Linux-fail CI flake (a render-race, an absolute frame/ms threshold) can be reproduced locally — no push, no 30-minute wait — by running the demo-smoke roster inside the same Linux container the CI runner uses:
+CI runs types, build, the jsdom suites, lint and the publish boundary; it runs no browser. The browser oracles, the demo roster and the Lighthouse audit run locally before a ship:
+
+```sh
+npm run preship      # scripts/preship.sh: oracles · build · roster · lighthouse
+```
+
+To run the demo roster inside a Linux container instead (a macOS-pass / Linux-fail render race):
 
 ```sh
 make ci-linux    # node:24-slim container · npm ci → gh-pages → demo:correctness
