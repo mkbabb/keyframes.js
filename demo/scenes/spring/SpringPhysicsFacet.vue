@@ -1,7 +1,7 @@
 <template>
     <!-- THE PHYSICS FACET — the spring facility's additive facet surface
          (`surfacesFor`, T.B2), mounted by SpringScene's `tabsContent` into the
-         channel controls. It is: the two LabeledSlider param rows + the
+         channel controls. It is: the two param rows (term + glass Slider) + the
          parameter-space heatmap + the four canonical presets as clickable
          points — consumed glass components end to end — and one action that
          re-seeds the Sweep channel's keyframes from the physics (those
@@ -89,7 +89,7 @@
                 </template>
                 <!-- X.KF.W13V.y (OA-51; DESIGN-NOTE N-2) — the PARAM ROW idiom: the
                      label and the live value share ONE line, the slider spans the
-                     row beneath (the default LabeledSlider stack; the value is an
+                     row beneath (the term-over-slider stack, [45] below; the value is an
                      `<output>` seated on the label's line by the `.param-row` grid,
                      design-idioms.css). The value is the readout — the slider
                      carries no second one; the humane string reaches AT through
@@ -101,37 +101,51 @@
                     :fade-start="!rail?.headed.has('spring-physics')"
                     class="flex min-h-0 scroll-pb-2 flex-col gap-3"
                 >
-                <!-- owner-1112 [45] — each parameter explains itself on hover and
-                     on keyboard focus (glass Tooltip; the former `tooltip` attribute
-                     was no LabeledSlider prop and rendered nothing). The row is the
-                     trigger: pointing anywhere on it, or tabbing onto its slider,
-                     says what the value is and its range. The readouts carry the
-                     number and unit only: ζ is named in the explanation, not
-                     printed beside every value. -->
+                <!-- owner-1112 [45] — each parameter's NAME explains it. The word is
+                     a button and glass's adaptive Popover (`trigger="hover"`): a
+                     hover or keyboard-focus preview on a fine pointer, a tap that
+                     opens and a tap away that closes on touch. Only the word is the
+                     trigger (never the slider track, which is for dragging), and the
+                     explanation stands where it covers no control: on the desktop
+                     rail beside the pane, past its outer edge; in the phone sheet
+                     (full width, no outer side) above the word. The row is glass's
+                     own Slider, named by the word (`aria-labelledby`); the readout
+                     carries the number and unit only. -->
                 <div class="flex flex-col gap-3">
-                    <Tooltip v-for="p in PARAMS" :key="p.key" v-model:open="explain[p.key]">
-                        <TooltipTrigger as-child>
-                            <div
-                                class="param-row"
-                                @focusin="(e: FocusEvent) => onRowFocus(p.key, e)"
-                                @focusout="explain[p.key] = false"
-                            >
-                                <LabeledSlider
-                                    :model-value="p.model.value"
-                                    :label="p.label"
-                                    :min="p.axis.min"
-                                    :max="p.axis.max"
-                                    :step="PARAM_STEP"
-                                    :value-text="p.valueText"
-                                    @update:model-value="(v: number) => { p.model.value = v; }"
-                                />
-                                <output class="param-value" aria-hidden="true">{{ p.readout(p.model.value) }}</output>
-                            </div>
-                        </TooltipTrigger>
-                        <TooltipContent side="top" class="max-w-72">
-                            {{ p.explanation }}
-                        </TooltipContent>
-                    </Tooltip>
+                    <div v-for="p in PARAMS" :key="p.key" class="param-row">
+                        <div class="param-field">
+                            <Popover trigger="hover" :open-delay="250">
+                                <PopoverTrigger as-child>
+                                    <button
+                                        :id="`${uid}-${p.key}`"
+                                        :ref="(el) => { termEls[p.key] = el as HTMLElement | null; }"
+                                        type="button"
+                                        class="param-term focus-ring"
+                                    >
+                                        {{ p.label }}
+                                    </button>
+                                </PopoverTrigger>
+                                <PopoverContent
+                                    :side="rail ? 'right' : 'top'"
+                                    align="start"
+                                    :side-offset="rail ? outsideOffset(p.key) : 6"
+                                    class="max-w-64 text-small"
+                                >
+                                    {{ p.explanation }}
+                                </PopoverContent>
+                            </Popover>
+                            <Slider
+                                :model-value="[p.model.value]"
+                                :aria-labelledby="`${uid}-${p.key}`"
+                                :min="p.axis.min"
+                                :max="p.axis.max"
+                                :step="PARAM_STEP"
+                                :value-text="p.valueText"
+                                @update:model-value="(v?: number[] | null) => { if (v?.[0] !== undefined) p.model.value = v[0]; }"
+                            />
+                        </div>
+                        <output class="param-value" aria-hidden="true">{{ p.readout(p.model.value) }}</output>
+                    </div>
                 </div>
                 <Separator />
                 <!-- X-DS pass 13 (KF-C13-02) — THE SEED BEFORE THE FIGURE: the
@@ -199,7 +213,7 @@
 
 <script setup lang="ts">
 import { formatNumber, formatSeconds } from "@utils/formatNumber";
-import { computed, h, inject, onBeforeUnmount, reactive, ref, type Ref } from "vue";
+import { computed, h, inject, onBeforeUnmount, reactive, ref, useId, type Ref } from "vue";
 import { Check, Diamond } from "@lucide/vue";
 import { Separator } from "@mkbabb/glass-ui";
 import { Button } from "@mkbabb/glass-ui/button";
@@ -207,7 +221,8 @@ import { ConfiguratorLayer } from "@mkbabb/glass-ui/configurator";
 import { FadingScroll } from "@mkbabb/glass-ui/fading-scroll";
 import { toast, ToastAction } from "@mkbabb/glass-ui/toast";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@mkbabb/glass-ui/tooltip";
-import { LabeledSlider } from "@mkbabb/glass-ui/labeled-field";
+import { Popover, PopoverContent, PopoverTrigger } from "@mkbabb/glass-ui/popover";
+import { Slider } from "@mkbabb/glass-ui/slider";
 import { ToggleGroup, ToggleGroupItem } from "@mkbabb/glass-ui/toggle-group";
 
 import SpringHeatmap, { DAMPING_AXIS, PARAM_STEP, RESPONSE_AXIS } from "./SpringHeatmap.vue";
@@ -253,13 +268,17 @@ const PARAMS: readonly ParamRow[] = [
     },
 ];
 
-/** Each row's tooltip is open on hover (the trigger's own) and on KEYBOARD focus
- *  into the row's slider; a pointer press focuses the thumb too, and that must
- *  not raise the explanation over a drag. */
-const explain = reactive<Record<ParamKey, boolean>>({ response: false, damping: false });
-const onRowFocus = (key: ParamKey, e: FocusEvent) => {
-    const target = e.target as Element | null;
-    if (target?.matches(":focus-visible")) explain[key] = true;
+/** The terms' buttons, for the desktop placement: the explanation opens to the
+ *  right of the word by the distance to the pane's outer edge plus a gap, so it
+ *  stands in the gutter beside the rail and covers none of the pane's controls. */
+const uid = useId();
+const termEls = reactive<Record<ParamKey, HTMLElement | null>>({ response: null, damping: null });
+const OUTSIDE_GAP = 12;
+const outsideOffset = (key: ParamKey): number => {
+    const term = termEls[key];
+    const pane = term?.closest<HTMLElement>(".pane-frame");
+    if (!term || !pane) return OUTSIDE_GAP;
+    return Math.max(OUTSIDE_GAP, pane.getBoundingClientRect().right - term.getBoundingClientRect().right + OUTSIDE_GAP);
 };
 
 // ── owner-1112 [46] — Bake to keyframes: the seed, its visible confirmation,
@@ -417,6 +436,42 @@ const onPresetSelect = (
     outline-color: color-mix(in srgb, var(--color-progress) 65%, transparent);
     border-color: transparent;
     box-shadow: none;
+}
+
+/* owner-1112 [45] — the param row's field: the term over the full-width
+   slider, at the stacked gap the producer's LabeledField used. The term wears
+   the label register and a dotted underline (the "this word is explained" mark);
+   on hover and while open the underline firms, tweened. */
+.param-field {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-atom);
+}
+.param-field [data-slot="slider"] {
+    width: 100%;
+}
+.param-term {
+    align-self: flex-start;
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-xs, 4px);
+    background: none;
+    color: var(--foreground);
+    font: inherit;
+    font-size: var(--control-label);
+    font-weight: var(--font-weight-medium, 500);
+    line-height: var(--type-small--line-height, 1.5);
+    text-decoration: underline dotted;
+    text-decoration-color: color-mix(in oklab, var(--foreground) 35%, transparent);
+    text-underline-offset: 0.25em;
+    cursor: help;
+    transition: text-decoration-color var(--duration-fast, 150ms) ease;
+}
+.param-term:hover,
+.param-term[data-state="open"],
+.param-term[aria-expanded="true"] {
+    text-decoration-color: currentColor;
 }
 
 /* owner-1112 [46] — the bake's confirmation: the keyframe glyph crossfades to a

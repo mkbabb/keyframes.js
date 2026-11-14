@@ -180,3 +180,54 @@ describe("UIA-KF-028 · 264 · 260 · 106 · 161 · 047 — the mounted editor",
         host.remove();
     }, 30_000);
 });
+
+describe("owner-1112 [44] — every column of the matrix reads as one aligned column", () => {
+    it("each visual column prints at its most precise cell's decimals (0.35, -1.5, 12, 0.001 among integers)", async () => {
+        const { default: MatrixEditor } = await import(
+            "../../../demo/scenes/cube/matrix-editor/MatrixEditor.vue"
+        );
+        const { getAxisFromIx, getTransformFromIx } = await import(
+            "../../../demo/scenes/cube/matrix-editor/transformMath"
+        );
+        const meta = Array.from({ length: 16 }, (_, i) => ({
+            axis: getAxisFromIx(i),
+            transform: getTransformFromIx(i),
+            sliderOptions: getSliderOptionsFromIx(i, { halfWidth: 439, halfHeight: 396, side: 370 }),
+            ...matrixCellName(i),
+        }));
+        // Visual rows (i / 4): the coordinator's values spread over the columns.
+        const values = [
+            1, 0.35, -1.5, 0,
+            12, 1, 0, 0.001,
+            0, 0, 1, 0,
+            120, -12.5, 0, 1,
+        ];
+        const host = document.createElement("div");
+        document.body.appendChild(host);
+        const app = createApp({
+            render: () =>
+                h(TooltipProvider, null, {
+                    default: () => h(MatrixEditor, { matrix3dEnd: createMatrix(values), matrixCellMeta: meta, superKey: "cube-o16" }),
+                }),
+        });
+        app.mount(host);
+        await nextTick();
+        const text = [...host.querySelectorAll<HTMLInputElement>(".matrix-grid input")].map((i) => i.value);
+        const column = (c: number) => [0, 1, 2, 3].map((r) => text[r * 4 + c]!);
+        // Column 0 holds integers only: it stays integer.
+        expect(column(0)).toEqual(["1", "12", "0", "120"]);
+        // Column 1 holds 0.35 and -12.5: two decimals throughout.
+        expect(column(1)).toEqual(["0.35", "1.00", "0.00", "−12.50"]);
+        // Column 2 holds -1.5: one decimal throughout.
+        expect(column(2)).toEqual(["−1.5", "0.0", "1.0", "0.0"]);
+        // Column 3: 0.001 prints at the two-decimal policy as 0 (its full value is the cell's title).
+        expect(column(3)).toEqual(["0", "0", "0", "1"]);
+        // Within a column every figure has the same count after its point.
+        for (const c of [0, 1, 2, 3]) {
+            const after = column(c).map((t) => (t.includes(".") ? t.length - t.indexOf(".") - 1 : 0));
+            expect(new Set(after).size).toBe(1);
+        }
+        app.unmount();
+        host.remove();
+    }, 30_000);
+});

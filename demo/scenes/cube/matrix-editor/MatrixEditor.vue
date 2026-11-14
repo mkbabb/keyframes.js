@@ -59,8 +59,10 @@
                          a proper matrix." — ONE ruled 4 x 4 grid inside square
                          brackets: hairlines between rows and columns, cells flush
                          in the grid (no pill per cell), the figures tabular and
-                         right-aligned on a shared decimal column (`--frac-pad`, in
-                         `ch` of the mono face, so the text itself is never padded),
+                         right-aligned, each COLUMN printed to one decimal count
+                         (its most precise cell's, at most two: "1.00" over "0.35",
+                         an all-integer column stays "1" and "0"), so every column
+                         reads as one flush column with its points aligned,
                          and the role name a small caption in its axis hue. Hovering
                          a cell tints its row and column; the cell the slider drives
                          keeps the selected tint. The cells are the site's own plain
@@ -99,7 +101,6 @@
                                     :aria-current="selectedCell === i ? 'true' : undefined"
                                     :title="matrixCellEditText((value as MatrixScalar).payload.value)"
                                     :value="cellText(value as MatrixScalar, i)"
-                                    :style="{ '--frac-pad': editingCell === i ? 0 : fracPad(cellText(value as MatrixScalar, i)) }"
                                     @input="(e: Event) => updateMatrixCell((e.target as HTMLInputElement).value, i)"
                                     @focus="selectedCell = i"
                                     @click="selectedCell = i"
@@ -202,13 +203,30 @@ const readout = (value: number): string =>
 
 const uid = useId();
 
-/** The decimal column: how many mono advances a cell's text falls short of two
- *  decimals ("1" → 3, "0.5" → 1, "0.35" → 0), so right-aligned figures stand on
- *  one decimal point. Display only; the text is never padded. */
-const DECIMALS = 2;
-const fracPad = (text: string): number => {
+/** [44] — each visual column (the grid's `i % 4`) prints at its most precise
+ *  cell's decimal count, so a column's figures share one point and one end:
+ *  "1" beside "0.35" reads as "1.00" over "0.35". Display only, at rest; an
+ *  edit opens on the cell's full stored precision (ME-42, below), and the
+ *  single-value digit policy (`matrixCellDisplayText`, two at most) is
+ *  untouched. */
+const decimalsOf = (text: string): number => {
     const dot = text.indexOf(".");
-    return dot < 0 ? DECIMALS + 1 : Math.max(0, DECIMALS - (text.length - dot - 1));
+    return dot < 0 ? 0 : text.length - dot - 1;
+};
+const columnDecimals = computed(() =>
+    [0, 1, 2, 3].map((col) =>
+        Math.max(
+            0,
+            ...[0, 1, 2, 3].map((row) =>
+                decimalsOf(matrixCellDisplayText(matrixCellValue(row * 4 + col))),
+            ),
+        ),
+    ),
+);
+const toColumnDecimals = (text: string, decimals: number): string => {
+    const have = decimalsOf(text);
+    if (have >= decimals) return text;
+    return (have === 0 ? `${text}.` : text) + "0".repeat(decimals - have);
 };
 
 const updateMatrixCell = (to: number | string, ix: number) => {
@@ -243,7 +261,10 @@ const editingCell = ref<number | null>(null);
 const cellText = (cell: MatrixScalar, index: number): string =>
     editingCell.value === index
         ? matrixCellEditText(cell.payload.value)
-        : matrixCellDisplayText(cell.payload.value);
+        : toColumnDecimals(
+              matrixCellDisplayText(cell.payload.value),
+              columnDecimals.value[index % 4] ?? 0,
+          );
 
 const matrixCellValue = (index: number): number => {
     const cell = props.matrix3dEnd.args[index];
@@ -301,7 +322,7 @@ const matrixCellValue = (index: number): number => {
     align-items: stretch;
     gap: 0.125rem;
     min-width: 0;
-    padding: 0.375rem 0.5rem 0.25rem;
+    padding: 0.375rem 0.25rem 0.25rem 0.375rem;
     transition: background-color var(--duration-fast, 150ms) ease;
 }
 .matrix-cell:not([data-col="0"]) {
@@ -344,8 +365,7 @@ const matrixCellValue = (index: number): number => {
     font-variant-numeric: tabular-nums;
     line-height: 1.5;
     text-align: end;
-    padding-inline-end: calc(var(--frac-pad, 0) * 1ch);
-    transition: padding-inline-end var(--duration-fast, 150ms) ease;
+    padding: 0;
 }
 
 /* The cell NAME, a caption in its axis hue. KF.W6 ME-13's form stands — theme-

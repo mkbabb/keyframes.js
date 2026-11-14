@@ -138,6 +138,24 @@ describe("(5) owner-1112 [45] — a preset tile is its name; what it feels like 
     });
 });
 
+describe("(5b) owner-1112 [45] fix round — the parameter's NAME is its explanation's trigger", () => {
+    it("the word is a button inside glass's adaptive hover Popover; the slider track is not a trigger and is named by the word", () => {
+        const src = sfc("SpringPhysicsFacet.vue");
+        const tpl = src.slice(src.indexOf("<template>"), src.lastIndexOf("</template>"));
+        const row = tpl.slice(tpl.indexOf('class="param-row"'), tpl.indexOf("</output>"));
+        // Hover/focus preview on a fine pointer, tap-toggle with tap-away on touch.
+        expect(row).toMatch(/<Popover trigger="hover"/);
+        expect(row).toMatch(/<PopoverTrigger as-child>\s*<button[\s\S]*?class="param-term[\s\S]*?\{\{\s*p\.label\s*\}\}\s*<\/button>\s*<\/PopoverTrigger>/);
+        // The slider sits OUTSIDE the trigger and is labelled by the word.
+        const trigger = row.slice(row.indexOf("<PopoverTrigger"), row.indexOf("</PopoverTrigger>"));
+        expect(trigger).not.toMatch(/<Slider/);
+        expect(row).toMatch(/<Slider[\s\S]*?:aria-labelledby="`\$\{uid\}-\$\{p\.key\}`"/);
+        // Placement: beside the pane on the desktop rail, above the word in the sheet.
+        expect(row).toMatch(/:side="rail \? 'right' : 'top'"/);
+        expect(tpl).not.toMatch(/<TooltipTrigger as-child>\s*<div[\s\S]{0,40}class="param-row"/);
+    });
+});
+
 describe("(6) A2-KE-L3-9 + owner-1112 [46] — the facet's action rides its section header and says what it does", () => {
     it("the bake action is in a ConfiguratorLayer #actions slot, labelled, and no body row holds it", () => {
         const src = sfc("SpringPhysicsFacet.vue");
