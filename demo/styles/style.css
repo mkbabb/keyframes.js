@@ -152,6 +152,11 @@
     --font-display-weight: 400;
     --type-tracking-display: 0;
 
+    /* Fully round docks (owner [48]-[60], glass GLASS-16 answer): set once here,
+       in px (never a percentage). REMOVE AT GLASS 11.1.0, which makes the stadium
+       the default. */
+    --radius-dock: 9999px;
+
     /* ── 3D axis color tokens ──
        KF-AX-3 ≡ CubeTarget #58 (KF.W6, decided in ONE motion with the face
        crayons below): the three axis hues used to be single theme-INVARIANT

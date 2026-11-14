@@ -55,46 +55,56 @@
                     <p class="text-caption text-muted-foreground">
                         S&nbsp;scale · K&nbsp;shear · P&nbsp;perspective · T&nbsp;translate&nbsp;(px) · w&nbsp;divisor
                     </p>
-                    <!-- UIA-KF-063 · UIA-KF-047 · UIA-KF-263/266 — each cell is a
-                         field-radius TILE holding its name ABOVE a single-line value
-                         field: the name sat under the value as a larger bold
-                         watermark (both illegible, worse in dark), and the text input
-                         stretched to a 56 px square became a disc (the pill radius
-                         clamps to half the block). The grid fills the card instead of
-                         shrink-wrapping to a centred island. The field keeps glass's
-                         own single-line shape; the card-like single-value FIELD kind
-                         is glass's row (O-59, relay-only). -->
-                    <div class="matrix-grid grid w-full grid-cols-4 gap-1" role="group" aria-label="Matrix entries">
-                        <div
-                            v-for="(value, i) in matrix3dEnd.args"
-                            :key="i"
-                            class="matrix-cell"
-                            :class="{ 'is-active': selectedCell === i }"
-                            @focusin="editingCell = i"
-                            @focusout="editingCell = null"
-                        >
-                            <label
-                                :for="`${uid}-${i}`"
-                                :class="['matrix-axis-label', matrixCellMeta[i]!.axis.toLowerCase()]"
-                                >{{ matrixCellMeta[i]!.symbol }}<sub v-if="matrixCellMeta[i]!.sub">{{ matrixCellMeta[i]!.sub }}</sub></label
+                    <!-- owner-1112 [44] "put a grid around this and make it look like
+                         a proper matrix." — ONE ruled 4 x 4 grid inside square
+                         brackets: hairlines between rows and columns, cells flush
+                         in the grid (no pill per cell), the figures tabular and
+                         right-aligned on a shared decimal column (`--frac-pad`, in
+                         `ch` of the mono face, so the text itself is never padded),
+                         and the role name a small caption in its axis hue. Hovering
+                         a cell tints its row and column; the cell the slider drives
+                         keeps the selected tint. The cells are the site's own plain
+                         inputs (a matrix cell is not glass's field: its rim and
+                         pill are what made sixteen loose fields); glass's
+                         `--field-text-floor` keeps them at 16 px under a coarse
+                         pointer, so iOS does not zoom. -->
+                    <div class="matrix" role="group" aria-label="Matrix entries">
+                        <div class="matrix-grid">
+                            <div
+                                v-for="(value, i) in matrix3dEnd.args"
+                                :key="i"
+                                class="matrix-cell"
+                                :class="{ 'is-active': selectedCell === i }"
+                                :data-row="Math.floor(i / 4)"
+                                :data-col="i % 4"
+                                @focusin="editingCell = i"
+                                @focusout="editingCell = null"
                             >
-                            <!-- UIA-KF-264 — the cell the slider drives is marked for AT
-                                 (`aria-current`) and, at rest, by the tile's selected
-                                 tint (glass DESIGN.md's component-scoped `.is-active`:
-                                 10 % foreground ground, 25 % foreground edge). A cell
-                                 is selected by focus as well as by pointer, so the
-                                 keyboard reaches the slider's cell too. -->
-                            <Input
-                                :id="`${uid}-${i}`"
-                                class="matrix-cell-field text-small text-center font-mono tabular-nums px-1"
-                                inputmode="decimal"
-                                :aria-current="selectedCell === i ? 'true' : undefined"
-                                :title="matrixCellEditText((value as MatrixScalar).payload.value)"
-                                :model-value="cellText(value as MatrixScalar, i)"
-                                @update:model-value="(v) => updateMatrixCell(v, i)"
-                                @focus="selectedCell = i"
-                                @click="selectedCell = i"
-                            />
+                                <label
+                                    :for="`${uid}-${i}`"
+                                    :class="['matrix-axis-label', matrixCellMeta[i]!.axis.toLowerCase()]"
+                                    >{{ matrixCellMeta[i]!.symbol }}<sub v-if="matrixCellMeta[i]!.sub">{{ matrixCellMeta[i]!.sub }}</sub></label
+                                >
+                                <!-- UIA-KF-264 — the cell the slider drives is marked for
+                                     AT (`aria-current`) and, at rest, by the selected
+                                     tint. A cell is selected by focus as well as by
+                                     pointer, so the keyboard reaches the slider's cell. -->
+                                <input
+                                    :id="`${uid}-${i}`"
+                                    class="matrix-cell-field focus-ring"
+                                    type="text"
+                                    inputmode="decimal"
+                                    autocomplete="off"
+                                    spellcheck="false"
+                                    :aria-current="selectedCell === i ? 'true' : undefined"
+                                    :title="matrixCellEditText((value as MatrixScalar).payload.value)"
+                                    :value="cellText(value as MatrixScalar, i)"
+                                    :style="{ '--frac-pad': editingCell === i ? 0 : fracPad(cellText(value as MatrixScalar, i)) }"
+                                    @input="(e: Event) => updateMatrixCell((e.target as HTMLInputElement).value, i)"
+                                    @focus="selectedCell = i"
+                                    @click="selectedCell = i"
+                                />
+                            </div>
                         </div>
                     </div>
 
@@ -130,7 +140,6 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@mkbabb/glass-ui/toolti
 import { LabeledSlider } from "@mkbabb/glass-ui/labeled-field";
 import { ConfiguratorLayer } from "@mkbabb/glass-ui/configurator";
 import { FadingScroll } from "@mkbabb/glass-ui/fading-scroll";
-import { Input } from "@mkbabb/glass-ui/input";
 import {
     matrixCellDisplayText,
     matrixCellEditText,
@@ -193,6 +202,15 @@ const readout = (value: number): string =>
 
 const uid = useId();
 
+/** The decimal column: how many mono advances a cell's text falls short of two
+ *  decimals ("1" → 3, "0.5" → 1, "0.35" → 0), so right-aligned figures stand on
+ *  one decimal point. Display only; the text is never padded. */
+const DECIMALS = 2;
+const fracPad = (text: string): number => {
+    const dot = text.indexOf(".");
+    return dot < 0 ? DECIMALS + 1 : Math.max(0, DECIMALS - (text.length - dot - 1));
+};
+
 const updateMatrixCell = (to: number | string, ix: number) => {
     emit("updateMatrixCell", to, ix);
 };
@@ -242,45 +260,104 @@ const matrixCellValue = (index: number): number => {
 </script>
 
 <style scoped>
-/* X.KF.W13X.matrix — the cell TILE: the name above, the value field below,
-   on the card rung glass's radius canon gives multi-line holders
-   (`--radius-field`, glass DESIGN.md:386). At rest the tile is transparent; the
-   selected tile takes glass's component-scoped `.is-active` recipe (DESIGN.md:
-   "10% foreground bg, 25% foreground border"), so the cell the slider drives is
-   legible after focus leaves the grid. */
+/* owner-1112 [44] — THE MATRIX. One ruled grid in square brackets. The rule
+   ink is the field separators' hairline (`--border`); the brackets are the
+   foreground at the perimeter rung, drawn as the grid's own edges with short
+   serifs top and bottom, as a printed matrix's are. */
+.matrix {
+    --matrix-rule: var(--border);
+    --matrix-bracket: color-mix(in oklab, var(--foreground) 55%, transparent);
+    --matrix-serif: 0.4rem;
+    position: relative;
+    padding-inline: calc(var(--matrix-serif) + 0.15rem);
+}
+.matrix::before,
+.matrix::after {
+    content: "";
+    position: absolute;
+    inset-block: 0;
+    width: var(--matrix-serif);
+    border: 1.5px solid var(--matrix-bracket);
+    pointer-events: none;
+}
+.matrix::before {
+    inset-inline-start: 0;
+    border-inline-end: none;
+}
+.matrix::after {
+    inset-inline-end: 0;
+    border-inline-start: none;
+}
+.matrix-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+/* A cell: its caption at the start, its figure on the decimal column. Rules
+   run between cells only, never round the outside (the brackets are that). */
 .matrix-cell {
     display: flex;
     flex-direction: column;
     align-items: stretch;
-    gap: calc(var(--space-atom) / 2);
+    gap: 0.125rem;
     min-width: 0;
-    padding: calc(var(--space-atom) / 2);
-    border: 1px solid transparent;
-    border-radius: var(--radius-field);
+    padding: 0.375rem 0.5rem 0.25rem;
+    transition: background-color var(--duration-fast, 150ms) ease;
 }
-.matrix-cell.is-active {
-    background: color-mix(in oklab, var(--foreground) 10%, transparent);
-    border-color: color-mix(in oklab, var(--foreground) 25%, transparent);
+.matrix-cell:not([data-col="0"]) {
+    border-inline-start: 1px solid var(--matrix-rule);
 }
-.matrix-cell-field {
-    min-width: 0;
+.matrix-cell:not([data-row="0"]) {
+    border-block-start: 1px solid var(--matrix-rule);
 }
 
-/* The cell NAME, in the label register above its field (UIA-KF-063: it was a
-   `text-heading` watermark under the value). KF.W6 ME-13's form stands — theme-
-   aware INK mixed from the axis colour, one fraction for both themes, never
-   alpha — but its pole moves from the page to the TEXT: ME-13 mixed toward
-   --background for a decorative watermark under the value, and at caption size
-   that rung measured ~1.7:1 on the light card (the label is now the cell's only
-   name, so it must read as text, WCAG 1.4.3). Mixed toward --foreground it
-   darkens in light and lightens in dark. The axis hues — the scene's identity
-   colours — are kept. */
+/* Row and column hover: the hovered cell's whole row and column tint, the
+   cell itself a step more (the reading guide a printed matrix lacks). */
+.matrix-grid:has([data-row="0"]:hover) [data-row="0"],
+.matrix-grid:has([data-row="1"]:hover) [data-row="1"],
+.matrix-grid:has([data-row="2"]:hover) [data-row="2"],
+.matrix-grid:has([data-row="3"]:hover) [data-row="3"],
+.matrix-grid:has([data-col="0"]:hover) [data-col="0"],
+.matrix-grid:has([data-col="1"]:hover) [data-col="1"],
+.matrix-grid:has([data-col="2"]:hover) [data-col="2"],
+.matrix-grid:has([data-col="3"]:hover) [data-col="3"] {
+    background-color: color-mix(in oklab, var(--foreground) 4%, transparent);
+}
+.matrix-grid .matrix-cell:hover {
+    background-color: color-mix(in oklab, var(--foreground) 8%, transparent);
+}
+/* The selected cell (the slider's): glass DESIGN.md's component-scoped
+   `.is-active` ground (10 % foreground), so it reads after focus leaves. */
+.matrix-grid .matrix-cell.is-active {
+    background-color: color-mix(in oklab, var(--foreground) 10%, transparent);
+}
+
+.matrix-cell-field {
+    min-width: 0;
+    width: 100%;
+    border: 0;
+    border-radius: var(--radius-xs, 4px);
+    background: transparent;
+    color: var(--foreground);
+    font-family: var(--font-mono);
+    font-size: max(var(--type-small), var(--field-text-floor, 0px));
+    font-variant-numeric: tabular-nums;
+    line-height: 1.5;
+    text-align: end;
+    padding-inline-end: calc(var(--frac-pad, 0) * 1ch);
+    transition: padding-inline-end var(--duration-fast, 150ms) ease;
+}
+
+/* The cell NAME, a caption in its axis hue. KF.W6 ME-13's form stands — theme-
+   aware INK mixed from the axis colour toward --foreground (it must read as
+   text, WCAG 1.4.3); the axis hues are the scene's identity colours, kept. */
 .matrix-axis-label {
     font-family: var(--font-mono);
     font-size: var(--type-caption);
     line-height: 1.2;
-    text-align: center;
+    text-align: start;
     color: color-mix(in oklab, var(--color) 55%, var(--foreground));
+    cursor: text;
 }
 .x {
     --color: var(--axis-x);

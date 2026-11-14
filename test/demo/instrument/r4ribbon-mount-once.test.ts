@@ -149,11 +149,13 @@ describe("X.KF.W13X.r4ribbon — the one mount, off the seat", () => {
         );
         const release = seat.publishChannel(() => binding("channel", 120, () => channelReversed++));
         const storedControls = reactive({ selectedControl: "controls" });
-        const w = mount(RibbonBar, {
-            attachTo: document.body,
-            props: { storedControls: storedControls as never },
-            global: { provide: { [RIBBON_SEAT_KEY as symbol]: seat } },
-        });
+        // The app mounts every surface under glass's TooltipProvider (the
+        // Keyframes dock's glyph seats carry tooltips, owner-1112 [42]).
+        const { TooltipProvider } = await import("@mkbabb/glass-ui/tooltip");
+        const w = mount(
+            { render: () => h(TooltipProvider, null, { default: () => h(RibbonBar, { storedControls: storedControls as never }) }) },
+            { attachTo: document.body, global: { provide: { [RIBBON_SEAT_KEY as symbol]: seat } } },
+        );
         mounted.push(w);
         const ribbons = () =>
             [...document.querySelectorAll<HTMLElement>('[data-stub="PlaybackRibbon"]')].map(

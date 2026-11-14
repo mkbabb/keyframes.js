@@ -323,11 +323,12 @@ describe("G-KFW12-5 — APPLY: one name, one lifetime", () => {
             },
             timeline: { removeSelectedKeyframe: () => {}, undo: () => {}, redo: () => {} },
         });
-        const ribbon = mount(RibbonBar, {
-            props: { storedControls },
-            global: { provide: { [CHANNEL_COMMANDS_KEY as symbol]: commandSeat } },
-            attachTo: document.body,
-        });
+        // The app mounts every surface under glass's TooltipProvider.
+        const { TooltipProvider } = await import("@mkbabb/glass-ui/tooltip");
+        const ribbon = mount(
+            { render: () => h(TooltipProvider, null, { default: () => h(RibbonBar, { storedControls }) }) },
+            { global: { provide: { [CHANNEL_COMMANDS_KEY as symbol]: commandSeat } }, attachTo: document.body },
+        );
         await nextTick();
 
         const applyButton = ribbon

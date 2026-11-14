@@ -140,7 +140,8 @@ function mountRibbon(selectedControl: string, cssApplied = false) {
         timeline: { removeSelectedKeyframe: noop, undo: noop, redo: noop },
     });
     const app = createApp({
-        render: () => h(RibbonBar, { storedControls: storedControls as never }),
+        // The app mounts every surface under glass's TooltipProvider.
+        render: () => h(TooltipProvider, null, { default: () => h(RibbonBar, { storedControls: storedControls as never }) }),
     });
     app.provide(CHANNEL_COMMANDS_KEY, seat);
     app.mount(el);

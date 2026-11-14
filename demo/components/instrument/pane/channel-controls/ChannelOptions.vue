@@ -101,11 +101,19 @@
                                  chevron by its own `px-3`, and the easing
                                  field's pencil sits there too, so the row ends
                                  `pe-3` and every trailing glyph shares one
-                                 column inside the pane's one edge. -->
+                                 column inside the pane's one edge.
+                                 owner-1112 [41] "padding … is not correct, not
+                                 rounded" — the `ps-0` above put the word flush on
+                                 the hover plate's left edge (the chevron kept its
+                                 inset). The plate now has the same inset both
+                                 sides and OUTSETS by it (`-mx-3`), so the word and
+                                 the chevron stay on their columns while the plate
+                                 around them is padded; its corner is the fields'
+                                 own (the stadium the triggers above wear). -->
                             <Button
                                 ref="layerEntryEl"
                                 emphasis="quiet"
-                                class="w-full justify-between gap-2 ps-0 pe-3 text-[length:var(--control-label)] [--button-quiet-ink:var(--foreground)]"
+                                class="layer-entry -mx-3 flex w-auto justify-between gap-2 ps-3 pe-6 text-[length:var(--control-label)] [--button-quiet-ink:var(--foreground)]"
                                 :aria-expanded="stack.isOpen('layer')"
                                 :aria-controls="layerPaneId"
                                 @click="openLayer"

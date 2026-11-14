@@ -10,7 +10,7 @@ export interface SpringPreset {
     name: string;
     response: number;
     dampingFraction: number;
-    /** Short descriptor for the comparison card. */
+    /** What the preset feels like: the tile's tooltip. */
     blurb: string;
 }
 
@@ -19,25 +19,25 @@ export const SPRING_PRESETS: readonly SpringPreset[] = [
         name: "smooth",
         response: 0.5,
         dampingFraction: 0.86,
-        blurb: "iOS default — settles without ringing",
+        blurb: "The iOS default: settles without ringing",
     },
     {
         name: "snappy",
         response: 0.35,
         dampingFraction: 0.65,
-        blurb: "quick with a touch of overshoot",
+        blurb: "Quick, with a touch of overshoot",
     },
     {
         name: "bouncy",
         response: 0.5,
         dampingFraction: 0.45,
-        blurb: "pronounced overshoot, playful ring",
+        blurb: "Pronounced overshoot and a playful ring",
     },
     {
         name: "gentle",
         response: 0.7,
         dampingFraction: 1.0,
-        blurb: "critically damped — slow, no overshoot",
+        blurb: "Critically damped: slow, with no overshoot",
     },
 ] as const;
 

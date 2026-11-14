@@ -56,130 +56,81 @@
                 v-show="storedControls.selectedControl === 'timeline'"
             ></div>
 
-            <!-- Keyframes tab — X.KF.W13X.mobile (UIA-KF-319): ONE row
-                 with a hierarchy. Apply CSS is the stateful toggle (the
-                 only undo of an applied identity), so it LEADS, labelled;
-                 Copy / Format / Export CSS are secondary commands. Four
-                 labelled secondary sm Buttons wrapped 3 + 1 in the 26rem
-                 rail and left Apply alone on a second row.
-                 X-DS pass 4 (KF-C4-12) — the secondaries are QUIET and
-                 LABELLED: three icon-only capsules (copy, sparkles,
-                 file-code) said nothing a reader could act on without a
-                 tooltip, and each wore the full floating skin. The quiet
-                 rung has no capsule at rest, so the three short labels fit
-                 the one row beside Apply.
-                 X-DS pass 5 (KF-C5-02) — the row checked its y and not its
-                 label wrap: four shrinkable Buttons squeezed the LEADING one,
-                 so the primary broke "Apply / CSS" in its 36px pill. Apply
-                 now holds its intrinsic width (`shrink-0 whitespace-nowrap`)
-                 and every label is one line; the secondaries YIELD instead,
-                 by the row's own width (it is the inline-size container):
-                 "Compiled" goes to its glyph below 29rem (the four labels'
-                 measured one-row width) and "Format" below 22rem. Each
-                 accessible name and `title` is unchanged, so the glyph-only
-                 form still names itself and tooltips its word.
-                 X-DS pass 8 (KF-C8-06) — the yield order is REVERSED: the
-                 least-known glyph keeps its word longest. The row is never
-                 29rem wide, so "Compiled" was glyph-only at every served width:
-                 an unanchored document glyph after three labelled verbs. Copy's
-                 clipboard is universal, so "Copy" goes first (below 29rem, the
-                 four labels' one-row width), "Format" second (below 25rem:
-                 Apply + Copy's glyph + two words), "Compiled" last (below
-                 22rem: Apply + two glyphs + "Compiled", measured 344 px in the
-                 367 px row).
-                 X-DS r7 pass 16 (KF-C16-02) — ONE yield rule for the three
-                 quiet verbs: the staggered thresholds left the served rail
-                 (between 22 and 29rem) reading [Apply CSS] [glyph] [glyph]
-                 [Compiled], a rhythm that alternated for no reason the user
-                 could see. Below 29rem (the four labels' one-row width) all
-                 three go to their glyph together, each still naming itself
-                 (aria-label) and tooltipping its word (title); at or above it
-                 all three keep their words. Apply CSS keeps its label and its
-                 rainbow brush (identity, §0dm).
-                 X-DS r9 pass 13 (KF-C13-01) — the row sits ON the content
-                 column (`justify-start`), as the transport row does: centred,
-                 Apply CSS's plate floated 39 px in from the title's edge.
-                 X-DS r9 pass 14 (KF-C14-02) — the quiet verbs keep their
-                 WORDS and drop their glyphs: 29rem was the row's one-line
-                 width and the rail never reaches it, so Copy, Format and
-                 Compiled were three bare glyphs at every served width (the
-                 KF-C8-06 defect, row-wide). Words alone, at the transport's
-                 slim `px-2` (KF-C6-01), fit beside Apply CSS at 1440 and 390.
-                 Apply CSS is filled, so its plate stays on the column
-                 (KF-C14-01's one edge rule). -->
+            <!-- Keyframes tab — X.KF.W13X.mobile (UIA-KF-319): ONE row with a
+                 hierarchy. Apply CSS is the stateful toggle (the only undo of an
+                 applied identity), so it LEADS; Copy / Format / Compiled are
+                 secondary commands, each keeping its word (KF-C14-02). The row's
+                 earlier forms (labelled Buttons, then quiet words on the content
+                 column, KF-C4-12 .. KF-C14-02) are superseded by [42] below. -->
+            <!-- owner-1112 [42] "these buttons should be centred, and in a
+                 glass-ui dock." — the four verbs stand CENTRED in one glass
+                 dock (never folding: `:collapse="false"`): Apply CSS a
+                 labelled seat, the three commands glyph seats with tooltips. Apply CSS stays the one toggle and
+                 the one coloured seat (its rainbow brush; the rainbow fill when
+                 applied, the app's identity hue, §0dm); a hairline parts it from
+                 the three commands. Every accessible name is unchanged. -->
             <div
                 v-if="storedControls.selectedControl === 'keyframes'"
-                class="flex items-center justify-start gap-2"
+                class="ribbon-dock flex justify-center"
             >
-                <!-- UIA-KF-175 (X.KF.W13X.sections) — Apply CSS is a toggle,
-                     so it says so: `aria-pressed` reads the pane's own
-                     `cssApplied` (the rainbow skin is the app's identity
-                     hue, kept). -->
-                <Button
-                    size="sm"
-                    emphasis="secondary"
-                    class="shrink-0 whitespace-nowrap"
-                    :aria-pressed="Boolean(keyframes?.cssApplied)"
-                    :class="
-                        keyframes?.cssApplied
-                            ? 'rainbow-vivid text-white ribbon-apply--active'
-                            : ''
-                    "
-                    @click="keyframes?.applyCSS()"
-                >
-                    <Paintbrush
-                        class="icon-sm"
-                        :style="
-                            !keyframes?.cssApplied
-                                ? { stroke: 'url(#rainbow-gradient)' }
-                                : {}
-                        "
-                    />
-                    Apply CSS
-                </Button>
-                <!-- UIA-KF-173 — the two clipboard verbs are named for what
-                     they copy: the keyframes source, or the zero-runtime CSS
-                     compiled from the orchestration graph. -->
-                <Button
-                    size="sm"
-                    emphasis="quiet"
-                    class="whitespace-nowrap px-2"
-                    aria-label="Copy keyframes"
-                    title="Copy keyframes"
-                    @click="keyframes?.copyKeyframes()"
-                >
-                    Copy
-                </Button>
-                <!-- The PRIMARY format path (M-3/C-8 ≡ KF-CE-37): this
-                     call is un-awaited BY DESIGN — `formatCSS` is the
-                     keyframes pane's `formatEditor`, the ONE format
-                     boundary, which catches prettier's rejection, toasts
-                     it with Retry and releases the pane's latch, so the
-                     promise it returns never rejects. -->
-                <Button
-                    size="sm"
-                    emphasis="quiet"
-                    class="whitespace-nowrap px-2"
-                    aria-label="Format"
-                    title="Format"
-                    @click="keyframes?.format()"
-                >
-                    Format
-                </Button>
-                <!-- K.W10 CC-4 — Export CSS: compile the orchestration graph
-                     to a zero-runtime CSS artifact via the gated compileToCSS
-                     (the round-trip's BACKWARD half) + the honest CC-3
-                     ineligibility report. The editor is a CSS-animation IDE. -->
-                <Button
-                    size="sm"
-                    emphasis="quiet"
-                    class="whitespace-nowrap px-2"
-                    aria-label="Copy compiled CSS"
-                    title="Copy compiled CSS"
-                    @click="keyframes?.copyCompiledCSS()"
-                >
-                    Compiled
-                </Button>
+                <GlassDock fit-content :collapse="false">
+                    <!-- UIA-KF-175 (X.KF.W13X.sections) — Apply CSS is a toggle,
+                         so it says so: `active` stamps `aria-pressed` from the
+                         pane's own `cssApplied`. -->
+                    <DockControl
+                        shape="tab"
+                        :active="Boolean(keyframes?.cssApplied)"
+                        class="gap-(--icon-label-gap) whitespace-nowrap"
+                        :class="keyframes?.cssApplied ? 'rainbow-vivid text-white ribbon-apply--active' : ''"
+                        @click="keyframes?.applyCSS()"
+                    >
+                        <Paintbrush
+                            class="icon-sm"
+                            aria-hidden="true"
+                            :style="!keyframes?.cssApplied ? { stroke: 'url(#rainbow-gradient)' } : {}"
+                        />
+                        Apply CSS
+                    </DockControl>
+                    <DockSeparator />
+                    <!-- UIA-KF-173 — the two clipboard verbs are named for what
+                         they copy: the keyframes source, or the zero-runtime CSS
+                         compiled from the orchestration graph. In the dock the
+                         three commands are its glyph seats (the rail is ~360 px
+                         and four glyph-and-word seats need ~455: the fourth
+                         scrolled out of the dock); each says its word in a glass
+                         tooltip on hover and focus, and keeps its name. -->
+                    <Tooltip>
+                        <TooltipTrigger as-child>
+                            <DockControl shape="icon" aria-label="Copy keyframes" @click="keyframes?.copyKeyframes()">
+                                <Copy class="icon-sm" aria-hidden="true" />
+                            </DockControl>
+                        </TooltipTrigger>
+                        <TooltipContent>Copy keyframes</TooltipContent>
+                    </Tooltip>
+                    <!-- The PRIMARY format path (M-3/C-8 ≡ KF-CE-37): un-awaited BY
+                         DESIGN — `formatCSS` is the keyframes pane's `formatEditor`,
+                         the ONE format boundary, which catches prettier's rejection,
+                         toasts it with Retry and releases the pane's latch. -->
+                    <Tooltip>
+                        <TooltipTrigger as-child>
+                            <DockControl shape="icon" aria-label="Format" @click="keyframes?.format()">
+                                <AlignLeft class="icon-sm" aria-hidden="true" />
+                            </DockControl>
+                        </TooltipTrigger>
+                        <TooltipContent>Format the CSS</TooltipContent>
+                    </Tooltip>
+                    <!-- K.W10 CC-4 — Export CSS: compile the orchestration graph to
+                         a zero-runtime CSS artifact via the gated compileToCSS (the
+                         round-trip's BACKWARD half) + the honest CC-3 report. -->
+                    <Tooltip>
+                        <TooltipTrigger as-child>
+                            <DockControl shape="icon" aria-label="Copy compiled CSS" @click="keyframes?.copyCompiledCSS()">
+                                <FileCode class="icon-sm" aria-hidden="true" />
+                            </DockControl>
+                        </TooltipTrigger>
+                        <TooltipContent>Copy compiled CSS</TooltipContent>
+                    </Tooltip>
+                </GlassDock>
             </div>
 
             <!-- X.KF.W13X.r4ribbon · A2-KE-L1-24 — THE ONE TRANSPORT. Every
@@ -200,22 +151,18 @@
 </template>
 
 <script setup lang="ts">
-import { Paintbrush } from "@lucide/vue";
+import { AlignLeft, Copy, FileCode, Paintbrush } from "@lucide/vue";
 import { computed, inject, watch } from "vue";
-import { Button, Separator } from "@mkbabb/glass-ui";
+import { Separator } from "@mkbabb/glass-ui";
+import { DockControl, DockSeparator, GlassDock } from "@mkbabb/glass-ui/dock";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@mkbabb/glass-ui/tooltip";
 import type { StoredAnimationGroupControlOptions } from "@state";
 import PlaybackRibbon from "@components/playback/PlaybackRibbon.vue";
 import { CHANNEL_COMMANDS_KEY, RIBBON_SEAT_KEY } from "../transport/injectionKeys";
 
-// The ribbon's Buttons carry NO class string of their own: `size="sm"` +
-// `emphasis="secondary"` is the whole request, and the producer answers it
-// (CPW D-M11 + D-m12). The former RIBBON_BUTTON_CLASS was five tokens, each
-// one of: dead (the phantom `btn-*` utility token — zero rules in the demo,
-// the dist and the shipped sheet), unreachable (`h-8` against `.button`'s `min-block-size`, which
-// `height` never contests), duplicative (`rounded-full` over `--radius-control`,
-// itself the pill), or actively de-scaling (`text-body` / `gap-1.5` pinning a
-// rung and a 6px gap where the sm recipe scales both with `--ui-scale`). The
-// active Apply state keeps its own three tokens below; nothing else is owed.
+// owner-1112 [42] — the verbs are glass DockControls in a GlassDock: the
+// producer owns their size, radius, hover plate and press; the active Apply
+// state keeps its own three tokens below.
 
 const props = defineProps<{
     storedControls: StoredAnimationGroupControlOptions;
