@@ -609,9 +609,11 @@ describe("G-KFW12-4 — the Monaco seam", () => {
         expect(new Set(Object.values(CODE_INK)).size).toBe(6);
     });
 
-    // OD19-K7 — the status is a bigger dot only: no visible word; the word is
-    // the dot's accessible name, and the polite live region still carries it.
-    it("(11) OD19-K7: the pane status is a labelled md dot with no visible text, inside the polite live region", async () => {
+    // OD19-K7 — the status carries no visible word; the word is the mark's
+    // accessible name, and the polite live region still carries it.
+    // owner-1112 [43] — the mark is a header glyph (the chevron's size and
+    // ink), no longer glass's standing status disc.
+    it("(11) OD19-K7 + [43]: the pane status is a labelled header glyph with no visible text, inside the polite live region", async () => {
         mounted = mount(KeyframesStringControls, {
             props: { animation: {} as never },
             attachTo: document.body,
@@ -620,8 +622,9 @@ describe("G-KFW12-4 — the Monaco seam", () => {
         expect(status).not.toBeNull();
         expect(status.getAttribute("aria-live")).toBe("polite");
         expect(status.textContent?.trim()).toBe("");
-        const dot = status.querySelector(".status-dot")!;
-        expect(dot.getAttribute("data-size")).toBe("md");
+        expect(status.querySelector(".status-dot")).toBeNull();
+        const dot = status.querySelector(".pane-status__mark")!;
+        expect(dot.querySelector("svg")).not.toBeNull();
         expect(dot.getAttribute("data-state")).toBe("success");
         expect(dot.getAttribute("aria-label")).toBe("Parsed");
         expect(dot.getAttribute("role")).toBe("img");

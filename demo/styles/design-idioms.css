@@ -540,6 +540,41 @@ body.is-dragging ::selection {
     background: transparent;
 }
 
+/* §no-stray-selection — owner-1112 X-a: "every viz and item [should not]
+   accidentally trigger a text selection box … the dock, etc." The rule above
+   covers a gesture the app knows it started; this one covers the rest: a press
+   that wanders across the stage, a pane or a control never paints a selection.
+   Scoped to controls and to the stage and pane surfaces, never the body. What a
+   reader may want to copy stays selectable inside them: values (outputs and
+   tabular readouts), prose paragraphs, code (the Monaco editor keeps its own
+   selection) and every text field. `:where()` keeps both at zero specificity so
+   any component's own rule wins. The dock's own plate is glass's (relayed);
+   its controls are buttons and are covered here. */
+:where(
+    .stage-cell,
+    .pane-frame,
+    .controls-drawer-content,
+    button,
+    label,
+    canvas,
+    svg,
+    [role="slider"],
+    [role="tab"],
+    [role="radio"],
+    [role="switch"],
+    [role="checkbox"],
+    [role="menuitem"],
+    [role="option"]
+) {
+    -webkit-user-select: none;
+    user-select: none;
+}
+:where(.stage-cell, .pane-frame, .controls-drawer-content)
+    :where(input, textarea, [contenteditable="true"], output, code, pre, p, .tabular-nums, .monaco-editor) {
+    -webkit-user-select: text;
+    user-select: text;
+}
+
 /* .stage-prose — K-D2 (value.js X realization): THE SHORT PLATE'S PROSE.
    A plate's instruction prose (Spring's rail hint) is read in
    a tall plate. In a SHORT plate (the phone stage's size container `stage`

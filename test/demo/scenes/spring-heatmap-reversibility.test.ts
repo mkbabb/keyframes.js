@@ -456,7 +456,7 @@ describe("X.KF.W11.f (5b) — the facet: trackless preset tiles; the presets are
         };
     }
 
-    it("OA-51 on the DOM — a preset tile holds its name and ONE parameter line, and no rail, ball or slider", async () => {
+    it("OA-51 + owner-1112 [45] on the DOM — a preset tile holds its name alone, and no rail, ball or slider", async () => {
         const { wrapper, teardown } = mountFacet();
         try {
             await nextTick();
@@ -464,16 +464,8 @@ describe("X.KF.W11.f (5b) — the facet: trackless preset tiles; the presets are
             expect(cells).toHaveLength(4);
             cells.forEach((cell, i) => {
                 const p = SPRING_PRESETS[i]!;
-                expect(cell.text()).toContain(p.name);
-                // ONE parameter line whose two values are each their own
-                // tabular data leaf (KF-CENSUS 2026-11-03); the middot join is
-                // the run's ::before decoration, not text.
-                const line = cell.findAll(".preset-values");
-                expect(line).toHaveLength(1);
-                expect(line[0]!.findAll(".tabular-nums").map((v) => v.text())).toEqual([
-                    `${p.response} s`,
-                    `ζ ${p.dampingFraction}`,
-                ]);
+                expect(cell.text().trim()).toBe(p.name);
+                expect(cell.findAll(".preset-values, .tabular-nums")).toHaveLength(0);
                 expect(cell.findAll('.progress-rail, .progress-ball, [role="slider"]')).toHaveLength(0);
             });
         } finally {
@@ -499,7 +491,8 @@ describe("X.KF.W11.f (5b) — the facet: trackless preset tiles; the presets are
             const pressed = () => cells().map((c) => c.attributes("aria-checked"));
             // the scene opens on the smooth preset (0.5 / 0.86)
             expect(pressed()).toEqual(["true", "false", "false", "false"]);
-            expect(cells().map((c) => c.attributes("title"))).toEqual(SPRING_PRESETS.map((p) => p.blurb));
+            // owner-1112 [45] — the blurb is a glass tooltip, never a native title.
+            expect(cells().map((c) => c.attributes("title"))).toEqual([undefined, undefined, undefined, undefined]);
 
             await cells()[2]!.trigger("click"); // bouncy
             await nextTick();
@@ -528,7 +521,7 @@ describe("X.KF.W11.f (5b) — the facet: trackless preset tiles; the presets are
         const style = src.slice(src.indexOf("<style scoped>"));
         expect(style).not.toContain("!important");
         expect(style).toMatch(/\.preset-cell:hover\s*\{[^}]*var\(--color-progress\) 6%/);
-        expect(style).toMatch(/\.preset-cell\[data-state="on"\]\s*\{[^}]*var\(--color-progress\) 8%/);
+        expect(style).toMatch(/\.preset-cell\[aria-checked="true"\]\s*\{[^}]*var\(--color-progress\) 8%/);
         expect(src).not.toContain("spring-pane");
     });
 

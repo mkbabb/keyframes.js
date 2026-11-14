@@ -36,21 +36,31 @@
             actions-when="always"
             body-class="flex grow flex-col space-y-0 p-0"
         >
-            <!-- OD19-K7 (owner 2026-10-19: "replace ✓ Parsed with a bigger
-                 status dot only") — the status is the dot alone, at glass's
-                 `md` step: the visible word is gone and becomes the dot's
-                 accessible name (`label`). The live region still announces:
-                 the dot is keyed on its state, so each change ADDS a named
-                 node to the polite region rather than editing an attribute. -->
+            <!-- OD19-K7 (owner 2026-10-19) made the status a mark without a
+                 word; owner-1112 [43] "better integrate the checkmark": the
+                 green disc floated beside the chevron, larger and louder than
+                 the header's own glyph. The mark is now one of the header's
+                 glyphs: the chevron's size and ink when the source parsed (the
+                 tick draws itself in), the destructive ink only when an edit was
+                 refused, and the Apply brush when the CSS is applied. Each change
+                 crossfades (out, then in); the word stays the mark's accessible
+                 name, and the polite region still announces it (the mark is
+                 keyed on its state, so each change adds a named node). -->
             <template #actions>
-                <span role="status" aria-live="polite" class="flex shrink-0 items-center">
-                    <StatusDot
-                        :key="paneStatus.dot"
-                        :state="paneStatus.dot"
-                        :label="paneStatus.text"
-                        size="md"
-                        motion="off"
-                    />
+                <span role="status" aria-live="polite" class="pane-status">
+                    <Transition name="pane-status" mode="out-in">
+                        <span
+                            :key="paneStatus.dot"
+                            class="pane-status__mark"
+                            role="img"
+                            :data-state="paneStatus.dot"
+                            :aria-label="paneStatus.text"
+                        >
+                            <Check v-if="paneStatus.dot === 'success'" class="icon-sm pane-status__tick" aria-hidden="true" />
+                            <CircleAlert v-else-if="paneStatus.dot === 'error'" class="icon-sm" aria-hidden="true" />
+                            <Paintbrush v-else class="icon-sm" aria-hidden="true" :style="{ stroke: 'url(#rainbow-gradient)' }" />
+                        </span>
+                    </Transition>
                 </span>
             </template>
             <!-- D-4 (X.KF.W12.e) — the editor WELL is the parse-error shake's
@@ -90,7 +100,7 @@ import { useKeyframeBrushApply } from "./composables/useKeyframeBrushApply";
 import { useKeyframesEditor } from "./composables/useKeyframesEditor";
 
 import { toast, ToastAction, type ToastHandle } from "@mkbabb/glass-ui/toast";
-import { StatusDot } from "@mkbabb/glass-ui/status-dot";
+import { Check, CircleAlert, Paintbrush } from "@lucide/vue";
 import { ConfiguratorLayer } from "@mkbabb/glass-ui/configurator";
 import { copyWithToast } from "@composables/copyWithToast";
 
@@ -382,4 +392,44 @@ defineExpose({
 });
 </script>
 
-<style scoped></style>
+<style scoped>
+/* owner-1112 [43] — the status mark sits in the header's glyph row at the
+   chevron's size and ink. */
+.pane-status {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+}
+.pane-status__mark {
+    display: inline-flex;
+    color: var(--muted-foreground);
+}
+.pane-status__mark[data-state="error"] {
+    color: var(--destructive);
+}
+.pane-status-enter-active,
+.pane-status-leave-active {
+    transition: opacity var(--duration-fast, 150ms) ease;
+}
+.pane-status-enter-from,
+.pane-status-leave-to {
+    opacity: 0;
+}
+/* The tick writes itself in (its one stroke drawn from its short arm), with
+   motion allowed; reduced motion keeps the crossfade alone. Lucide's check is
+   one path about 23 units long. */
+@media (prefers-reduced-motion: no-preference) {
+    .pane-status-enter-active .pane-status__tick :deep(path) {
+        stroke-dasharray: 24;
+        animation: pane-status-tick 360ms var(--ease-out, ease-out) both;
+    }
+}
+@keyframes pane-status-tick {
+    from {
+        stroke-dashoffset: 24;
+    }
+    to {
+        stroke-dashoffset: 0;
+    }
+}
+</style>

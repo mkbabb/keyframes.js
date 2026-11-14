@@ -103,7 +103,7 @@ describe("(3) UIA-KF-110 — the preset tiles never paint the page ground", () =
         expect(cls, "the preset tile class list").toContain("preset-cell");
         expect(cls.split(/\s+/)).not.toContain("bg-background");
         const css = styleOf(src);
-        for (const sel of [".preset-cell", ".preset-cell:hover", '.preset-cell[data-state="on"]']) {
+        for (const sel of [".preset-cell", ".preset-cell:hover", '.preset-cell[aria-checked="true"]']) {
             expect(ruleBody(css, sel), sel).not.toMatch(/var\(--background\)/);
         }
     });
@@ -120,34 +120,17 @@ describe("(4) UIA-KF-307 — the heatmap well is a surface tint, not the page gr
     });
 });
 
-describe("(5) A2-KE-L3-12 + KF-C24-03 — the preset readout never overflows its tile and never breaks at its join", () => {
-    // Re-stated (X-DS r4 pass 5, KF-C24-03; no assertion weakened): A2-KE-L3-12
-    // let the line wrap at its ' · ' join so a coarse phone's unbreakable run no
-    // longer ran into the tile's edge, but the join wrapped in every narrow rail
-    // too (a dangling middot, a three-line tile). The line is now ONE nowrap
-    // run sized to the tile (`min(--type-small, 100cqi / 9.5)`), and below the
-    // fit floor the two values stack on purpose with the middot gone, so it
-    // still never overflows and never breaks inside a quantity.
-    it("the params line is one fitted run; each value keeps its unit; below the floor the values stack without the separator", () => {
+describe("(5) owner-1112 [45] — a preset tile is its name; what it feels like is a glass tooltip", () => {
+    // Supersedes A2-KE-L3-12 + KF-C24-03 (the fitted '0.5 s · ζ 0.86' run):
+    // the owner named that repeated line as clutter ("this UI is a bit
+    // cluttered with text"); the values are already on the sliders above.
+    it("the tile holds the name only, and the blurb rides a glass Tooltip, never a native title", () => {
         const src = sfc("SpringPhysicsFacet.vue");
         const item = src.slice(src.indexOf("<ToggleGroupItem"), src.indexOf("</ToggleGroupItem>"));
-        const line = item.match(/<span class="(preset-values[^"]*)">([\s\S]*?)<\/span><\/span>/);
-        expect(line?.[1], "the params line").toBeTruthy();
-        // KF-CENSUS 2026-11-03 — each value is its own tabular data leaf (the
-        // register census matches the leaf itself, never by descent), and the
-        // join is the run's decoration, not a mono text node.
-        expect(item).toMatch(/<span class="tabular-nums">\{\{\s*t\.preset\.response\s*\}\}\s*s<\/span>/);
-        expect(item).toMatch(/<span class="tabular-nums">ζ\s*\{\{\s*t\.preset\.dampingFraction\s*\}\}<\/span>/);
-        expect(item).not.toMatch(/preset-sep/);
-        const style = src.slice(src.indexOf("<style"));
-        const values = style.match(/\.preset-values\s*\{([^}]*)\}/)?.[1] ?? "";
-        expect(values).toMatch(/white-space:\s*nowrap/);
-        expect(values).toMatch(/font-size:\s*min\(var\(--type-small\),\s*100cqi\s*\/\s*[\d.]+\)/);
-        expect(style).toMatch(/\.preset-cell\s*\{[^}]*container-type:\s*inline-size/);
-        const narrow = style.match(/@container \(inline-size < [\d.]+rem\)\s*\{([\s\S]*?)\n\}/)?.[1] ?? "";
-        expect(narrow).toMatch(/\.preset-values\s*\{[^}]*flex-direction:\s*column/);
-        expect(style).toMatch(/\.preset-values > \* \+ \*::before\s*\{[^}]*content:\s*" · " \/ ""/);
-        expect(narrow).toMatch(/\.preset-values > \* \+ \*::before\s*\{[^}]*content:\s*none/);
+        expect(item).toMatch(/\{\{\s*t\.preset\.name\s*\}\}/);
+        expect(item).not.toMatch(/preset-values|t\.preset\.response|t\.preset\.dampingFraction/);
+        expect(item).not.toMatch(/:title=/);
+        expect(src).toMatch(/<TooltipContent>\{\{\s*t\.preset\.blurb\s*\}\}<\/TooltipContent>/);
         // A wrapped tile and an unwrapped one share a row height (the track's
         // own align-items would otherwise centre the shorter tile).
         const grid = src.match(/class="(preset-grid[^"]*)"/)?.[1] ?? "";
@@ -155,15 +138,37 @@ describe("(5) A2-KE-L3-12 + KF-C24-03 — the preset readout never overflows its
     });
 });
 
-describe("(6) A2-KE-L3-9 — the facet's action rides its section header (glass #actions)", () => {
-    it("the seed action is in a ConfiguratorLayer #actions slot, and no body row holds it", () => {
+describe("(5b) owner-1112 [45] fix round — the parameter's NAME is its explanation's trigger", () => {
+    it("the word is a button inside glass's adaptive hover Popover; the slider track is not a trigger and is named by the word", () => {
+        const src = sfc("SpringPhysicsFacet.vue");
+        const tpl = src.slice(src.indexOf("<template>"), src.lastIndexOf("</template>"));
+        const row = tpl.slice(tpl.indexOf('class="param-row"'), tpl.indexOf("</output>"));
+        // Hover/focus preview on a fine pointer, tap-toggle with tap-away on touch.
+        expect(row).toMatch(/<Popover trigger="hover"/);
+        expect(row).toMatch(/<PopoverTrigger as-child>\s*<button[\s\S]*?class="param-term[\s\S]*?\{\{\s*p\.label\s*\}\}\s*<\/button>\s*<\/PopoverTrigger>/);
+        // The slider sits OUTSIDE the trigger and is labelled by the word.
+        const trigger = row.slice(row.indexOf("<PopoverTrigger"), row.indexOf("</PopoverTrigger>"));
+        expect(trigger).not.toMatch(/<Slider/);
+        expect(row).toMatch(/<Slider[\s\S]*?:aria-labelledby="`\$\{uid\}-\$\{p\.key\}`"/);
+        // Placement: beside the pane on the desktop rail, above the word in the sheet.
+        expect(row).toMatch(/:side="rail \? 'right' : 'top'"/);
+        expect(tpl).not.toMatch(/<TooltipTrigger as-child>\s*<div[\s\S]{0,40}class="param-row"/);
+    });
+});
+
+describe("(6) A2-KE-L3-9 + owner-1112 [46] — the facet's action rides its section header and says what it does", () => {
+    it("the bake action is in a ConfiguratorLayer #actions slot, labelled, and no body row holds it", () => {
         const src = sfc("SpringPhysicsFacet.vue");
         const tpl = src.slice(src.indexOf("<template>"), src.lastIndexOf("</template>"));
         const actions = tpl.match(/<ConfiguratorLayer[\s\S]*?<template #actions>([\s\S]*?)<\/template>/)?.[1] ?? "";
         expect(actions, "a ConfiguratorLayer with an #actions slot").not.toBe("");
-        expect(actions).toMatch(/seedKeyframes\(\)/);
-        const outside = tpl.replace(actions, "");
-        expect(outside).not.toMatch(/seedKeyframes\(\)/);
+        expect(actions).toMatch(/@click\.stop="bakeToKeyframes"/);
+        expect(actions).toMatch(/Bake to keyframes/);
+        expect(tpl.replace(actions, "")).not.toMatch(/bakeToKeyframes|seedKeyframes/);
+        // The handler seeds, confirms with a toast, and offers the undo the seed returns.
+        const script = src.slice(src.indexOf("<script"));
+        expect(script).toMatch(/await demo\.seedKeyframes\(\)/);
+        expect(script).toMatch(/ToastAction[\s\S]*undo\(\)/);
     });
 });
 

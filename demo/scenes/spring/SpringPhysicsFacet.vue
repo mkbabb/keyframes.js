@@ -1,7 +1,7 @@
 <template>
     <!-- THE PHYSICS FACET — the spring facility's additive facet surface
          (`surfacesFor`, T.B2), mounted by SpringScene's `tabsContent` into the
-         channel controls. It is: the two LabeledSlider param rows + the
+         channel controls. It is: the two param rows (term + glass Slider) + the
          parameter-space heatmap + the four canonical presets as clickable
          points — consumed glass components end to end — and one action that
          re-seeds the Sweep channel's keyframes from the physics (those
@@ -56,23 +56,31 @@
                          pane (the dock's Keyframes item), as on every scene. The
                          facet keeps one ACTION: write the current physics into those
                          keyframes (an explicit re-seed, never a reactive overwrite). -->
+                    <!-- owner-1112 [46] "what does this even do" — the action says
+                         what it does (a keyframe glyph and "Bake to keyframes"), the
+                         hover says what it replaces, and a press SHOWS that it ran:
+                         the glyph crossfades to a check for a moment and a toast
+                         names what changed, with Undo (the bake overwrites the
+                         Sweep keyframes, a typed edit included). -->
                     <Tooltip>
                         <TooltipTrigger as-child>
-                            <!-- X-DS pass 2 · KF-C2-07 — a LABELLED quiet button: the
-                                 refresh glyph beside the chevron read as reset (the
-                                 Sequence pane's reset sits in the same seat), and the
-                                 meaning lived only in the tooltip. The visible words
-                                 are inside the accessible name (label-in-name). -->
                             <Button
                                 emphasis="quiet"
                                 size="sm"
-                                aria-label="Write physics to keyframes"
-                                @click.stop="demo.seedKeyframes()"
+                                class="bake-action"
+                                aria-label="Bake to keyframes"
+                                @click.stop="bakeToKeyframes"
                             >
-                                To keyframes
+                                <span class="bake-glyph" :data-done="baked || undefined" aria-hidden="true">
+                                    <Diamond class="icon-sm bake-glyph__rest" />
+                                    <Check class="icon-sm bake-glyph__done" />
+                                </span>
+                                Bake to keyframes
                             </Button>
                         </TooltipTrigger>
-                        <TooltipContent>Write physics to keyframes: replace the Sweep keyframes with stops sampled from this spring</TooltipContent>
+                        <TooltipContent class="max-w-64">
+                            Replaces the Sweep animation's keyframes with {{ SEED_STOP_COUNT }} stops sampled from this spring. You can undo it.
+                        </TooltipContent>
                     </Tooltip>
                     <!-- X-DS pass 16 (KF-C16-07) — a hairline between the action and the
                          layer's collapse chevron, so the pair no longer reads as one
@@ -81,7 +89,7 @@
                 </template>
                 <!-- X.KF.W13V.y (OA-51; DESIGN-NOTE N-2) — the PARAM ROW idiom: the
                      label and the live value share ONE line, the slider spans the
-                     row beneath (the default LabeledSlider stack; the value is an
+                     row beneath (the term-over-slider stack, [45] below; the value is an
                      `<output>` seated on the label's line by the `.param-row` grid,
                      design-idioms.css). The value is the readout — the slider
                      carries no second one; the humane string reaches AT through
@@ -93,32 +101,50 @@
                     :fade-start="!rail?.headed.has('spring-physics')"
                     class="flex min-h-0 scroll-pb-2 flex-col gap-3"
                 >
+                <!-- owner-1112 [45] — each parameter's NAME explains it. The word is
+                     a button and glass's adaptive Popover (`trigger="hover"`): a
+                     hover or keyboard-focus preview on a fine pointer, a tap that
+                     opens and a tap away that closes on touch. Only the word is the
+                     trigger (never the slider track, which is for dragging), and the
+                     explanation stands where it covers no control: on the desktop
+                     rail beside the pane, past its outer edge; in the phone sheet
+                     (full width, no outer side) above the word. The row is glass's
+                     own Slider, named by the word (`aria-labelledby`); the readout
+                     carries the number and unit only. -->
                 <div class="flex flex-col gap-3">
-                    <div class="param-row">
-                        <LabeledSlider
-                            :model-value="demo.response.value"
-                            label="response"
-                            tooltip="Spring response time (s) — higher = slower"
-                            :min="RESPONSE_AXIS.min"
-                            :max="RESPONSE_AXIS.max"
-                            :step="PARAM_STEP"
-                            :value-text="(v: number) => `${v.toFixed(2)} seconds`"
-                            @update:model-value="(v) => { demo.response.value = v; }"
-                        />
-                        <output class="param-value" aria-hidden="true">{{ formatSeconds(demo.response.value) }}</output>
-                    </div>
-                    <div class="param-row">
-                        <LabeledSlider
-                            :model-value="demo.dampingFraction.value"
-                            label="damping"
-                            tooltip="Damping fraction (ζ) — <1 overshoots, ≥1 settles"
-                            :min="DAMPING_AXIS.min"
-                            :max="DAMPING_AXIS.max"
-                            :step="PARAM_STEP"
-                            :value-text="(v: number) => `damping ${v.toFixed(2)}`"
-                            @update:model-value="(v) => { demo.dampingFraction.value = v; }"
-                        />
-                        <output class="param-value" aria-hidden="true">ζ {{ formatNumber(demo.dampingFraction.value) }}</output>
+                    <div v-for="p in PARAMS" :key="p.key" class="param-row">
+                        <div class="param-field">
+                            <Popover trigger="hover" :open-delay="250">
+                                <PopoverTrigger as-child>
+                                    <button
+                                        :id="`${uid}-${p.key}`"
+                                        :ref="(el) => { termEls[p.key] = el as HTMLElement | null; }"
+                                        type="button"
+                                        class="param-term focus-ring"
+                                    >
+                                        {{ p.label }}
+                                    </button>
+                                </PopoverTrigger>
+                                <PopoverContent
+                                    :side="rail ? 'right' : 'top'"
+                                    align="start"
+                                    :side-offset="rail ? outsideOffset(p.key) : 6"
+                                    class="max-w-64 text-small"
+                                >
+                                    {{ p.explanation }}
+                                </PopoverContent>
+                            </Popover>
+                            <Slider
+                                :model-value="[p.model.value]"
+                                :aria-labelledby="`${uid}-${p.key}`"
+                                :min="p.axis.min"
+                                :max="p.axis.max"
+                                :step="PARAM_STEP"
+                                :value-text="p.valueText"
+                                @update:model-value="(v?: number[] | null) => { if (v?.[0] !== undefined) p.model.value = v[0]; }"
+                            />
+                        </div>
+                        <output class="param-value" aria-hidden="true">{{ p.readout(p.model.value) }}</output>
                     </div>
                 </div>
                 <Separator />
@@ -148,39 +174,26 @@
                     :model-value="activePresetName ?? NO_PRESET"
                     @update:model-value="onPresetSelect"
                 >
+                    <!-- owner-1112 [45] — a tile is its NAME: the values it sets are
+                         already on the sliders above (the repeated '0.5 s · ζ 0.86'
+                         line was the clutter he named), and what the preset feels
+                         like is a glass tooltip on hover and focus, not a native
+                         `title`. -->
+                    <Tooltip v-for="t in demo.tracks" :key="t.preset.name">
+                    <TooltipTrigger as-child>
                     <ToggleGroupItem
-                        v-for="t in demo.tracks"
-                        :key="t.preset.name"
                         :value="t.preset.name"
-                        :title="t.preset.blurb"
-                        class="preset-cell w-full min-w-0 flex-col items-start gap-0.5 px-3 py-2 text-start font-normal leading-normal"
+                        class="preset-cell w-full min-w-0 items-center justify-start px-3 py-2 text-start font-normal leading-normal"
                     >
                         <!-- X-DS pass 11 (KF-C11-02) — the weight is the NAME's: the
                              tile sets 400 (the producer item's own weight is 600,
                              which the value line inherited and outranked its label
                              with); the name alone wears font-medium. -->
                         <span class="text-small text-foreground capitalize">{{ t.preset.name }}</span>
-                        <!-- X.KF.W13X.spring (A2-KE-L3-12) — the line breaks BETWEEN
-                             its two quantities, never inside one: at a coarse phone the
-                             unbreakable 'r s · ζ z' ran into the tile's right edge.
-                             X-DS pass 9 (KF-C9-01) — `text-mono-small` is the
-                             case-preserving rung (StartingStyleTarget, KF-SST-5):
-                             `text-mono-caption` is an eyebrow (uppercase, caps
-                             tracking), which printed 's' as 'S' and ζ as Ζ and widened
-                             Snappy's line onto two. The tile is start-aligned (the
-                             producer item centres its text). -->
-                        <!-- X-DS r4 pass 5 (KF-C24-03) — ONE nowrap run fitted to
-                             the tile (`.preset-values`, below): it broke at its
-                             ' · ' join in a narrow rail, a dangling middot ending
-                             line one and the tile three lines tall. Below the fit
-                             floor the two values stack, the middot gone.
-                             KF-CENSUS 2026-11-03 — each value is its OWN tabular
-                             data leaf (T.D4 clause (b), matched by the leaf itself,
-                             never by descent from the run), and the join is the
-                             run's decoration (`.preset-values > * + *::before`),
-                             not a mono text node. -->
-                        <span class="preset-values text-mono-small text-muted-foreground"><span class="tabular-nums">{{ t.preset.response }} s</span><span class="tabular-nums">ζ {{ t.preset.dampingFraction }}</span></span>
                     </ToggleGroupItem>
+                    </TooltipTrigger>
+                    <TooltipContent>{{ t.preset.blurb }}</TooltipContent>
+                    </Tooltip>
                 </ToggleGroup>
                 <Separator />
                 <!-- ── P.W6 S3 — THE PARAMETER FIELD ─────────────────────────────
@@ -200,16 +213,20 @@
 
 <script setup lang="ts">
 import { formatNumber, formatSeconds } from "@utils/formatNumber";
-import { computed, inject } from "vue";
+import { computed, h, inject, onBeforeUnmount, reactive, ref, useId, type Ref } from "vue";
+import { Check, Diamond } from "@lucide/vue";
 import { Separator } from "@mkbabb/glass-ui";
 import { Button } from "@mkbabb/glass-ui/button";
 import { ConfiguratorLayer } from "@mkbabb/glass-ui/configurator";
 import { FadingScroll } from "@mkbabb/glass-ui/fading-scroll";
+import { toast, ToastAction } from "@mkbabb/glass-ui/toast";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@mkbabb/glass-ui/tooltip";
-import { LabeledSlider } from "@mkbabb/glass-ui/labeled-field";
+import { Popover, PopoverContent, PopoverTrigger } from "@mkbabb/glass-ui/popover";
+import { Slider } from "@mkbabb/glass-ui/slider";
 import { ToggleGroup, ToggleGroupItem } from "@mkbabb/glass-ui/toggle-group";
 
 import SpringHeatmap, { DAMPING_AXIS, PARAM_STEP, RESPONSE_AXIS } from "./SpringHeatmap.vue";
+import { SEED_STOPS } from "./useSpringSweepAnimation";
 
 import { FOLD_EDGES_KEY } from "@components/instrument/pane/composables/useFoldLanding";
 import type { SpringDemoContext } from "./springKeys";
@@ -217,6 +234,84 @@ import type { SpringPreset, SpringTrack } from "./useSpringDemo";
 
 const props = defineProps<{ demo: SpringDemoContext }>();
 const demo = props.demo;
+
+// ── owner-1112 [45] — the two parameters, each with the explanation its row's
+// hover and keyboard focus show (what it is, and its range on this control).
+type ParamKey = "response" | "damping";
+interface ParamRow {
+    key: ParamKey;
+    label: string;
+    model: Ref<number>;
+    axis: { min: number; max: number };
+    readout: (v: number) => string;
+    valueText: (v: number) => string;
+    explanation: string;
+}
+const PARAMS: readonly ParamRow[] = [
+    {
+        key: "response",
+        label: "response",
+        model: demo.response,
+        axis: RESPONSE_AXIS,
+        readout: (v: number) => formatSeconds(v),
+        valueText: (v: number) => `${v.toFixed(2)} seconds`,
+        explanation: `Response: the time of one swing, ${formatSeconds(RESPONSE_AXIS.min)} to ${formatSeconds(RESPONSE_AXIS.max)}. Longer is slower and softer.`,
+    },
+    {
+        key: "damping",
+        label: "damping",
+        model: demo.dampingFraction,
+        axis: DAMPING_AXIS,
+        readout: (v: number) => formatNumber(v),
+        valueText: (v: number) => `damping ${v.toFixed(2)}`,
+        explanation: `ζ (zeta), the damping ratio, ${formatNumber(DAMPING_AXIS.min)} to ${formatNumber(DAMPING_AXIS.max)}. At 1 it settles without overshoot; below 1 it rings.`,
+    },
+];
+
+/** The terms' buttons, for the desktop placement: the explanation opens to the
+ *  right of the word by the distance to the pane's outer edge plus a gap, so it
+ *  stands in the gutter beside the rail and covers none of the pane's controls. */
+const uid = useId();
+const termEls = reactive<Record<ParamKey, HTMLElement | null>>({ response: null, damping: null });
+const OUTSIDE_GAP = 12;
+const outsideOffset = (key: ParamKey): number => {
+    const term = termEls[key];
+    const pane = term?.closest<HTMLElement>(".pane-frame");
+    if (!term || !pane) return OUTSIDE_GAP;
+    return Math.max(OUTSIDE_GAP, pane.getBoundingClientRect().right - term.getBoundingClientRect().right + OUTSIDE_GAP);
+};
+
+// ── owner-1112 [46] — Bake to keyframes: the seed, its visible confirmation,
+// and its undo.
+const SEED_STOP_COUNT = SEED_STOPS.length;
+const BAKED_HOLD_MS = 1600;
+const baked = ref(false);
+let bakedTimer: ReturnType<typeof setTimeout> | undefined;
+
+const bakeToKeyframes = async () => {
+    const { stops, undo } = await demo.seedKeyframes();
+    baked.value = true;
+    clearTimeout(bakedTimer);
+    bakedTimer = setTimeout(() => (baked.value = false), BAKED_HOLD_MS);
+    const handle = toast({
+        title: "Sweep keyframes replaced",
+        description: `${stops} stops sampled from this spring (response ${formatSeconds(demo.response.value)}, damping ${formatNumber(demo.dampingFraction.value)}). Edit them in the Keyframes pane.`,
+        tone: "success",
+        action: h(
+            ToastAction,
+            {
+                altText: "Undo: restore the Sweep keyframes",
+                onClick: () => {
+                    undo();
+                    handle.dismiss();
+                    toast({ title: "Sweep keyframes restored" });
+                },
+            },
+            () => "Undo",
+        ),
+    });
+};
+onBeforeUnmount(() => clearTimeout(bakedTimer));
 
 /** The desktop rail's landed port edges: on the rail the facet bounds its body
  *  under its title (KF-C7-01) and its port's fades follow the landing (KF-C25-01,
@@ -329,42 +424,91 @@ const onPresetSelect = (
         outline-color var(--duration-fast) ease,
         background-color var(--duration-fast) ease;
 }
-/* X-DS r4 pass 5 (KF-C24-03) — the value line is one run sized to the tile:
-   `min(--type-small, 100cqi / 9.5)` holds the longest line ('0.35 s · ζ 0.65',
-   fifteen mono advances) on one line, the fit KF-C23-04 gave the easing
-   literal. Below the caption floor (a 7.25rem cell) it stacks the two values
-   on purpose, at full size, and the separator leaves; it never breaks at the
-   join. */
-.preset-cell {
-    container-type: inline-size;
-}
-.preset-values {
-    white-space: nowrap;
-    font-size: min(var(--type-small), 100cqi / 9.5);
-}
-/* The middot join: decoration, out of the accessibility tree (the `/ ""`
-   alternative text), as the aria-hidden span it replaces was. */
-.preset-values > * + *::before {
-    content: " · " / "";
-}
-@container (inline-size < 7.25rem) {
-    .preset-values {
-        display: flex;
-        flex-direction: column;
-        font-size: var(--type-small);
-    }
-    .preset-values > * + *::before {
-        content: none;
-    }
-}
 .preset-cell:hover {
     background: color-mix(in srgb, var(--color-progress) 6%, transparent);
     outline-color: color-mix(in srgb, var(--color-progress) 35%, transparent);
 }
-.preset-cell[data-state="on"] {
+/* owner-1112 [45] — keyed on the radio's own `aria-checked`: the tile is also a
+   glass TooltipTrigger, whose `data-state` (closed / delayed-open) overwrites
+   the toggle item's `data-state="on"` on the same element. */
+.preset-cell[aria-checked="true"] {
     background: color-mix(in srgb, var(--color-progress) 8%, transparent);
     outline-color: color-mix(in srgb, var(--color-progress) 65%, transparent);
     border-color: transparent;
     box-shadow: none;
+}
+
+/* owner-1112 [45] — the param row's field: the term over the full-width
+   slider, at the stacked gap the producer's LabeledField used. The term wears
+   the label register and a dotted underline (the "this word is explained" mark);
+   on hover and while open the underline firms, tweened. */
+.param-field {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-atom);
+}
+.param-field [data-slot="slider"] {
+    width: 100%;
+}
+.param-term {
+    align-self: flex-start;
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-xs, 4px);
+    background: none;
+    color: var(--foreground);
+    font: inherit;
+    font-size: var(--control-label);
+    font-weight: var(--font-weight-medium, 500);
+    line-height: var(--type-small--line-height, 1.5);
+    text-decoration: underline dotted;
+    text-decoration-color: color-mix(in oklab, var(--foreground) 35%, transparent);
+    text-underline-offset: 0.25em;
+    cursor: help;
+    transition: text-decoration-color var(--duration-fast, 150ms) ease;
+}
+.param-term:hover,
+.param-term[data-state="open"],
+.param-term[aria-expanded="true"] {
+    text-decoration-color: currentColor;
+}
+
+/* owner-1112 [46] — the bake's confirmation: the keyframe glyph crossfades to a
+   check and back (both tweened, in and out; under reduced motion the fade is
+   all there is, it never cuts). The two glyphs share one cell, so the label
+   never moves. */
+.bake-glyph {
+    display: inline-grid;
+}
+.bake-glyph > * {
+    grid-area: 1 / 1;
+    transition: opacity var(--duration-normal, 240ms) ease;
+}
+.bake-glyph__done {
+    opacity: 0;
+    color: var(--color-progress);
+}
+.bake-glyph[data-done] .bake-glyph__rest {
+    opacity: 0;
+}
+.bake-glyph[data-done] .bake-glyph__done {
+    opacity: 1;
+}
+/* With motion allowed the two glyphs also swap size, so the check lands with
+   weight; reduced motion keeps the fade alone. */
+@media (prefers-reduced-motion: no-preference) {
+    .bake-glyph > * {
+        transition:
+            opacity var(--duration-normal, 240ms) ease,
+            scale var(--duration-normal, 240ms) var(--ease-cartoon-punch);
+    }
+    .bake-glyph__done,
+    .bake-glyph[data-done] .bake-glyph__rest {
+        scale: 0.6;
+    }
+    .bake-glyph[data-done] .bake-glyph__done {
+        scale: 1;
+    }
 }
 </style>

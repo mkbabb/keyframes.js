@@ -29,14 +29,6 @@ vi.mock("@mkbabb/glass-ui", () => ({
     Card: slotStub("div", "CardStub"),
     CardContent: slotStub("div", "CardContentStub"),
 }));
-vi.mock("@mkbabb/glass-ui/status-dot", () => ({
-    StatusDot: defineComponent({
-        name: "StatusDotStub",
-        props: { state: String, label: String, size: String },
-        setup: (p) => () =>
-            h("span", { "data-stub": "StatusDot", "data-state": p.state, "data-size": p.size, "aria-label": p.label }),
-    }),
-}));
 vi.mock("@mkbabb/glass-ui/card", () => ({
     Card: slotStub("div", "CardStub"),
     CardContent: slotStub("div", "CardContentStub"),
@@ -115,20 +107,23 @@ describe("UIA-KF-275 — the pane's heading and status", () => {
         expect(trigger.attributes("aria-expanded")).toBe("true");
         expect(trigger.find(".configurator-section-label").text()).toBe("Rotations");
 
-        // OD19-K7 — the status is the dot alone (md): no visible word; the
-        // word is the dot's accessible name inside the polite live region.
+        // OD19-K7 + owner-1112 [43] — the status is a header glyph with no
+        // visible word (no standing green disc); the word is the mark's
+        // accessible name inside the polite live region.
         const status = () => region.find('[role="status"]');
-        const said = () => status().find('[data-stub="StatusDot"]').attributes("aria-label");
+        const mark = () => status().find(".pane-status__mark");
+        const said = () => mark().attributes("aria-label");
         expect(status().attributes("aria-live")).toBe("polite");
         expect(status().text()).toBe("");
-        expect(status().find('[data-stub="StatusDot"]').attributes("data-size")).toBe("md");
+        expect(mark().attributes("role")).toBe("img");
         expect(said()).toBe("Parsed");
-        expect(status().find('[data-stub="StatusDot"]').attributes("data-state")).toBe("success");
+        expect(mark().attributes("data-state")).toBe("success");
+        expect(mark().find("svg").exists()).toBe(true);
 
         // A refused edit says so beside the buffer.
         editor.vm.$emit("update:modelValue", "@");
         await vi.waitFor(() => expect(said()).toBe("Parse error"), { timeout: 20_000 });
-        expect(status().find('[data-stub="StatusDot"]').attributes("data-state")).toBe("error");
+        expect(mark().attributes("data-state")).toBe("error");
 
         // Applied outranks the parse state.
         const seat = wrapper.vm as unknown as PaneSeat;
@@ -157,7 +152,7 @@ describe("UIA-KF-275 — the pane's heading and status", () => {
         const trigger = region.find('[data-slot="configurator-layer-trigger"]');
         await trigger.trigger("click");
         expect(trigger.attributes("aria-expanded")).toBe("false");
-        expect(region.find('[role="status"] [data-stub="StatusDot"]').attributes("aria-label")).toBe("Parsed");
+        expect(region.find('[role="status"] .pane-status__mark').attributes("aria-label")).toBe("Parsed");
         wrapper.unmount();
     });
 });

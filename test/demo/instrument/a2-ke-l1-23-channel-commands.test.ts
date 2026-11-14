@@ -12,6 +12,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp, defineComponent, h, nextTick, reactive } from "vue";
 import * as transportKeys from "../../../demo/components/instrument/transport/injectionKeys";
 import RibbonBar from "@components/instrument/pane/RibbonBar.vue";
+import { TooltipProvider } from "@mkbabb/glass-ui/tooltip";
 import type { StoredAnimationGroupControlOptions } from "@state";
 
 const mounted: { unmount: () => void; el: HTMLElement }[] = [];
@@ -69,7 +70,8 @@ describe("A2-KE-L1-23 — one typed command seat for the selected channel", () =
         const el = document.createElement("div");
         document.body.appendChild(el);
         const app = createApp(
-            defineComponent({ render: () => h(RibbonBar, { storedControls }) }),
+            // The app mounts every surface under glass's TooltipProvider.
+            defineComponent({ render: () => h(TooltipProvider, null, { default: () => h(RibbonBar, { storedControls }) }) }),
         );
         app.provide(transportKeys.CHANNEL_COMMANDS_KEY, seat);
         app.mount(el);

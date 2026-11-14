@@ -101,11 +101,19 @@
                                  chevron by its own `px-3`, and the easing
                                  field's pencil sits there too, so the row ends
                                  `pe-3` and every trailing glyph shares one
-                                 column inside the pane's one edge. -->
+                                 column inside the pane's one edge.
+                                 owner-1112 [41] "padding … is not correct, not
+                                 rounded" — the `ps-0` above put the word flush on
+                                 the hover plate's left edge (the chevron kept its
+                                 inset). The plate now has the same inset both
+                                 sides and OUTSETS by it, so the word and
+                                 the chevron stay on their columns while the plate
+                                 around them is padded; its corner is the fields'
+                                 own (the stadium the triggers above wear); `.layer-entry` below. -->
                             <Button
                                 ref="layerEntryEl"
                                 emphasis="quiet"
-                                class="w-full justify-between gap-2 ps-0 pe-3 text-[length:var(--control-label)] [--button-quiet-ink:var(--foreground)]"
+                                class="layer-entry justify-between gap-2 ps-3 pe-6 text-[length:var(--control-label)] [--button-quiet-ink:var(--foreground)]"
                                 :aria-expanded="stack.isOpen('layer')"
                                 :aria-controls="layerPaneId"
                                 @click="openLayer"
@@ -365,6 +373,19 @@ const onEasingPick = (name: string): void => {
 </script>
 
 <style scoped>
+/* owner-1112 [41] — the layer row's plate is inset 0.75rem both sides and
+   outsets by that inset, so the word and the chevron stay on the label and
+   glyph columns while the plate around them is padded. Stated here, not as
+   utilities: the row must span its column plus both insets at every width, a
+   block-level box whatever display the producer's Button sets. */
+.layer-entry {
+    display: flex;
+    inline-size: calc(100% + 1.5rem);
+    margin-inline: -0.75rem;
+    /* A stadium: glass 11's `--radius-pill` is 1rem, which on this ~40 px row
+       drew the soft rectangle he called "not rounded". */
+    border-radius: 9999px;
+}
 /* The drill-in rows: each pane in its own row, collapsing through
    `grid-template-rows` 0fr ↔ 1fr (ALREADY-SOTA — KEEP display:grid). */
 .panel-row {

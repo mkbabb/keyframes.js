@@ -13,6 +13,7 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { createApp, h, reactive } from "vue";
 import RibbonBar from "@components/instrument/pane/RibbonBar.vue";
+import { TooltipProvider } from "@mkbabb/glass-ui/tooltip";
 
 const mounted: { unmount: () => void; el: HTMLElement }[] = [];
 afterEach(() => {
@@ -27,9 +28,10 @@ function mountKeyframesRibbon() {
     document.body.appendChild(el);
     const storedControls = reactive({ selectedControl: "keyframes", selectedAnimation: "a" });
     const app = createApp({
+        // The app mounts every surface under glass's TooltipProvider.
         render: () =>
-            h(RibbonBar, {
-                storedControls: storedControls as never,
+            h(TooltipProvider, null, {
+                default: () => h(RibbonBar, { storedControls: storedControls as never }),
             }),
     });
     app.mount(el);
@@ -37,39 +39,32 @@ function mountKeyframesRibbon() {
     return [...el.querySelectorAll("button")];
 }
 
-describe("UIA-KF-319 — the Keyframes ribbon hierarchy", () => {
-    it("Apply CSS leads the row, labelled", () => {
+describe("UIA-KF-319 + owner-1112 [42] — the Keyframes ribbon is a centred glass dock with a hierarchy", () => {
+    it("the four verbs sit in one never-folding glass dock, centred in the ribbon", () => {
+        mountKeyframesRibbon();
+        const row = document.querySelector(".ribbon-dock");
+        expect(row, "the ribbon's dock row").not.toBeNull();
+        expect(row!.classList.contains("justify-center")).toBe(true);
+        const dock = row!.querySelector(".glass-dock, [data-slot='dock'], [class*='dock']");
+        expect(dock, "a glass dock").not.toBeNull();
+    });
+
+    it("Apply CSS leads, labelled, and is a toggle (aria-pressed)", () => {
         const buttons = mountKeyframesRibbon();
         expect(buttons).toHaveLength(4);
         expect(buttons[0]?.textContent?.trim()).toBe("Apply CSS");
-        expect(buttons[0]?.hasAttribute("data-icon-only")).toBe(false);
+        expect(buttons[0]?.getAttribute("aria-pressed")).toBe("false");
     });
 
-    // X-DS pass 4 (KF-C4-12) — the secondaries are quiet and labelled: each
-    // shows a short word that its accessible name contains (label-in-name),
-    // and none wears the icon-only capsule.
-    it("Copy, Format and Export CSS are quiet labelled commands", () => {
+    // In the dock the three commands are glyph seats (four glyph-and-word
+    // seats overflowed the ~360 px rail); each keeps its accessible name and
+    // says its word in a glass tooltip.
+    it("Copy, Format and Compiled are named glyph seats", () => {
         const buttons = mountKeyframesRibbon().slice(1);
         expect(buttons.map((b) => b.getAttribute("aria-label"))).toEqual(["Copy keyframes", "Format", "Copy compiled CSS"]);
-        expect(buttons.map((b) => b.textContent?.trim())).toEqual(["Copy", "Format", "Compiled"]);
         for (const b of buttons) {
-            expect(b.hasAttribute("data-icon-only")).toBe(false);
-            expect(b.getAttribute("data-emphasis")).toBe("quiet");
-            expect(b.getAttribute("aria-label")!.toLowerCase()).toContain(b.textContent!.trim().toLowerCase());
-        }
-    });
-
-    // X-DS r7 pass 16 (KF-C16-02) → r9 pass 14 (KF-C14-02) — the three quiet
-    // verbs follow ONE rule, and it is now "always words": the 29rem yield was
-    // the row's one-line width, which the rail never reaches, so all three
-    // were bare glyphs at every served width. Each shows its word, wears no
-    // glyph, and hides nothing behind a container query.
-    it("Copy, Format and Compiled keep their words at every width, glyph-free", () => {
-        const buttons = mountKeyframesRibbon().slice(1);
-        for (const b of buttons) {
-            expect(b.querySelector("svg")).toBeNull();
-            expect(b.querySelector("[class*='sr-only']")).toBeNull();
-            expect(b.textContent?.trim().length).toBeGreaterThan(0);
+            expect(b.querySelector("svg"), "a glyph").not.toBeNull();
+            expect(b.textContent?.trim()).toBe("");
         }
     });
 });

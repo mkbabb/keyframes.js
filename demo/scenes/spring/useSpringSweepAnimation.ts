@@ -4,6 +4,9 @@ import { kfEngine } from "@kf-engine";
 import { springTimingFunction } from "@mkbabb/keyframes.js";
 import { SPRING_SCENE_ID } from "./springKeys";
 
+/** The progress points the seed samples the spring at (one keyframe each). */
+export const SEED_STOPS = [0, 0.25, 0.5, 0.75, 1] as const;
+
 /**
  * The Sweep channel's animation — a REAL `CSSKeyframesAnimation` seeded from the
  * spring curve at the current params (`useSpringDemo` owns the live physics and
@@ -37,8 +40,7 @@ export function useSpringSweepAnimation(
             response: response(),
             dampingFraction: dampingFraction(),
         });
-        const stops = [0, 0.25, 0.5, 0.75, 1];
-        const rows = stops.map((t) => {
+        const rows = SEED_STOPS.map((t) => {
             const v = easing.fn(t);
             const pct = Math.round(t * 100);
             return `    ${pct}% { transform: translateX(${(v * 100).toFixed(2)}%); }`;
@@ -57,12 +59,29 @@ export function useSpringSweepAnimation(
     springEditAnim.name = "Spring Keyframes";
     springEditAnim.superKey = SPRING_SCENE_ID;
 
+    const SPRING_KEYFRAMES_NAME = "spring";
+
     /** Explicit re-seed of the Sweep keyframes from the current spring params
      *  (the Physics facet's action — NOT a reactive overwrite). After this the
-     *  shared Keyframes pane is authoritative again until the next re-seed. */
-    const seedKeyframes = (): void => {
+     *  shared Keyframes pane is authoritative again until the next re-seed.
+     *
+     *  owner-1112 [46] — the seed OVERWRITES whatever the Sweep keyframes held
+     *  (a typed edit included), so it hands back its own undo: the keyframes as
+     *  they stood, serialized through the library's own round-trip emitter
+     *  before the overwrite, and re-parsed on undo. Resolves to the count of
+     *  stops written (the facet's confirmation names it). */
+    const seedKeyframes = async (): Promise<{ stops: number; undo: () => void }> => {
+        const { CSSKeyframesToString } = kfEngine();
+        const prior = await CSSKeyframesToString(springEditAnim, SPRING_KEYFRAMES_NAME);
         springEditAnim.fromString(buildSpringKeyframesCSS());
         springEditAnim.parse();
+        return {
+            stops: SEED_STOPS.length,
+            undo: () => {
+                springEditAnim.fromString(prior);
+                springEditAnim.parse();
+            },
+        };
     };
 
     return { springEditAnim, seedKeyframes };
