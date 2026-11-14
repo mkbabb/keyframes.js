@@ -521,7 +521,7 @@ describe("X.KF.W11.f (5b) — the facet: trackless preset tiles; the presets are
         const style = src.slice(src.indexOf("<style scoped>"));
         expect(style).not.toContain("!important");
         expect(style).toMatch(/\.preset-cell:hover\s*\{[^}]*var\(--color-progress\) 6%/);
-        expect(style).toMatch(/\.preset-cell\[data-state="on"\]\s*\{[^}]*var\(--color-progress\) 8%/);
+        expect(style).toMatch(/\.preset-cell\[aria-checked="true"\]\s*\{[^}]*var\(--color-progress\) 8%/);
         expect(src).not.toContain("spring-pane");
     });
 

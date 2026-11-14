@@ -103,7 +103,7 @@ describe("(3) UIA-KF-110 — the preset tiles never paint the page ground", () =
         expect(cls, "the preset tile class list").toContain("preset-cell");
         expect(cls.split(/\s+/)).not.toContain("bg-background");
         const css = styleOf(src);
-        for (const sel of [".preset-cell", ".preset-cell:hover", '.preset-cell[data-state="on"]']) {
+        for (const sel of [".preset-cell", ".preset-cell:hover", '.preset-cell[aria-checked="true"]']) {
             expect(ruleBody(css, sel), sel).not.toMatch(/var\(--background\)/);
         }
     });

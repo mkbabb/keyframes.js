@@ -409,7 +409,10 @@ const onPresetSelect = (
     background: color-mix(in srgb, var(--color-progress) 6%, transparent);
     outline-color: color-mix(in srgb, var(--color-progress) 35%, transparent);
 }
-.preset-cell[data-state="on"] {
+/* owner-1112 [45] — keyed on the radio's own `aria-checked`: the tile is also a
+   glass TooltipTrigger, whose `data-state` (closed / delayed-open) overwrites
+   the toggle item's `data-state="on"` on the same element. */
+.preset-cell[aria-checked="true"] {
     background: color-mix(in srgb, var(--color-progress) 8%, transparent);
     outline-color: color-mix(in srgb, var(--color-progress) 65%, transparent);
     border-color: transparent;
