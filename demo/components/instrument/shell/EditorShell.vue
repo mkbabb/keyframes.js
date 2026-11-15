@@ -1,6 +1,12 @@
 <template>
+    <!-- LAST-TEN KF-04 — the shell CLIPS, it never scrolls: `overflow-clip`,
+         not `overflow-hidden`. A hidden box is still a scroll container, so a
+         focus or a scroll-into-view of a control past its edge (the Layer
+         sub-pane's Back, mid-drill) scrolled the whole app 78 px left and
+         124 px up and left it there. A clip box is not a scroll container:
+         nothing inside can move the page. -->
     <div
-        class="editor-shell relative grid h-dvh max-h-dvh w-dvw overflow-hidden place-items-center bg-background"
+        class="editor-shell relative grid h-dvh max-h-dvh w-dvw overflow-clip place-items-center bg-background"
     >
         <!-- T.D13 (OD-2) — the ambient-backdrop seam. DOM-ordered BEFORE the
              grid-background so a host-supplied wash (the home hero's Aurora)

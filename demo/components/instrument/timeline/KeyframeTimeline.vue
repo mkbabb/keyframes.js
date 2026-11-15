@@ -689,7 +689,7 @@ watch(
         if (!scene || scene.count === 0 || scene === prev) return;
         if (state.value.keyframes.length !== 0) return;
         try {
-            await importCSS(scene.css);
+            await importCSS(scene.css, { quiet: true });
         } catch (e) {
             console.warn("keyframes: the scene's @keyframes did not import", e);
         }

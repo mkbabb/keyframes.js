@@ -390,7 +390,10 @@ const onEasingPick = (name: string): void => {
    `grid-template-rows` 0fr ↔ 1fr (ALREADY-SOTA — KEEP display:grid). */
 .panel-row {
     display: grid;
-    transition: grid-template-rows var(--duration-normal) var(--ease-standard);
+    /* LAST-TEN KF-17 / KF-26 — a disclosure, on glass's disclosure spring
+       (`--spring-present`), not 300 ms on the standard bezier. */
+    --drill-clock: var(--spring-present-duration);
+    transition: grid-template-rows var(--drill-clock) var(--spring-present);
 }
 .panel-row--active {
     grid-template-rows: 1fr;
@@ -399,7 +402,9 @@ const onEasingPick = (name: string): void => {
     grid-template-rows: 0fr;
 }
 .panel-content {
-    overflow: hidden;
+    /* LAST-TEN KF-04 — a clip, not a scroll container: a focus or a
+       scroll-into-view inside a row that is still opening cannot scroll it. */
+    overflow: clip;
     min-height: 0;
     /* X-DS pass 15 (KF-C19-02) — the inset is the focus ring's FULL reach, read
        from glass's ring token: glass draws a ring `--focus-ring-width` wide at
@@ -435,6 +440,10 @@ const onEasingPick = (name: string): void => {
 .panel-row--sub.panel-row--active > .panel-content {
     padding-block: calc(0.75rem + var(--panel-ring-reach)) calc(0.5rem + var(--panel-ring-reach));
 }
+/* LAST-TEN KF-17 — the block inset opens and closes WITH its row, on the
+   row's clock (the sub-rows' transitions below): it was set in one frame, the
+   drill's first frame stepping 20 px (0.75rem + 0.5rem) before the row had
+   moved. */
 /* X.KF.W13X.controls · KFA-209 — a cross-fade, not a double exposure: the
    leaving pane's fade finishes in the first 40 % of the row window, and the
    arriving pane's fade starts there (the two used to share one 300 ms window,
@@ -442,13 +451,23 @@ const onEasingPick = (name: string): void => {
 .panel-row--inactive > .panel-content {
     opacity: 0;
     pointer-events: none;
-    transition: opacity calc(var(--duration-normal) * 0.4) var(--ease-standard);
+    transition: opacity calc(var(--drill-clock) * 0.4) var(--ease-out);
 }
 .panel-row--active > .panel-content {
     opacity: 1;
     pointer-events: auto;
-    transition: opacity calc(var(--duration-normal) * 0.6) var(--ease-standard)
-        calc(var(--duration-normal) * 0.4);
+    transition: opacity calc(var(--drill-clock) * 0.6) var(--ease-out)
+        calc(var(--drill-clock) * 0.4);
+}
+.panel-row--sub.panel-row--inactive > .panel-content {
+    transition:
+        opacity calc(var(--drill-clock) * 0.4) var(--ease-out),
+        padding-block var(--drill-clock) var(--spring-present);
+}
+.panel-row--sub.panel-row--active > .panel-content {
+    transition:
+        opacity calc(var(--drill-clock) * 0.6) var(--ease-out) calc(var(--drill-clock) * 0.4),
+        padding-block var(--drill-clock) var(--spring-present);
 }
 /* UIA-KF-036 · A2-KE-X-6 — the editor's BODY is the scroller, capped so the
    curve never shifts the page (J.W7b STY-2: `dvh`, the real visible height on
@@ -493,11 +512,16 @@ const onEasingPick = (name: string): void => {
         --picker-cap: max(15rem, calc(var(--rail-block, 100dvh) - 25.5rem));
     }
 }
+/* Reduced motion: nothing moves (the row and its inset take their size at
+   once), and the panes still cross-fade (LAST-TEN, the motion law: a fade,
+   never a cut). */
 @media (prefers-reduced-motion: reduce) {
-    .panel-row,
-    .panel-row > .panel-content {
+    .panel-row {
         transition-duration: 0s;
-        transition-delay: 0s;
+    }
+    .panel-row--sub.panel-row--active > .panel-content,
+    .panel-row--sub.panel-row--inactive > .panel-content {
+        transition-property: opacity;
     }
 }
 </style>

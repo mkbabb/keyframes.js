@@ -31,6 +31,23 @@
     perspective: 1200px;
 }
 
+/* LAST-TEN KF-15 / KF-24 — THE DIE IS THE SWAP'S ONE SHARED ELEMENT. Home and
+   the Cube scene mount the same die in different places (the hero's rung and
+   column; the scene's, beside the opened rail), and inside the route window's
+   cross-fade both were drawn at once and the die arrived at its scene place in
+   one frame (364 px). Named while a transition runs, the die (its perspective
+   root, so the capture keeps its depth) leaves the window's snapshot and
+   travels between the two boxes on its own group: glass's list-item grammar
+   (`gl-list-item`: the group morph; a die with no partner fades and rises on
+   glass's own slide), on the route's lateral clock (`--vt-duration` /
+   `--vt-ease`, set on the root for the transition: App.vue). Named only while
+   a transition runs, as the scene host and the docks are (a standing name is
+   a backdrop root). */
+:root:active-view-transition .graph {
+    view-transition-name: kf-subject;
+    view-transition-class: gl-list-item;
+}
+
 /* EASTER EGG — "the Roll" (H.W12.S6): while the die tumbles, the cube ignores
    pointer input so a stray drag mid-roll cannot fight the spring; the engine
    owns the rotation for the ~1s tumble, then hands control back. Isomorphic —

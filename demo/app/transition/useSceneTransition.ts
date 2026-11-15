@@ -30,9 +30,9 @@ import { allScenes, loadScene, prepareScene, warmScenesAtIdle } from "../scene/s
  * cross-dissolve from the source scene to the destination scene, whole:
  *   1. BEFORE the transition starts, the destination chunk is resolved
  *      (`loadScene`; every chunk is also warmed at idle after first paint) and
- *      any overlay mid-exit (the Scene Select the pick just closed) is taken
- *      out in one frame — so the old-state capture carries no popover, and no
- *      ghost rows linger over the new scene.
+ *      any overlay mid-exit (the Scene Select the pick just closed) finishes
+ *      its own exit fade (LAST-TEN KF-16) — so the old-state capture carries
+ *      no popover, and no ghost rows linger over the new scene.
  *   2. The update callback mutates the scene id and then AWAITS the scene's
  *      commit point (`whenSceneReady`: the new scene bound, the chrome flipped
  *      with it) — so the new-state capture is the resolved scene, never the
@@ -135,18 +135,23 @@ export function routeDirection(from: string, to: string): -1 | 0 | 1 {
 }
 
 /**
- * KFA-26 / KFA-201 — take every overlay that is mid-exit out of the old-state
- * capture in ONE frame. A pick closes its Select in the same event that asks
- * for the switch; one frame later the closing content carries reka's
- * `data-state="closed"` and starts its exit animation. The cross-dissolve
- * about to start IS that content's exit, so its own exit animation is
- * finished at once (not awaited: awaiting it held the swap ~300 ms,
- * OD19 KF-P4): `finish()` fires `animationend`, the presence unmounts the
- * content, and the capture carries no popover, so no ghost rows dissolve over
- * the new scene. An infinite animation is not an exit and is left alone.
+ * KFA-26 / KFA-201 — no overlay that is mid-exit rides into the old-state
+ * capture. A pick closes its Select in the same event that asks for the
+ * switch; one frame later the closing content carries reka's
+ * `data-state="closed"` and starts its exit animation.
+ *
+ * LAST-TEN KF-16 — that exit now PLAYS OUT, and the swap waits for it. It
+ * used to be `finish()`ed (KFA-201: awaiting it held the swap ~300 ms, OD19
+ * KF-P4), which removed the list at full opacity in the frame the swap began:
+ * the one pick on the site whose list did not fade. The exit is glass's short
+ * close (its `--duration-control`-class reveal-out), and the destination
+ * chunk resolves beside it (`Promise.allSettled` in `runSceneSwitch`), so the
+ * wait is the list's own fade and no more. An infinite animation is not an
+ * exit and is left alone; a paused one cannot hold the swap (it is finished).
  */
 async function settleClosingOverlays(): Promise<void> {
     await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    const exits: Promise<unknown>[] = [];
     for (const a of document.getAnimations()) {
         const target = (a.effect as KeyframeEffect | null)?.target;
         if (
@@ -154,8 +159,10 @@ async function settleClosingOverlays(): Promise<void> {
             target.closest('[data-state="closed"]') !== null &&
             a.effect?.getComputedTiming().endTime !== Infinity
         ) {
-            a.finish();
+            if (a.playState === "paused") a.finish();
+            else exits.push(a.finished.catch(() => undefined));
         }
     }
+    await Promise.all(exits);
     await nextTick();
 }

@@ -57,7 +57,7 @@
             @mouseleave="paneMouseLeave"
             :class="[
                 'controls-pane group/controls min-w-0',
-                paneScrollable ? 'overflow-y-auto' : 'overflow-hidden',
+                paneScrollable ? 'overflow-y-auto' : 'overflow-clip',
             ]"
         >
             <div class="controls-content h-full flex flex-col">

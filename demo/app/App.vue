@@ -499,6 +499,17 @@ const { sceneSwapStyle, onSceneFallback, onSceneResolve } = useSceneSwap(
 :root:active-view-transition .scene-host {
     view-transition-name: gl-route-window;
 }
+/* LAST-TEN KF-15 / KF-24 — the shared elements of a scene swap (the die,
+   CubeTarget.css; the two dock pills below) travel on the ROUTE's lateral
+   clock, the clock the window itself slides on, not on the UA's 250 ms
+   `ease`: glass's list-item grammar reads `--vt-duration` / `--vt-ease`, and
+   the view-transition pseudo-elements inherit them from the root. `:global`:
+   a scoped `:root` selector carries this file's attribute and matches no
+   root. */
+:global(:root:active-view-transition) {
+    --vt-duration: var(--route-lateral-clock);
+    --vt-ease: var(--route-lateral-spring);
+}
 
 /* X.KF.W13W.m (OA-64) · KF-M1 — below lg the stage sits on the page gutter at
    ONE place: the mobile `.stage-cell` (AnimationControlsGroup.css), whose

@@ -90,6 +90,7 @@
         <DialogContent
             scroll
             class="max-w-md md:w-full md:max-w-2xl"
+            @close-auto-focus="(event: Event) => emit('closeAutoFocus', event)"
             @interact-outside="
                 (event) => {
                     if (isInsideToaster(event.target))
@@ -346,6 +347,8 @@ import { isInsideToaster } from "@utils/toastGuard";
 import { groupShortcuts } from "./groupShortcuts";
 
 const open = defineModel<boolean>('open', { required: true });
+// LAST-TEN KF-05 — the close's focus return is the opener's to name (MbabbMenu).
+const emit = defineEmits<{ (e: "closeAutoFocus", event: Event): void }>();
 
 const shortcuts = useRegisteredShortcuts();
 

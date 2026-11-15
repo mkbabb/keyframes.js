@@ -43,7 +43,7 @@
             semantics="toggle"
             class="catalogue-filter"
             :options="familyOptions"
-            :model-value="family"
+            :model-value="familyPick"
             :responsive="filterResponsive"
             aria-label="Filter curves by family"
             @update:model-value="onFamilyChange"
@@ -157,10 +157,19 @@
     </div>
 </template>
 
+<script lang="ts">
+/** LAST-TEN KF-07 — where each stage catalogue was left (its filter and its
+ *  drawer's scroll), keyed by its accessible name, so a scene that unmounts
+ *  and comes back (browser Back, a return through the dock) opens where the
+ *  visitor left it, not at the top. Memory only: a reload starts fresh. */
+const remembered = new Map<string, { family: string; top: number }>();
+</script>
+
 <script setup lang="ts">
 import {
     computed,
     nextTick,
+    onBeforeUnmount,
     onMounted,
     onScopeDispose,
     ref,
@@ -225,7 +234,12 @@ const familyOptions = computed<SegmentedTabOption[]>(() =>
         value: f,
     })),
 );
-const family = ref(ALL);
+// KF-07 — the stage catalogue reopens on the family it was left on.
+const restore = props.density === "stage" ? remembered.get(props.label) : undefined;
+const family = ref(restore?.family ?? ALL);
+/** KF-19 — the filter's own state answers the press at once; `family` (the
+ *  rows shown) follows once the grid has faded out. */
+const familyPick = ref(family.value);
 /** KF-C22-01 — where the strip is a strip. The stage keeps it from lg up (the
  *  stage header's own breakpoint); the popover never does: glass's collapse
  *  reads the viewport, and the menu is narrow at every viewport, so its
@@ -473,7 +487,7 @@ const landTop = () => {
 // rendered): a tile a pick or a focus scroll brings on screen renders at its
 // real size a few frames later, and the rows move with it. The top lands once
 // the drawer's content height has held for two frames (at most half a second).
-const landTopSettled = () => {
+const whenDrawerSettled = (then: (drawer: HTMLElement) => void) => {
     let last = -1;
     let held = 0;
     let frames = 0;
@@ -482,11 +496,12 @@ const landTopSettled = () => {
         if (!(drawer instanceof HTMLElement)) return;
         held = drawer.scrollHeight === last ? held + 1 : 0;
         last = drawer.scrollHeight;
-        if (held >= 2 || ++frames > 30) landTop();
+        if (held >= 2 || ++frames > 30) then(drawer);
         else requestAnimationFrame(tick);
     };
     requestAnimationFrame(tick);
 };
+const landTopSettled = () => whenDrawerSettled(() => landTop());
 // KF-C8-05 — end room is sized against the port it was measured in; the
 // port changes height after a pick (the header's name swaps out-in, and its
 // literal line with it), so a rest that holds end room is re-landed when the
@@ -504,12 +519,33 @@ const landDrawerEdges = () => {
     landTopSettled();
 };
 
+// KF-07 — a remembered drawer is put back where it was left (once its rows
+// have their rendered heights), and the mount's own landing stands down: the
+// visitor's scroll is the rest. The fold is still landed on it.
+let restoring = restore !== undefined;
+/** The visitor has changed the rows or the pick since the restore. */
+let visitorMoved = false;
+const restoreDrawer = () =>
+    whenDrawerSettled((drawer) => {
+        drawer.scrollTop = restore!.top;
+        restoring = false;
+        landDrawer();
+    });
+onBeforeUnmount(() => {
+    const drawer = drawerEl.value?.$el;
+    if (props.density !== "stage" || !(drawer instanceof HTMLElement)) return;
+    remembered.set(props.label, { family: family.value, top: drawer.scrollTop });
+});
+
 onMounted(() => {
     measureStrip();
-    landDrawerEdges();
+    if (restoring) restoreDrawer();
+    else landDrawerEdges();
     void document.fonts?.ready.then(() => {
         measureStrip();
-        landDrawerEdges();
+        if (restoring) return;
+        if (restore === undefined) landDrawerEdges();
+        else landDrawer();
     });
     // X-DS r9 pass 7 (KF-C7-02) — and once the scene's entrance has run. The
     // stage arrives in motion (a transform the engine writes per frame), which
@@ -533,8 +569,51 @@ onMounted(() => {
     };
     requestAnimationFrame(settle);
 });
-const onFamilyChange = (v: string) => {
+// LAST-TEN KF-19 — a filter pick is a cross-fade, never a one-frame re-flow:
+// the grid fades out on glass's control clock, the rows swap while it is
+// clear, and the new rows fade in on the menu clock (both on `--ease-out`).
+// A pick mid-fade supersedes the one before it. Under reduced motion it is the
+// same fade (the motion law: a fade, never a cut); nothing moves either way.
+let filterSwap = 0;
+let swapping = false;
+const tokenMs = (name: string, fallback: number): number => {
+    const raw = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    const n = Number.parseFloat(raw);
+    return Number.isFinite(n) ? (raw.endsWith("ms") ? n : n * 1000) : fallback;
+};
+const onFamilyChange = async (v: string) => {
+    familyPick.value = v;
+    if (v === family.value && !swapping) return;
+    const group = (drawerEl.value?.$el as HTMLElement | undefined)?.querySelector<HTMLElement>(
+        ".specimen-grid-group",
+    );
+    const swap = ++filterSwap;
+    if (!group?.animate) {
+        family.value = v;
+        return;
+    }
+    swapping = true;
+    const easing =
+        getComputedStyle(document.documentElement).getPropertyValue("--ease-out").trim() || "ease-out";
+    const from = Number.parseFloat(getComputedStyle(group).opacity) || 0;
+    for (const a of group.getAnimations()) a.cancel();
+    await group
+        .animate([{ opacity: from }, { opacity: 0 }], {
+            duration: tokenMs("--duration-control", 120) * from,
+            easing,
+            fill: "forwards",
+        })
+        .finished.catch(() => undefined);
+    if (swap !== filterSwap) return;
     family.value = v;
+    await nextTick();
+    if (swap !== filterSwap) return;
+    swapping = false;
+    for (const a of group.getAnimations()) a.cancel();
+    group.animate([{ opacity: 0 }, { opacity: 1 }], {
+        duration: tokenMs("--duration-fast", 200),
+        easing,
+    });
 };
 const visibleGroups = computed(() =>
     family.value === ALL
@@ -542,8 +621,29 @@ const visibleGroups = computed(() =>
         : props.groups.filter((g) => g.family === family.value),
 );
 // The drawer's rows change with the filter (and its own top with the strip).
-watch([visibleGroups, filterIsStrip], landDrawerEdges, { flush: "post" });
-watch(() => props.modelValue, landTopSettled, { flush: "post" });
+// KF-07 — on a restored drawer the strip settling (fonts, measure) is no
+// reason to move the visitor's rest: only the fold is landed again until the
+// rows themselves change (a family pick) or a curve is picked.
+watch(
+    [visibleGroups, filterIsStrip],
+    ([groups], [prevGroups]) => {
+        if (restore !== undefined && groups === prevGroups && !visitorMoved) {
+            if (!restoring) landDrawer();
+            return;
+        }
+        visitorMoved = true;
+        landDrawerEdges();
+    },
+    { flush: "post" },
+);
+watch(
+    () => props.modelValue,
+    () => {
+        visitorMoved = true;
+        landTopSettled();
+    },
+    { flush: "post" },
+);
 
 // ── Selection: the tile press IS the curve pick ─────────────────────
 // Single-select, never empty: the deselect toggle (pressing the pressed tile)
