@@ -110,20 +110,6 @@
     color: var(--accent-kf-strong);
 }
 
-/* D-12 (X.KF.W13.b) — the demo-side STOPGAP for the scrub rail under forced
-   colors: the producer Slider's focus affordance is box-shadow-only (dropped in
-   forced-colors mode) and its thumb declares `outline: none`, so the
-   focused thumb showed no system focus ring. The demo-OWNED wrapper (`.scrub-rail`,
-   PlaybackRibbon.vue) draws a Highlight outline while the thumb inside it has
-   focus — no producer selector is reached. The producer half (a forced-colors
-   selector on the Slider itself) rides the BH relay (kf-PlaybackRibbon (c)). */
-@media (forced-colors: active) {
-    .scrub-rail:focus-within {
-        outline: 2px solid Highlight;
-        outline-offset: 2px;
-    }
-}
-
 /* ── X-DS pass 1 (KF-P1-01) — the ball-preview eye, seated beside Reverse in
    the ribbon's transport row (it floated over the preview's corner). C1
    (KF-C1-03): it is glass's quiet Button and does not wear `.btn-playback`
