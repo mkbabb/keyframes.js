@@ -172,7 +172,7 @@ describe("G-KFW13-1 — the dock is held by the MENU, not by a prop from the App
             await activate(trigger);
             expect(dock.vm.isHeld).toBe(true);
 
-            vi.advanceTimersByTime(4_000);
+            vi.advanceTimersByTime(7_000);
             await nextTick();
             expect(dock.vm.expanded).toBe(true);
 
@@ -186,9 +186,9 @@ describe("G-KFW13-1 — the dock is held by the MENU, not by a prop from the App
             await nextTick();
             await nextTick();
             expect(dock.vm.isHeld).toBe(false);
-            // glass 10.0.1: the release grace (800 ms) then the one idle
-            // window (3600 ms) — 4400 ms to the collapse.
-            vi.advanceTimersByTime(5_000);
+            // glass 11.0.2: the release grace (800 ms) then the one idle
+            // window (6000 ms) — 6800 ms to the collapse.
+            vi.advanceTimersByTime(7_000);
             await nextTick();
             expect(dock.vm.expanded).toBe(false);
 
