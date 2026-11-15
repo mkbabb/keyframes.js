@@ -659,6 +659,10 @@ watch(isSelectOpen, (open) => {
    blurred nothing behind the dock (App.vue's `.scene-host` note). */
 :root:active-view-transition .dock-vt-group {
     view-transition-name: chrome-dock;
+    /* LAST-TEN KF-24 — the pill's morph rides glass's list-item group, so it
+       runs on the route's lateral clock (App.vue `--vt-duration`), not the
+       UA's untokened 250 ms `ease`. */
+    view-transition-class: gl-list-item;
 }
 
 /* ChromeDock D-5 (co-id: the F4 row of the deleted header fork's record) — ONE

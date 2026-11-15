@@ -57,7 +57,7 @@
             @mouseleave="paneMouseLeave"
             :class="[
                 'controls-pane group/controls min-w-0',
-                paneScrollable ? 'overflow-y-auto' : 'overflow-hidden',
+                paneScrollable ? 'overflow-y-auto' : 'overflow-clip',
             ]"
         >
             <div class="controls-content h-full flex flex-col">
@@ -83,9 +83,15 @@
                      unfolded timeline no longer floats out of it (at 390 it
                      left the sheet titleless and empty), so the v-show that
                      hid the emptied frame is deleted. -->
+                <!-- LAST-TEN (glass-ui relay, 15 Nov) — the rail Card samples no
+                     backdrop (`backdrop-mode="static"`, glass's supported prop:
+                     the plate keeps its fill, drops the lens). Its live blur
+                     re-composited every frame the stage beside and under it
+                     moved: at 1440x900 on the Cube scene, 265–296 frames in 3 s
+                     with it, 338–361 without. Until glass 11.1.1's own cure. -->
                 <component
                     :is="isMobileLayout ? 'div' : Card"
-                    v-bind="isMobileLayout ? {} : { tier: 'quiet' }"
+                    v-bind="isMobileLayout ? {} : { tier: 'quiet', backdropMode: 'static' }"
                     class="pane-frame"
                 >
                     <!-- J.W2 S2 — the v-for is KEYED by the animation name so an

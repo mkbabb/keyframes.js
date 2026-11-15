@@ -118,8 +118,10 @@
         max-width: none;
         margin-top: 0;
         padding-inline: 0;
-        /* Clip the fixed-width .controls-content as the [rail] track collapses. */
-        overflow: hidden;
+        /* Clip the fixed-width .controls-content as the [rail] track collapses.
+           LAST-TEN KF-04 — `clip`, not `hidden`: the rail is never meant to
+           scroll, and a hidden box is a scroll container a focus can move. */
+        overflow: clip;
         /* ── X.KF.W13V.c (C1-1 · R-m-3 EASING-RAIL-OVERRUN) — the rail is
            bounded ABOVE the menubar band ──
            The layout grid is `items-start`, so the rail was content-sized: at
@@ -350,7 +352,9 @@
    the cross-fade (ControlsPaneWrapper: `shownControlHosts`). A fade, never a
    cut, under reduced motion too. */
 .controls-surface--arriving {
-    animation: controls-surface-arrive var(--duration-normal, 240ms) var(--ease-standard, ease) both;
+    /* LAST-TEN KF-26 — an entrance: glass's menu/disclosure clock on its
+       entrance curve (200 ms ease-out), not 300 ms on the standard curve. */
+    animation: controls-surface-arrive var(--duration-fast) var(--ease-out) both;
 }
 @keyframes controls-surface-arrive {
     from {

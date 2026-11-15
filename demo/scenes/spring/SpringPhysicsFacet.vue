@@ -473,6 +473,19 @@ const onPresetSelect = (
 .param-term[aria-expanded="true"] {
     text-decoration-color: currentColor;
 }
+/* LAST-TEN KF-30 — on a touch screen the term is a whole finger's target
+   (glass's `--touch-target`, 44 px), not its 21 px line: the box grows by
+   padding and gives the growth back as negative margin, so the row's layout
+   and the word's place do not move. */
+@media (pointer: coarse) {
+    .param-term {
+        --term-reach: max(0px, (var(--touch-target, 2.75rem) - 1lh) / 2);
+        padding-block: var(--term-reach);
+        margin-block: calc(-1 * var(--term-reach));
+        padding-inline: 0.5rem;
+        margin-inline: -0.5rem;
+    }
+}
 
 /* owner-1112 [46] — the bake's confirmation: the keyframe glyph crossfades to a
    check and back (both tweened, in and out; under reduced motion the fade is

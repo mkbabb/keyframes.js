@@ -352,6 +352,10 @@ defineExpose({ resetIconSpin });
    blurred nothing behind the dock (App.vue's `.scene-host` note). */
 :root:active-view-transition .dock-vt-group {
     view-transition-name: transport-dock;
+    /* LAST-TEN KF-24 — the pill's morph rides glass's list-item group, so it
+       runs on the route's lateral clock (App.vue `--vt-duration`), not the
+       UA's untokened 250 ms `ease`. */
+    view-transition-class: gl-list-item;
 }
 
 /* TD-35 — the transport's internal rhythm rides the ONE gutter token every

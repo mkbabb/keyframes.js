@@ -123,7 +123,7 @@ export function useTimelineBuild(
      * with the draft intact. The SUCCESS toast stays: the count is information
      * the close does not convey (P3's outcome toast, after the awaited build).
      */
-    const importCSS = async (css: string) => {
+    const importCSS = async (css: string, { quiet = false }: { quiet?: boolean } = {}) => {
         const imported = await importCSSToTimeline(css);
         if (imported.length === 0) {
             throw new Error("No @keyframes stops found in that CSS.");
@@ -132,7 +132,10 @@ export function useTimelineBuild(
         state.value.keyframes = imported;
         await rebuild();
 
-        toast({ title: `Imported ${imported.length} keyframes`, tone: "success" });
+        // LAST-TEN KF-27 — `quiet` for a fill the visitor did not ask for (the
+        // timeline opening on the scene's own @keyframes): no outcome toast for
+        // an import nobody made.
+        if (!quiet) toast({ title: `Imported ${imported.length} keyframes`, tone: "success" });
     };
 
     /**

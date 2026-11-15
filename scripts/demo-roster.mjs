@@ -9,4 +9,5 @@ export const DEMO_ROSTER = [
     { name: "subject-animates", script: "scripts/observe/demo/subject-animates.mjs" },
     { name: "live-session", script: "scripts/observe/demo/live-session.mjs" },
     { name: "live-session-mobile", script: "scripts/observe/demo/live-session-mobile.mjs" },
+    { name: "last-ten", script: "scripts/observe/demo/last-ten.mjs" },
 ];

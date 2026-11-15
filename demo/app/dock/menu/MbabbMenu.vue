@@ -95,7 +95,7 @@
                  closes as it opens, and declines to return focus under it — the
                  same menu→dialog hand-off as Clear all); the producer's own
                  `DropdownMenuShortcut` seat prints the `?` hint. -->
-            <DropdownMenuItem text-value="Keyboard shortcuts" class="gap-2.5 px-1.5 py-1" @select="shortcutsOpen = true">
+            <DropdownMenuItem text-value="Keyboard shortcuts" class="gap-2.5 px-1.5 py-1" @select="openShortcuts(mbabbTrigger?.$el ?? null, true)">
                 <span class="w-7 shrink-0 flex justify-center"><Keyboard class="w-5 h-5" aria-hidden="true" /></span>
                 <div class="flex-1 min-w-0">
                     <span class="text-small text-foreground">Keyboard shortcuts</span>
@@ -265,7 +265,7 @@
     <SharePopover v-model:open="shareOpen" :anchor="mbabbTrigger?.$el" :side-offset="shareOffset" :on-scene-restore="onSceneRestore" />
     <!-- X.KF.W13U.d · OA-33 — the shortcuts dialog lives with the row that
          opens it and with its `?` shortcut (moved from ChromeDock). -->
-    <KeyboardShortcutsModal v-model:open="shortcutsOpen" />
+    <KeyboardShortcutsModal v-model:open="shortcutsOpen" @close-auto-focus="onShortcutsCloseAutoFocus" />
 
     <!-- MM-13 — the destructive command's confirmation, in the design system's
          own Dialog (the CSSPasteDialog anatomy: title, description, footer).
@@ -355,6 +355,8 @@ const dock = useOptionalDockContext();
 const shareOpen = ref(false);
 const confirmClearOpen = ref(false);
 const shortcutsOpen = ref(false);
+/** LAST-TEN KF-28 — a dialog asked for from the menu, waiting on its exit. */
+const dialogPending = ref(false);
 
 // One release per keepOpen, and never a release we did not take: the producer
 // clamps its counter at zero (`Math.max(0, …)`), and this pairing means we never
@@ -369,7 +371,7 @@ const shortcutsOpen = ref(false);
 // the menu as the share popover opens, so the hold reads `shareOpen` too.
 let held = false;
 watch(
-    () => open.value || shareOpen.value || confirmClearOpen.value || shortcutsOpen.value,
+    () => open.value || shareOpen.value || confirmClearOpen.value || shortcutsOpen.value || dialogPending.value,
     (holds) => {
         if (holds === held) return;
         held = holds;
@@ -420,7 +422,45 @@ function setDark(checked: boolean): void {
 
 // X.KF.W13U.d · OA-33 — the shortcuts dialog's open state and its `?` shortcut,
 // with the one command that opens them (moved from ChromeDock's retired zone).
-registerShortcut("?", () => { shortcutsOpen.value = !shortcutsOpen.value; }, { label: "Show shortcuts", group: "General" });
+registerShortcut("?", () => {
+    if (shortcutsOpen.value) shortcutsOpen.value = false;
+    else openShortcuts(document.activeElement instanceof HTMLElement && document.activeElement !== document.body ? document.activeElement : null);
+}, { label: "Show shortcuts", group: "General" });
+
+// LAST-TEN KF-05 — the shortcuts dialog hands focus back to what opened it.
+// Its focus scope returns focus to whatever held it at open, and from the menu
+// that is the row, unmounted with the dropdown, so focus fell to <body>. The
+// opener is named at open: the @mbabb trigger for the menu row (the confirm's
+// own UIA-KF-118 home), the focused control for `?`.
+let shortcutsReturn: HTMLElement | null = null;
+// LAST-TEN KF-28 — from the menu, the dialog arrives once the menu has gone:
+// the menu's exit and the dialog's entrance overlapped (~3 frames of both
+// legible). The wait is the menu's own exit (glass's short close), read off
+// its animations, as the scene swap waits on a closing Select
+// (useSceneTransition). `dialogPending` (declared with the open states)
+// holds the dock open and keeps the menu's focus return declined across it.
+async function afterMenuExit(): Promise<void> {
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    const menu = document.querySelector<HTMLElement>('[role="menu"][data-state="closed"]');
+    const exits = menu?.getAnimations({ subtree: true }) ?? [];
+    await Promise.all(exits.map((a) => a.finished.catch(() => undefined)));
+}
+async function openShortcuts(returnTo: HTMLElement | null, fromMenu = false): Promise<void> {
+    shortcutsReturn = returnTo;
+    if (fromMenu) {
+        dialogPending.value = true;
+        await afterMenuExit();
+        dialogPending.value = false;
+    }
+    shortcutsOpen.value = true;
+}
+function onShortcutsCloseAutoFocus(event: Event): void {
+    const to = shortcutsReturn;
+    shortcutsReturn = null;
+    if (!to?.isConnected) return;
+    event.preventDefault();
+    to.focus({ preventScroll: true });
+}
 
 // The menu closes as the dialog opens. Its close would hand focus back to the
 // @mbabb trigger underneath the dialog's focus scope, so that one return is
@@ -428,7 +468,7 @@ registerShortcut("?", () => { shortcutsOpen.value = !shortcutsOpen.value; }, { l
 // ESC-dock-1 — the same hand-off for Share: the popover takes focus to its
 // primary action, and returns it to the trigger itself when it closes.
 function onMenuCloseAutoFocus(event: Event): void {
-    if (shareOpen.value || confirmClearOpen.value || shortcutsOpen.value) event.preventDefault();
+    if (shareOpen.value || confirmClearOpen.value || shortcutsOpen.value || dialogPending.value) event.preventDefault();
 }
 
 // UIA-KF-118 — the confirm's return target (see the template): the trigger that

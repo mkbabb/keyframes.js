@@ -192,6 +192,12 @@ describe("X.KF.W13W.p · OA-58 — the easing picker's one hierarchy", () => {
             expect(
                 [...picker.querySelectorAll(".specimen-tile .tile-name")].map((n) => n.textContent?.trim()),
             ).toEqual(SPECIMEN_GROUPS.find((g) => g.family === "Sine")!.items.map((it) => it.name));
+            // LAST-TEN KF-07 — the stage catalogue remembers its filter across a
+            // remount (browser Back); leave it on All for the next mount.
+            [...picker.querySelectorAll<HTMLElement>('[aria-label="Filter curves by family"] button')]
+                .find((b) => b.textContent?.trim() === "All")!
+                .click();
+            await settle();
         } finally {
             app.unmount();
         }

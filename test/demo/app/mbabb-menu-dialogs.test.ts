@@ -5,6 +5,7 @@
  *   KFA-113    the dock stays held while a dialog the menu opened is up
  *              (Clear all, Keyboard shortcuts), not only while the dropdown is
  *   UIA-KF-118 closing the Clear-all confirm returns focus to the @mbabb trigger
+ *   LAST-TEN KF-05 closing the Keyboard-shortcuts dialog does the same
  *   UIA-KF-148 the confirm's title and description sit in the glass DialogHeader
  *              with the canon's own type (no class overrides)
  *   UIA-KF-149 the destructive confirm takes the `deliberate` dismissal grammar
@@ -128,6 +129,25 @@ describe("UIA-KF-118 — closing the Clear-all confirm returns focus to the @mba
         const cancel = [...confirmDialog()!.querySelectorAll("button")].find((b) => b.textContent?.trim() === "Cancel")!;
         cancel.click();
         await vi.waitFor(() => expect(confirmDialog()).toBeFalsy());
+        await vi.waitFor(() => expect(document.activeElement).toBe(trigger.element));
+        wrapper.unmount();
+    });
+});
+
+describe("LAST-TEN KF-05 — closing the Keyboard-shortcuts dialog returns focus to the @mbabb trigger", () => {
+    const shortcutsDialog = () =>
+        [...document.querySelectorAll<HTMLElement>("[role=dialog]")].find((d) =>
+            d.textContent?.includes("Grouped by area"),
+        );
+    it("(3b) Escape lands focus on the trigger, not <body>", async () => {
+        const { wrapper, trigger } = mountHost();
+        await activate(trigger.element);
+        await selectRow("Keyboard shortcuts");
+        await vi.waitFor(() => expect(shortcutsDialog()).toBeTruthy());
+        shortcutsDialog()!.dispatchEvent(
+            new window.KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true }),
+        );
+        await vi.waitFor(() => expect(shortcutsDialog()).toBeFalsy());
         await vi.waitFor(() => expect(document.activeElement).toBe(trigger.element));
         wrapper.unmount();
     });
