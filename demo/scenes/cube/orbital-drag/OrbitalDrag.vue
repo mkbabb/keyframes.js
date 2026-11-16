@@ -47,10 +47,9 @@ import {
  *  · A screen-frame rotation q_s reaches Q conjugated, Q' = (G⁻¹·q_s·G)·Q₀, so
  *    a drag turns the die about the axis the hand sees (the former local-frame
  *    axis skewed it up to 30°).
- *  · The pan is in SCREEN px and renders in the stage's own plane
- *    (panInPlane: local z = 0, so `.graph`'s perspective cannot magnify it):
- *    the die's centre lands exactly t (the former 1.43×, D-13; translate3d
- *    (G⁻¹·t)'s own local depth, 1.15× at a 440 px pan).
+ *  · The pan is in SCREEN px and renders as G⁻¹·t (panInPlane): the camera
+ *    (`.graph-camera`) looks from outside G, so the pan has no depth before
+ *    it and the die's centre lands exactly t (the former 1.43×, D-13).
  *  · The Euler triple is a READOUT (Y·X·Z, continuous, quaternionEuler.ts).
  *  · Gesture moves write the state; ONE frame loop (`tick`) flushes the
  *    wheel, advances the coast or the spring home, and commits once: one model

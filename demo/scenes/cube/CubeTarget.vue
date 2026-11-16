@@ -13,115 +13,124 @@
              shrink it to the die's width): the whole stage reads the orbit (a grab beside the die
              drives it too), takes the capture, and owns the one touch-action /
              overscroll binding, from `scrollOwner`. -->
-        <div
-            ref="graphEl"
-            class="graph preserve-3d grid items-center justify-center justify-items-center"
-        >
-            <OrbitalDrag
-                ref="orbitalRef"
-                class="preserve-3d relative flex items-center justify-center justify-items-center select-none"
-                v-model="transform"
-                apply-transform-to-container
-                :surface="surfaceEl"
-                :scroll-owner="owner"
-                :frame="orbitFrame"
-                :bounds="orbitBounds"
-                @pressed-keys="onPressedKeys"
+        <!-- THE CAMERA (the coast's stray face, 2026-11-15): the perspective
+             lives on this flat, untransformed box the size of the graph, so the
+             scene is the stage attitude G and then the camera (P·G, a real
+             camera). On `.graph` itself it acted inside G (G·P: a turn of
+             already-projected space), and in a live spin the compositor drew
+             face 1 as a sliver or a quad across the stage at fixed
+             orientations (CubeTarget.css `.graph-camera`). -->
+        <div class="graph-camera grid items-center justify-center justify-items-center">
+            <div
+                ref="graphEl"
+                class="graph preserve-3d grid items-center justify-center justify-items-center"
             >
-                <div
-                    ref="rollEl"
-                    :class="[
-                        'idle-hover preserve-3d',
-                        { playing: isPlaying, 'idle-hover--rolling': rolling },
-                    ]"
+                <OrbitalDrag
+                    ref="orbitalRef"
+                    class="preserve-3d relative flex items-center justify-center justify-items-center select-none"
+                    v-model="transform"
+                    apply-transform-to-container
+                    :surface="surfaceEl"
+                    :scroll-owner="owner"
+                    :frame="orbitFrame"
+                    :bounds="orbitBounds"
+                    @pressed-keys="onPressedKeys"
                 >
-                    <!-- KF.W13U.w — ONE ELEMENT PER TRANSFORM OWNER. Each of the
-                         group's three channels authors a WHOLE `transform`, and
-                         the group's `replace` layer (the README contract) keeps
-                         one writer per property per element — so on one shared
-                         `.cube` the last channel won and the die only bobbed
-                         (OA-27). The house idiom (the roll's own element above)
-                         gives each writer its own node: the bob on `.cube-bob`,
-                         the authored matrix pose on `.cube-pose`, the spin on
-                         `.cube` — nested, so they COMPOSE (bob · pose · spin). -->
-                    <!-- The skin's attribute sits on the OUTERMOST skin-bearing
-                         element, `.cube-bob`: its face tokens inherit down to
-                         every face, and the Daraksha hinge (`transform-origin`)
-                         is a static property of the Hover channel's own node. -->
-                    <div ref="bobEl" class="cube-bob preserve-3d" :data-cube-skin="skin">
-                        <div ref="poseEl" class="cube-pose preserve-3d">
-                            <div
-                                ref="cubeEl"
-                                class="cube preserve-3d animation relative flex items-center justify-center justify-items-center"
-                                :class="{ 'cube--rolling': rolling }"
-                                :style="CUBE_SPIN_VARS"
-                            >
+                    <div
+                        ref="rollEl"
+                        :class="[
+                            'idle-hover preserve-3d',
+                            { playing: isPlaying, 'idle-hover--rolling': rolling },
+                        ]"
+                    >
+                        <!-- KF.W13U.w — ONE ELEMENT PER TRANSFORM OWNER. Each of the
+                             group's three channels authors a WHOLE `transform`, and
+                             the group's `replace` layer (the README contract) keeps
+                             one writer per property per element — so on one shared
+                             `.cube` the last channel won and the die only bobbed
+                             (OA-27). The house idiom (the roll's own element above)
+                             gives each writer its own node: the bob on `.cube-bob`,
+                             the authored matrix pose on `.cube-pose`, the spin on
+                             `.cube` — nested, so they COMPOSE (bob · pose · spin). -->
+                        <!-- The skin's attribute sits on the OUTERMOST skin-bearing
+                             element, `.cube-bob`: its face tokens inherit down to
+                             every face, and the Daraksha hinge (`transform-origin`)
+                             is a static property of the Hover channel's own node. -->
+                        <div ref="bobEl" class="cube-bob preserve-3d" :data-cube-skin="skin">
+                            <div ref="poseEl" class="cube-pose preserve-3d">
                                 <div
-                                    v-for="(side, index) in cubeSides"
-                                    :key="index"
-                                    :class="[
-                                        'cube-side',
-                                        side.class,
-                                        'rounded-lg',
-                                        'transition-[background-color,opacity] duration-panel ease-in-out',
-                                        // z-10: LOCAL stacking inside the 3D cube — each
-                                        // face sits above its own background plane. NOT a
-                                        // participant in the editor z-contract (style.css),
-                                        // so it stays a bare local rung, not a semantic
-                                        // z-* layer.
-                                        'absolute z-10 flex items-center justify-center',
-                                    ]"
+                                    ref="cubeEl"
+                                    class="cube preserve-3d animation relative flex items-center justify-center justify-items-center"
+                                    :class="{ 'cube--rolling': rolling }"
+                                    :style="CUBE_SPIN_VARS"
                                 >
-                                    <!-- X-DS pass 1 (KF-P1-02) — a FLAT crayon face
-                                         (the ORIGIN die: six flat faces, a numeral,
-                                         rounded corners). The lit-lacquer gloss and
-                                         the orientation-coupled specular/veil are
-                                         deleted; the one tonal step is FIXED per face
-                                         (CubeTarget.css), never driven by rotation. -->
-                                    <!-- Crayon and Daraksha share the face template;
-                                         a skin changes token values only
-                                         (CubeTarget.css), never the faces. -->
-                                    <template v-if="skin !== 'ppmycota'">
-                                        <div
-                                            :class="[
-                                                'face-fill h-full w-full font-bold',
-                                                'flex items-center justify-center',
-                                            ]"
-                                            :style="{ '--face-crayon': side.color, color: side.ink }"
-                                        >
-                                            <span
+                                    <div
+                                        v-for="(side, index) in cubeSides"
+                                        :key="index"
+                                        :class="[
+                                            'cube-side',
+                                            side.class,
+                                            'rounded-lg',
+                                            'transition-[background-color,opacity] duration-panel ease-in-out',
+                                            // z-10: LOCAL stacking inside the 3D cube — each
+                                            // face sits above its own background plane. NOT a
+                                            // participant in the editor z-contract (style.css),
+                                            // so it stays a bare local rung, not a semantic
+                                            // z-* layer.
+                                            'absolute z-10 flex items-center justify-center',
+                                        ]"
+                                    >
+                                        <!-- X-DS pass 1 (KF-P1-02) — a FLAT crayon face
+                                             (the ORIGIN die: six flat faces, a numeral,
+                                             rounded corners). The lit-lacquer gloss and
+                                             the orientation-coupled specular/veil are
+                                             deleted; the one tonal step is FIXED per face
+                                             (CubeTarget.css), never driven by rotation. -->
+                                        <!-- Crayon and Daraksha share the face template;
+                                             a skin changes token values only
+                                             (CubeTarget.css), never the faces. -->
+                                        <template v-if="skin !== 'ppmycota'">
+                                            <div
                                                 :class="[
-                                                    'face-numeral text-display-2 h-full w-full',
-                                                    'relative',
+                                                    'face-fill h-full w-full font-bold',
                                                     'flex items-center justify-center',
                                                 ]"
-                                                >{{ side.content }}</span
+                                                :style="{ '--face-crayon': side.color, color: side.ink }"
                                             >
-                                        </div>
-                                    </template>
+                                                <span
+                                                    :class="[
+                                                        'face-numeral text-display-2 h-full w-full',
+                                                        'relative',
+                                                        'flex items-center justify-center',
+                                                    ]"
+                                                    >{{ side.content }}</span
+                                                >
+                                            </div>
+                                        </template>
 
-                                    <template v-else>
-                                        <div
-                                            class="ppmycota-cube absolute h-full w-full"
-                                        ></div>
-                                        <div
-                                            class="ppmycota-logo-lg absolute h-full w-full"
-                                        ></div>
-                                    </template>
+                                        <template v-else>
+                                            <div
+                                                class="ppmycota-cube absolute h-full w-full"
+                                            ></div>
+                                            <div
+                                                class="ppmycota-logo-lg absolute h-full w-full"
+                                            ></div>
+                                        </template>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            </OrbitalDrag>
+                </OrbitalDrag>
 
-            <!-- P.W5.S3 EGG — the keyboard axis-lock reveal (the colocated
-                 CubeAxisLines sub-unit: markup + styles together). OrbitalDrag
-                 CONSTRAINS rotation to a single axis while X/Y/Z is held; the
-                 matching axis line lights up so the otherwise-hidden lock becomes
-                 spatially legible. Fed the latch OrbitalDrag publishes (no new
-                 rAF, no new gesture machinery). -->
-            <CubeAxisLines v-if="!bare" :lock="axisLock" />
+                <!-- P.W5.S3 EGG — the keyboard axis-lock reveal (the colocated
+                     CubeAxisLines sub-unit: markup + styles together). OrbitalDrag
+                     CONSTRAINS rotation to a single axis while X/Y/Z is held; the
+                     matching axis line lights up so the otherwise-hidden lock becomes
+                     spatially legible. Fed the latch OrbitalDrag publishes (no new
+                     rAF, no new gesture machinery). -->
+                <CubeAxisLines v-if="!bare" :lock="axisLock" />
+            </div>
         </div>
     </div>
 </template>
