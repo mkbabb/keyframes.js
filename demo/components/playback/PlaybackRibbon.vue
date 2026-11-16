@@ -52,6 +52,11 @@
                                  axis only. All-round p-2 also padded the inline axis, so
                                  the rail ran 8 px inside the label/field column KF-C6-01
                                  aligned; it now spans the column edge to edge. -->
+                            <!-- R-close-1 — the model is the rAF-polled read-back
+                                 alone. glass 11.1.0's Slider holds the value under
+                                 the hand from press to release and follows the model
+                                 again from where the hand left it, so the rail no
+                                 longer seats itself from the gesture. -->
                             <Slider
                                 class="py-2"
                                 variant="scrubber"
@@ -61,7 +66,7 @@
                                 :max="effectiveDuration"
                                 :step="scrubStep"
                                 :aria-describedby="scrubHintId"
-                                :model-value="[railT]"
+                                :model-value="[currentT]"
                                 @update:model-value="onSliderInput"
                                 @value-commit="onSliderCommit"
                             />
@@ -170,7 +175,7 @@ import { formatMs } from "@utils/formatNumber";
 // preview eye's glyph cross-fade (`.preview-eye__*`) rides the same partial,
 // and the two discs' seat (`--ball-size`) is AnimationVisualizer's (OD19-K4).
 
-import { computed, onBeforeUnmount, ref, useId } from "vue";
+import { computed, onBeforeUnmount, useId } from "vue";
 import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 
 // C-11 (NOT landed — recorded): `Button`/`Slider` stay on the root barrel beside
@@ -297,7 +302,6 @@ let releaseHold: ReturnType<typeof setTimeout> | undefined;
 
 const endScrub = () => {
     releaseHold = undefined;
-    gestureT.value = null;
     emit("scrubEnd");
 };
 
@@ -311,8 +315,7 @@ const { dragging: isDragging, onPointerDown: onScrubPointerDown } = useDragScrub
         emit("scrubStart");
     },
     onEnd: () => {
-        const released = gestureT.value ?? currentT;
-        if (isAnimPlaying && railInMs.value && effectiveDuration.value - released < RELEASE_HOLD_MS) {
+        if (isAnimPlaying && railInMs.value && effectiveDuration.value - currentT < RELEASE_HOLD_MS) {
             releaseHold = setTimeout(endScrub, RELEASE_HOLD_MS);
             return;
         }
@@ -327,21 +330,6 @@ onBeforeUnmount(() => {
     endScrub();
 });
 
-/** R-close-1 — THE RAIL'S VALUE DURING A POINTER GESTURE is the value the
- *  gesture last seated, not the `currentT` read-back. `currentT` is rAF-polled
- *  by the mount (`useAnimationSync`'s ticker, idled while paused and woken by
- *  `scrubbed`), so it reaches the rail a frame or more after the seat. The
- *  producer Slider aligns its thumb `contain`: reka measures the grab offset
- *  ONCE, on the gesture's first move, from the thumb's rendered rect. With the
- *  read-back lagging, a move that arrives before that frame measured the thumb
- *  where the playhead WAS — a press at 20 % with the playhead parked at 96 %
- *  stored a −76 % offset, and every later move saturated at `:max` (the scrub
- *  landed at the end and stayed there). Seating the rail from the gesture
- *  re-renders the thumb in the same flush as the press, before any move. At
- *  release the rail returns to the read-back, which by then holds the seat. */
-const gestureT = ref<EffectiveMs | null>(null);
-const railT = computed<EffectiveMs>(() => gestureT.value ?? currentT);
-
 /** X-DS pass 10 (KF-C10-02) — the time row's readout: elapsed over the rail's
  *  ONE duration read, in ms; a normalized source (no declared scale) reads as
  *  a percentage, since its rail is [0, 1] and not milliseconds. */
@@ -350,8 +338,8 @@ const railT = computed<EffectiveMs>(() => gestureT.value ?? currentT);
  *  a layout per frame and restated the rail (C-78: no value label). */
 const timeReadout = computed(() => {
     return railInMs.value
-        ? `${formatMs(railT.value)} of ${formatMs(effectiveDuration.value)}`
-        : `${Math.round(railT.value * 100)} %`;
+        ? `${formatMs(currentT)} of ${formatMs(effectiveDuration.value)}`
+        : `${Math.round(currentT * 100)} %`;
 });
 
 /** X-DS r5 pass 5 (KF-C5-03) — THE BALL TRACK YIELDS TO THE SCROLLER ON A
@@ -390,7 +378,6 @@ const onSliderInput = (val: number[] | undefined) => {
     if (!isDragging.value) return;
     const t = val?.[0];
     if (t === undefined) return;
-    gestureT.value = t;
     scrubTo(t);
 };
 

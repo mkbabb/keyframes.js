@@ -20,6 +20,7 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { defineComponent, h, nextTick, provide, ref, shallowRef } from "vue";
 import { mount, type VueWrapper } from "@vue/test-utils";
+import { SliderRoot } from "reka-ui";
 import { CSSKeyframesAnimation } from "../../../src/animation/engine";
 import { warmKfEngine } from "../../../demo/kf-engine";
 import { OPTION_GLYPHS } from "../../../demo/components/instrument/pane/channel-controls/optionGlyphs";
@@ -695,36 +696,52 @@ describe("OA-8 — the scrub rail wears the producer Slider's own paint", () => 
 });
 
 describe("R-close-1 (KF.W13U repair) — the rail follows the pointer gesture in the same flush, not the rAF read-back", () => {
-    it("a press seats the thumb at the pressed value before any move, with the playhead parked near the end and no read-back yet; release returns the rail to the read-back", async () => {
+    it("a press seats the thumb at the pressed value before any move, with the playhead parked near the end and no read-back yet; the clock cannot move it while held; release returns the rail to the read-back", async () => {
         // The mount's `currentT` is rAF-polled (useAnimationSync), so it lags the
         // seat by a frame or more. The producer Slider aligns `contain`: reka
         // measures the grab offset on the gesture's first move from the thumb's
         // rendered rect — a thumb still parked at 4800 there saturates the whole
         // drag at :max (the served-page RED: press at 20 %, scrub lands at 5000).
+        // Since glass 11.1.0 the Slider holds the hand's value from press to
+        // release, so the ribbon feeds it the read-back alone. reka's emits are
+        // driven through its root, as glass's own stream test does.
         const seat = mountRibbon({ currentT: 4800 });
         await settle();
         const thumb = thumbOf(seat.root);
         expect(thumb.getAttribute("aria-valuenow")).toBe("4800");
+        const sliderEl = seat.root.querySelector<HTMLElement>(".scrub-rail .glass-slider")!;
+        const reka = seat.wrapper.findComponent(SliderRoot);
+        const frame = () => new Promise<void>((r) => requestAnimationFrame(() => r()));
 
-        seat.root.querySelector<HTMLElement>(".scrub-rail")!.dispatchEvent(
+        // The press passes the drag seam (capture on `.scrub-rail`) and the Slider's grab.
+        sliderEl.dispatchEvent(
             new PointerEvent("pointerdown", { pointerId: 1, pointerType: "mouse", isPrimary: true, button: 0, bubbles: true }),
         );
+        expect(seat.emitted("scrubStart")).toHaveLength(1);
         // reka's slideStart emits the pressed value; the parent's read-back does
         // NOT arrive (the `currentT` prop stays 4800 — no ticker frame has run).
-        seat.wrapper.findComponent({ name: "Slider" }).vm.$emit("update:modelValue", [1000]);
+        reka.vm.$emit("update:modelValue", [1000]);
         await nextTick();
-        expect(seat.emitted("sliderUpdate").map(([v]) => (v as { t: number }).t)).toEqual([1000]);
         expect(thumb.getAttribute("aria-valuenow")).toBe("1000");
+        await frame();
+        expect(seat.emitted("sliderUpdate").map(([v]) => (v as { t: number }).t)).toEqual([1000]);
 
-        seat.wrapper.findComponent({ name: "Slider" }).vm.$emit("update:modelValue", [2300]);
+        reka.vm.$emit("update:modelValue", [2300]);
         await nextTick();
         expect(thumb.getAttribute("aria-valuenow")).toBe("2300");
+        // A clock write while the hand holds the rail does not move the thumb.
+        await seat.setProps({ currentT: 4900 });
+        expect(thumb.getAttribute("aria-valuenow")).toBe("2300");
 
-        window.dispatchEvent(new PointerEvent("pointerup", { pointerId: 1, pointerType: "mouse", isPrimary: true, bubbles: true }));
+        // The release reaches the Slider first, then the seam's window listener.
+        sliderEl.dispatchEvent(
+            new PointerEvent("pointerup", { pointerId: 1, pointerType: "mouse", isPrimary: true, button: 0, bubbles: true }),
+        );
         await settle();
+        expect(seat.emitted("sliderUpdate").map(([v]) => (v as { t: number }).t)).toEqual([1000, 2300]);
         expect(seat.emitted("scrubEnd")).toHaveLength(1);
         // After release the rail is the read-back again — the one authority.
-        expect(thumb.getAttribute("aria-valuenow")).toBe("4800");
+        expect(thumb.getAttribute("aria-valuenow")).toBe("4900");
         await seat.setProps({ currentT: 2300 });
         expect(thumb.getAttribute("aria-valuenow")).toBe("2300");
     });
