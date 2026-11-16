@@ -1,8 +1,12 @@
 <template>
     <div
         ref="surfaceEl"
-        class="relative grid h-full w-full max-w-full place-self-stretch items-center justify-center justify-items-center overflow-visible"
+        class="cube-stage relative grid h-full w-full max-w-full place-self-stretch items-center justify-center justify-items-center overflow-visible"
         :style="surfaceStyle"
+        tabindex="0"
+        role="group"
+        aria-roledescription="die"
+        aria-label="The die: drag or use the arrow keys to turn it, pinch to zoom, double-tap to bring it home"
     >
         <!-- THE SURFACE (one root, so a leading comment never makes this a
              fragment; place-self-stretch, so a centring parent grid cannot
@@ -524,9 +528,11 @@ const onRoll = async () => {
     }
 };
 
-// S.G3 S2 — the Roll is a POINTER-based double-tap (touch parity; the former
-// `@dblclick` was mouse-only). Drag-disjoint: an orbit drag never triggers it, so
-// the die-roll egg and the orbital drag coexist on the same surface.
+// S.G3 S2 — a POINTER-based double-tap (touch parity; the former `@dblclick`
+// was mouse-only). Drag-disjoint: an orbit drag never triggers it. Owner
+// 2026-11-15: a double-tap (or double-click) on a die that has been turned,
+// panned or zoomed brings it home on the spring (a fade under reduced
+// motion); on a die already at home it rolls (the egg below).
 //
 // #1 — the recognizer sits on the CAPTURE element (a descendant of it is not
 // on the dispatch path). That element is now the whole stage, so a tap counts
@@ -535,7 +541,8 @@ useDoubleTap({
     el: surfaceEl,
     accept: (e) => orbitalRef.value?.onArcball({ x: e.clientX, y: e.clientY }) ?? false,
     onDoubleTap: () => {
-        void onRoll();
+        if (orbitalRef.value && !orbitalRef.value.atHome()) orbitalRef.value.home();
+        else void onRoll();
     },
 });
 

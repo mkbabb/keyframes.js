@@ -288,11 +288,14 @@ describe("KF-AX-2 — the latch gates BOTH gesture paths (the one reader, KF-M2)
     it("WHEEL: the Alt-wheel orbit (OA-17) reads the SAME latch", () => {
         const { gesture, state, dispose } = harness();
         gesture.handleWheel(new WheelEvent("wheel", { deltaX: 40, deltaY: 40, altKey: true }));
+        // The scroll's turn is laid onto the frames by the follower: land it.
+        while (gesture.flushWheel() === "owed") {}
         expect(Math.abs(turnedAbout(state.q)[2])).toBeLessThan(0.99);
 
         state.q = [0, 0, 0, 1];
         gesture.setAxisLatch("z", true);
         gesture.handleWheel(new WheelEvent("wheel", { deltaX: 40, deltaY: 40, altKey: true }));
+        while (gesture.flushWheel() === "owed") {}
         expect(Math.abs(turnedAbout(state.q)[2])).toBeCloseTo(1, 9);
         dispose();
     });

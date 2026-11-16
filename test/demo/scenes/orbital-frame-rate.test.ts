@@ -46,9 +46,14 @@ const coast = (hz: number, ms: number) => {
     let total = 0;
     const scope = effectScope();
     scope.run(() => {
+        // The host's one frame loop (OrbitalDrag's `tick`), reduced to the coast.
+        const tick = (t: number) => {
+            if (inertia.advance(t)) requestAnimationFrame(tick);
+        };
         const inertia = useOrbitalInertia({
             inertiaFactor: DEFAULT_INERTIA_FACTOR,
             rotateBy: (_axis, angle) => void (total += angle),
+            requestFrame: () => requestAnimationFrame(tick),
         });
         // A release at 3 rad/s about +y.
         inertia.start([0, 3, 0]);

@@ -59,7 +59,8 @@ export interface OrbitalGestureParams {
     state: OrbitState;
     frame: () => OrbitFrame;
     scaleRange: readonly [number, number];
-    /** Schedule one commit (model write + render) on the next frame. */
+    /** Mark the state changed and ask the host's ONE frame loop for a frame
+     *  (it flushes the wheel, advances any coast and commits once). */
     requestCommit: () => void;
     /** A gesture took the subject (the coast stops). */
     onGestureStart: () => void;
@@ -94,7 +95,7 @@ export const WHEEL_PAN_SIGN = NATURAL ? -1 : 1;
  *  writes a trackpad pinch as ctrl-wheel Δy = −100·ln(scale), so this gear
  *  is the pinch itself. */
 export const WHEEL_ZOOM_PX = 100;
-/** The summed ln-scale step one frame may take (a mouse notch: e^0.25 ≈ 1.284×). */
+/** The ln-scale step one wheel event may owe (a mouse notch: e^0.25 ≈ 1.284×). */
 export const WHEEL_ZOOM_STEP_CAP = 0.25;
 /** A pixel wheel event at least this large, an integer multiple of its
  *  stream's first event, is a NOTCH (a mouse wheel), and glides. */
@@ -107,6 +108,22 @@ export const NOTCH_MAX_RAD = (40 * Math.PI) / 180;
 /** Page mode: a touch drag turns the die only once it has gone this far
  *  (px), mostly sideways; a mostly vertical one is the host's scroll. */
 export const PAGE_TOUCH_SLOP_PX = 10;
+/**
+ * A trackpad's two-finger scroll arrives at its own rate (60 to 120 events a
+ * second, unevenly against a 60 or 120 Hz display), so applied as it comes the
+ * die steps: two events in one frame, none in the next. The stream's rotation
+ * is laid onto the frames through a first-order follower of this time constant
+ * (ms): every frame takes 1 − e^(−Δt/τ) of what is still owed, so the turn
+ * flows at the hand's speed one short lag behind it and lands exactly on the
+ * sum. The OS's own momentum events carry the throw through the same follower.
+ */
+export const WHEEL_SMOOTH_MS = 24;
+/** Below these (rad, ln s) the follower's remainder is landed whole. */
+const WHEEL_REST_RAD = 1e-5;
+const WHEEL_REST_LN = 1e-5;
+/** A prediction stands this long past the last real move before the real
+ *  point is shown again (ms): a frame and a half at 60 Hz. */
+const PREDICTION_HOLD_MS = 24;
 /** A wheel stream ends after this quiet gap (ms). */
 const WHEEL_STREAM_GAP_MS = 300;
 /** A pan or zoom wheel stream holds the rubber band until this long after its
@@ -271,9 +288,16 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
     let thetaPrev = 0;
     /** The pair's last centroid (client px), the zoom coast's anchor. */
     let releaseCentroid: Vec2 = { x: 0, y: 0 };
+    /** The last real move's time, and whether the pose shown is a prediction. */
+    let lastMoveAt = 0;
+    let shownAhead = false;
 
     const samples: AttitudeSample[] = [];
+    /** One sample per instant: the moves of one instant (a pair's two fingers
+     *  arrive as two events with one time stamp) leave the pose they make
+     *  together, never the half-moved pose between them. */
     const pushSample = (t: number) => {
+        if (samples.length > 0 && samples[samples.length - 1]!.t === t) samples.pop();
         samples.push({
             t,
             q: [state.q[0], state.q[1], state.q[2], state.q[3]],
@@ -354,6 +378,7 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
     };
 
     const anchor = () => {
+        shownAhead = false;
         const ids = [...pointers.keys()];
         if (ids.length === 0) {
             mode = "idle";
@@ -464,6 +489,7 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
         syncModifiers(event);
         if (pointers.size === 0) {
             onGestureStart();
+            dropOwed();
             // A middle (1) or right (2) mouse button pans, as Shift-drag does.
             buttonPan = event.pointerType === "mouse" && (event.button === 1 || event.button === 2);
         }
@@ -473,6 +499,9 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
             touch: event.pointerType === "touch",
         });
         isActive.value = true;
+        // The stage takes the keyboard on a mouse or pen press (the arrows turn
+        // the die); preventDefault above withholds the browser's own focus.
+        if (event.pointerType !== "touch") surfaceRef()?.focus({ preventScroll: true });
         // kf-CubeTarget #55 — the acquire is guarded: an inactive pointerId or a
         // disconnected element throws, and the gesture does not depend on
         // capture (the document listeners drive it).
@@ -497,11 +526,36 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
         if (event.touches.length > 1 || (t && onArcball({ x: t.clientX, y: t.clientY }))) event.preventDefault();
     };
 
+    /** Apply the pose the current pointers ask for (the mode's own law). */
+    const applyMode = (p: { x: number; y: number }): boolean => {
+        if (mode === "orbit") applyOrbit(p);
+        else if (mode === "drive") applyDrive(p);
+        else if (mode === "pan") applyPan(p);
+        else if (mode === "pair") applyPair();
+        else return false;
+        return true;
+    };
+
+    /**
+     * Every move at full rate: the browser hands one pointermove a frame and
+     * keeps the hand's other samples in `getCoalescedEvents()` (a 120 or 240 Hz
+     * digitiser under a 60 Hz frame), so each is applied and sampled in turn and
+     * the release reads the hand's true speed. Then, where the browser predicts
+     * (`getPredictedEvents()`, Chromium), the pose is shown at the predicted
+     * point, so the face under the finger lands where the finger will be when
+     * the frame reaches the glass. The anchored modes recompute from the
+     * gesture's anchor every move, so the next real move replaces the
+     * prediction with no residue; the off-die drive sums its moves, so it shows
+     * real moves only.
+     */
     const onPointerMove = (event: PointerEvent) => {
         const p = pointers.get(event.pointerId);
         if (!p) return;
-        p.x = event.clientX;
-        p.y = event.clientY;
+        const coalesced = typeof event.getCoalescedEvents === "function" ? event.getCoalescedEvents() : [];
+        const moves = coalesced.length > 0 ? coalesced : [event];
+        const last = moves[moves.length - 1]!;
+        p.x = last.clientX;
+        p.y = last.clientY;
         // Page mode, and beside the die (pan-y): a one-finger drag is the die's
         // only once it is horizontal. Until then the browser may still take it
         // as the page's scroll (a pointercancel), and the die must not have moved.
@@ -515,13 +569,45 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
         syncModifiers(event);
         // A modifier change mid-drag re-anchors (orbit ↔ pan), never jumps.
         if ((mode === "pan") !== (shift || buttonPan) && pointers.size === 1) anchor();
-        if (mode === "orbit") applyOrbit(p);
-        else if (mode === "drive") applyDrive(p);
-        else if (mode === "pan") applyPan(p);
-        else if (mode === "pair") applyPair();
-        else return;
-        pushSample(event.timeStamp);
+        for (const m of moves) {
+            p.x = m.clientX;
+            p.y = m.clientY;
+            if (!applyMode(p)) return;
+            pushSample(m.timeStamp || event.timeStamp);
+        }
+        lastMoveAt = event.timeStamp;
+        shownAhead = false;
+        const predicted = mode !== "drive" && typeof event.getPredictedEvents === "function" ? event.getPredictedEvents() : [];
+        const ahead = predicted[predicted.length - 1];
+        if (ahead && Number.isFinite(ahead.clientX) && Number.isFinite(ahead.clientY)) {
+            const real = { x: p.x, y: p.y };
+            p.x = ahead.clientX;
+            p.y = ahead.clientY;
+            applyMode(p);
+            p.x = real.x;
+            p.y = real.y;
+            shownAhead = true;
+        }
         requestCommit();
+    };
+
+    /**
+     * A finger that stops sends no more moves, so a prediction shown for its
+     * last move would stand ahead of it. Once no move has come for a frame and
+     * a half, the real point is shown again (the host's frame loop calls this;
+     * true while a prediction still stands).
+     */
+    const unwindPrediction = (now: number): "ahead" | "unwound" | "idle" => {
+        if (!shownAhead) return "idle";
+        if (pointers.size === 0 || mode === "idle" || mode === "drive") {
+            shownAhead = false;
+            return "idle";
+        }
+        if (now - lastMoveAt < PREDICTION_HOLD_MS) return "ahead";
+        shownAhead = false;
+        const p = pointers.get(mode === "pair" ? pairIds[0] : [...pointers.keys()][0]!);
+        if (p) applyMode(p);
+        return "unwound";
     };
 
     const releaseCapture = (event: PointerEvent) => {
@@ -533,6 +619,9 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
     };
 
     const onPointerUp = (event: PointerEvent) => {
+        const up = pointers.get(event.pointerId);
+        // The pose last shown may be a prediction: land the real one first.
+        if (up && mode !== "drive" && mode !== "idle" && !pending) applyMode(up);
         if (!pointers.delete(event.pointerId)) return;
         releaseCapture(event);
         if (pointers.size > 0) {
@@ -613,23 +702,64 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
         },
     };
 
-    // The zoom and the pan are summed per FRAME and applied once (flushWheel,
-    // from the commit): coalesced or split events land the same pose.
+    // The pan is summed per FRAME and applied once (flushWheel, from the
+    // frame loop); the zoom and the scroll's turn are OWED and laid onto the
+    // frames by the follower. Coalesced or split events land the same pose.
     let zoomLn = 0;
     let zoomAt: Vec2 = { x: 0, y: 0 };
     let panPx: Vec2 = { x: 0, y: 0 };
     let streamAt = -Infinity;
     let streamFirst = 0;
+    /** The two-finger scroll's rotation still owed (screen frame, axis·angle). */
+    let owedTurn: Vec3 = [0, 0, 0];
+    let lastFlush = -1;
 
-    /** Apply the frame's summed wheel zoom and pan (the commit calls it). */
-    const flushWheel = () => {
-        const ln = zoomLn;
+    /**
+     * Apply the frame's summed wheel zoom and pan, and the follower's share of
+     * the scroll's owed rotation (the host's frame loop calls it). Returns
+     * "owed" while rotation is still owed (the loop keeps running), "landed"
+     * when this frame turned the die and nothing is left, else "idle".
+     */
+    const flushWheel = (now?: number): "owed" | "landed" | "idle" => {
         const d = panPx;
-        zoomLn = 0;
         panPx = { x: 0, y: 0 };
-        if (pointers.size > 0) return;
-        if (ln !== 0) zoomBy(Math.max(-WHEEL_ZOOM_STEP_CAP, Math.min(WHEEL_ZOOM_STEP_CAP, ln)), zoomAt);
+        const dt = now === undefined || lastFlush < 0 ? 1000 / 60 : Math.max(0, Math.min(100, now - lastFlush));
+        lastFlush = now ?? -1;
+        if (pointers.size > 0) {
+            owedTurn = [0, 0, 0];
+            zoomLn = 0;
+            return "idle";
+        }
         if (d.x !== 0 || d.y !== 0) panBy(d);
+        const follow = 1 - Math.exp(-dt / WHEEL_SMOOTH_MS);
+        const instant = reducedMotion?.() ?? false;
+        let moved = false;
+        let owing = false;
+        if (zoomLn !== 0) {
+            const whole = instant || Math.abs(zoomLn) < WHEEL_REST_LN;
+            const step = whole ? zoomLn : zoomLn * follow;
+            zoomLn = whole ? 0 : zoomLn - step;
+            zoomBy(step, zoomAt);
+            moved = true;
+            owing ||= !whole;
+        }
+        const left = Math.hypot(owedTurn[0], owedTurn[1], owedTurn[2]);
+        if (left > 0) {
+            const whole = instant || left < WHEEL_REST_RAD;
+            const f = whole ? 1 : follow;
+            const w: Vec3 = [owedTurn[0] * f, owedTurn[1] * f, owedTurn[2] * f];
+            owedTurn = whole ? [0, 0, 0] : [owedTurn[0] - w[0], owedTurn[1] - w[1], owedTurn[2] - w[2]];
+            turnBy(w);
+            moved = true;
+            owing ||= !whole;
+        }
+        return owing ? "owed" : moved ? "landed" : "idle";
+    };
+
+    /** A gesture took the die: whatever the scroll still owed is dropped. */
+    const dropOwed = () => {
+        owedTurn = [0, 0, 0];
+        zoomLn = 0;
     };
 
     /** The pan / zoom stream's end: the rubber band lets go (the spring). */
@@ -640,6 +770,8 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
         clearTimeout(liveTimer);
         liveTimer = setTimeout(() => {
             liveTimer = undefined;
+            // The follower still owes zoom: the band holds until it has landed.
+            if (zoomLn !== 0) return holdLive();
             poseLive = false;
             onSettle?.(zoomAt);
         }, WHEEL_LIVE_MS);
@@ -669,7 +801,9 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
         // Every stream's end settles (a pan or zoom past a bound springs back).
         holdLive();
         if (zoom) {
-            zoomLn += -dy / WHEEL_ZOOM_PX;
+            // One event moves at most a capped step (a mouse notch: e^0.25),
+            // owed and laid onto the frames by the follower.
+            zoomLn += Math.max(-WHEEL_ZOOM_STEP_CAP, Math.min(WHEEL_ZOOM_STEP_CAP, -dy / WHEEL_ZOOM_PX));
             requestCommit();
             return;
         }
@@ -698,9 +832,9 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
             onGlide([w[0] * k, w[1] * k, w[2] * k]);
             return;
         }
-        // A trackpad's pixel stream is already continuous, and the OS's own
-        // momentum events carry its throw: direct.
-        turnBy(w);
+        // A trackpad's pixel stream (and the OS's own momentum events, which
+        // carry its throw) is owed, and laid onto the frames by the follower.
+        owedTurn = [owedTurn[0] + w[0], owedTurn[1] + w[1], owedTurn[2] + w[2]];
         requestCommit();
     };
 
@@ -803,6 +937,8 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
         onTouchStart,
         handleWheel,
         flushWheel,
+        dropOwed,
+        unwindPrediction,
         panBy,
         zoomBy,
         pose,

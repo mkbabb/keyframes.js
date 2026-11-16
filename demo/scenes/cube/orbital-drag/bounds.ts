@@ -18,7 +18,7 @@
  * While the hand (or a live wheel stream) holds the die past a bound it
  * follows with resistance, the overshoot shown as d·(1 − 1/(o·BAND/d + 1)) of
  * the raw overshoot o, d the band's reach. Once let go, the overshoot returns
- * by the critically damped spring at the coast's own friction k:
+ * by the critically damped spring (inertiaDecay's SPRING_K):
  * x(t) = (x₀ + (v₀ + k·x₀)·t)·e^(−k·t), sampled at elapsed time, so the path is
  * the same at 30, 60 and 120 Hz. A coast that crosses a bound becomes that
  * spring at the crossing, with the coast's velocity there.
@@ -114,9 +114,9 @@ export const axisMotion = (x: number, v: number, iv: Interval, t0: number): Axis
 };
 
 /**
- * Sample `m` at `now` (s). A coast rests once its speed falls under
- * `restFraction` of its start; a spring once it is home, where it lands
- * exactly on the bound.
+ * Sample `m` at `now` (s). A coast (friction `k`) rests once its speed falls
+ * under `restFraction` of its start; a spring (`springK`, the coast's own k
+ * unless given) once it is home, where it lands exactly on the bound.
  */
 export const sampleAxis = (
     m: AxisMotion,
@@ -125,6 +125,7 @@ export const sampleAxis = (
     k: number,
     restFraction: number,
     rest: { x: number; v: number } = { x: SPRING_REST, v: SPRING_REST_SPEED },
+    springK: number = k,
 ): AxisSample => {
     if (m.kind === "coast") {
         const tau = Math.max(0, now - m.t0);
@@ -138,14 +139,14 @@ export const sampleAxis = (
             const u = 1 - (k * (bound - m.x0)) / m.v0;
             const tc = u > 0 && u <= 1 ? -Math.log(u) / k : 0;
             const vc = m.v0 * Math.exp(-k * tc);
-            return sampleAxis({ kind: "spring", side, e0: 0, v0: vc, t0: m.t0 + tc }, now, iv, k, restFraction, rest);
+            return sampleAxis({ kind: "spring", side, e0: 0, v0: vc, t0: m.t0 + tc }, now, iv, k, restFraction, rest, springK);
         }
         if (Math.abs(v) < restFraction * Math.abs(m.v0)) return { x, v: 0, next: null };
         return { x, v, next: m };
     }
     const bound = m.side > 0 ? iv.hi : iv.lo;
     const tau = Math.max(0, now - m.t0);
-    const s = springBack(m.e0, m.v0, k, tau);
+    const s = springBack(m.e0, m.v0, springK, tau);
     if (tau > 0 && Math.abs(s.x) < rest.x && Math.abs(s.v) < rest.v) return { x: bound, v: 0, next: null };
     return { x: bound + s.x, v: s.v, next: m };
 };

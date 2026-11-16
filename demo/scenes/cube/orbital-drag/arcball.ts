@@ -182,30 +182,54 @@ export const MIN_VELOCITY_SPAN_MS = 16;
 export const HOLD_RELEASE_MS = 64;
 
 /**
- * The release window every rate is read over: the first and last samples of
- * the last 80 ms and the span between them (s), or null when the hand rested
- * more than 64 ms before release (KFA-82) or the window is too short to read a
- * speed from (fewer than two samples, Δt < 16 ms).
+ * The release window every rate is read over: the samples of the last 80 ms
+ * (the hand's full-rate stream: every coalesced move is a sample), or null
+ * when the hand rested more than 64 ms before release (KFA-82) or the window
+ * is too short to read a speed from (fewer than two samples, Δt < 16 ms).
  */
 const releaseWindow = <S extends AttitudeSample>(samples: readonly S[], releaseAt: number) => {
     const last = samples[samples.length - 1];
     if (!last || samples.length < 2) return null;
     if (releaseAt - last.t > HOLD_RELEASE_MS) return null;
-    let first = last;
+    let i0 = samples.length - 1;
     for (let i = samples.length - 1; i >= 0; i--) {
-        const s = samples[i]!;
-        if (last.t - s.t > VELOCITY_WINDOW_MS) break;
-        first = s;
+        if (last.t - samples[i]!.t > VELOCITY_WINDOW_MS) break;
+        i0 = i;
     }
-    const dt = (last.t - first.t) / 1000;
-    return dt * 1000 < MIN_VELOCITY_SPAN_MS ? null : { first, last, dt };
+    const win = samples.slice(i0);
+    const span = last.t - win[0]!.t;
+    return span < MIN_VELOCITY_SPAN_MS ? null : win;
+};
+
+/** The least-squares slope (per second) of `ys` over the times `ts` (ms). */
+export const slopePerSecond = (ts: readonly number[], ys: readonly number[]): number => {
+    const n = ts.length;
+    if (n < 2) return 0;
+    let mt = 0;
+    let my = 0;
+    for (let i = 0; i < n; i++) {
+        mt += ts[i]!;
+        my += ys[i]!;
+    }
+    mt /= n;
+    my /= n;
+    let num = 0;
+    let den = 0;
+    for (let i = 0; i < n; i++) {
+        num += (ts[i]! - mt) * (ys[i]! - my);
+        den += (ts[i]! - mt) ** 2;
+    }
+    return den > 0 ? (num / den) * 1000 : 0;
 };
 
 /**
  * The release's angular velocity, per unit TIME (rad/s), as an axis·rate vector
- * in the frame Q is stored in: ω = 2·log(Qₙ·Q_then⁻¹)/Δt over the release
- * window. The rate is the hand's, whatever the event rate: the same angle
- * delivered in two events or in eight reads the same ω (D-15, KFA-83).
+ * in the frame Q is stored in. The window's attitudes are unwrapped into one
+ * running rotation vector, r_i = r_(i−1) + 2·log(Q_i·Q_(i−1)⁻¹) (each step is
+ * short, so a fast spin never aliases past π the way a first-to-last log
+ * does), and ω is the least-squares slope of r over time: every sample of the
+ * last 80 ms votes, so one late or early event cannot swing the throw. The rate
+ * is the hand's, whatever the event rate (D-15, KFA-83).
  */
 export const angularVelocityFromSamples = (
     samples: readonly AttitudeSample[],
@@ -213,24 +237,33 @@ export const angularVelocityFromSamples = (
 ): Vec3 => {
     const w = releaseWindow(samples, releaseAt);
     if (!w) return [0, 0, 0];
-    const l = quatLog(quatMultiply(w.last.q, quatConjugate(w.first.q)));
-    return [(2 * l[0]) / w.dt, (2 * l[1]) / w.dt, (2 * l[2]) / w.dt];
+    const ts: number[] = [w[0]!.t];
+    const rs: Vec3[] = [[0, 0, 0]];
+    for (let i = 1; i < w.length; i++) {
+        const l = quatLog(quatMultiply(w[i]!.q, quatConjugate(w[i - 1]!.q)));
+        const p = rs[i - 1]!;
+        rs.push([p[0] + 2 * l[0], p[1] + 2 * l[1], p[2] + 2 * l[2]]);
+        ts.push(w[i]!.t);
+    }
+    return [0, 1, 2].map((k) => slopePerSecond(ts, rs.map((r) => r[k]!))) as Vec3;
 };
 
 /**
  * OA-17 — the release's pan velocity (screen px/s) and zoom rate (ln s per
- * second), over the SAME window and hold rule as ω, so the three channels of
- * one release are read from one moment of the hand.
+ * second), least squares over the SAME window and hold rule as ω, so the three
+ * channels of one release are read from one moment of the hand.
  */
 export const poseRatesFromSamples = (
     samples: readonly AttitudeSample[],
     releaseAt: number,
 ): { pan: { x: number; y: number }; zoom: number } => {
     const w = releaseWindow(samples, releaseAt);
-    const a = w?.first;
-    const b = w?.last;
-    if (!w || !a?.p || !b?.p || a.ls === undefined || b.ls === undefined) return { pan: { x: 0, y: 0 }, zoom: 0 };
-    return { pan: { x: (b.p.x - a.p.x) / w.dt, y: (b.p.y - a.p.y) / w.dt }, zoom: (b.ls - a.ls) / w.dt };
+    if (!w || w.some((s) => !s.p || s.ls === undefined)) return { pan: { x: 0, y: 0 }, zoom: 0 };
+    const ts = w.map((s) => s.t);
+    return {
+        pan: { x: slopePerSecond(ts, w.map((s) => s.p!.x)), y: slopePerSecond(ts, w.map((s) => s.p!.y)) },
+        zoom: slopePerSecond(ts, w.map((s) => s.ls!)),
+    };
 };
 
 /** Unwrap `a` (degrees) onto the turn nearest `prev`. */

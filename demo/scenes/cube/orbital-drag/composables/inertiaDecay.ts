@@ -1,66 +1,86 @@
 /**
- * inertiaDecay — the pure (Vue-free) bridge between the orbital-drag's
- * per-frame friction knob and the engine's analytic `decay()` closed form
- * (F.W10.S1), and the coast's release law (KF-M2, COHESION §0hm D-15).
+ * inertiaDecay — the cube's feel, in one place (owner 2026-11-15: "apple like
+ * in inertia and momentum--it should be fun and highly interactive"). Pure
+ * and Vue-free: every surface the die stands on reads these numbers (the
+ * demo's cube scene and the embed slice daraksha.babb.dev/motion frames are
+ * one build of one CubeTarget), so the same hand gives the same die on both.
  *
- * The knob is `inertiaFactor`, the velocity kept per 60 Hz frame; the engine
- * wants a friction `k` in 1/s. The mapping between them is the one
- * measure-first fact the swap rests on, kept Vue-free so the inertia-parity
- * gate can import it without pulling the demo's `.vue` graph.
+ * The coast is the engine's analytic `decay()` closed form, sampled at
+ * elapsed time (so 30, 60 and 120 Hz draw the same path):
+ *   ω(t) = ω₀·e^(−k·t),  θ(t) = ω₀/k·(1 − e^(−k·t)).
+ *
+ * The hand's speed is kept at release (COAST_GAIN 1: the die leaves the
+ * finger at the finger's speed, as a scroll view does) and bleeds out at
+ * ROTATE_FRICTION 3/s (τ = 333 ms): a gentle flick turns on about a third of
+ * a turn, a hard one spins several turns before it rests. (This reverses
+ * D-15's k = 9/s and gain 0.5, owner 2026-11-15.)
  */
 
-/** The frame interval the friction knob is expressed per (ms). */
+/** The frame interval the legacy per-frame knob is expressed per (ms). */
 export const TARGET_DT = 1000 / 60;
 
 /**
- * The friction coefficient `k` (1/s) that makes the engine's analytic
- * `decay()` felt-IDENTICAL to the per-frame `Math.pow(inertiaFactor,
- * dt/TARGET_DT)` decay. Equating the two exponentials:
- *
- *   inertiaFactor^(t_ms/TARGET_DT) = e^(−k · t_ms/1000)
- *   ⇒ k = −ln(inertiaFactor) · (1000 / TARGET_DT)   (= −ln(inertiaFactor)·60)
- *
- * `inertiaFactor` is a decay-per-frame fraction in (0, 1), so `k > 0`.
+ * The friction coefficient `k` (1/s) equal to a per-60-Hz-frame keep factor:
+ * inertiaFactor^(t_ms/TARGET_DT) = e^(−k·t_ms/1000) ⇒ k = −ln(inertiaFactor)·60.
  */
 export const inertiaFactorToFriction = (inertiaFactor: number): number =>
     -Math.log(inertiaFactor) * (1000 / TARGET_DT);
 
-/**
- * KF-M2 (D-15) — the default knob: k = 9/s, τ = 111 ms, |ω| under 5% in
- * ~333 ms and under 1% in ~512 ms. The former 0.95 (k ≈ 3.1/s, τ ≈ 325 ms)
- * with an un-gained release coasted a 120 px flick ~2× its own gesture, like
- * a slot machine. This is a short, soft exhale.
- */
-export const DEFAULT_INERTIA_FACTOR = Math.exp(-9 / 60);
+/** The rotation coast's friction (1/s): τ = 333 ms. */
+export const ROTATE_FRICTION = 3;
 
-/**
- * The release gain: the coast starts at half the hand's angular speed. With
- * k = 9/s a flick of duration T coasts COAST_GAIN/(k·T) of its own angle: a
- * 120 px flick in 120 ms coasts 0.46× the gesture (100 ms → 0.56×, 160 ms →
- * 0.35×), inside the 0.3–0.6 band.
- */
-export const COAST_GAIN = 0.5;
+/** The default knob, the rotation friction per 60 Hz frame (e^(−3/60) ≈ 0.951). */
+export const DEFAULT_INERTIA_FACTOR = Math.exp(-ROTATE_FRICTION / 60);
 
-/** The coast's starting rate is capped at one turn per second. */
-export const MAX_COAST_RATE = 2 * Math.PI;
+/** The pan and zoom coast's friction (1/s): a die inside its card has little
+ *  room, so a thrown pan or pinch settles twice as fast as the spin. */
+export const POSE_FRICTION = 6;
 
-/** OA-17 — the pan coast's starting speed cap (screen px/s): a coast of at
- *  most 3000/9 ≈ 333 px. */
-export const MAX_PAN_COAST_RATE = 3000;
+/** The spring that returns what stands past a bound, and Reset's spring
+ *  (1/s; critically damped, x(t) = (x₀ + (v₀ + k·x₀)·t)·e^(−k·t)). */
+export const SPRING_K = 11;
 
-/** OA-17 — the zoom coast's starting rate cap (ln s per second): a coast of
- *  at most e^(4/9) ≈ 1.56×. */
-export const MAX_ZOOM_COAST_RATE = 4;
+/** The release gain: the coast starts at the hand's own speed. */
+export const COAST_GAIN = 1;
+
+/** The coast's starting rate is capped at six turns per second (a hard flick
+ *  coasts at most 12π/3 rad ≈ two turns). */
+export const MAX_COAST_RATE = 12 * Math.PI;
+
+/** The pan coast's starting speed cap (screen px/s): a coast of at most 4000/6 ≈ 667 px. */
+export const MAX_PAN_COAST_RATE = 4000;
+
+/** The zoom coast's starting rate cap (ln s per second): at most e^(6/6) ≈ 2.7×. */
+export const MAX_ZOOM_COAST_RATE = 6;
 
 /** Reduced motion shortens a settle, never cuts it (owner's motion law,
- *  2026-11-12): a wheel notch's glide runs at this multiple of k (9/s → 36/s,
- *  resting in ~130 ms instead of ~510 ms). */
+ *  2026-11-12): a wheel notch's or an arrow key's glide runs at this multiple
+ *  of k. */
 export const REDUCED_MOTION_SETTLE_SPEEDUP = 4;
 
-/** The coast stops once its rate has bled to 1% of its start. */
+/** A wheel notch's or an arrow key's glide (a known total, landed exactly)
+ *  drains on this friction (1/s): a step settles in about half a second. */
+export const GLIDE_FRICTION = 9;
+
+/** A pan or zoom coast stops once its rate has bled to 1% of its start. */
 export const COAST_REST_FRACTION = 0.01;
+
+/** The rotation coast rests once it turns slower than this (rad/s, ≈ 1.7°/s):
+ *  an absolute floor, so a hard flick's tail ends where the eye stops seeing it. */
+export const COAST_REST_RATE = 0.03;
+
+/** A release slower than this (rad/s) does not coast: a placed die stays placed. */
+export const COAST_MIN_RATE = 0.15;
 
 /** A channel's starting coast rate from the hand's release rate (the same
  *  gain for every channel; rad/s by default, px/s or ln s/s with their cap). */
 export const coastRate = (releaseRate: number, reducedMotion = false, cap = MAX_COAST_RATE): number =>
     reducedMotion ? 0 : Math.min(COAST_GAIN * Math.abs(releaseRate), cap);
+
+/** How long a rotation coast from ω₀ (rad/s) runs before it rests (s). */
+export const coastDuration = (omega0: number, k = ROTATE_FRICTION): number =>
+    omega0 > COAST_REST_RATE ? Math.log(omega0 / COAST_REST_RATE) / k : 0;
+
+/** How far a rotation coast from ω₀ (rad/s) travels to its rest (rad). */
+export const coastTravel = (omega0: number, k = ROTATE_FRICTION): number =>
+    omega0 > COAST_REST_RATE ? (omega0 - COAST_REST_RATE) / k : 0;

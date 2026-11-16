@@ -262,3 +262,14 @@
         transform-origin: 50% 100%;
     }
 }
+
+/* The stage takes keyboard focus (the arrows turn the die): a ring only for
+   the keyboard, inside the stage's box. */
+.cube-stage:focus {
+    outline: none;
+}
+.cube-stage:focus-visible {
+    outline: 2px solid var(--ring, currentColor);
+    outline-offset: -2px;
+    border-radius: var(--radius-md, 8px);
+}

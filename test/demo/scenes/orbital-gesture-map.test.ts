@@ -108,7 +108,8 @@ describe("M1 — a two-finger scroll orbits the die and never pans it", () => {
         const { w, model, el } = await mountOrbit();
         const e = wheel({ deltaY: 30 });
         el.dispatchEvent(e);
-        await flush();
+        // The scroll is laid onto the frames by the follower (WHEEL_SMOOTH_MS).
+        await flush(40);
         expect(e.defaultPrevented).toBe(true);
         const r = screenRotation(q(model.value));
         expect(r.angle).toBeCloseTo((2 * 30) / R, 9);
@@ -122,7 +123,7 @@ describe("M1 — a two-finger scroll orbits the die and never pans it", () => {
     it("Δx −40 px yaws 2·40/R about the screen's vertical; the die stays put", async () => {
         const { w, model, el } = await mountOrbit();
         el.dispatchEvent(wheel({ deltaX: -40, deltaY: 0 }));
-        await flush();
+        await flush(40);
         const r = screenRotation(q(model.value));
         expect(r.angle).toBeCloseTo((2 * 40) / R, 9);
         expect(Math.abs(r.axis[1])).toBeCloseTo(1, 9);
@@ -137,7 +138,7 @@ describe("M1 — a two-finger scroll orbits the die and never pans it", () => {
         const turnByWheel = async () => {
             const { w, model, el } = await mountOrbit();
             el.dispatchEvent(wheel({ deltaY: 30 }));
-            await flush();
+            await flush(40);
             const out = q(model.value);
             w.unmount();
             return out;
@@ -158,7 +159,7 @@ describe("M1 — a two-finger scroll orbits the die and never pans it", () => {
         expect(Math.sign(a.axis[0])).toBe(Math.sign(b.axis[0]));
     });
 
-    it("a trackpad's stream, momentum tail included, is applied as it comes: it sums, nothing coasts after, nothing pans", async () => {
+    it("a trackpad's stream, momentum tail included, is laid onto the frames: it sums, nothing coasts after, nothing pans", async () => {
         const { w, model, el } = await mountOrbit();
         // A flick: the hand's ramp, then the OS's own momentum bleeding out.
         const stream = [2, 5, 9, 14, 12, 9, 6, 4, 2, 1, 1];
@@ -167,6 +168,7 @@ describe("M1 — a two-finger scroll orbits the die and never pans it", () => {
             el.dispatchEvent(wheel({ deltaX: d, deltaY: 0 }, (t += 16)));
             await flush();
         }
+        await flush(40);
         const after = q(model.value);
         expect(screenRotation(after).angle).toBeCloseTo((2 * stream.reduce((a, b) => a + b)) / R, 9);
         await flush(30);
@@ -265,7 +267,8 @@ describe("M4 — the pinch zooms at the cursor", () => {
     it("Ctrl + Δy −15 (Chromium's pinch) zooms e^0.15 and turns nothing", async () => {
         const { w, model, el } = await mountOrbit();
         el.dispatchEvent(wheel({ deltaY: -15, ctrlKey: true }));
-        await flush();
+        // The zoom is laid onto the frames by the follower (WHEEL_SMOOTH_MS).
+        await flush(40);
         expect(Math.abs(model.value.scale.x - Math.exp(0.15))).toBeLessThan(1e-9);
         expect(screenRotation(q(model.value)).angle).toBe(0);
         w.unmount();

@@ -17,10 +17,17 @@
 export type Vec2 = { x: number; y: number };
 export type Box = { left: number; top: number; right: number; bottom: number };
 
-/** Dead zones: twist 4°, pinch |ln k| 0.04, pan 6 px. */
+/**
+ * Dead zones (soft: 0 inside, raw − thr²/raw outside, so a channel eases in
+ * and then converges on the hand). Pinch and pan have none: the content under
+ * the two fingers stays under them exactly (owner 2026-11-15, "tracks the
+ * finger exactly"). Twist keeps 4°, so a pinch's own wobble never rolls the
+ * die; past it the roll converges on the fingers' angle (a 90° twist rolls
+ * 89.8°).
+ */
 export const TWIST_DEADZONE_RAD = (4 * Math.PI) / 180;
-export const PINCH_DEADZONE_LN = 0.04;
-export const PAN_DEADZONE_PX = 6;
+export const PINCH_DEADZONE_LN = 0;
+export const PAN_DEADZONE_PX = 0;
 
 export interface PairReading {
     /** Zoom ratio |d|/|d₀|. */

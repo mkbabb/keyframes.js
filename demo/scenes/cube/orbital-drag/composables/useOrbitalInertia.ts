@@ -1,4 +1,3 @@
-import { useRafFn } from "@vueuse/core";
 // inv ζ (F.W10.S1): the coast consumes the engine's SHIPPED analytic `decay()`
 // closed form from the published barrel, like every other demo engine consumer.
 import { decay } from "@mkbabb/keyframes.js";
@@ -9,10 +8,15 @@ import type { Vec2 } from "../similarity";
 import { axisMotion, clampTo, excess, sampleAxis } from "../bounds";
 import type { AxisMotion, Interval } from "../bounds";
 import {
+    COAST_MIN_RATE,
     COAST_REST_FRACTION,
-    REDUCED_MOTION_SETTLE_SPEEDUP,
+    COAST_REST_RATE,
+    GLIDE_FRICTION,
     MAX_PAN_COAST_RATE,
     MAX_ZOOM_COAST_RATE,
+    POSE_FRICTION,
+    REDUCED_MOTION_SETTLE_SPEEDUP,
+    SPRING_K,
     coastRate,
     inertiaFactorToFriction,
 } from "./inertiaDecay";
@@ -43,12 +47,13 @@ export interface OrbitPose {
 interface OrbitalInertiaParams {
     inertiaFactor: number;
     /** Turn the stored attitude by `angle` (rad) about `axis` (unit, in the
-     *  frame the attitude is stored in), and commit the frame. */
+     *  frame the attitude is stored in). The state only: the host's frame
+     *  loop commits. */
     rotateBy: (axis: Vec3, angle: number) => void;
     /** The pan and zoom pose (absent: rotation only). */
     pose?: OrbitPose;
-    /** Commit a frame the pan or zoom moved. */
-    commit?: () => void;
+    /** Ask the host's ONE frame loop for a frame (it calls `advance`). */
+    requestFrame: () => void;
     /** The coast's settle (the readout folds there). */
     onRest?: () => void;
     reducedMotion?: () => boolean;
@@ -62,37 +67,34 @@ interface Channel {
     travelled: number;
     /** A glide's exact travel; −1 for a release coast (no landing). */
     total: number;
-    /** Apply `step` of travel; false ends the channel (held at a bound). */
-    apply: (step: number) => boolean;
+    k: number;
+    /** Apply `step` of travel. */
+    apply: (step: number) => void;
 }
 
 /**
- * The release coast — rotation, pan and zoom (KF-M2 D-15; OA-17, owner
- * 2026-11-09: "Natural scrolling for all pan an zoom, in orbital drag").
+ * The release coast: rotation, pan and zoom, advanced by the host's one frame
+ * loop (`advance(now)`), never by a loop of its own.
  *
  * Every channel is the same closed form sampled at elapsed time: x(t) =
- * r₀/k·(1 − e^{−kt}), so the path is identical at 30, 60 and 120 Hz (each
- * frame lands x(t), never a per-frame step). Each starts at r₀ =
- * min(COAST_GAIN·|rate|, cap) along the release's direction and stops once its
- * rate is under 1% of r₀. Under reduced motion r₀ = 0: the gesture stays 1:1
- * and nothing coasts.
+ * r₀/k·(1 − e^{−kt}), so the path is identical at 30, 60 and 120 Hz. The
+ * rotation starts at the hand's own angular speed (COAST_GAIN 1, capped at
+ * MAX_COAST_RATE) and rests once it turns slower than COAST_REST_RATE; the
+ * pan and zoom start at the hand's speeds and decay at POSE_FRICTION. Under
+ * reduced motion nothing coasts: the gesture stays 1:1.
  *
- * The pan (per axis) and the zoom (in ln s) are bounded (bounds.ts, owner
- * 2026-11-11): a coast that crosses its bound becomes the critically damped
- * spring at the same k there, and a pose let go past a bound (the hand's
- * rubber band, a zoom that moved the pan's bound) springs back from where it
- * stands. Under reduced motion a pose past its bound is put on it.
+ * The pan (per axis) and the zoom (in ln s) are bounded (bounds.ts): a coast
+ * that crosses its bound becomes the critically damped spring (SPRING_K)
+ * there, and a pose let go past a bound springs back from where it stands.
+ * Under reduced motion a pose past its bound is put on it.
  *
- * The GLIDE is the rotation channel's decay with a known total: a wheel
- * notch's rotation θ (an axis·angle vector) drains at r₀ = |θ|·k and lands
- * EXACTLY on θ at the 1% rest. Notches stack: a new one adds into the
- * remaining-rotation vector (any axis), so two notches travel Σθ. Under
- * reduced motion it is shortened, never cut: the same decay at
- * REDUCED_MOTION_SETTLE_SPEEDUP × k (owner's motion law, 2026-11-12). A glide
- * leaves a running pan or zoom coast alone.
+ * The GLIDE is a rotation with a known total (a wheel notch, an arrow key):
+ * θ drains at r₀ = |θ|·k on GLIDE_FRICTION and lands EXACTLY on θ. Glides
+ * stack: a new one adds into what is still to travel (any axis). Under
+ * reduced motion it is shortened, never cut.
  */
 export function useOrbitalInertia(params: OrbitalInertiaParams) {
-    const { inertiaFactor, rotateBy, pose, commit, onRest, reducedMotion } = params;
+    const { inertiaFactor, rotateBy, pose, requestFrame, onRest, reducedMotion } = params;
     const friction = inertiaFactorToFriction(inertiaFactor);
 
     let axis: Vec3 = [0, 1, 0];
@@ -110,7 +112,6 @@ export function useOrbitalInertia(params: OrbitalInertiaParams) {
     const stop = () => {
         const was = coasting();
         rotation = panX = panY = zoom = null;
-        pause();
         if (was) onRest?.();
     };
 
@@ -120,6 +121,7 @@ export function useOrbitalInertia(params: OrbitalInertiaParams) {
         startedAt: now,
         travelled: 0,
         total,
+        k,
         apply,
     });
 
@@ -127,16 +129,21 @@ export function useOrbitalInertia(params: OrbitalInertiaParams) {
     const step = (c: Channel, now: number): boolean => {
         if (c.startedAt < 0) c.startedAt = now;
         const s = c.sample((now - c.startedAt) / 1000);
-        const resting = s.velocity < COAST_REST_FRACTION * c.rate0;
+        const resting =
+            c.total >= 0 ? s.velocity < COAST_REST_FRACTION * c.rate0 : s.velocity < Math.max(COAST_REST_RATE, 1e-9);
         // A glide lands its whole travel at the rest.
         const at = c.total >= 0 ? (resting ? c.total : Math.min(s.value, c.total)) : s.value;
         const d = at - c.travelled;
         c.travelled = at;
-        const free = d === 0 || c.apply(d);
-        return free && !resting;
+        if (d !== 0) c.apply(d);
+        return !resting;
     };
 
-    /** A zoom spring is home under 1e-4 in ln s. */
+    /** The pan's and the zoom's release floors (px/s, ln s/s). */
+const POSE_MIN_SPEED = 10;
+const ZOOM_MIN_RATE = 0.03;
+
+/** A zoom spring is home under 1e-4 in ln s. */
     const ZOOM_REST = { x: 1e-4, v: 1e-3 };
 
     /** Re-time motions created before their first frame onto that frame's clock. */
@@ -154,7 +161,7 @@ export function useOrbitalInertia(params: OrbitalInertiaParams) {
             pending = false;
         }
         if (zoom) {
-            const z = sampleAxis(zoom, t, pose.read().z, friction, COAST_REST_FRACTION, ZOOM_REST);
+            const z = sampleAxis(zoom, t, pose.read().z, POSE_FRICTION, COAST_REST_FRACTION, ZOOM_REST, SPRING_K);
             zoom = z.next;
             pose.setZoom(z.x, zoomAt);
         }
@@ -167,41 +174,30 @@ export function useOrbitalInertia(params: OrbitalInertiaParams) {
         let x = reduce ? clampTo(p.c.x, p.x) : p.c.x;
         let y = reduce ? clampTo(p.c.y, p.y) : p.c.y;
         if (panX) {
-            const a = sampleAxis(panX, t, p.x, friction, COAST_REST_FRACTION);
+            const a = sampleAxis(panX, t, p.x, POSE_FRICTION, COAST_REST_FRACTION, undefined, SPRING_K);
             panX = a.next;
             x = a.x;
         }
         if (panY) {
-            const a = sampleAxis(panY, t, p.y, friction, COAST_REST_FRACTION);
+            const a = sampleAxis(panY, t, p.y, POSE_FRICTION, COAST_REST_FRACTION, undefined, SPRING_K);
             panY = a.next;
             y = a.x;
         }
         if (x !== p.c.x || y !== p.c.y) pose.setCentre({ x, y });
     };
 
-    /** Advance the coast to `now` (ms). Returns whether it is still coasting. */
+    /** Advance the coast to `now` (ms), the host's frame. Returns whether it
+     *  still runs; at its rest it calls `onRest`. */
     const advance = (now: number): boolean => {
         if (!coasting()) return false;
         if (rotation && !step(rotation, now)) rotation = null;
-        if (panX || panY || zoom) {
-            advancePose(now / 1000);
-            commit?.();
-        }
+        if (panX || panY || zoom) advancePose(now / 1000);
         if (coasting()) return true;
-        stop();
-        // stop() saw nothing left; the settle is still owed.
         onRest?.();
         return false;
     };
 
-    const { pause, resume } = useRafFn(({ timestamp }) => void advance(timestamp), {
-        immediate: false,
-    });
-
-    const rotate = (dir: Vec3) => (d: number) => {
-        rotateBy(dir, d);
-        return true;
-    };
+    const rotate = (dir: Vec3) => (d: number) => rotateBy(dir, d);
 
     /**
      * Start the pan and zoom from a let-go pose with the given rates (px/s,
@@ -236,8 +232,8 @@ export function useOrbitalInertia(params: OrbitalInertiaParams) {
         const t0 = now ?? -1;
 
         const rate = norm3(r.omega);
-        const r0 = coastRate(rate, reduce);
-        if (r0 > 0 && rate > 0) {
+        const r0 = rate < COAST_MIN_RATE ? 0 : coastRate(rate, reduce);
+        if (r0 > 0) {
             axis = [r.omega[0] / rate, r.omega[1] / rate, r.omega[2] / rate];
             rotation = channel(r0, rotate(axis), -1, t0);
         }
@@ -245,15 +241,17 @@ export function useOrbitalInertia(params: OrbitalInertiaParams) {
         // The pan's starting speed is the gained, capped release speed along
         // the release's direction; the zoom's likewise, signed.
         const v = r.pan ?? { x: 0, y: 0 };
-        const speed = Math.hypot(v.x, v.y);
+        const raw = Math.hypot(v.x, v.y);
+        // A placed pose stays placed: a release slower than the floors does not coast.
+        const speed = raw < POSE_MIN_SPEED ? 0 : raw;
         const p0 = coastRate(speed, reduce, MAX_PAN_COAST_RATE);
         const pan = speed > 0 ? { x: (v.x / speed) * p0, y: (v.y / speed) * p0 } : { x: 0, y: 0 };
-        const z = r.zoom ?? 0;
+        const z = Math.abs(r.zoom ?? 0) < ZOOM_MIN_RATE ? 0 : (r.zoom ?? 0);
         const z0 = Math.sign(z) * coastRate(z, reduce, MAX_ZOOM_COAST_RATE);
         letGo(pan, z0, r.at ?? { x: 0, y: 0 }, t0 < 0 ? -1 : t0 / 1000);
 
         if (!coasting()) return false;
-        resume();
+        requestFrame();
         return true;
     };
 
@@ -264,7 +262,7 @@ export function useOrbitalInertia(params: OrbitalInertiaParams) {
     const settle = (at?: Vec2) => {
         if (panX || panY || zoom) return;
         letGo({ x: 0, y: 0 }, 0, at ?? zoomAt, -1);
-        if (coasting()) resume();
+        if (coasting()) requestFrame();
     };
 
     /**
@@ -273,15 +271,17 @@ export function useOrbitalInertia(params: OrbitalInertiaParams) {
      */
     const glide = (theta: Vec3, now?: number): number => {
         // What is left of the running rotation (a coast: its analytic rest).
-        const left = rotation ? (rotation.total >= 0 ? rotation.total : rotation.rate0 / friction) - rotation.travelled : 0;
+        const left = rotation
+            ? (rotation.total >= 0 ? rotation.total : Math.max(0, rotation.rate0 - COAST_REST_RATE) / rotation.k) - rotation.travelled
+            : 0;
         const v: Vec3 = [theta[0] + axis[0] * left, theta[1] + axis[1] * left, theta[2] + axis[2] * left];
         const angle = norm3(v);
         if (angle === 0) return 0;
         const dir: Vec3 = [v[0] / angle, v[1] / angle, v[2] / angle];
-        const k = (reducedMotion?.() ?? false) ? friction * REDUCED_MOTION_SETTLE_SPEEDUP : friction;
+        const k = (reducedMotion?.() ?? false) ? GLIDE_FRICTION * REDUCED_MOTION_SETTLE_SPEEDUP : GLIDE_FRICTION;
         axis = dir;
         rotation = channel(angle * k, rotate(dir), angle, now ?? -1, k);
-        resume();
+        requestFrame();
         return rotation.rate0;
     };
 
