@@ -344,7 +344,9 @@ describe("G2.4 — ONE multitouch source (D-14)", () => {
 
     it("Safari's pinch and twist in one gesture: s ×1.5 anchored at the cursor, 30° about the view axis", async () => {
         const { w, model, el } = await mountOrbit();
-        const at = { x: CENTRE.x + 60, y: CENTRE.y - 40 };
+        // An anchor whose ×1.5 keeps the die's centre inside the bound (bounds.ts:
+        // at ×1.5 the centre's y bound is [323, 329] on this stage), so the band never acts.
+        const at = { x: CENTRE.x - 20, y: CENTRE.y - 52 };
         const g = (type: string, scale: number, rotation: number) => {
             const e = gestureEvent(type, scale, rotation);
             Object.defineProperty(e, "clientX", { value: at.x });

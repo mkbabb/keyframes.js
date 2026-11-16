@@ -239,10 +239,14 @@ defineExpose({ setPlaying, reset, relayGesture, transportLook });
     transform: translate(var(--paper-x), var(--paper-y)) scale(var(--paper-zoom));
 }
 
-/* The die's side is the stage's, over φ²: its corner-on projection (the √3
-   diagonal under the stage perspective) and the garland's sway stay inside
-   the square. */
+/* The die takes the card (owner 2026-11-16): its side is half the stage's
+   short side. That is as large as it can be with every face inside the stage
+   in every attitude at rest: its corner-on silhouette is ~1.73 × the side, and
+   at /2 the faces' union keeps 22-38 px clear of the frame's edge at 390 and
+   1440, on the embed and on Motion, with room for the garland's ±2.5° sway
+   (~0.04 × side). φ (/1.618) was asked for and measured: a corner-on face
+   then leaves the stage by 15-76 px. (Was /φ², 2.618.) */
 .embed-cube-stage :deep(.cube) {
-    --side-size: calc(min(100cqi, 100cqb) / 2.618);
+    --side-size: calc(min(100cqi, 100cqb) / 2);
 }
 </style>

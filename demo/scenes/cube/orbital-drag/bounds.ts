@@ -5,10 +5,12 @@
  *
  * Pan: the die rests wholly inside the stage (PAN_OUT = 0 of its extent may
  * leave it), D being the extent of its painted silhouette in every attitude:
- * the face's side · s · 2 (the cube's circumscribed diameter, √3, widened by the
- * scene's perspective at its near corner; the embed probe measured the faces'
- * union at up to 2.01 · side · s), so no corner of a turned die is cut by the
- * screen; and the allowed centre on an axis is
+ * the face's side · s · 1.8 (the cube's circumscribed diameter, √3, widened by
+ * the camera's perspective at its near corner: under the camera outside the
+ * stage attitude, `.graph-camera`, the faces' union measured up to 1.733 ·
+ * side · s over 966 attitudes incl. every corner-on one, at 390 and 1440, on
+ * the embed and on Motion; it was 2.01 while the perspective sat inside the
+ * attitude), so no corner of a turned die is cut by the screen; and the allowed centre on an axis is
  * [min + (0.5 − PAN_OUT)·D, max − (0.5 − PAN_OUT)·D]. A die zoomed larger than
  * the stage swaps those ends, so it may move while it still covers the stage,
  * continuously from the size at which it just fits. (Owner 2026-11-11, after a
@@ -26,8 +28,8 @@
 
 /** The share of the die's projected extent that may leave the stage on a side. */
 export const PAN_OUT = 0;
-/** The die's painted silhouette per unit of its face's side, in any attitude: √3 under the scene's perspective. */
-export const SILHOUETTE = 2;
+/** The die's painted silhouette per unit of its face's side, in any attitude: √3 under the camera's perspective (measured ≤ 1.733, +4 %). */
+export const SILHOUETTE = 1.8;
 /** The rubber band's resistance at the bound (the shown overshoot's slope). */
 export const BAND = 0.55;
 /** The zoom band's reach past either end of the scale range (ln s). */
