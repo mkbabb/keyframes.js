@@ -10,7 +10,7 @@
 <script setup lang="ts">
 // SERVED MODEL: claude-opus-5-5
 import { registerShortcut } from "@mkbabb/glass-ui/keyboard";
-import { useEventListener, useRafFn } from "@vueuse/core";
+import { useEventListener } from "@vueuse/core";
 import { computed, onMounted, onUnmounted, shallowRef, useTemplateRef, watch } from "vue";
 import { attitudeQuat } from "../graphAttitude";
 import {
@@ -31,7 +31,7 @@ import { defaultTransformBounds, defaultTransformState } from "./transform";
 import { useOrbitalGesture } from "./composables/useOrbitalGesture";
 import type { OrbitFrame, OrbitState, ScrollOwner } from "./composables/useOrbitalGesture";
 import { useOrbitalInertia } from "./composables/useOrbitalInertia";
-import { DEFAULT_INERTIA_FACTOR } from "./composables/inertiaDecay";
+import { DEFAULT_INERTIA_FACTOR, SPRING_K } from "./composables/inertiaDecay";
 import {
     eulerDegreesToQuaternion,
     foldEulerDegrees,
@@ -47,13 +47,14 @@ import {
  *  · A screen-frame rotation q_s reaches Q conjugated, Q' = (G⁻¹·q_s·G)·Q₀, so
  *    a drag turns the die about the axis the hand sees (the former local-frame
  *    axis skewed it up to 30°).
- *  · The pan is in SCREEN px and renders in the stage's own plane
- *    (panInPlane: local z = 0, so `.graph`'s perspective cannot magnify it):
- *    the die's centre lands exactly t (the former 1.43×, D-13; translate3d
- *    (G⁻¹·t)'s own local depth, 1.15× at a 440 px pan).
+ *  · The pan is in SCREEN px and renders as G⁻¹·t (panInPlane): the camera
+ *    (`.graph-camera`) looks from outside G, so the pan has no depth before
+ *    it and the die's centre lands exactly t (the former 1.43×, D-13).
  *  · The Euler triple is a READOUT (Y·X·Z, continuous, quaternionEuler.ts).
- *  · Gesture moves write the state; ONE commit per frame writes the model,
- *    emits, and ticks the render (no Euler-triple render dependency).
+ *  · Gesture moves write the state; ONE frame loop (`tick`) flushes the
+ *    wheel, advances the coast or the spring home, and commits once: one model
+ *    write, one emit, one render tick per frame, transform only. Nothing else
+ *    in the orbit asks for a frame.
  */
 const props = withDefaults(
     defineProps<{
@@ -146,19 +147,35 @@ const writeModel = (fold = false) => {
     version.value++;
 };
 
-let commitHandle = 0;
-const commitNow = () => {
-    if (commitHandle) cancelAnimationFrame(commitHandle);
-    commitHandle = 0;
-    writeModel();
+// ── THE frame loop: one requestAnimationFrame for the whole orbit ────
+// The wheel's follower, the coast, the spring home and the gesture's commit
+// all run here, once a frame; the loop stops itself when nothing is live.
+let frameHandle = 0;
+/** The state changed since the last commit. */
+let dirty = false;
+const tick = (now: number) => {
+    frameHandle = 0;
+    const wheel = gesture.flushWheel(now);
+    const owed = wheel === "owed";
+    const ahead = gesture.unwindPrediction(now);
+    const coasting = inertia.advance(now);
+    const homing = stepHome(now);
+    if (dirty || coasting || homing || wheel !== "idle" || ahead === "unwound") {
+        dirty = false;
+        writeModel();
+    }
+    if (coasting || homing || owed || ahead === "ahead") requestFrame();
+};
+const requestFrame = () => {
+    if (!frameHandle) frameHandle = requestAnimationFrame(tick);
 };
 const requestCommit = () => {
-    if (commitHandle) return;
-    commitHandle = requestAnimationFrame(() => {
-        commitHandle = 0;
-        gesture.flushWheel();
-        writeModel();
-    });
+    dirty = true;
+    requestFrame();
+};
+const commitNow = () => {
+    dirty = false;
+    writeModel();
 };
 
 // ── The frame the reader anchors on ─────────────────────────────────
@@ -191,14 +208,13 @@ const inertia = useOrbitalInertia({
     reducedMotion,
     rotateBy: (axis: Vec3, angle: number) => {
         state.q = quatCanonical(quatMultiply(quatFromAxisAngle(axis, angle), state.q));
-        writeModel();
     },
     pose: {
         read: () => gesture.pose.read(),
         setCentre: (c) => gesture.pose.setCentre(c),
         setZoom: (ln, at) => gesture.pose.setZoom(ln, at),
     },
-    commit: () => writeModel(),
+    requestFrame,
     onRest: () => writeModel(true),
 });
 
@@ -237,42 +253,86 @@ const gesture = useOrbitalGesture({
 
 // ── Home: Reset returns the orbit to its load pose on the settle spring ──
 // The attitude, pan and zoom travel together on p(t) = 1 − (1 + k·t)·e^(−k·t)
-// (the critically damped spring at the coast's own k: zero velocity at both
-// ends, no overshoot), sampled at elapsed time. A gesture takes it over;
-// under reduced motion it is a cut.
+// (the critically damped spring, SPRING_K: zero velocity at both ends, no
+// overshoot), sampled at elapsed time in the one frame loop. A gesture takes
+// it over where it stands. Under reduced motion it is a fade: the die fades
+// out where it is and in at home (opacity only, 120 + 160 ms), never a cut and
+// never a travel.
 const HOME_REST = 1e-4;
 let home: { t0: number; q: Quat; t: { x: number; y: number }; ln: number } | null = null;
-const homeLoop = useRafFn(
-    ({ timestamp }) => {
-        if (!home) return homeLoop.pause();
-        if (home.t0 < 0) home.t0 = timestamp;
-        const k = inertia.friction;
-        const tau = (timestamp - home.t0) / 1000;
-        const left = (1 + k * tau) * Math.exp(-k * tau);
-        const done = left < HOME_REST;
-        const p = done ? 1 : 1 - left;
-        state.q = done ? [0, 0, 0, 1] : quatCanonical(quatSlerp(home.q, [0, 0, 0, 1], p));
-        state.t = { x: home.t.x * (1 - p), y: home.t.y * (1 - p) };
-        state.s = Math.exp(home.ln * (1 - p));
-        if (done) {
-            home = null;
-            homeLoop.pause();
-            writeModel(true);
-        } else writeModel();
-    },
-    { immediate: false },
-);
+let fade: Animation | null = null;
+const stepHome = (now: number): boolean => {
+    if (!home) return false;
+    if (home.t0 < 0) home.t0 = now;
+    const k = SPRING_K;
+    const tau = (now - home.t0) / 1000;
+    const left = (1 + k * tau) * Math.exp(-k * tau);
+    const done = left < HOME_REST;
+    const p = done ? 1 : 1 - left;
+    state.q = done ? [0, 0, 0, 1] : quatCanonical(quatSlerp(home.q, [0, 0, 0, 1], p));
+    state.t = done ? { x: 0, y: 0 } : { x: home.t.x * (1 - p), y: home.t.y * (1 - p) };
+    state.s = done ? 1 : Math.exp(home.ln * (1 - p));
+    if (!done) return true;
+    home = null;
+    writeModel(true);
+    return false;
+};
+/** The pose at rest at home (identity, no pan, scale 1). */
+const atHome = () =>
+    Math.abs(state.q[3]) > 1 - 1e-6 && Math.hypot(state.t.x, state.t.y) < 0.5 && Math.abs(state.s - 1) < 1e-3;
+const putHome = () => {
+    state.q = [0, 0, 0, 1];
+    state.t = { x: 0, y: 0 };
+    state.s = 1;
+    writeModel(true);
+};
 const goHome = () => {
     inertia.stop();
+    gesture.dropOwed();
     if (reducedMotion()) {
-        state.q = [0, 0, 0, 1];
-        state.t = { x: 0, y: 0 };
-        state.s = 1;
-        writeModel(true);
+        const el = containerRef.value;
+        fade?.cancel();
+        if (!el || typeof el.animate !== "function") return putHome();
+        const out = el.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 120, easing: "ease-in" });
+        fade = out;
+        out.onfinish = () => {
+            putHome();
+            if (fade !== out) return;
+            fade = el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 160, easing: "ease-out" });
+        };
         return;
     }
     home = { t0: -1, q: [state.q[0], state.q[1], state.q[2], state.q[3]], t: { ...state.t }, ln: Math.log(state.s) };
-    homeLoop.resume();
+    requestFrame();
+};
+
+// ── The keyboard: the arrows turn the die on the same decay ─────────
+// With the stage focused, an arrow turns the die 15° (Shift: 45°) about the
+// screen's vertical (← →) or horizontal (↑ ↓), the near face moving with the
+// arrow, glided out on the coast's own closed form (a held key's repeats
+// stack into one glide); Home returns it. Under reduced motion the glide is
+// shortened, never cut.
+const ARROW_STEP_RAD = (15 * Math.PI) / 180;
+const ARROW_TURN: Record<string, Vec3> = {
+    ArrowLeft: [0, -1, 0],
+    ArrowRight: [0, 1, 0],
+    ArrowUp: [1, 0, 0],
+    ArrowDown: [-1, 0, 0],
+};
+const onKeydown = (event: KeyboardEvent) => {
+    if (event.altKey || event.ctrlKey || event.metaKey) return;
+    if (event.key === "Home") {
+        event.preventDefault();
+        goHome();
+        return;
+    }
+    const dir = ARROW_TURN[event.key];
+    if (!dir) return;
+    event.preventDefault();
+    event.stopPropagation();
+    home = null;
+    const a = ARROW_STEP_RAD * (event.shiftKey ? 3 : 1);
+    inertia.glide(rotateVec(Ginv, [dir[0] * a, dir[1] * a, dir[2] * a]));
 };
 
 // ── The axis latch — KF-AX-1 ≡ OD-3/OD-4/OD-5/OD-6/OD-25/OD-31 ──────
@@ -317,13 +377,15 @@ onMounted(() => {
     // Safari gesture*: page-zoom suppression while fingers are down, and the
     // desktop trackpad pinch when none are.
     useEventListener(surface, "gesturestart", gesture.onGestureStartEvent, { passive: false });
+    useEventListener(surface, "keydown", onKeydown);
     useEventListener(window, "gesturechange", gesture.onGestureChange, { passive: false });
     useEventListener(window, "gestureend", gesture.onGestureEndEvent, { passive: false });
 });
 
 onUnmounted(() => {
     inertia.stop();
-    if (commitHandle) cancelAnimationFrame(commitHandle);
+    fade?.cancel();
+    if (frameHandle) cancelAnimationFrame(frameHandle);
 });
 
 // kf-CubeTarget #1 — THE CAPTURE SURFACE, published (a consumer recognising its
@@ -337,6 +399,8 @@ defineExpose({
     relayGesture: gesture.relayGesture,
     /** Return to the load pose on the settle spring (Reset). */
     home: goHome,
+    /** Is the die at rest at its load pose? */
+    atHome,
 });
 
 // The reverse path: an EXTERNAL write to the readout (Reset, a slider, a

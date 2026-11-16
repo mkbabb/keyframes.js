@@ -44,8 +44,9 @@ import type { PressedKeys } from "./orbital-drag/types";
 // KF-AX-22 — the attrs contract, DECLARED rather than left latent: this renders
 // a three-root fragment, so Vue cannot auto-inherit fallthrough attrs and would
 // warn the day a caller passed one. A single wrapping root is not available as
-// a cure — `perspective: 1200px` lives on `.graph` and CSS perspective reaches
-// its OWN children only, so a wrapper would flatten every stroke's 3D transform.
+// a cure — the strokes must sit in `.graph`'s own 3D context (preserve-3d,
+// under the camera's perspective on `.graph-camera`), and a wrapper without
+// preserve-3d would flatten every stroke's 3D transform.
 defineOptions({ inheritAttrs: false });
 
 const { lock } = defineProps<{
@@ -159,8 +160,8 @@ const { lock } = defineProps<{
     /* KF-AX-4 · #57 — THE FRAME STAMP, and it is load-bearing. Every geometric
        claim about these strokes is written against the attitude the stage is
        parked at: `.graph` is driven to `rotate3d(-1, 1, 0, 30deg)`
-       (GRAPH_ATTITUDE, graphAttitude.ts) on mount, under `perspective: 1200px`
-       (CubeTarget.css:47). Derived in that frame (test/demo/scenes/
+       (GRAPH_ATTITUDE, graphAttitude.ts) on mount, under the camera's
+       `perspective: 1200px` (`.graph-camera`, CubeTarget.css). Derived in that frame (test/demo/scenes/
        cube-axis-reveal.test.ts, which re-derives it from GRAPH_ATTITUDE rather
        than restating it):
 

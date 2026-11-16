@@ -23,6 +23,11 @@ import {
     type Quat,
 } from "../../../demo/scenes/cube/orbital-drag/arcball";
 import { attitudeQuat } from "../../../demo/scenes/cube/graphAttitude";
+import {
+    COAST_GAIN,
+    MAX_ZOOM_COAST_RATE,
+    POSE_FRICTION,
+} from "../../../demo/scenes/cube/orbital-drag/composables/inertiaDecay";
 
 const G = attitudeQuat();
 const CENTRE = { x: 200, y: 300 };
@@ -197,13 +202,13 @@ describe("OA-17 — pan and pinch coast on release", () => {
         }
     };
 
-    /** A two-finger pan down at `v` px/s for 96 px (8 ms a move), released
+    /** A two-finger pan down at `v` px/s for 24 px (8 ms a move), released
      *  2 ms after its last move; then the coast at `hz` for 1.2 s. */
     const panCoast = async (v: number, hz = 60) => {
         const { w, model, el } = await mountOrbit();
         const step = (v * 8) / 1000;
-        // 48 px of pan and its coast stay inside the bound (the whole die inside the stage).
-        const n = Math.round(48 / step);
+        // 24 px of pan and its coast stay inside the bound (the whole die inside the stage).
+        const n = Math.round(24 / step);
         let t = 0;
         el.dispatchEvent(ptr("pointerdown", 1, 170, 200, t));
         el.dispatchEvent(ptr("pointerdown", 2, 230, 200, t));
@@ -230,11 +235,11 @@ describe("OA-17 — pan and pinch coast on release", () => {
         return out;
     };
 
-    it("a two-finger pan released at 600 px/s coasts 33 ± 3 px and rests within 600 ms", async () => {
-        const r = await panCoast(600);
-        expect(Math.abs(r.coast - (0.5 * 600) / 9)).toBeLessThan(3);
+    it("a two-finger pan released at 300 px/s coasts gain·v/k = 50 ± 3 px and rests within 800 ms", async () => {
+        const r = await panCoast(300);
+        expect(Math.abs(r.coast - (COAST_GAIN * 300) / POSE_FRICTION)).toBeLessThan(3);
         expect(r.restMs).toBeGreaterThan(0);
-        expect(r.restMs).toBeLessThanOrEqual(600);
+        expect(r.restMs).toBeLessThanOrEqual(800);
         // Along the hand only: no sideways drift, no zoom.
         expect(Math.abs(r.tx)).toBeLessThan(1e-9);
         expect(r.s).toBe(1);
@@ -243,25 +248,28 @@ describe("OA-17 — pan and pinch coast on release", () => {
     it("the pan coast's end at 30, 60 and 120 Hz differs by under 0.5 px", async () => {
         // One at a time: the rAF clock is shared.
         const at: number[] = [];
-        for (const hz of [30, 60, 120]) at.push((await panCoast(600, hz)).coast);
-        expect(Math.min(...at)).toBeGreaterThan(30);
+        for (const hz of [30, 60, 120]) at.push((await panCoast(300, hz)).coast);
+        expect(Math.min(...at)).toBeGreaterThan(45);
         expect(Math.max(...at) - Math.min(...at)).toBeLessThan(0.5);
     });
 
     it("a pinch released while spreading coasts its zoom on the same decay", async () => {
         const { w, model, el } = await mountOrbit();
-        // Spread 80 → 160 px about a fixed centroid in 160 ms.
-        await twoFinger(el, [160, 300], [240, 300], [120, 300], [280, 300], 20, false);
-        document.dispatchEvent(ptr("pointerup", 1, 120, 300, 162));
-        document.dispatchEvent(ptr("pointerup", 2, 280, 300, 162));
+        // Spread 80 → 120 px about a fixed centroid in 160 ms (its coast stays
+        // inside the scale range).
+        await twoFinger(el, [160, 300], [240, 300], [140, 300], [260, 300], 20, false);
+        document.dispatchEvent(ptr("pointerup", 1, 140, 300, 162));
+        document.dispatchEvent(ptr("pointerup", 2, 260, 300, 162));
         const s0 = model.value.scale.x;
         await flush(80);
         const coastLn = Math.log(model.value.scale.x / s0);
         expect(coastLn).toBeGreaterThan(0);
-        // The release window is the last 80 ms: the spread went 120 → 160 px,
-        // a rate of ln(160/120)/0.08 s; the coast is COAST_GAIN·rate/k.
-        const rate = Math.log(160 / 120) / 0.08;
-        expect(Math.abs(coastLn - (0.5 * rate) / 9) / ((0.5 * rate) / 9)).toBeLessThan(0.15);
+        // The release reads the last 80 ms of the spread, 100 → 120 px (least
+        // squares; uniform in px, so ln d is nearly linear there); the coast is
+        // COAST_GAIN·rate/k on the pose's friction.
+        const rate = Math.log(120 / 100) / 0.08;
+        const want = Math.min((COAST_GAIN * rate) / POSE_FRICTION, MAX_ZOOM_COAST_RATE / POSE_FRICTION);
+        expect(Math.abs(coastLn - want) / want).toBeLessThan(0.15);
         w.unmount();
     });
 
@@ -336,7 +344,9 @@ describe("G2.4 — ONE multitouch source (D-14)", () => {
 
     it("Safari's pinch and twist in one gesture: s ×1.5 anchored at the cursor, 30° about the view axis", async () => {
         const { w, model, el } = await mountOrbit();
-        const at = { x: CENTRE.x + 60, y: CENTRE.y - 40 };
+        // An anchor whose ×1.5 keeps the die's centre inside the bound (bounds.ts:
+        // at ×1.5 the centre's y bound is [323, 329] on this stage), so the band never acts.
+        const at = { x: CENTRE.x - 20, y: CENTRE.y - 52 };
         const g = (type: string, scale: number, rotation: number) => {
             const e = gestureEvent(type, scale, rotation);
             Object.defineProperty(e, "clientX", { value: at.x });

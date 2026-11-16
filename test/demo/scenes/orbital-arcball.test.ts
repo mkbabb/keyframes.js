@@ -205,15 +205,14 @@ describe("G2.7 SCREEN-FRAME AXES AND PAN", () => {
         expect(Math.abs(a[2])).toBeLessThan(1e-9);
     });
 
-    it("the pan rides the stage plane: local z = 0 (`.graph`'s perspective acts there) and lands t on screen", () => {
-        // kf-cube U5 — translate3d(G⁻¹·t) had local z = −35 at t = (100, 0):
-        // under perspective 1200px the die moved 103 px for a 100 px pan.
+    it("the pan lands t on screen with no depth before the camera (`.graph-camera` looks from outside G)", () => {
+        // The camera is P·G: a pan whose image under G has z = 0 is not
+        // magnified, so the die's centre lands exactly t.
         const t: Vec3 = [100, -42, 0];
-        const local = panInPlane(G, t);
-        expect(Math.abs(local[2])).toBeLessThan(1e-9);
-        const screen = rotateVec(G, local);
+        const screen = rotateVec(G, panInPlane(G, t));
         expect(screen[0]).toBeCloseTo(100, 9);
         expect(screen[1]).toBeCloseTo(-42, 9);
+        expect(Math.abs(screen[2])).toBeLessThan(1e-9);
     });
 
     it("conj(q) keeps the angle and turns the axis by G⁻¹", () => {

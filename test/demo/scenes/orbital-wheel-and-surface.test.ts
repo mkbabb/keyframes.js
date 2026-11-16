@@ -126,13 +126,14 @@ describe("U1 — one truth: ctrl-wheel and wheel-orbit steps sum per frame", () 
     const zoomBy = async (deltas: number[]) => {
         const { w, model, el } = await mountOrbit();
         for (const d of deltas) el.dispatchEvent(wheel({ deltaY: d, ctrlKey: true }, 1));
-        await flush();
+        // The zoom is laid onto the frames by the follower (WHEEL_SMOOTH_MS).
+        await flush(40);
         const s = model.value.scale.x;
         w.unmount();
         return s;
     };
 
-    it("4 × −5 and 2 × −10 land the scale of 1 × −20 (under the frame cap)", async () => {
+    it("4 × −5 and 2 × −10 land the scale of 1 × −20 (under the step cap)", async () => {
         // Every per-event step (ln 0.05, 0.1) and the sum (0.2) sit under
         // the 0.25 frame cap, so the cap cannot be what makes them agree.
         const one = await zoomBy([-20]);
@@ -145,7 +146,8 @@ describe("U1 — one truth: ctrl-wheel and wheel-orbit steps sum per frame", () 
         const turn = async (deltas: number[]) => {
             const { w, model, el } = await mountOrbit();
             for (const d of deltas) el.dispatchEvent(wheel({ deltaY: d, altKey: true }, 1));
-            await flush();
+            // The follower lays the turn onto the frames; it lands the sum.
+            await flush(40);
             const out = q(model.value);
             w.unmount();
             return out;
@@ -160,7 +162,8 @@ describe("U1 — one truth: ctrl-wheel and wheel-orbit steps sum per frame", () 
         model.value = { ...model.value, scale: { x: 2, y: 2, z: 2 }, translate: { x: 30, y: 0, z: 0 } };
         await w.setProps({ modelValue: model.value });
         el.dispatchEvent(wheel({ deltaY: -20, ctrlKey: true, clientX: CENTRE.x + 30 }, 1));
-        await flush();
+        // The zoom is laid onto the frames by the follower (WHEEL_SMOOTH_MS).
+        await flush(40);
         expect(Math.abs(model.value.scale.x - 2 * Math.exp(0.2))).toBeLessThan(1e-9);
         // Anchored at the cursor over the panned centre: the pan stays.
         expect(Math.abs(model.value.translate.x - 30)).toBeLessThan(1e-9);
@@ -175,14 +178,16 @@ describe("U2 — the zoom gear is the pinch itself", () => {
             el.dispatchEvent(wheel({ deltaY: (-100 * Math.LN2) / 10, ctrlKey: true }, i * 16));
             await flush();
         }
+        await flush(40);
         expect(Math.abs(model.value.scale.x - 2)).toBeLessThan(1e-9);
         w.unmount();
     });
 
-    it("one mouse notch (Δy −100) is one capped frame step: e^0.25 = 1.284×", async () => {
+    it("one mouse notch (Δy −100) owes one capped step, glided onto the frames: e^0.25 = 1.284×", async () => {
         const { w, model, el } = await mountOrbit();
         el.dispatchEvent(wheel({ deltaY: -100, ctrlKey: true }));
-        await flush();
+        // The zoom is laid onto the frames by the follower (WHEEL_SMOOTH_MS).
+        await flush(40);
         expect(Math.abs(model.value.scale.x - Math.exp(0.25))).toBeLessThan(1e-9);
         w.unmount();
     });
@@ -310,7 +315,7 @@ describe("U4 — an Alt-wheel notch glides out; a trackpad stream stays direct",
         w.unmount();
     });
 
-    it("a trackpad's pixel stream is applied direct: 0 glides", async () => {
+    it("a trackpad's pixel stream is not glided: the follower lands its exact sum", async () => {
         const { w, model, el } = await mountOrbit();
         const stream = [2, 4, 7, 11, 9, 6, 3, 1];
         let t = 0;
@@ -318,6 +323,7 @@ describe("U4 — an Alt-wheel notch glides out; a trackpad stream stays direct",
             el.dispatchEvent(wheel({ deltaY: d, altKey: true }, (t += 16)));
             await flush();
         }
+        await flush(40);
         const after = q(model.value);
         expect(screenRotation(after).angle).toBeCloseTo((2 * stream.reduce((a, b) => a + b)) / R, 9);
         // Nothing still moving.
@@ -400,7 +406,7 @@ describe("U6 — who owns the scroll", () => {
         expect(screenRotation(q(model.value)).angle).toBe(0);
         const zoom = wheel({ deltaY: -20, ctrlKey: true });
         el.dispatchEvent(zoom);
-        await flush();
+        await flush(40);
         expect(zoom.defaultPrevented).toBe(true);
         expect(Math.abs(model.value.scale.x - Math.exp(0.2))).toBeLessThan(1e-9);
         w.unmount();
@@ -478,7 +484,7 @@ describe("U6 — who owns the scroll", () => {
         const { w, model, el } = await mountOrbit("page");
         const e = wheel({ deltaY: 16, altKey: true });
         el.dispatchEvent(e);
-        await flush();
+        await flush(40);
         expect(e.defaultPrevented).toBe(true);
         expect(screenRotation(q(model.value)).angle).toBeCloseTo((2 * 16) / R, 9);
         w.unmount();
@@ -544,7 +550,8 @@ describe("U8 — Shift + scroll pans, the content following the fingers", () => 
         const { w, model, el } = await mountOrbit();
         const at = { x: CENTRE.x + 60, y: CENTRE.y - 40 };
         el.dispatchEvent(wheel({ deltaY: -15, ctrlKey: true, clientX: at.x, clientY: at.y }));
-        await flush();
+        // The zoom is laid onto the frames by the follower (WHEEL_SMOOTH_MS).
+        await flush(40);
         const k = model.value.scale.x;
         expect(Math.abs(k - Math.exp(0.15))).toBeLessThan(1e-3);
         // The content point under the cursor: p' = c' + k·(at − c) must be at.

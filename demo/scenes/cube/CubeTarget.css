@@ -27,7 +27,21 @@
 /* P.W5.S3 — the axis-lock reveal (@property --axis-active + the .axis-line
    styles) lives in the colocated CubeAxisLines sub-unit, beside its markup. */
 
-.graph {
+/* THE CAMERA (2026-11-15). The die's perspective sits on `.graph-camera`, a
+   flat, untransformed box the size of the graph, centred, so the scene is the
+   stage attitude G and then the camera: P·G, a real camera looking at a
+   turned stage. It used to sit on `.graph`, which also carries G and opens
+   the 3D context (preserve-3d), so the perspective acted INSIDE G: G·P, a turn
+   of space the camera had already projected. Chromium's compositor sorts and
+   splits the die's faces in that space, and there it drew face 1 wrong for a
+   frame at fixed orientations in a live spin (a turned-away face as a sliver
+   beside the die, or a pale quad across the stage), on the embed and on
+   Motion, in the old build as in the new; stills never. Measured on the GPU
+   lane: 23 stray frames in 1912 over ten flicks, a few in every slow sweep;
+   with the camera here, none (test/e2e/cube-gestures.spec.mjs "no stray
+   face" holds it). Moving the same product into `.graph`'s transform (one
+   matrix G·P) does NOT cure it: the order is the fault, not the property. */
+.graph-camera {
     perspective: 1200px;
 }
 
@@ -35,15 +49,15 @@
    the Cube scene mount the same die in different places (the hero's rung and
    column; the scene's, beside the opened rail), and inside the route window's
    cross-fade both were drawn at once and the die arrived at its scene place in
-   one frame (364 px). Named while a transition runs, the die (its perspective
-   root, so the capture keeps its depth) leaves the window's snapshot and
+   one frame (364 px). Named while a transition runs, the die (its camera,
+   `.graph-camera`, so the capture keeps its depth) leaves the window's snapshot and
    travels between the two boxes on its own group: glass's list-item grammar
    (`gl-list-item`: the group morph; a die with no partner fades and rises on
    glass's own slide), on the route's lateral clock (`--vt-duration` /
    `--vt-ease`, set on the root for the transition: App.vue). Named only while
    a transition runs, as the scene host and the docks are (a standing name is
    a backdrop root). */
-:root:active-view-transition .graph {
+:root:active-view-transition .graph-camera {
     view-transition-name: kf-subject;
     view-transition-class: gl-list-item;
 }
@@ -261,4 +275,15 @@
     & .face-fill {
         transform-origin: 50% 100%;
     }
+}
+
+/* The stage takes keyboard focus (the arrows turn the die): a ring only for
+   the keyboard, inside the stage's box. */
+.cube-stage:focus {
+    outline: none;
+}
+.cube-stage:focus-visible {
+    outline: 2px solid var(--ring, currentColor);
+    outline-offset: -2px;
+    border-radius: var(--radius-md, 8px);
 }

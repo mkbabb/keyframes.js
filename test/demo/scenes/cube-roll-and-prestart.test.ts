@@ -477,6 +477,44 @@ describe("the Roll stack — #1 trigger · #2 paint · #5 continuity · #6 arbit
         }
     });
 
+    it("owner 2026-11-15 — on a turned die a double-tap brings it home on the spring; at home it rolls", async () => {
+        const half = Math.sin(0.3);
+        const w = mount(CubeTarget, {
+            props: {
+                isPlaying: false,
+                isStarted: false,
+                skin: "crayon",
+                transform: { ...restTransform(), quaternion: [0, half, 0, Math.cos(0.3)] },
+            },
+        });
+        await nextTick();
+        try {
+            const stage = w.element as HTMLElement;
+            await doubleTap(stage, 10);
+            await nextTick();
+            // Not a roll: the orbit goes home.
+            expect(w.find(".idle-hover--rolling").exists()).toBe(false);
+            const orbit = w.findComponent({ name: "OrbitalDrag" });
+            const angleOf = () => {
+                const m = /rotate3d\([^,]+,[^,]+,[^,]+,\s*([-\d.e]+)deg/.exec(orbit.attributes("style") ?? "");
+                return m ? Math.abs(Number(m[1])) : 0;
+            };
+            const start = angleOf();
+            for (let i = 0; i < 6; i++) await raf();
+            const mid = angleOf();
+            expect(mid).toBeLessThan(start);
+            expect(mid).toBeGreaterThan(0);
+            for (let i = 0; i < 90; i++) await raf();
+            expect(angleOf()).toBeLessThan(1e-6);
+            // Now at home: the same double-tap rolls.
+            await doubleTap(stage, 10);
+            await nextTick();
+            expect(w.find(".idle-hover--rolling").exists()).toBe(true);
+        } finally {
+            w.unmount();
+        }
+    });
+
     it(
         "#2/#5/#6/#20 — the roll paints its own element, keeps continuity and releases on completion",
         async () => {

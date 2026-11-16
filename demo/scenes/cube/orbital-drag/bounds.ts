@@ -5,10 +5,12 @@
  *
  * Pan: the die rests wholly inside the stage (PAN_OUT = 0 of its extent may
  * leave it), D being the extent of its painted silhouette in every attitude:
- * the face's side · s · 2 (the cube's circumscribed diameter, √3, widened by the
- * scene's perspective at its near corner; the embed probe measured the faces'
- * union at up to 2.01 · side · s), so no corner of a turned die is cut by the
- * screen; and the allowed centre on an axis is
+ * the face's side · s · 1.8 (the cube's circumscribed diameter, √3, widened by
+ * the camera's perspective at its near corner: under the camera outside the
+ * stage attitude, `.graph-camera`, the faces' union measured up to 1.733 ·
+ * side · s over 966 attitudes incl. every corner-on one, at 390 and 1440, on
+ * the embed and on Motion; it was 2.01 while the perspective sat inside the
+ * attitude), so no corner of a turned die is cut by the screen; and the allowed centre on an axis is
  * [min + (0.5 − PAN_OUT)·D, max − (0.5 − PAN_OUT)·D]. A die zoomed larger than
  * the stage swaps those ends, so it may move while it still covers the stage,
  * continuously from the size at which it just fits. (Owner 2026-11-11, after a
@@ -18,7 +20,7 @@
  * While the hand (or a live wheel stream) holds the die past a bound it
  * follows with resistance, the overshoot shown as d·(1 − 1/(o·BAND/d + 1)) of
  * the raw overshoot o, d the band's reach. Once let go, the overshoot returns
- * by the critically damped spring at the coast's own friction k:
+ * by the critically damped spring (inertiaDecay's SPRING_K):
  * x(t) = (x₀ + (v₀ + k·x₀)·t)·e^(−k·t), sampled at elapsed time, so the path is
  * the same at 30, 60 and 120 Hz. A coast that crosses a bound becomes that
  * spring at the crossing, with the coast's velocity there.
@@ -26,8 +28,8 @@
 
 /** The share of the die's projected extent that may leave the stage on a side. */
 export const PAN_OUT = 0;
-/** The die's painted silhouette per unit of its face's side, in any attitude: √3 under the scene's perspective. */
-export const SILHOUETTE = 2;
+/** The die's painted silhouette per unit of its face's side, in any attitude: √3 under the camera's perspective (measured ≤ 1.733, +4 %). */
+export const SILHOUETTE = 1.8;
 /** The rubber band's resistance at the bound (the shown overshoot's slope). */
 export const BAND = 0.55;
 /** The zoom band's reach past either end of the scale range (ln s). */
@@ -114,9 +116,9 @@ export const axisMotion = (x: number, v: number, iv: Interval, t0: number): Axis
 };
 
 /**
- * Sample `m` at `now` (s). A coast rests once its speed falls under
- * `restFraction` of its start; a spring once it is home, where it lands
- * exactly on the bound.
+ * Sample `m` at `now` (s). A coast (friction `k`) rests once its speed falls
+ * under `restFraction` of its start; a spring (`springK`, the coast's own k
+ * unless given) once it is home, where it lands exactly on the bound.
  */
 export const sampleAxis = (
     m: AxisMotion,
@@ -125,6 +127,7 @@ export const sampleAxis = (
     k: number,
     restFraction: number,
     rest: { x: number; v: number } = { x: SPRING_REST, v: SPRING_REST_SPEED },
+    springK: number = k,
 ): AxisSample => {
     if (m.kind === "coast") {
         const tau = Math.max(0, now - m.t0);
@@ -138,14 +141,14 @@ export const sampleAxis = (
             const u = 1 - (k * (bound - m.x0)) / m.v0;
             const tc = u > 0 && u <= 1 ? -Math.log(u) / k : 0;
             const vc = m.v0 * Math.exp(-k * tc);
-            return sampleAxis({ kind: "spring", side, e0: 0, v0: vc, t0: m.t0 + tc }, now, iv, k, restFraction, rest);
+            return sampleAxis({ kind: "spring", side, e0: 0, v0: vc, t0: m.t0 + tc }, now, iv, k, restFraction, rest, springK);
         }
         if (Math.abs(v) < restFraction * Math.abs(m.v0)) return { x, v: 0, next: null };
         return { x, v, next: m };
     }
     const bound = m.side > 0 ? iv.hi : iv.lo;
     const tau = Math.max(0, now - m.t0);
-    const s = springBack(m.e0, m.v0, k, tau);
+    const s = springBack(m.e0, m.v0, springK, tau);
     if (tau > 0 && Math.abs(s.x) < rest.x && Math.abs(s.v) < rest.v) return { x: bound, v: 0, next: null };
     return { x: bound + s.x, v: s.v, next: m };
 };
