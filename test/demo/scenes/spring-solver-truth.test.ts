@@ -273,12 +273,19 @@ describe("(11) UIA-KF-308 — the field previews its hover, and the marker's pip
             // no gesture: a bare hover over node (0.65 s, ζ 0.85)
             el.dispatchEvent(new PointerEvent("pointermove", { bubbles: true, pointerId: 7, clientX: 110, clientY: 130 }));
             await nextTick();
+            // owner-1112 hover law — the readout and the legend share ONE caption
+            // slot and cross-fade; neither leaves the layout, so no box moves.
+            const caption = wrapper.get(".spring-heatmap-caption");
             const hover = wrapper.find("[data-heatmap-hover]");
             expect(hover.exists(), "a hover readout").toBe(true);
             expect(hover.text()).toBe(`0.65 s · ζ 0.85 → ${Math.round(overshoot(0.85) * 100)} %`);
+            expect(caption.attributes("data-reading"), "the readout is showing").toBeDefined();
+            expect(caption.find("[data-figure-legend]").exists(), "the legend holds its place").toBe(true);
             el.dispatchEvent(new PointerEvent("pointerleave", { bubbles: true, pointerId: 7 }));
             await nextTick();
-            expect(wrapper.find("[data-heatmap-hover]").exists()).toBe(false);
+            expect(caption.attributes("data-reading"), "the legend is back").toBeUndefined();
+            expect(caption.find("[data-heatmap-hover]").exists(), "the readout stays in layout").toBe(true);
+            expect(caption.find("[data-heatmap-hover]").text(), "it fades out on its last value").toContain("0.65 s");
             const current = wrapper.findAll(".spring-heatmap-pip.is-current");
             expect(current.map((p) => p.text())).toEqual(["smooth"]);
         } finally {

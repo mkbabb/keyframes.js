@@ -1050,6 +1050,10 @@ watch(
     line-height: 1.35;
     padding-bottom: 0.125rem;
     color: var(--muted-foreground);
+    /* owner-1112 hover law — the hover and selection ink eases in and out on
+       glass's motion tokens (it cut: the computed transition was `all 0s`).
+       Colour only. */
+    transition: color var(--duration-fast) var(--ease-standard);
 }
 .tile-note {
     text-align: center;

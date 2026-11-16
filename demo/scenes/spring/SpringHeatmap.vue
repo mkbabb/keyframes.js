@@ -46,40 +46,54 @@
                     <span class="text-[length:var(--control-label)] leading-(--type-leading-small) text-foreground">Peak overshoot</span>
                 </Button>
             </CollapsibleTrigger>
-            <!-- X.KF.W13X.spring (UIA-KF-308) — while the pointer hovers the
-                 field, the legend yields to what a click there would
-                 write: '(r, ζ) → peak %'. It reverts on leave. -->
+            <!-- owner-1112 hover law — ONE caption slot holds the legend AND the
+                 hover readout, stacked in a single grid cell (`grid-area: 1/1`)
+                 and cross-faded on glass's motion tokens. Both stay in layout
+                 for as long as the figure is open, so the slot always keeps the
+                 taller one's box: hovering the field moves no box (it used to
+                 swap a two-line legend for a one-line readout, and the field,
+                 the facet and the chart beside it jumped by that line).
+                 X.KF.W13X.spring (UIA-KF-308) — while the pointer hovers the
+                 field, the legend yields to what a click there would write:
+                 '(r, ζ) → peak %'. It reverts on leave. -->
             <span
-                v-if="hoverNode"
-                class="text-caption text-foreground tabular-nums"
-                data-heatmap-hover
-                aria-hidden="true"
-            >{{ formatSeconds(hoverNode.r) }} · ζ {{ formatNumber(hoverNode.d) }} → {{ formatNumber(overshoot(hoverNode.d) * 100, 0) }} %</span>
-            <!-- X-DS pass 3 · KF-C3-06 — the legend rides the caption row (it
-                 was the scroller's last row at rest, so the rail's end fade
-                 ate it to ~1.7:1); KF-C3-11 — the ζ axis title went to its
-                 axis, so this slot was free. -->
-            <!-- X-DS r5 pass 5 (KF-C5-02) — the sentence wraps WHOLE under the
-                 swatch where the rail cannot hold the two on one line (the
-                 row is a flex-wrap line, SubPaneHeader's caption rule). At
-                 1280x800 the nowrap sentence ran 27 px past its own box and
-                 the rail cut it mid-word. -->
-            <!-- X-DS r8 pass 10 (KF-C10x-04) — THE SWATCH NEVER STANDS ALONE.
-                 As two flex items the break fell between the swatch and the
-                 sentence, so at 1280x800 a bare 48 px ramp bar held the first
-                 line. The legend is now one text run: the swatch rides the
-                 sentence's first phrase in one unbreakable run, and the line
-                 breaks only after '·'. -->
-            <!-- X-DS r8 pass 11 (KF-C11-02) — a wrap never ends a line on the
-                 separator: '·' opens the tail's nowrap run, so the break falls
-                 before it. A continuation line hangs under the first line's
-                 text, not under the swatch (`.spring-heatmap-legend`). -->
-            <span v-else-if="figureOpen" class="spring-heatmap-legend min-w-0 whitespace-normal text-caption text-muted-foreground tabular-nums" title="Peak overshoot varies with damping ζ only; response sets the tempo, not the peak" data-figure-legend>
-                <!-- X-DS pass 16 (KF-C16-04) — the swatch keys the field's ramp.
-                     r4 pass 5 (KF-C24-01) — so does the sentence: both show only
-                     while the field does. -->
-                <span class="whitespace-nowrap"><span class="spring-heatmap-swatch" aria-hidden="true"></span>{{ LEGEND_HEAD }}</span>
-                {{ " " }}<span class="whitespace-nowrap">{{ LEGEND_TAIL }}</span>
+                v-if="figureOpen"
+                class="spring-heatmap-caption min-w-0"
+                :data-reading="hoverNode ? '' : undefined"
+            >
+                <!-- X-DS pass 3 · KF-C3-06 — the legend rides the caption row (it
+                     was the scroller's last row at rest, so the rail's end fade
+                     ate it to ~1.7:1); KF-C3-11 — the ζ axis title went to its
+                     axis, so this slot was free. -->
+                <!-- X-DS r5 pass 5 (KF-C5-02) — the sentence wraps WHOLE under the
+                     swatch where the rail cannot hold the two on one line (the
+                     row is a flex-wrap line, SubPaneHeader's caption rule). At
+                     1280x800 the nowrap sentence ran 27 px past its own box and
+                     the rail cut it mid-word. -->
+                <!-- X-DS r8 pass 10 (KF-C10x-04) — THE SWATCH NEVER STANDS ALONE.
+                     As two flex items the break fell between the swatch and the
+                     sentence, so at 1280x800 a bare 48 px ramp bar held the first
+                     line. The legend is now one text run: the swatch rides the
+                     sentence's first phrase in one unbreakable run, and the line
+                     breaks only after '·'. -->
+                <!-- X-DS r8 pass 11 (KF-C11-02) — a wrap never ends a line on the
+                     separator: '·' opens the tail's nowrap run, so the break falls
+                     before it. A continuation line hangs under the first line's
+                     text, not under the swatch (`.spring-heatmap-legend`). -->
+                <span class="spring-heatmap-legend min-w-0 whitespace-normal text-caption text-muted-foreground tabular-nums" title="Peak overshoot varies with damping ζ only; response sets the tempo, not the peak" data-figure-legend>
+                    <!-- X-DS pass 16 (KF-C16-04) — the swatch keys the field's ramp.
+                         r4 pass 5 (KF-C24-01) — so does the sentence: both show only
+                         while the field does. -->
+                    <span class="whitespace-nowrap"><span class="spring-heatmap-swatch" aria-hidden="true"></span>{{ LEGEND_HEAD }}</span>
+                    {{ " " }}<span class="whitespace-nowrap">{{ LEGEND_TAIL }}</span>
+                </span>
+                <!-- The readout keeps the last node it read, so it fades out on
+                     its value instead of emptying first. -->
+                <span
+                    class="spring-heatmap-readout text-caption text-foreground tabular-nums"
+                    data-heatmap-hover
+                    aria-hidden="true"
+                >{{ formatSeconds(readoutNode.r) }} · ζ {{ formatNumber(readoutNode.d) }} → {{ formatNumber(overshoot(readoutNode.d) * 100, 0) }} %</span>
             </span>
             <span :id="readoutId" class="sr-only">
                 {{ formatSeconds(response) }} / ζ {{ formatNumber(dampingFraction) }}
@@ -535,6 +549,15 @@ function nodeAt(fx: number, fy: number): { r: number; d: number } {
 const hoverCell = ref<{ left: string; top: string; width: string; height: string } | null>(null);
 /** UIA-KF-308 — the node under the pointer, read out in the header. */
 const hoverNode = ref<{ r: number; d: number } | null>(null);
+/** The node the caption's readout shows: the hovered one, else the last one
+ *  hovered (the readout is fading out), else the live params (never shown). */
+const lastHover = ref<{ r: number; d: number } | null>(null);
+watch(hoverNode, (node) => {
+    if (node) lastHover.value = node;
+});
+const readoutNode = computed(
+    () => hoverNode.value ?? lastHover.value ?? { r: response.value, d: dampingFraction.value },
+);
 
 /** UIA-KF-308 — the preset the live params sit on: the marker covers its pip,
  *  so that pip's name steps aside rather than print under the marker. */
@@ -909,6 +932,37 @@ function onKeydown(e: KeyboardEvent): void {
     .spring-heatmap-marker {
         transition: none;
     }
+}
+
+/* ── The caption slot (owner-1112 hover law) — the legend and the hover
+   readout share ONE grid cell, so the slot is always as tall and as wide as
+   the legend (the readout is the shorter run and never sizes the cell:
+   `inline-size: 0` + `min-inline-size: 100%` keeps it out of the cell's
+   intrinsic size and lets it fill the cell once laid out). Hovering the
+   field cross-fades the two; nothing else changes, so no box moves. Opacity
+   only, on glass's motion tokens. ── */
+.spring-heatmap-caption {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+}
+.spring-heatmap-caption > * {
+    grid-area: 1 / 1;
+    transition: opacity var(--duration-fast) var(--ease-standard);
+}
+.spring-heatmap-readout {
+    inline-size: 0;
+    min-inline-size: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    opacity: 0;
+}
+.spring-heatmap-caption[data-reading] > .spring-heatmap-legend {
+    opacity: 0;
+}
+.spring-heatmap-caption[data-reading] > .spring-heatmap-readout {
+    opacity: 1;
 }
 
 /* KF-C11-02 — the legend's hanging indent: one swatch run (its 3rem plus its
