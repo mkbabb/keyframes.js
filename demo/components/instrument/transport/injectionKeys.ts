@@ -1,4 +1,4 @@
-import { shallowRef } from "vue";
+import { ref, shallowRef } from "vue";
 import type { ComputedRef, InjectionKey, Ref, ShallowRef } from "vue";
 import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
 
@@ -106,6 +106,16 @@ export interface RibbonSeat {
     bindingFor(selectedControl: string): PlaybackRibbonBinding | null;
     /** Publish the selected channel's transport; returns the release. */
     publishChannel(source: () => PlaybackRibbonBinding): () => void;
+    /**
+     * KF-URL (a) — whether the ribbon's rail can be seen (or is about to be):
+     * RibbonBar writes it from an IntersectionObserver on its slot. A publisher
+     * whose read-back only feeds the rail polls the engine while this is true
+     * and not otherwise. On a phone the sheet rests with the rail below its
+     * fold, and the per-frame playhead write re-rendered the ribbon (the glass
+     * Slider and its reka tree) every frame of a play for a rail nobody saw:
+     * the main thread work that delayed every touch while the die played.
+     */
+    inView: Ref<boolean>;
 }
 
 export const RIBBON_SEAT_KEY: InjectionKey<RibbonSeat> = Symbol("ribbonSeat");
@@ -118,6 +128,7 @@ export function createRibbonSeat(sceneSource: () => RibbonSource | null | undefi
             return sceneSource()?.({ selectedControl }) ?? null;
         },
         publishChannel: channel.publish,
+        inView: ref(true),
     };
 }
 
