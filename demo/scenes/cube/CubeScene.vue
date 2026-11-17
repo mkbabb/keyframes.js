@@ -51,6 +51,10 @@ import { useCubeDemo } from "./useCubeDemo";
 import { CUBE_SCENE_ID } from "./cubeKeys";
 import { CUBE_ANIMATION_NAMES } from "./cubeMotion";
 import { useCubeTransform } from "./cubeTransformStore";
+import { num, nums, oneOf, useUrlState, type UrlKey } from "@app/scene/urlState";
+import type { OrbitPose } from "./orbital-drag/types";
+import type { Quat } from "./orbital-drag/arcball";
+import { AUTHORED_MATRIX_END, matrixValues } from "./matrix-editor/transformMath";
 
 const superKey = CUBE_SCENE_ID;
 
@@ -91,6 +95,116 @@ const { animationGroup, setTargets } = useCubeDemo(
     matrix3dStart,
     matrix3dEnd,
     cubeSkin,
+);
+
+// ── KF-URL — the cube's view in the URL (urlState.ts) ────────────────────────
+//   skin  the die's skin (default crayon)                         push
+//   q     the orbit's attitude, a unit quaternion x,y,z,w         replace
+//   z     the zoom (default 1)                                    replace
+//   pan   the pan in px, x,y (default 0,0)                        replace
+//   m     the Matrix editor's edited cells, cell:value,…          replace
+// The orbit keys are written when the die rests (a drag or a coast is one
+// write, after it), and a link's or Back's pose is reached on Home's spring.
+const orbit = () => transformSliderValues.value;
+const orbitPose = (patch: Partial<OrbitPose>): OrbitPose => ({
+    q: [...(orbit().quaternion ?? [0, 0, 0, 1])] as Quat,
+    t: { x: orbit().translate.x, y: orbit().translate.y },
+    s: orbit().scale.x,
+    ...patch,
+});
+// The orbit keys of one URL change (q, z, pan) make ONE target: the spring
+// is retargeted once, with all of them, after the keys of that change apply.
+let orbitTarget: OrbitPose | null = null;
+const goToOrbit = (patch: Partial<OrbitPose>) => {
+    if (!orbitTarget) {
+        orbitTarget = orbitPose({});
+        queueMicrotask(() => {
+            const to = orbitTarget;
+            orbitTarget = null;
+            if (to) cubeTargetRef.value?.goToOrbit(to);
+        });
+    }
+    Object.assign(orbitTarget, patch);
+};
+const SKINS = ["crayon", "ppmycota", "daraksha"] as const;
+const quatCodec = nums(3, 4);
+const editedCells = (values: readonly number[]) =>
+    values.flatMap((v, i) => (Math.abs(v - AUTHORED_MATRIX_END[i]!) > 5e-4 ? [`${i}:${Number(v.toFixed(3))}`] : []));
+useUrlState(
+    [
+        {
+            key: "skin",
+            get: () => cubeSkin.value,
+            set: (v: CubeSkin) => {
+                storedControls.cubeSkin = v;
+            },
+            fallback: () => "crayon",
+            ...oneOf(() => SKINS),
+            history: "push",
+        } satisfies UrlKey<CubeSkin>,
+        {
+            key: "q",
+            get: () => {
+                const q = orbit().quaternion ?? [0, 0, 0, 1];
+                // q and −q are one attitude: spell it with w ≥ 0.
+                return q[3] < 0 ? q.map((x) => -x) : [...q];
+            },
+            set: (q: number[]) => {
+                const n = Math.hypot(...q) || 1;
+                goToOrbit({ q: q.map((x) => x / n) as Quat });
+            },
+            fallback: () => [0, 0, 0, 1],
+            encode: quatCodec.encode,
+            decode: (raw: string) => {
+                const q = quatCodec.decode(raw);
+                return q && Math.abs(Math.hypot(...q) - 1) < 0.01 ? q : undefined;
+            },
+            history: "replace",
+        } satisfies UrlKey<number[]>,
+        {
+            key: "z",
+            get: () => orbit().scale.x,
+            set: (z: number) => goToOrbit({ s: z }),
+            fallback: () => 1,
+            ...num(2),
+            decode: (raw: string) => {
+                const z = num(2).decode(raw);
+                return z !== undefined && z > 0 ? z : undefined;
+            },
+            history: "replace",
+        } satisfies UrlKey<number>,
+        {
+            key: "pan",
+            get: () => [orbit().translate.x, orbit().translate.y],
+            set: ([x, y]: number[]) => goToOrbit({ t: { x: x!, y: y! } }),
+            fallback: () => [0, 0],
+            ...nums(0, 2),
+            history: "replace",
+        } satisfies UrlKey<number[]>,
+        {
+            key: "m",
+            get: () => matrixValues(matrix3dEnd.value),
+            set: (values: number[]) => {
+                const now = matrixValues(matrix3dEnd.value);
+                values.forEach((v, i) => {
+                    if (Math.abs(v - now[i]!) > 5e-4) updateMatrixCell(v, i);
+                });
+            },
+            fallback: () => [...AUTHORED_MATRIX_END],
+            encode: (values: readonly number[]) => editedCells(values).join(","),
+            decode: (raw: string) => {
+                const values = [...AUTHORED_MATRIX_END];
+                for (const cell of raw.split(",")) {
+                    const [i, v] = cell.split(":").map(Number);
+                    if (!Number.isInteger(i) || i! < 0 || i! > 15 || !Number.isFinite(v)) return undefined;
+                    values[i!] = v!;
+                }
+                return values;
+            },
+            history: "replace",
+        } satisfies UrlKey<number[]>,
+    ],
+    { scene: () => CUBE_SCENE_ID, ready: () => cubeTargetRef.value != null },
 );
 
 // J.W2 S2 (DS-1) — the former scene-side watch that wrote

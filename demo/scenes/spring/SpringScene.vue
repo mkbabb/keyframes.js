@@ -69,12 +69,48 @@ import StartingStyleTarget from "./StartingStyleTarget.vue";
 import SpringPhysicsFacet from "./SpringPhysicsFacet.vue";
 import { useSpringDemo } from "./useSpringDemo";
 import { SPRING_DEMO_KEY, SPRING_SCENE_ID } from "./springKeys";
+import { num, useUrlState, type UrlKey } from "@app/scene/urlState";
+
+const SPRING_DEFAULT_RESPONSE = 0.5;
+const SPRING_DEFAULT_DAMPING = 0.86;
+const positive = (v: number | undefined) => (v !== undefined && v > 0 && v <= 10 ? v : undefined);
 import { getStoredAnimationGroupControlOptions, useSceneMachine } from "@state";
 
 // KF-SS-34 — the one-use `SCENE_ID` alias is deleted; `SPRING_SCENE_ID` is
 // already the name, already imported, and already what the rest of the file says.
 const demo = useSpringDemo();
 provide(SPRING_DEMO_KEY, demo);
+
+// KF-URL — the spring's two parameters in the URL (replace, as they are
+// dragged): `r` = response (s), `df` = damping fraction; omitted at 0.5 / 0.86.
+// The view (Sweep / Entry) is the channel, the shared `anim` key.
+useUrlState(
+    [
+        {
+            key: "r",
+            get: () => demo.response.value,
+            set: (v: number) => {
+                demo.response.value = v;
+            },
+            fallback: () => SPRING_DEFAULT_RESPONSE,
+            ...num(3),
+            decode: (raw: string) => positive(num(3).decode(raw)),
+            history: "replace",
+        } satisfies UrlKey<number>,
+        {
+            key: "df",
+            get: () => demo.dampingFraction.value,
+            set: (v: number) => {
+                demo.dampingFraction.value = v;
+            },
+            fallback: () => SPRING_DEFAULT_DAMPING,
+            ...num(3),
+            decode: (raw: string) => positive(num(3).decode(raw)),
+            history: "replace",
+        } satisfies UrlKey<number>,
+    ],
+    { scene: () => SPRING_SCENE_ID },
+);
 
 // The spring scene's ONLY valid control surface is `spring`.
 //

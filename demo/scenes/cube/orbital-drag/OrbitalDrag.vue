@@ -26,7 +26,7 @@ import {
 } from "./arcball";
 import type { Quat, Vec3 } from "./arcball";
 import type { TransformBounds, TransformState } from "./transform";
-import type { PressedKeys } from "./types";
+import type { OrbitPose, PressedKeys } from "./types";
 import { defaultTransformBounds, defaultTransformState } from "./transform";
 import { useOrbitalGesture } from "./composables/useOrbitalGesture";
 import type { OrbitFrame, OrbitState, ScrollOwner } from "./composables/useOrbitalGesture";
@@ -258,8 +258,11 @@ const gesture = useOrbitalGesture({
 // it over where it stands. Under reduced motion it is a fade: the die fades
 // out where it is and in at home (opacity only, 120 + 160 ms), never a cut and
 // never a travel.
+// KF-URL — the same spring carries the die to ANY pose (a link's, or Back and
+// Forward between two views), not only home: `goTo(pose)`; Home is goTo(load).
 const HOME_REST = 1e-4;
-let home: { t0: number; q: Quat; t: { x: number; y: number }; ln: number } | null = null;
+const LOAD_POSE: OrbitPose = { q: [0, 0, 0, 1], t: { x: 0, y: 0 }, s: 1 };
+let home: { t0: number; q: Quat; t: { x: number; y: number }; ln: number; to: OrbitPose } | null = null;
 let fade: Animation | null = null;
 const stepHome = (now: number): boolean => {
     if (!home) return false;
@@ -269,9 +272,12 @@ const stepHome = (now: number): boolean => {
     const left = (1 + k * tau) * Math.exp(-k * tau);
     const done = left < HOME_REST;
     const p = done ? 1 : 1 - left;
-    state.q = done ? [0, 0, 0, 1] : quatCanonical(quatSlerp(home.q, [0, 0, 0, 1], p));
-    state.t = done ? { x: 0, y: 0 } : { x: home.t.x * (1 - p), y: home.t.y * (1 - p) };
-    state.s = done ? 1 : Math.exp(home.ln * (1 - p));
+    const to = home.to;
+    state.q = quatCanonical(done ? [...to.q] : quatSlerp(home.q, to.q, p));
+    state.t = done
+        ? { ...to.t }
+        : { x: home.t.x + (to.t.x - home.t.x) * p, y: home.t.y + (to.t.y - home.t.y) * p };
+    state.s = done ? to.s : Math.exp(home.ln + (Math.log(to.s) - home.ln) * p);
     if (!done) return true;
     home = null;
     writeModel(true);
@@ -280,31 +286,35 @@ const stepHome = (now: number): boolean => {
 /** The pose at rest at home (identity, no pan, scale 1). */
 const atHome = () =>
     Math.abs(state.q[3]) > 1 - 1e-6 && Math.hypot(state.t.x, state.t.y) < 0.5 && Math.abs(state.s - 1) < 1e-3;
-const putHome = () => {
-    state.q = [0, 0, 0, 1];
-    state.t = { x: 0, y: 0 };
-    state.s = 1;
+const putPose = (to: OrbitPose) => {
+    state.q = [...to.q];
+    state.t = { ...to.t };
+    state.s = to.s;
     writeModel(true);
 };
-const goHome = () => {
+const goTo = (to: OrbitPose) => {
     inertia.stop();
     gesture.dropOwed();
     if (reducedMotion()) {
         const el = containerRef.value;
         fade?.cancel();
-        if (!el || typeof el.animate !== "function") return putHome();
+        if (!el || typeof el.animate !== "function") return putPose(to);
         const out = el.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 120, easing: "ease-in" });
         fade = out;
         out.onfinish = () => {
-            putHome();
+            putPose(to);
             if (fade !== out) return;
             fade = el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 160, easing: "ease-out" });
         };
         return;
     }
-    home = { t0: -1, q: [state.q[0], state.q[1], state.q[2], state.q[3]], t: { ...state.t }, ln: Math.log(state.s) };
+    // The shorter way round: q and −q name one attitude.
+    const from: Quat = [state.q[0], state.q[1], state.q[2], state.q[3]];
+    const q: Quat = quatDot(from, to.q) < 0 ? [-to.q[0], -to.q[1], -to.q[2], -to.q[3]] : [...to.q];
+    home = { t0: -1, q: from, t: { ...state.t }, ln: Math.log(state.s), to: { q, t: { ...to.t }, s: to.s } };
     requestFrame();
 };
+const goHome = () => goTo(LOAD_POSE);
 
 // ── The keyboard: the arrows turn the die on the same decay ─────────
 // With the stage focused, an arrow turns the die 15° (Shift: 45°) about the
@@ -399,6 +409,8 @@ defineExpose({
     relayGesture: gesture.relayGesture,
     /** Return to the load pose on the settle spring (Reset). */
     home: goHome,
+    /** Travel to a pose on the same spring (KF-URL: a link's view, Back/Forward). */
+    goTo,
     /** Is the die at rest at its load pose? */
     atHome,
 });

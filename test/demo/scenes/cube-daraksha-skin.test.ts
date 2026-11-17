@@ -407,7 +407,10 @@ describe("the enum migration — one skin, one writer", () => {
         expect(files.filter((f) => /\bppMode\b|pp-mode/.test(f.src)).map((f) => f.path)).toEqual([]);
     });
 
-    it("cubeSkin is read by CubeScene and written only by MbabbMenu", () => {
+    // KF-URL (owner 2026-11-15, "Each page should have state defined in the
+    // URL") — the skin has two inputs: the menu's pick, and a link's `skin`
+    // key, applied by the cube's URL binding in CubeScene. No third writer.
+    it("cubeSkin is read by CubeScene and written only by MbabbMenu and the cube's URL key", () => {
         const mentions = files.filter((f) => /\bcubeSkin\b/.test(f.src)).map((f) => f.path).sort();
         expect(mentions).toEqual([
             "app/dock/menu/MbabbMenu.vue",
@@ -417,6 +420,6 @@ describe("the enum migration — one skin, one writer", () => {
         const writers = files
             .filter((f) => /\.cubeSkin\s*(=(?!=)|\?\?=)/.test(f.src))
             .map((f) => f.path);
-        expect(writers).toEqual(["app/dock/menu/MbabbMenu.vue"]);
+        expect(writers.sort()).toEqual(["app/dock/menu/MbabbMenu.vue", "scenes/cube/CubeScene.vue"]);
     });
 });

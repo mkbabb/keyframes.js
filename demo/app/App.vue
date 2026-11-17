@@ -178,6 +178,7 @@ import {
 } from "@state";
 
 import { useSceneMachineRouterBinding } from "./scene/useSceneMachineRouterBinding";
+import { useSceneUrlState } from "./scene/useSceneUrlState";
 import { useSceneMachineShellBinding } from "./scene/useSceneMachineShellBinding";
 import { useStartScreen } from "./scene/useStartScreen";
 import { useSceneSwap } from "./transition/useSceneSwap";
@@ -315,6 +316,10 @@ provide(
 const currentChannels = computed(() => resolvedScene.value.api?.facility?.channels);
 
 const storedControls = computed(() => getStoredAnimationGroupControlOptions(resolvedScene.value.superKey));
+
+// KF-URL — the view every scene shares (channel, surface, sheet, preview,
+// timeline, play) lives in the URL; each scene binds its own keys itself.
+useSceneUrlState({ resolvedScene, storedControls, bound: sceneBoundToCurrent });
 
 provide(ACTIVE_SCENE_KEY, currentSuperKey);
 
