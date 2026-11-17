@@ -277,13 +277,16 @@
     }
 }
 
-/* The stage takes keyboard focus (the arrows turn the die): a ring only for
-   the keyboard, inside the stage's box. */
-.cube-stage:focus {
-    outline: none;
+/* The stage takes focus so the arrows turn the die, and it shows NO ring for
+   it, on any input (owner, 16 Nov 2026: "this area doesn't need a focus
+   ring/clickable ring"). A press, a tap or a key paints nothing on the stage:
+   the die answering the key is the stage's focus indication. Daraksha frames
+   this stage whole, so the ring drew round its Motion card. No tap highlight
+   on a touch either. */
+.cube-stage {
+    -webkit-tap-highlight-color: transparent;
 }
+.cube-stage:focus,
 .cube-stage:focus-visible {
-    outline: 2px solid var(--ring, currentColor);
-    outline-offset: -2px;
-    border-radius: var(--radius-md, 8px);
+    outline: none;
 }

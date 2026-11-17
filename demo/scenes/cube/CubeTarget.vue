@@ -156,7 +156,7 @@ import OrbitalDrag from "./orbital-drag/OrbitalDrag.vue";
 import type { TransformBounds, TransformState } from "./orbital-drag/transform";
 import type { OrbitFrame, ScrollOwner } from "./orbital-drag/composables/useOrbitalGesture";
 import type { Box } from "./orbital-drag/similarity";
-import type { PressedKeys } from "./orbital-drag/types";
+import type { OrbitPose, PressedKeys } from "./orbital-drag/types";
 import CubeAxisLines from "./CubeAxisLines.vue";
 import { CUBE_SPIN_VARS } from "./cubeMotion";
 import {
@@ -226,11 +226,13 @@ const surfaceStyle = computed(() =>
 
 /** Reset's orbit half: the load pose, on the settle spring. */
 const homeOrbit = () => orbitalRef.value?.home();
+/** KF-URL — carry the orbit to a link's pose on Home's spring. */
+const goToOrbit = (pose: OrbitPose) => orbitalRef.value?.goTo(pose);
 /** A host's relayed gesture* (babb-embed v1). */
 const relayGesture: InstanceType<typeof OrbitalDrag>["relayGesture"] = (phase, scale, rotation, at) =>
     orbitalRef.value?.relayGesture(phase, scale, rotation, at);
 
-defineExpose({ cubeEl, bobEl, poseEl, graphEl, homeOrbit, relayGesture });
+defineExpose({ cubeEl, bobEl, poseEl, graphEl, homeOrbit, goToOrbit, relayGesture });
 
 // ── KF-M2 · KF-M1 — what the orbit anchors on (read once per gesture) ───────
 // The projected centre is `.graph`'s (the parked stage, rotated by G only);

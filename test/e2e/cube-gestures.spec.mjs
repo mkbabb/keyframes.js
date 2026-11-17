@@ -453,6 +453,57 @@ test.describe("desktop: Apple-like", () => {
     });
 });
 
+// ── No ring on the stage (owner 2026-11-16) ─────────────────────────────
+// "this area doesn't need a focus ring/clickable ring" (shots/125.png: the
+// stage's keyboard ring drawn round Daraksha's Motion card). The stage keeps
+// focus for the arrow keys and paints nothing for it, on a press, a tap or a
+// key; the key still turns the die.
+test.describe("the stage paints no ring", () => {
+    const ring = (page) =>
+        page.evaluate(() => {
+            const el = document.querySelector(".cube-stage");
+            const s = getComputedStyle(el);
+            return {
+                focused: document.activeElement === el,
+                focusVisible: el.matches(":focus-visible"),
+                outline: s.outlineStyle === "none" || parseFloat(s.outlineWidth) === 0 ? "none" : `${s.outlineStyle} ${s.outlineWidth}`,
+                shadow: s.boxShadow,
+            };
+        });
+    for (const where of ["slice", "demo"]) {
+        test(`${where}: a press, a key or a tap paints no ring, and the arrows still turn the die`, async ({ browser }) => {
+            const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, hasTouch: true });
+            try {
+                const page = await ctx.newPage();
+                const c = await cell(page, where === "slice" ? embedUrl() : demoUrl());
+                await page.mouse.click(c.geom.c.x + c.geom.R * 0.6, c.geom.c.y);
+                await frames(page, 4);
+                const pressed = await ring(page);
+                expect(pressed.focused).toBe(true);
+                expect(pressed.outline).toBe("none");
+                expect(pressed.shadow).toBe("none");
+                const a = parsePose(await page.evaluate(() => window.__hand.pose()));
+                await page.keyboard.press("ArrowRight");
+                await page.waitForTimeout(800);
+                const b = parsePose(await page.evaluate(() => window.__hand.pose()));
+                expect((turn(a.q, b.q) * 180) / Math.PI).toBeCloseTo(15, 1);
+                const keyed = await ring(page);
+                // The key put the stage in the keyboard's focus state: the ring's own trigger.
+                expect(keyed.focusVisible).toBe(true);
+                expect(keyed.outline).toBe("none");
+                expect(keyed.shadow).toBe("none");
+                await page.touchscreen.tap(c.geom.c.x - c.geom.R * 0.6, c.geom.c.y);
+                await frames(page, 4);
+                const tapped = await ring(page);
+                expect(tapped.outline).toBe("none");
+                expect(tapped.shadow).toBe("none");
+            } finally {
+                await ctx.close();
+            }
+        });
+    }
+});
+
 // ── No stray face (coordinator 2026-11-15) ──────────────────────────────
 // A coast once drew face 1 wrong for a frame: a turned-away face as a sliver
 // beside the die, or a pale quad across the stage (after-dk-390-flick-coast
@@ -475,9 +526,21 @@ const installStage = (page) =>
             new Promise((r) =>
                 requestAnimationFrame(() => requestAnimationFrame(r)),
             );
+        // THE FRAME'S OWN POSE (KF-URL, 2026-11-16): each pose write stamps its
+        // index into a 6 px marker in the stage's corner, in the same task (the
+        // observer's microtask runs before that frame renders), so the two
+        // reach the screen in one commit and every captured frame names the
+        // write it shows. The frame's capture time does not: this page's frames
+        // reach the screen 2-3 frames after they are made (16-28 ms), so the
+        // write before the capture time was often a later pose than the one
+        // shown, and the die's own edge, 10-15° on in the x turn, was counted
+        // as a stray face.
+        const MARK = 6;
+        const markColour = (i) => `rgb(${((i >> 8) & 15) * 16 + 8}, ${((i >> 4) & 15) * 16 + 8}, ${(i & 15) * 16 + 8})`;
         window.__stage = {
             writes: [],
             mo: null,
+            mark: null,
             watch() {
                 this.writes = [
                     {
@@ -485,12 +548,16 @@ const installStage = (page) =>
                         tf: el().style.transform,
                     },
                 ];
-                this.mo = new MutationObserver(() =>
+                this.mark = document.createElement("div");
+                this.mark.style.cssText = `position:fixed;left:0;top:0;width:${MARK}px;height:${MARK}px;z-index:2147483647;pointer-events:none;background:${markColour(0)}`;
+                document.body.append(this.mark);
+                this.mo = new MutationObserver(() => {
                     this.writes.push({
                         e: performance.timeOrigin + performance.now(),
                         tf: el().style.transform,
-                    }),
-                );
+                    });
+                    this.mark.style.background = markColour(this.writes.length - 1);
+                });
                 this.mo.observe(el(), {
                     attributes: true,
                     attributeFilter: ["style"],
@@ -498,6 +565,7 @@ const installStage = (page) =>
             },
             unwatch() {
                 this.mo?.disconnect();
+                this.mark?.remove();
                 return this.writes;
             },
             put(tf) {
@@ -583,20 +651,36 @@ const judge = async (page, film, label) => {
         x1: (Math.max(...faces.map((f) => f.x1)) + 3) * k,
         y1: (Math.max(...faces.map((f) => f.y1)) + 3) * k,
     });
+    // The marker (installStage): read at its centre, each channel a 4-bit digit.
+    const MARK = 6;
+    const markOf = (img) => {
+        const at = Math.round((MARK / 2) * k);
+        const i = (at * img.width + at) * 4;
+        const digit = (v) => {
+            const d = (v - 8) / 16;
+            return Math.abs(d - Math.round(d)) < 0.2 && d > -0.5 && d < 15.5 ? Math.round(d) : null;
+        };
+        const [r, gg, b] = [digit(img.data[i]), digit(img.data[i + 1]), digit(img.data[i + 2])];
+        return r === null || gg === null || b === null ? null : (r << 8) | (gg << 4) | b;
+    };
+    let marked = 0;
     for (const c of film.casts) {
-        // A frame shows the last write before it, or (swapped late) the next:
-        // the die's box is the union of the two, so a die edge a frame ahead is
-        // not a stray; a stray face lands tens to hundreds of px off the die.
-        let i = 0;
-        for (let j = 0; j < film.writes.length; j++) if (film.writes[j].e <= c.e) i = j;
+        const img = PNG.sync.read(Buffer.from(c.data, "base64"));
+        // The frame is judged at exactly the pose it shows (its marker); no
+        // union with a neighbouring write, no window.
+        const m = markOf(img);
+        const i = m !== null && film.writes[m] ? m : -1;
+        if (i < 0) continue;
+        marked++;
         const w = film.writes[i];
-        const faces = [...(await facesAt(w.tf)), ...(film.writes[i + 1] ? await facesAt(film.writes[i + 1].tf) : [])];
+        const faces = await facesAt(w.tf);
         const out = faces.filter((f) => f.x0 < -0.5 || f.y0 < -0.5 || f.x1 > vw + 0.5 || f.y1 > vh + 0.5).length;
         const b = boxOf(faces);
-        const img = PNG.sync.read(Buffer.from(c.data, "base64"));
         let n = 0;
+        const markPx = Math.ceil(MARK * k) + 1;
         for (let y = 0; y < Math.min(img.height, g.height); y++)
             for (let x = 0; x < Math.min(img.width, g.width); x++) {
+                if (x < markPx && y < markPx) continue;
                 if (x >= b.x0 && x <= b.x1 && y >= b.y0 && y <= b.y1) continue;
                 const i = (y * img.width + x) * 4;
                 const j = (y * g.width + x) * 4;
@@ -605,7 +689,7 @@ const judge = async (page, film, label) => {
         if (n > 40 || out)
             bad.push({ label, stray: n, facesOutOfStage: out, tf: w.tf, png: bad.length < 4 ? c.data : undefined, ground: bad.length ? undefined : film.ground.data });
     }
-    return { frames: film.casts.length, bad };
+    return { frames: film.casts.length, marked, bad };
 };
 
 test.describe("touch: no stray face", () => {
@@ -681,12 +765,15 @@ test.describe("touch: no stray face", () => {
                     );
                 }
                 const frameCount = results.reduce((a, r) => a + r.frames, 0);
+                const markedCount = results.reduce((a, r) => a + r.marked, 0);
                 const bad = results.flatMap((r) => r.bad);
                 test.info().annotations.push({
                     type: "stray-face",
-                    description: `${frameCount} frames judged; ${bad.length} stray`,
+                    description: `${frameCount} frames, ${markedCount} judged at their own pose; ${bad.length} stray`,
                 });
                 expect(frameCount).toBeGreaterThan(150);
+                // Every frame names its pose (a frame whose marker cannot be read is not judged).
+                expect(markedCount).toBeGreaterThan(frameCount * 0.95);
                 // The stray frames and the ground beside the failure, to look at.
             for (const [i, b] of bad.entries()) {
                 if (b.png) fs.writeFileSync(test.info().outputPath(`stray-${i}.png`), Buffer.from(b.png, "base64"));

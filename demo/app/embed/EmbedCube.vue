@@ -236,6 +236,10 @@ defineExpose({ setPlaying, reset, relayGesture, transportLook });
     grid-area: 1 / 1;
     inline-size: 76cqmin;
     block-size: 76cqmin;
+    /* The field's opening and closing rules meet in corners; the panel radius
+       rounds them, so no square corner shows in a rounded card (Daraksha's
+       rounding census, R7). */
+    border-radius: var(--radius-panel, 12px);
     transform: translate(var(--paper-x), var(--paper-y)) scale(var(--paper-zoom));
 }
 

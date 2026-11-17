@@ -18,10 +18,97 @@ import EasingTarget from "./EasingTarget.vue";
 import EasingSidebar from "./EasingSidebar.vue";
 import { useEasingDemo } from "./useEasingDemo";
 import { EASING_DEMO_KEY, EASING_SCENE_ID } from "./easingKeys";
+import { EASING_DEFAULT_DURATION, EASING_DEFAULT_NAME } from "./easingMotion";
+import type { EasingName } from "./useEasingDemo";
+import { namedEasing } from "@utils/reference-data/timingCurveUtils";
+import { num, nums, useUrlState, type UrlKey } from "@app/scene/urlState";
 
 
 const demo = useEasingDemo();
 provide(EASING_DEMO_KEY, demo);
+
+// KF-URL — the chosen easing and its parameters in the URL:
+//   e   the easing's name (default ease)                              push
+//   bz  a custom cubic-bezier's four points (only for cubic-bezier)    replace
+//   st  steps' count and jump term, e.g. 4,jump-end (only for steps)  replace
+//   d   the preview's duration in ms (default 1500)                   replace
+const JUMPS = ["jump-start", "jump-end", "jump-none", "jump-both"] as const;
+const BEZIER_DEFAULT = [0.25, 0.1, 0.25, 1];
+const bezierCodec = nums(3, 4);
+useUrlState(
+    [
+        {
+            key: "e",
+            get: () => demo.currentEasingName.value,
+            set: (name: EasingName) => demo.selectEasing(name),
+            fallback: () => EASING_DEFAULT_NAME,
+            encode: (name: EasingName) => name,
+            decode: (raw: string) => {
+                if (raw === "cubic-bezier" || raw === "steps") return raw;
+                try {
+                    namedEasing(raw);
+                    return raw as EasingName;
+                } catch {
+                    return undefined;
+                }
+            },
+            history: "push",
+        } satisfies UrlKey<EasingName>,
+        {
+            key: "bz",
+            get: () =>
+                demo.currentEasingName.value === "cubic-bezier"
+                    ? [...demo.bezierControlPoints.value]
+                    : BEZIER_DEFAULT,
+            set: (points: number[]) =>
+                demo.updateBezierPoints(points as [number, number, number, number]),
+            fallback: () => BEZIER_DEFAULT,
+            encode: bezierCodec.encode,
+            decode: (raw: string) => {
+                const p = bezierCodec.decode(raw);
+                // x1 and x2 are times: a cubic-bezier() outside [0, 1] is not CSS.
+                return p && p[0]! >= 0 && p[0]! <= 1 && p[2]! >= 0 && p[2]! <= 1 ? p : undefined;
+            },
+            history: "replace",
+        } satisfies UrlKey<number[]>,
+        {
+            key: "st",
+            get: () =>
+                demo.currentEasingName.value === "steps"
+                    ? `${demo.stepOptions.value.steps},${demo.stepOptions.value.jumpTerm}`
+                    : "4,jump-end",
+            set: (v: string) => {
+                const [n, jump] = v.split(",");
+                demo.stepOptions.value = { steps: Number(n), jumpTerm: jump as (typeof JUMPS)[number] };
+            },
+            fallback: () => "4,jump-end",
+            encode: (v: string) => v,
+            decode: (raw: string) => {
+                const [n, jump] = raw.split(",");
+                const steps = Number(n);
+                return Number.isInteger(steps) && steps >= 1 && steps <= 100 && JUMPS.includes(jump as never)
+                    ? `${steps},${jump}`
+                    : undefined;
+            },
+            history: "replace",
+        } satisfies UrlKey<string>,
+        {
+            key: "d",
+            get: () => demo.duration.value,
+            set: (ms: number) => {
+                demo.duration.value = ms;
+            },
+            fallback: () => EASING_DEFAULT_DURATION,
+            ...num(0),
+            decode: (raw: string) => {
+                const ms = num(0).decode(raw);
+                return ms !== undefined && ms >= 50 && ms <= 60_000 ? ms : undefined;
+            },
+            history: "replace",
+        } satisfies UrlKey<number>,
+    ],
+    { scene: () => EASING_SCENE_ID },
+);
 
 // The easing scene's ONLY valid control surface is `easing` (the control-surface
 // DFA, H.W11.S4 / I2 — `CONTROL_SURFACES.easing = ['easing']`). The dock + the

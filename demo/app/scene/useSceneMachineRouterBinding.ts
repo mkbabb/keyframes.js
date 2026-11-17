@@ -37,7 +37,6 @@ import {
     gcAndMigrateSceneKeyspace,
 } from "@state";
 import { sceneMap, allScenes } from "./scenes";
-import { getStoredAnimationGroupControlOptions } from "@state";
 
 /** Map a vue-router route name to a known SceneId, falling back to home. */
 function routeToScene(name: unknown): string {
@@ -51,7 +50,7 @@ function routeToScene(name: unknown): string {
  *
  * First-load precedence (MED-6): deep-link URL > ?state= (router.beforeEach
  * already redirected to the state's activeScene) > localStorage (the machine's
- * own persisted activeScene, consulted ONLY for bare #/) > ?anim= (applied on
+ * own persisted activeScene, consulted ONLY for bare #/) > the scene's URL keys (applied on
  * SCENE_READY, not here).
  */
 export function useSceneMachineRouterBinding(opts: {
@@ -103,16 +102,16 @@ export function useSceneMachineRouterBinding(opts: {
     // ── THE ONE WRITER ──
     // The machine's activeScene is the source; project it onto the URL. The
     // ECHO GUARD: no-op when the route already matches (breaks the feedback
-    // loop). Preserves ?anim= (a read-only projection); strips ?state= (a stale
-    // snapshot once consumed).
+    // loop). KF-URL — a scene's query is ITS view (urlState.ts), so the push
+    // carries none of the leaving scene's keys: the arriving scene writes its
+    // own once it binds, and Back restores the leaving scene's from history.
     watch(
         () => machine.activeScene.value,
         (scene) => {
             const current = routeToScene(route.name);
             if (current === scene) return; // ECHO GUARD — route already matches
-            const { state: _drop, ...query } = route.query;
             writerEcho = true;
-            router.push({ name: scene, query }).catch((e) => {
+            router.push({ name: scene }).catch((e) => {
                 writerEcho = false;
                 // Re-throw non-navigation errors (e.g. broken route guards);
                 // swallow only expected navigation outcomes: duplicate or aborted.
@@ -129,30 +128,16 @@ export function useSceneMachineRouterBinding(opts: {
         },
     );
 
-    // ── ?anim= projection (read-only · scene-keyed · S3) ──
-    // The query param is a one-way PROJECTION of the active scene's
-    // selectedAnimation. Scene-keyed (it keys off the CURRENT scene's superKey)
-    // so a stale anim name can never cross a scene boundary. Applied for
-    // back/forward navigation; the FIRST-LOAD ?anim= is applied AFTER the seed
-    // (MED-6: scene-keyed, after the deep-link scene is known), NOT at setup.
-    function applyAnimFromUrl() {
-        const anim = route.query.anim;
-        if (typeof anim !== "string" || !anim) return;
-        const scene = sceneMap.get(machine.activeScene.value);
-        if (!scene) return;
-        const controls = getStoredAnimationGroupControlOptions(scene.superKey);
-        if (controls.selectedAnimation !== anim) {
-            controls.selectedAnimation = anim;
-        }
-    }
-    watch(() => route.query.anim, applyAnimFromUrl);
+    // KF-URL — `?anim=` is no longer a read-only projection here: the channel
+    // is one of the scene's URL keys (useSceneUrlState), read on bind and on
+    // Back/Forward, and written when the pick changes.
 
     // ── First-load seed (deep-link wins over localStorage — S5/MED-6) ──
     // The reducer's initial status is `idle` with activeScene = the persisted
     // (localStorage) scene. Seed from the URL: if the URL names a real scene,
     // it WINS; only a bare #/ falls back to the persisted activeScene. The
     // first-load precedence is: deep-link URL > ?state= (router.beforeEach
-    // already redirected) > localStorage (the persisted activeScene) > ?anim=
+    // already redirected) > localStorage (the persisted activeScene) > the scene's URL keys
     // (applied LAST, scene-keyed, once the seed scene is known).
     //
     // OD19-ALL (load) — the seed runs IN SETUP when the initial navigation has
@@ -171,8 +156,6 @@ export function useSceneMachineRouterBinding(opts: {
         } else {
             machine.dispatch({ type: "NAVIGATE", to: machine.activeScene.value });
         }
-        // ?anim= applied AFTER the seed — scene-keyed off the resolved scene.
-        applyAnimFromUrl();
     };
     if (router.currentRoute.value === START_LOCATION) void router.isReady().then(seed);
     else seed();

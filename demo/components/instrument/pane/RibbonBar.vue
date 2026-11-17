@@ -142,6 +142,7 @@
                  the section undrawn (the `:empty` rule below). -->
             <div
                 v-else-if="storedControls.selectedControl !== 'timeline'"
+                ref="ribbonSlot"
                 class="ribbon-slot"
             >
                 <PlaybackRibbon v-if="ribbon" v-bind="ribbon" />
@@ -152,7 +153,8 @@
 
 <script setup lang="ts">
 import { AlignLeft, Copy, FileCode, Paintbrush } from "@lucide/vue";
-import { computed, inject, watch } from "vue";
+import { computed, inject, useTemplateRef, watch } from "vue";
+import { useIntersectionObserver } from "@vueuse/core";
 import { Separator } from "@mkbabb/glass-ui";
 import { DockControl, DockSeparator, GlassDock } from "@mkbabb/glass-ui/dock";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@mkbabb/glass-ui/tooltip";
@@ -185,6 +187,26 @@ const ribbon = computed(() => {
         ? null
         : (ribbonSeat?.bindingFor(surface) ?? null);
 });
+
+// KF-URL (a) — THE RAIL READS THE CLOCK ONLY WHERE IT CAN BE SEEN. The seat's
+// `inView` follows this slot's intersection with the viewport (an ancestor
+// scroller's clip counts: the phone sheet rests with the rail below its fold).
+// The margin wakes the read-back a little before the rail scrolls in, so the
+// first frame it shows already holds the live playhead.
+const ribbonSlot = useTemplateRef<HTMLElement>("ribbonSlot");
+if (ribbonSeat) {
+    useIntersectionObserver(
+        ribbonSlot,
+        (entries) => {
+            const entry = entries[entries.length - 1];
+            if (entry) ribbonSeat.inView.value = entry.isIntersecting;
+        },
+        { rootMargin: "160px" },
+    );
+    watch(ribbonSlot, (el) => {
+        if (!el) ribbonSeat.inView.value = true;
+    });
+}
 
 // RB-6 (X.KF.W12.e) — THE APPLY STATE AND ITS AFFORDANCE GET ONE LIFETIME.
 //

@@ -78,7 +78,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onScopeDispose, useTemplateRef, watch } from "vue";
+import { computed, inject, onScopeDispose, useTemplateRef, watch } from "vue";
 import { useResizeObserver } from "@vueuse/core";
 import { clamp } from "@mkbabb/value.js/math";
 import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
@@ -90,6 +90,9 @@ import { useDragScrub } from "@composables/useDragScrub";
 import { kfEngine } from "@kf-engine";
 import { useTouchGate } from "@mkbabb/glass-ui";
 import PreviewToggle from "./PreviewToggle.vue";
+import { RIBBON_SEAT_KEY } from "@components/instrument/transport/injectionKeys";
+
+const ribbonSeat = inject(RIBBON_SEAT_KEY, null);
 
 const props = defineProps<{
     animation: KeyframesAnimation<any>;
@@ -350,7 +353,9 @@ useDemoTicker(() => {
         );
         setBallProgress(progress);
     }
-}, computed(() => props.isPlaying || isDragging.value));
+    // KF-URL (a) — a ball below the sheet's fold is not painted every frame
+    // (the ribbon seat's `inView`, the same gate as the rail's read-back).
+}, computed(() => (props.isPlaying || isDragging.value) && (ribbonSeat?.inView.value ?? true)));
 
 // ── Paused repaint (R-e-2) ───────────
 // The loop above is guarded off while paused, so a PAUSED scrub (the ribbon's

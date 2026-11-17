@@ -390,7 +390,14 @@ const {
     currentT,
     isPlaying: isAnimPlaying,
     wake,
-} = useAnimationSync(() => animation, toRef(() => isPlayingProp ?? false), ribbonShown);
+} = useAnimationSync(
+    () => animation,
+    toRef(() => isPlayingProp ?? false),
+    // KF-URL (a) — the read-back has a reader only while the rail is on show
+    // AND in view (the seat's `inView`): a rail scrolled out of sight is not
+    // re-rendered every frame of a play.
+    computed(() => ribbonShown.value && (ribbonSeat?.inView.value ?? true)),
+);
 const { userReversed, toggleReverse } = usePlaybackToggle(() => animation);
 const ribbonBinding = (): PlaybackRibbonBinding => ({
     animation,

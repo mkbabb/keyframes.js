@@ -1,3 +1,5 @@
+import type { Quat } from "./arcball";
+
 export interface GestureEvent extends Event {
     screenX: number;
     screenY: number;
@@ -16,3 +18,6 @@ export type PressedKeys = {
     ctrl: boolean;
     meta: boolean;
 };
+
+/** A pose the orbit's spring travels to (KF-URL): attitude, pan (px), zoom. */
+export type OrbitPose = { q: Quat; t: { x: number; y: number }; s: number };

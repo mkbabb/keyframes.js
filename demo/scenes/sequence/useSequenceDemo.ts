@@ -6,6 +6,7 @@ import { Sequence } from "@mkbabb/keyframes.js";
 import { stagger } from "@mkbabb/keyframes.js";
 import { springTimingFunction } from "@mkbabb/keyframes.js";
 import { clamp } from "@mkbabb/value.js/math";
+import { nums, useUrlState, type UrlKey } from "@app/scene/urlState";
 
 import { useSweepScene } from "@composables/scene-runtime/useSweepScene";
 import { useSceneTransport } from "@composables/scene-runtime/useSceneTransport";
@@ -21,6 +22,7 @@ import {
     sequenceRowKeyframes,
     type BallVars,
 } from "./sequenceMotion";
+import { SEQUENCE_SCENE_ID } from "./sequenceKeys";
 import {
     useSceneMachine,
     createRafAdapter,
@@ -366,6 +368,15 @@ export function useSequenceDemo() {
         machine.dispatch({ type: "RESET" });
     };
 
+    /** KF-URL — seat a whole `at:` net (a link's, or Back/Forward's): the rows
+     *  re-author through the same rebuild a drag does, at the held playhead. */
+    const setDelays = (next: readonly number[]) => {
+        if (next.length !== ROW_COUNT || isReeling.value) return;
+        const clamped = next.map((at) => clamp(Math.round(at), 0, STAGGER_MAX));
+        delays.value = clamped;
+        retime(clamped);
+    };
+
     // ── The storyboard rows — the reactive view of the editable `at:` net ─────
     const rows = computed<SequenceRow[]>(() =>
         Array.from({ length: ROW_COUNT }, (_, i) => ({
@@ -700,6 +711,23 @@ export function useSequenceDemo() {
         stopMirror();
         sequence.stop();
     });
+
+    // KF-URL — the storyboard's timing in the URL: `at` = each row's start
+    // (ms), written when a row is dragged (replace), omitted at the default
+    // staircase. Bound here, where the timing lives.
+    useUrlState(
+        [
+            {
+                key: "at",
+                get: () => delays.value,
+                set: (next: number[]) => setDelays(next),
+                fallback: () => [...DEFAULT_DELAYS],
+                ...nums(0, ROW_COUNT),
+                history: "replace",
+            } satisfies UrlKey<number[]>,
+        ],
+        { scene: () => SEQUENCE_SCENE_ID },
+    );
 
     // The provide contract is the CONSUMED surface (kf-SequenceScene L-12/C-8 +
     // SC-2): every member below has a reader in the target, the scrubber or the
