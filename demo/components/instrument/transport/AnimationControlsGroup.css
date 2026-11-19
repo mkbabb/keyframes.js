@@ -50,27 +50,10 @@
     --rail-track: var(--rail-width);
     grid-template-columns: [rail] var(--rail-track) [stage] minmax(0, 1fr);
     grid-template-rows: [top] auto [stage] 1fr [bottom] auto;
-    /* X.KF.W13R.d (REPIN-SPRING-SMOOTH-DEAD, KFA-168 re-read) — glass 10.0.1
-       re-cut the spring register onto six role rungs (BK #26 W-SPRING-RETUNE,
-       d27ec5dc); `--spring-smooth` is defined nowhere in 10.0.1, so the old
-       declaration was invalid at computed-value time and the rail track jumped
-       475 → 0 px in one frame. The rail's open/close is an EXTENT — the retune's
-       "travel / indicator / extent" row lands on `--spring-dock` (fast attack,
-       dead landing: the calmer curve R.W6 C.5 asked for), read with the rung's
-       OWN clock, never a borrowed `--duration-*`. */
-    transition: grid-template-columns var(--spring-dock-duration)
-        var(--spring-dock);
-}
-
-/* o1105 r2 kf — a scene swap has ONE animator. Into a scene from Home (railless)
-   the [rail] track opened 0 → --rail-width on this transition INSIDE the view
-   transition's live new state, so every frame of the hop re-laid out the whole
-   card under the swap's own geometry morph (home → cube: ~16 ms of style a
-   frame for the 210 ms of the track, the hop's frames at half rate). During a
-   swap the track lands at once and the transition's group morph carries the
-   change; the user's own open/close keeps its spring. */
-:root:active-view-transition .controls-layout {
-    transition: none;
+    /* LAST-TEN KF-18 — the [rail] track is not tweened: a grid-template-columns
+       transition re-laid out the whole stage every frame (CLS 0.227 each way).
+       The track lands at once and the stage cell is carried on a transform
+       (useStageSlide, below); a scene swap's change is the view transition's. */
 }
 
 /* The open/close + railless track-collapse (the [rail] track between
@@ -247,6 +230,21 @@
 @media (max-width: 1023px) and (prefers-reduced-motion: reduce) {
     .stage-glide {
         transition: none;
+    }
+}
+/* LAST-TEN KF-18 — on the desktop, when the pane opens or closes,
+   useStageSlide sets the cell's old offset as a translate and lets it go, so
+   the stage slides to its new place on glass's dock spring (the rail's extent
+   rung). At rest the cell carries no transform. Reduced motion: it fades in at
+   its new place. */
+@media (min-width: 1024px) {
+    .stage-cell {
+        transition: translate var(--spring-dock-duration) var(--spring-dock);
+    }
+}
+@media (min-width: 1024px) and (prefers-reduced-motion: reduce) {
+    .stage-cell {
+        transition: opacity var(--duration-fast) var(--ease-out);
     }
 }
 

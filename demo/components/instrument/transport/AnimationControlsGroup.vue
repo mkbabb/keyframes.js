@@ -143,6 +143,7 @@ import { GROUP_PAINTS_KEY, type TransportChannel } from "./transportSource";
 import { useAnimationGroupActions } from "./composables/useAnimationGroupActions";
 import { useControlsKeyboardShortcuts } from "./composables/useControlsKeyboardShortcuts";
 import { useAnimationGroupPlayback } from "./composables/useAnimationGroupPlayback";
+import { useStageSlide } from "./composables/useStageSlide";
 
 const { superKey, animationGroup, channels, autoPlay, hideControls, stageMode, hasControlSurfaces = true } = defineProps<{
     animationGroup: AnimationGroup<any>;
@@ -324,6 +325,9 @@ const transportDockRef = useTemplateRef<InstanceType<typeof TransportDock>>("tra
 // off the cell's own content box after the reserve lands. Desktop and home
 // publish nothing: every token resolves to 0 and the fit to 1.
 const stageCellEl = useTemplateRef<HTMLElement>("stageCellEl");
+// LAST-TEN KF-18 — on the desktop the cell slides to its new place on a
+// transform when the pane opens or closes (useStageSlide).
+useStageSlide(() => stageCellEl.value, () => storedControls.value.isControlsPanelOpen);
 const stageReserve = shallowRef<StageReserve>(NO_STAGE_RESERVE);
 const stageFit = shallowRef(1);
 const onStageReserve = (r: StageReserve) => {
