@@ -187,7 +187,7 @@
                         <TooltipTrigger as-child>
                             <DockControl shape="icon" aria-label="Reset animation" @click="() => { resetIconSpin(); emit('reset', false); }">
                                 <span ref="resetIconEl" class="inline-flex">
-                                    <RotateCcw class="icon-lg" />
+                                    <SkipBack class="icon-lg" />
                                 </span>
                             </DockControl>
                         </TooltipTrigger>
@@ -225,7 +225,7 @@ import {
 } from "@mkbabb/glass-ui";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@mkbabb/glass-ui/tooltip";
 
-import { RotateCcw } from "@lucide/vue";
+import { SkipBack } from "@lucide/vue";
 
 import { GlassDock } from "@mkbabb/glass-ui/dock";
 import { DOCK_POPUP_GAP } from "@composables/dockEdge";

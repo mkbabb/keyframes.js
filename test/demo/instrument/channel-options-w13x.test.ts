@@ -227,6 +227,8 @@ describe("X.KF.W13X.controls — one drill-in owner, one sub-pane header (A2-KE-
                 [...el.querySelectorAll("*")].map((e) => e.tagName).slice(0, 3);
             expect(dh.element.querySelector("button")?.getAttribute("aria-label")).toBe("Back from cubic-bézier to controls");
             expect(dh.element.firstElementChild?.tagName).toBe("BUTTON");
+            // Back is the left chevron; the left arrow means Play in reverse.
+            expect(dh.element.querySelector("button svg")?.classList.contains("lucide-chevron-left")).toBe(true);
             const dt = dh.get("[data-subpane-title]");
             expect(dt.text()).toBe("cubic-bézier");
             expect(dt.classes()).toContain("text-subheading");
@@ -238,6 +240,7 @@ describe("X.KF.W13X.controls — one drill-in owner, one sub-pane header (A2-KE-
             const layer = wrapper.get(`[id="${layerEntry(wrapper).attributes("aria-controls")}"]`);
             const lh = layer.get("[data-subpane-header]");
             expect(lh.element.firstElementChild?.tagName).toBe("BUTTON");
+            expect(lh.element.querySelector("button svg")?.classList.contains("lucide-chevron-left")).toBe(true);
             expect(lh.get("[data-subpane-title]").text()).toBe("Layer");
             expect(lh.get("[data-subpane-title]").classes()).toContain("text-subheading");
             expect(shape(lh.element)).toEqual(shape(dh.element));
