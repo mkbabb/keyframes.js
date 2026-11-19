@@ -111,13 +111,14 @@ describe("X.KF.W13X.overlays — Share", () => {
         await vi.waitFor(() => expect(field()!.getAttribute("aria-invalid")).not.toBe("true"));
     });
 
-    it("(3) UIA-KF-071 — 'Copy link' is the named primary; the load path is labelled", async () => {
+    it("(3) UIA-KF-071 — 'Copy link' is the named primary; the load path is named", async () => {
         await openShare();
         const names = buttons().map((b) => b.textContent?.trim());
         expect(names[0]).toBe("Copy link");
         expect(names).toContain("Load");
-        const id = field()!.id;
-        expect(id && pop()!.querySelector(`label[for="${id}"]`)?.textContent?.trim()).toBe("Load from link");
+        // Named for assistive tech; the placeholder and Load say it on screen.
+        expect(field()!.getAttribute("aria-label")).toBe("Load from link");
+        expect(pop()!.querySelector("label")).toBeNull();
     });
 
     it("(4) UIA-KF-224 — no native title tooltip in the popover", async () => {

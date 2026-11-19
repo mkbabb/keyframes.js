@@ -64,7 +64,7 @@
                  popover; both halves are retired here). The leading glyph is the
                  command's own, at the menu's glyph rung; the copy glyph is the
                  surface's primary action ("Copy link"). -->
-            <DropdownMenuItem text-value="Share" class="gap-2.5 px-1.5 py-1" @select="shareOpen = true">
+            <DropdownMenuItem text-value="Share" class="gap-2.5 px-1.5 py-1" @select="onShareRow">
                 <span class="w-7 shrink-0 flex justify-center"><Share2 class="w-5 h-5" aria-hidden="true" /></span>
                 <div class="flex-1 min-w-0">
                     <span class="text-small text-foreground">Share</span>
@@ -267,7 +267,7 @@
 
     <!-- ESC-dock-1 — the share surface, a sibling of the menu it is opened from
          (never nested in a row), anchored to the @mbabb trigger. -->
-    <SharePopover v-model:open="shareOpen" :anchor="mbabbTrigger?.$el" :side-offset="shareOffset" :on-scene-restore="onSceneRestore" />
+    <SharePopover ref="sharePopover" v-model:open="shareOpen" :anchor="mbabbTrigger?.$el" :side-offset="shareOffset" :on-scene-restore="onSceneRestore" />
     <!-- X.KF.W13U.d · OA-33 — the shortcuts dialog lives with the row that
          opens it and with its `?` shortcut (moved from ChromeDock). -->
     <KeyboardShortcutsModal v-model:open="shortcutsOpen" @close-auto-focus="onShortcutsCloseAutoFocus" />
@@ -360,6 +360,14 @@ const dock = useOptionalDockContext();
 // The surfaces this menu opens (declared here because the hold below reads them;
 // their commands are further down): the share popover (ESC-dock-1) and two dialogs.
 const shareOpen = ref(false);
+// Share is one press: the row copies the link (inside its own press, so the
+// clipboard write keeps the press's activation) and opens the surface, which
+// says so and keeps "Load from link" in reach.
+const sharePopover = useTemplateRef<{ copyAtOpen: () => Promise<void> }>("sharePopover");
+function onShareRow(): void {
+    void sharePopover.value?.copyAtOpen();
+    shareOpen.value = true;
+}
 const confirmClearOpen = ref(false);
 const shortcutsOpen = ref(false);
 /** LAST-TEN KF-28 — a dialog asked for from the menu, waiting on its exit. */
