@@ -188,6 +188,15 @@ test("a scene's keys never travel into the next scene", async ({ page }) => {
     expect(await query(page)).toMatchObject({ path: "/cube", skin: "daraksha", z: "1.2" });
 });
 
+test("a cold link to the Matrix surface opens it and keeps the link", async ({ page }) => {
+    for (const hash of ["/cube?anim=Matrix&pane=matrix-controls", "/cube?anim=Matrix&pane=matrix-controls&play=0"]) {
+        await openLink(page, hash);
+        await rest(page, 1500);
+        expect(await query(page)).toMatchObject({ path: "/cube", anim: "Matrix", pane: "matrix-controls" });
+        await expect(page.getByRole("group", { name: "Matrix entries" })).toBeVisible();
+    }
+});
+
 test.describe("on a phone", () => {
     test.use({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, hasTouch: true, isMobile: true });
 

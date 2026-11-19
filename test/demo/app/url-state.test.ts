@@ -170,7 +170,18 @@ describe("useSceneUrlState: the controls at a cold load", () => {
                 useSceneUrlState({
                     resolvedScene: computed(() => ({
                         id: "cube",
-                        api: { autoPlays: false, facility: { channels: [{ name: "Rotations" }] } } as never,
+                        api: {
+                            autoPlays: false,
+                            // The cube's two channels: Matrix adds its own surface
+                            // only while it is the selected one.
+                            facility: {
+                                channels: [
+                                    { name: "Rotations", animation: {} },
+                                    { name: "Matrix", animation: {}, facets: [{ surface: "matrix-controls" }] },
+                                ],
+                                facets: [],
+                            },
+                        } as never,
                     })),
                     storedControls: computed(() => controls as never),
                     bound: computed(() => true),
@@ -203,5 +214,59 @@ describe("useSceneUrlState: the controls at a cold load", () => {
         vi.useFakeTimers();
         expect((await bindScene(390, "/cube?sheet=1")).controls.isControlsPanelOpen).toBe(true);
         expect((await bindScene(1440, "/cube?sheet=0")).controls.isControlsPanelOpen).toBe(false);
+    });
+});
+
+describe("useSceneUrlState: a surface named beside its channel", () => {
+    // The machine's surface set still holds the first channel's surfaces when a
+    // link binds: the pane is read against the channel the same link names.
+    it("binds the Matrix surface from a cold link and keeps the URL", async () => {
+        vi.useFakeTimers();
+        machine.controlSurfaces.value = ["controls", "keyframes", "timeline"];
+        const { useSceneUrlState } = await import("../../../demo/app/scene/useSceneUrlState");
+        const { computed, reactive } = await import("vue");
+        for (const url of ["/cube?anim=Matrix&pane=matrix-controls", "/cube?anim=Matrix&pane=matrix-controls&play=0"]) {
+            const router = createRouter({
+                history: createMemoryHistory(),
+                routes: [{ path: "/cube", name: "cube", component: Stub }],
+            });
+            const controls = reactive({
+                selectedControl: "controls",
+                selectedAnimation: "Rotations",
+                isTimelineExpanded: false,
+                isControlsPanelOpen: true,
+                ballPreview: "shown",
+                keyframeControls: { selectedKeyframesControl: "keyframes", dialogOpen: false, keyframes: "", addKeyframes: "" },
+            });
+            const App = defineComponent({
+                setup() {
+                    useSceneUrlState({
+                        resolvedScene: computed(() => ({
+                            id: "cube",
+                            api: {
+                                autoPlays: true,
+                                facility: {
+                                    channels: [
+                                        { name: "Rotations", animation: {} },
+                                        { name: "Matrix", animation: {}, facets: [{ surface: "matrix-controls" }] },
+                                    ],
+                                    facets: [],
+                                },
+                            } as never,
+                        })),
+                        storedControls: computed(() => controls as never),
+                        bound: computed(() => true),
+                    });
+                    return () => h("div");
+                },
+            });
+            await router.push(url);
+            await router.isReady();
+            mount(App, { global: { plugins: [router] } });
+            await settle(300);
+            expect(controls.selectedAnimation).toBe("Matrix");
+            expect(controls.selectedControl).toBe("matrix-controls");
+            expect(router.currentRoute.value.query).toMatchObject({ anim: "Matrix", pane: "matrix-controls" });
+        }
     });
 });

@@ -1,6 +1,6 @@
 import type { ComputedRef } from "vue";
 import { controlsOpenAtRest } from "@state/controlOptionsStore";
-import { defaultControlSurfaceFor } from "@state/controlSurfaces";
+import { defaultControlSurfaceFor, surfacesFor } from "@state/controlSurfaces";
 import {
     HOME_SCENE_ID,
     useSceneMachine,
@@ -61,7 +61,15 @@ export function useSceneUrlState(opts: {
                 controls().selectedControl = v;
             },
             fallback: () => defaultControlSurfaceFor(scene()),
-            ...oneOf(() => machine.controlSurfaces.value as readonly string[]),
+            // Read against the channel as it now stands (`anim` is applied
+            // first), not the machine's set, which follows a tick behind: a
+            // link naming Matrix and its own surface binds both.
+            ...oneOf(() =>
+                surfacesFor(
+                    opts.resolvedScene.value.api?.facility,
+                    controls().selectedAnimation ?? undefined,
+                ) as readonly string[],
+            ),
             history: "push",
         } satisfies UrlKey<string>,
         {
