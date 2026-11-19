@@ -136,8 +136,8 @@ describe("UIA-KF-118 — closing the Clear-all confirm returns focus to the @mba
 
 describe("LAST-TEN KF-05 — closing the Keyboard-shortcuts dialog returns focus to the @mbabb trigger", () => {
     const shortcutsDialog = () =>
-        [...document.querySelectorAll<HTMLElement>("[role=dialog]")].find((d) =>
-            d.textContent?.includes("Grouped by area"),
+        [...document.querySelectorAll<HTMLElement>("[role=dialog]")].find(
+            (d) => document.getElementById(d.getAttribute("aria-labelledby") ?? "")?.textContent?.trim() === "Keyboard shortcuts",
         );
     it("(3b) Escape lands focus on the trigger, not <body>", async () => {
         const { wrapper, trigger } = mountHost();
