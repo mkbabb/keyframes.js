@@ -16,6 +16,9 @@ import { router } from "./scene/router";
 // EditorShell.vue also imports these; Vite dedupes the shared modules, so
 // dev and prod resolve identically.
 import "@styles/style.css";
+// The app's inlined font corpus (fonts.css): here, not in style.css, so the
+// embed slice (a die and glyphs, no text) does not carry it.
+import "@styles/fonts.css";
 // L.W8 S1 ED-3 DOGFOOD INVERSION — the demo consumes the PUBLISHED kf barrel; the
 // HEAVY surface (CSSKeyframesAnimation / AnimationGroup / presets / …) rides the
 // barrel's `loadAnimationEngine()` dynamic boundary. The scene-machine reconcile
