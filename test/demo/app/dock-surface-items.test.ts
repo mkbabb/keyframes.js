@@ -7,7 +7,7 @@
  */
 import { describe, expect, it } from "vitest";
 import { defineComponent, h, nextTick } from "vue";
-import { flushPromises, mount } from "@vue/test-utils";
+import { DOMWrapper, flushPromises, mount } from "@vue/test-utils";
 import { TooltipProvider } from "@mkbabb/glass-ui/tooltip";
 import ChromeDock from "@app/dock/ChromeDock.vue";
 import {
@@ -302,5 +302,28 @@ describe("the one surface registry (X.KF.W13X.esc1)", () => {
     it("the dock item for a facet carries the registry's own glyph", () => {
         const spring = dockSurfaceItems(["controls", "keyframes", "timeline", "spring"]);
         expect(spring[3]).toMatchObject({ kind: "facet", label: "Physics", icon: SURFACE_META.spring.icon });
+    });
+});
+
+describe("ChromeDock: the theme is the dock's last seat", () => {
+    it("the last seat is the theme toggle, on Home and on a scene, and a press flips the theme", async () => {
+        for (const currentSceneId of ["home", "spring"]) {
+            const { wrapper } = mountDock({ ...springProps, currentSceneId });
+            // The open run of seats (the folded face lives in its own layer).
+            const run = wrapper.find("[aria-label='Scene'][role=combobox]").element.closest(".dock-layer")!;
+            const seats = [...run.querySelectorAll<HTMLElement>("button")].map((el) => new DOMWrapper(el));
+            const last = seats.at(-1)!;
+            expect(last.attributes("aria-label")).toBe("Dark mode");
+            const before = document.documentElement.classList.contains("dark");
+            expect(last.attributes("aria-pressed")).toBe(String(before));
+            await last.trigger("click");
+            await nextTick();
+            expect(document.documentElement.classList.contains("dark")).toBe(!before);
+            expect(last.attributes("aria-pressed")).toBe(String(!before));
+            await last.trigger("click");
+            await nextTick();
+            expect(document.documentElement.classList.contains("dark")).toBe(before);
+            wrapper.unmount();
+        }
     });
 });

@@ -7,6 +7,7 @@ import { GlassDock, DockControl, DockSeparator } from "@mkbabb/glass-ui/dock";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@mkbabb/glass-ui/tooltip";
 import { DockTrigger } from "@mkbabb/glass-ui/dock-trigger";
 import { Button } from "@mkbabb/glass-ui/button";
+import { DarkModeToggle } from "@mkbabb/glass-ui/dark-mode-toggle";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -609,6 +610,16 @@ watch(isSelectOpen, (open) => {
 
                         <!-- Header items slot (@mbabb chip) -->
                         <slot name="items" />
+                        <!-- The theme: the trailing zone's last seat, glass's own
+                             sun-to-moon toggle at the dock's control cell. Its
+                             name is the state it sets and stays put; `aria-pressed`
+                             says whether it is on. -->
+                        <Tooltip>
+                            <TooltipTrigger as-child>
+                                <DarkModeToggle size="dock" aria-label="Dark mode" data-dock-theme />
+                            </TooltipTrigger>
+                            <TooltipContent>Dark mode</TooltipContent>
+                        </Tooltip>
 
                         <!-- X.KF.W13U.d · OA-33 (COHESION §0bi) — the trailing APP zone
                              is ONE control. W13T.k3 (R-k-1) had seated Share ·

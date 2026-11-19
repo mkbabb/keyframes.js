@@ -71,23 +71,6 @@
                 </div>
             </DropdownMenuItem>
 
-            <!-- X.KF.W13X.dock · A2-KE-L2-13 + UIA-KF-137 — the theme is a
-                 persisted boolean, so it is a CHECKBOX row, the ppmycota row's
-                 idiom below: `menuitemcheckbox` + `aria-checked` + the indicator
-                 seat, bound to the one shared dark-mode controller
-                 (`useGlobalDark`, the instance every glass surface reads). The
-                 row was a layout-only item wrapping a 28 px DarkModeToggle: a
-                 tap or Enter on the 258 x 53 px row did nothing, and two
-                 booleans in one menu spoke two idioms. `@select.prevent` keeps
-                 the menu open, so the mark is the feedback. The producer's
-                 menu-item form of the toggle itself (DARK-MENU-ITEM, O-61 R-3)
-                 stays relay-only. -->
-            <DropdownMenuCheckboxItem :model-value="isDark" @update:model-value="setDark" @select.prevent text-value="Dark mode" class="gap-2.5 px-1.5 py-1">
-                <span class="w-7 shrink-0 flex justify-center"><Moon class="w-5 h-5" aria-hidden="true" /></span>
-                <div class="flex-1 min-w-0">
-                    <span class="text-small text-foreground">Dark mode</span>
-                </div>
-            </DropdownMenuCheckboxItem>
 
             <!-- X.KF.W13U.d · OA-33 (COHESION §0bi) — Keyboard shortcuts joins its
                  two siblings here: the dock's trailing zone is this menu's trigger
@@ -324,11 +307,10 @@ import SharePopover from "./SharePopover.vue";
 import { Avatar, AvatarFallback, AvatarImage } from "@mkbabb/glass-ui";
 import { Button } from "@mkbabb/glass-ui/button";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@mkbabb/glass-ui/dialog";
-import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuShortcut } from "@mkbabb/glass-ui/menu";
-import { useGlobalDark } from "@mkbabb/glass-ui/dark";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuShortcut } from "@mkbabb/glass-ui/menu";
 import { useOptionalDockContext } from "@mkbabb/glass-ui/dock";
 import { DockTrigger } from "@mkbabb/glass-ui/dock-trigger";
-import { Box, ExternalLink, Keyboard, Moon, Share2, Trash } from "@lucide/vue";
+import { Box, ExternalLink, Keyboard, Share2, Trash } from "@lucide/vue";
 import { registerShortcut } from "@mkbabb/glass-ui/keyboard";
 import KeyboardShortcutsModal from "./KeyboardShortcutsModal.vue";
 import { getStoredAnimationGroupControlOptions, resetAllStores } from "@state";
@@ -419,13 +401,6 @@ function setCubeSkin(value: unknown): void {
 // A2-KE-L2-17 — the short layout (see the template), the controls pane's own query.
 const isShortLayout = useMediaQuery("(max-width: 1023px) and (max-height: 500px)");
 const coarsePointer = useMediaQuery("(pointer: coarse)");
-
-// A2-KE-L2-13 · UIA-KF-137 — the theme row's one writer. `toggleDark` (not a bare
-// write to `isDark`) so the flip keeps the controller's transition suppression.
-const { isDark, toggleDark } = useGlobalDark();
-function setDark(checked: boolean): void {
-    if (checked !== isDark.value) toggleDark();
-}
 
 // T.C2 — "Clear all & reload" RELOCATED from the transport dock into the @mbabb
 // settings menu (a destructive storage reset is a settings action, not transport
