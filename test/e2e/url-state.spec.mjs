@@ -14,6 +14,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { serveDist } from "../../scripts/lib/demo-driver.mjs";
+import { freeStage } from "./stage-measure.mjs";
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const DIST = path.join(REPO, "dist", "gh-pages");
@@ -190,23 +191,35 @@ test("a scene's keys never travel into the next scene", async ({ page }) => {
 test.describe("on a phone", () => {
     test.use({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, hasTouch: true, isMobile: true });
 
+    test("a cold load leaves the controls closed: the stage has half the screen or more", async ({ page }) => {
+        await openLink(page, "/cube");
+        await page.waitForFunction(() => /rotate3d/.test(document.querySelector(".graph > div")?.style.transform ?? ""), null, { timeout: 20_000 });
+        await rest(page, 1500);
+        expect(await query(page)).toEqual({ path: "/cube" });
+        const free = await freeStage(page);
+        expect(free.w).toBeGreaterThanOrEqual(388);
+        expect(free.heightShare).toBeGreaterThanOrEqual(0.49);
+    });
+
     test("a tap that lowers the sheet adds no entry: Back leaves the view", async ({ page }) => {
         await page.goto(at("/"));
         await rest(page, 1200);
-        // Into the cube as a visitor goes: one discrete move, one entry.
-        await page.evaluate(() => (location.hash = "#/cube"));
+        // Into the cube as a visitor goes, by a link that opens the controls:
+        // one discrete move, one entry.
+        await page.evaluate(() => (location.hash = "#/cube?sheet=1"));
         await page.waitForFunction(() => /rotate3d/.test(document.querySelector(".graph > div")?.style.transform ?? ""), null, { timeout: 20_000 });
         await rest(page, 1500);
         const len0 = await page.evaluate(() => history.length);
 
-        // A tap on the die lowers the sheet: the view's state, written in place.
+        // A tap on the die lowers the sheet: the view's state, written in place
+        // (closed is a phone's rest, so the key leaves the link).
         const g = await page.evaluate(() => {
             const r = document.querySelector(".graph").getBoundingClientRect();
             return { x: r.x + r.width / 2, y: r.y + r.height / 2 };
         });
         await page.touchscreen.tap(g.x + 60, g.y);
         await rest(page);
-        expect(await query(page)).toMatchObject({ path: "/cube", sheet: "0" });
+        expect(await query(page)).toEqual({ path: "/cube" });
         expect(await page.evaluate(() => history.length)).toBe(len0);
 
         // Back leaves the cube; it does not raise the sheet again.

@@ -18,6 +18,7 @@ export {
     type StoredAnimationGroupsControlOptions,
     useAnimationGroupsControlOptionsStore,
     getStoredAnimationGroupControlOptions,
+    controlsOpenAtRest,
 } from "./controlOptionsStore";
 
 export {

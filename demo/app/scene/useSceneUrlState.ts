@@ -1,4 +1,5 @@
 import type { ComputedRef } from "vue";
+import { controlsOpenAtRest } from "@state/controlOptionsStore";
 import { defaultControlSurfaceFor } from "@state/controlSurfaces";
 import {
     HOME_SCENE_ID,
@@ -13,7 +14,8 @@ import { flag, oneOf, useUrlState, type UrlKey } from "./urlState";
  *
  *   anim   the selected channel (default: the scene's first)       push
  *   pane   the controls surface (default: the scene's own)          push
- *   sheet  0 = the controls pane / phone sheet closed               replace
+ *   sheet  the controls pane / phone sheet; absent = the layout's
+ *          rest (open on a desk, closed on a phone)                 replace
  *   ball   0 = the ball preview hidden                              replace
  *   tl     1 = the timeline expanded                                replace
  *   play   1 / 0 = playing / paused, where it differs from the
@@ -68,7 +70,7 @@ export function useSceneUrlState(opts: {
             set: (v: boolean) => {
                 controls().isControlsPanelOpen = v;
             },
-            fallback: () => true,
+            fallback: controlsOpenAtRest,
             ...flag,
             history: "replace",
         } satisfies UrlKey<boolean>,

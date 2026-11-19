@@ -129,3 +129,79 @@ describe("urlState", () => {
         expect(t.router.currentRoute.value.fullPath).toBe("/b?s=3");
     });
 });
+
+// ── The scene's own keys (useSceneUrlState): the controls' rest follows the
+// layout. A desk opens the controls at a cold load; a phone does not (the
+// sheet would take half the screen). A link that names `sheet` still wins. ──
+const machine = vi.hoisted(() => ({
+    status: { value: "paused" },
+    controlSurfaces: { value: ["controls"] },
+    perScene: { value: {} as Record<string, { playing: boolean }> },
+    dispatch: () => {},
+}));
+vi.mock("@state", () => ({ HOME_SCENE_ID: "home", useSceneMachine: () => machine }));
+
+describe("useSceneUrlState: the controls at a cold load", () => {
+    const width0 = window.innerWidth;
+    afterEach(() => {
+        Object.defineProperty(window, "innerWidth", { value: width0, configurable: true });
+    });
+
+    async function bindScene(width: number, url: string) {
+        Object.defineProperty(window, "innerWidth", { value: width, configurable: true });
+        const { useSceneUrlState } = await import("../../../demo/app/scene/useSceneUrlState");
+        const { computed, reactive } = await import("vue");
+        const router = createRouter({
+            history: createMemoryHistory(),
+            routes: [{ path: "/cube", name: "cube", component: Stub }],
+        });
+        // The bucket as the store seeds it on a desk (open), so only the URL's
+        // reading of an absent `sheet` decides the rest.
+        const controls = reactive({
+            selectedControl: "controls",
+            selectedAnimation: "Rotations",
+            isTimelineExpanded: false,
+            isControlsPanelOpen: true,
+            ballPreview: "shown",
+            keyframeControls: { selectedKeyframesControl: "keyframes", dialogOpen: false, keyframes: "", addKeyframes: "" },
+        });
+        const App = defineComponent({
+            setup() {
+                useSceneUrlState({
+                    resolvedScene: computed(() => ({
+                        id: "cube",
+                        api: { autoPlays: false, facility: { channels: [{ name: "Rotations" }] } } as never,
+                    })),
+                    storedControls: computed(() => controls as never),
+                    bound: computed(() => true),
+                });
+                return () => h("div");
+            },
+        });
+        await router.push(url);
+        await router.isReady();
+        mount(App, { global: { plugins: [router] } });
+        await settle(300);
+        return { controls, router };
+    }
+
+    it("a phone opens with the controls closed and writes nothing", async () => {
+        vi.useFakeTimers();
+        const { controls, router } = await bindScene(390, "/cube");
+        expect(controls.isControlsPanelOpen).toBe(false);
+        expect(router.currentRoute.value.fullPath).toBe("/cube");
+    });
+
+    it("a desk opens with the controls open and writes nothing", async () => {
+        vi.useFakeTimers();
+        const { controls, router } = await bindScene(1440, "/cube");
+        expect(controls.isControlsPanelOpen).toBe(true);
+        expect(router.currentRoute.value.fullPath).toBe("/cube");
+    });
+
+    it("a link that names the sheet wins on either", async () => {
+        vi.useFakeTimers();
+        expect((await bindScene(390, "/cube?sheet=1")).controls.isControlsPanelOpen).toBe(true);
+        expect((await bindScene(1440, "/cube?sheet=0")).controls.isControlsPanelOpen).toBe(false);
+    });
+});

@@ -65,6 +65,20 @@ const defaultStoredAnimationGroupControlOptions: StoredAnimationGroupControlOpti
         isControlsPanelOpen: true,
     };
 
+/**
+ * Where the controls rest when nothing has said otherwise: open beside the
+ * stage on a desk (1024 px and wider, the rail), closed on a phone, where the
+ * sheet would take the bottom half of the screen. The one predicate the URL's
+ * `sheet` fallback, the store's seed and the desk force-open all read.
+ */
+export const controlsOpenAtRest = (): boolean =>
+    typeof window === "undefined" || window.innerWidth >= 1024;
+
+const seedOptions = (): StoredAnimationGroupControlOptions => ({
+    ...structuredClone(defaultStoredAnimationGroupControlOptions),
+    isControlsPanelOpen: controlsOpenAtRest(),
+});
+
 export const useAnimationGroupsControlOptionsStore = createGlobalState(() => {
     const store = useStorage<StoredAnimationGroupsControlOptions>(
         "animation-groups-control-options-store",
@@ -98,7 +112,7 @@ export const getStoredAnimationGroupControlOptions = (
         // SCENE-AWARE default surface: easing opens on its Curve facet,
         // spring on Physics. A stored (user-picked) bucket is untouched.
         animationGroupsControlOptionsStore.value[superKey] = {
-            ...structuredClone(defaultStoredAnimationGroupControlOptions),
+            ...seedOptions(),
             selectedControl: defaultControlSurfaceFor(superKey),
         };
     }
@@ -116,7 +130,7 @@ export const getStoredAnimationGroupControlOptions = (
     // `null` is a stored value (no animation selected), so only an ABSENT
     // member is filled.
     const bucket = controls as Record<string, unknown>;
-    for (const [key, value] of Object.entries(defaultStoredAnimationGroupControlOptions)) {
+    for (const [key, value] of Object.entries(seedOptions())) {
         if (bucket[key] === undefined) bucket[key] = structuredClone(value);
     }
 
