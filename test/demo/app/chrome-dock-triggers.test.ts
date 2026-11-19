@@ -161,3 +161,19 @@ describe("UIA-KF-237 — the glyph-only scene trigger keeps the label's line box
         w.unmount();
     });
 });
+
+describe("the folded dock's face is a dock seat", () => {
+    const foldedFace = () =>
+        [...document.querySelectorAll<HTMLElement>('.glass-dock [aria-label="Scene"]')].find(
+            (el) => el.getAttribute("role") !== "combobox",
+        )!;
+
+    it("(6) the folded face is the dock's own control cell (as the transport's is), so the fold is a circle", () => {
+        const w = mountDock();
+        const face = foldedFace();
+        expect(face).toBeTruthy();
+        expect(face.classList).toContain("dock-icon-button");
+        expect(face.getAttribute("data-slot")).not.toBe("button");
+        w.unmount();
+    });
+});

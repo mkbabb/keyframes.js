@@ -6,7 +6,6 @@ import { Activity, Atom, SlidersHorizontal, Braces, Clock, Grid3X3 } from "@luci
 import { GlassDock, DockControl, DockSeparator } from "@mkbabb/glass-ui/dock";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@mkbabb/glass-ui/tooltip";
 import { DockTrigger } from "@mkbabb/glass-ui/dock-trigger";
-import { Button } from "@mkbabb/glass-ui/button";
 import { DarkModeToggle } from "@mkbabb/glass-ui/dark-mode-toggle";
 import {
     DropdownMenu,
@@ -664,16 +663,14 @@ watch(isSelectOpen, (open) => {
                      TD-39's rider: the Button is copied, the name split is NOT —
                      one logical command, one stable name ("Scene", the expanded
                      trigger's own), never suffixed with transient chrome state. -->
+                <!-- The face is the dock's own control cell (DockControl, the
+                     transport's folded seat), not a glass Button: the Button's
+                     coarse-scale box (54 px) widened the fold to a 70x60 oval,
+                     where the cell keeps it the circle the producer draws. -->
                 <template #collapsed>
-                    <Button
-                        emphasis="quiet"
-                        size="sm"
-                        icon-only
-                        aria-label="Scene"
-                        @focus="onCollapsedFocus"
-                    >
+                    <DockControl aria-label="Scene" @focus="onCollapsedFocus">
                         <component :is="currentIcon" :live="scenePlaying" class="dock-glyph" aria-hidden="true" />
-                    </Button>
+                    </DockControl>
                 </template>
             </GlassDock>
         </div>
