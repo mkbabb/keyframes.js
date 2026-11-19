@@ -22,6 +22,7 @@ import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { defineComponent, nextTick } from "vue";
 import { mount } from "@vue/test-utils";
 import { GlassDock } from "@mkbabb/glass-ui/dock";
+import { TooltipProvider } from "@mkbabb/glass-ui/tooltip";
 import MbabbMenu from "@app/dock/menu/MbabbMenu.vue";
 
 const savedResizeObserver = (globalThis as { ResizeObserver?: unknown }).ResizeObserver;
@@ -55,9 +56,10 @@ afterAll(() => {
 
 const Host = defineComponent({
     name: "MenuHost",
-    components: { GlassDock, MbabbMenu },
+    components: { GlassDock, MbabbMenu, TooltipProvider },
     props: { skins: { type: Boolean, default: true } },
-    template: `<GlassDock collapse="open"><MbabbMenu :on-scene-restore="noop" :skins="skins" /></GlassDock>`,
+    // The app mounts its dock under glass's TooltipProvider (the seats' tooltips).
+    template: `<TooltipProvider><GlassDock collapse="open"><MbabbMenu :on-scene-restore="noop" :skins="skins" /></GlassDock></TooltipProvider>`,
     setup: () => ({ noop: () => {} }),
 });
 

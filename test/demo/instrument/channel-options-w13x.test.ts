@@ -24,6 +24,7 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { defineComponent, h, markRaw, nextTick } from "vue";
 import { mount } from "@vue/test-utils";
+import { TooltipProvider } from "@mkbabb/glass-ui/tooltip";
 import { CSSKeyframesAnimation } from "../../../src/animation/engine";
 import { AnimationGroup } from "../../../src/animation/group";
 import { warmKfEngine } from "../../../demo/kf-engine";
@@ -171,9 +172,16 @@ function makeChannel(timingFunction: TimingFunctionNames = "ease-in-out") {
     return { a, group, stored };
 }
 
+// The app mounts every surface under glass's TooltipProvider (the pane's
+// glyph buttons carry tooltips); the host forwards the card's props.
+const CardHost = defineComponent({
+    props: ["animation", "layerConfig", "blendAvailable"],
+    setup: (props) => () => h(TooltipProvider, null, () => h(ChannelOptions, props)),
+});
+
 function mountCard(targets: 1 | 2, timingFunction?: TimingFunctionNames) {
     const { a, group, stored } = makeChannel(timingFunction);
-    const wrapper = mount(ChannelOptions, {
+    const wrapper = mount(CardHost, {
         props: {
             animation: a,
             layerConfig: group.getLayerConfig("rotate"),
@@ -465,7 +473,7 @@ describe("X.KF.W13X.esc1 — per-channel state survives a swap (store-held)", ()
         await settle();
         expect(layerEntry(wrapper).attributes("aria-expanded")).toBe("true");
         wrapper.unmount();
-        const again = mount(ChannelOptions, {
+        const again = mount(CardHost, {
             props: { animation: a, layerConfig: group.getLayerConfig("rotate"), blendAvailable: true },
             attachTo: document.body,
         });

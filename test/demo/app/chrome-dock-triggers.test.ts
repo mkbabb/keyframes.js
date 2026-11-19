@@ -177,3 +177,37 @@ describe("the folded dock's face is a dock seat", () => {
         w.unmount();
     });
 });
+
+describe("every icon-only seat of the dock says its name in a tooltip", () => {
+    /** Focus a seat and read the tooltip it opens (reka opens on focus). */
+    async function tooltipOf(el: HTMLElement): Promise<string | undefined> {
+        el.focus();
+        el.dispatchEvent(new window.FocusEvent("focus"));
+        try {
+            await vi.waitFor(() => expect(document.querySelector("[role=tooltip]")).toBeTruthy(), { timeout: 600 });
+        } catch {
+            return undefined;
+        }
+        const text = document.querySelector("[role=tooltip]")?.textContent?.trim();
+        el.blur();
+        el.dispatchEvent(new window.FocusEvent("blur"));
+        document.dispatchEvent(new window.KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+        await vi.waitFor(() => expect(document.querySelector("[role=tooltip]")).toBeNull());
+        return text;
+    }
+
+    it("(7) the folded face, Editor surfaces and the @mbabb seat each show their accessible name", async () => {
+        const w = mountDock();
+        const folded = [...document.querySelectorAll<HTMLElement>('.glass-dock [aria-label="Scene"]')].find(
+            (el) => el.getAttribute("role") !== "combobox",
+        )!;
+        const surfaces = document.querySelector<HTMLElement>('[aria-label="Editor surfaces"]')!;
+        const mbabb = document.querySelector<HTMLElement>('[aria-label="@mbabb menu"]')!;
+        // The Home seat already does (the helper's own check).
+        expect(await tooltipOf(document.querySelector<HTMLElement>("[data-dock-home]")!)).toBe("Home");
+        expect(await tooltipOf(folded)).toBe("Scene");
+        expect(await tooltipOf(surfaces)).toBe("Editor surfaces");
+        expect(await tooltipOf(mbabb)).toBe("@mbabb menu");
+        w.unmount();
+    });
+});

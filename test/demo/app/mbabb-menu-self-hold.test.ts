@@ -23,6 +23,7 @@ import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { defineComponent, nextTick } from "vue";
 import { mount } from "@vue/test-utils";
 import { GlassDock } from "@mkbabb/glass-ui/dock";
+import { TooltipProvider } from "@mkbabb/glass-ui/tooltip";
 import MbabbMenu from "@app/dock/menu/MbabbMenu.vue";
 import ChromeDock from "@app/dock/ChromeDock.vue";
 
@@ -67,12 +68,15 @@ afterAll(() => {
  *  provider its self-hold injects. */
 const Host = defineComponent({
     name: "MenuHost",
-    components: { GlassDock, MbabbMenu },
+    components: { GlassDock, MbabbMenu, TooltipProvider },
     props: { menuMounted: { type: Boolean, default: true } },
+    // The app mounts its dock under glass's TooltipProvider (the seats' tooltips).
     template: `
-        <GlassDock ref="dockRef" collapse="open">
-            <MbabbMenu v-if="menuMounted" :on-scene-restore="noop" />
-        </GlassDock>
+        <TooltipProvider>
+            <GlassDock ref="dockRef" collapse="open">
+                <MbabbMenu v-if="menuMounted" :on-scene-restore="noop" />
+            </GlassDock>
+        </TooltipProvider>
     `,
     setup() {
         return { noop: () => {} };

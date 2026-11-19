@@ -566,17 +566,22 @@ watch(isSelectOpen, (open) => {
                         <template v-if="showSurfaceItems">
                             <DockSeparator />
                             <DropdownMenu v-model:open="surfaceMenuOpen">
-                                <DockTrigger
-                                    ref="surfaceTrigger"
-                                    for="dropdown"
-                                    aria-label="Editor surfaces"
-                                    data-dock-surface-trigger
-                                    :data-surface="faceItem?.surface"
-                                    @pointerenter="warmControlSurfaces"
-                                    @focusin="warmControlSurfaces"
-                                >
-                                    <component :is="iconFor(faceItem?.icon ?? '')" class="dock-glyph" aria-hidden="true" />
-                                </DockTrigger>
+                                <Tooltip>
+                                    <TooltipTrigger as-child>
+                                        <DockTrigger
+                                            ref="surfaceTrigger"
+                                            for="dropdown"
+                                            aria-label="Editor surfaces"
+                                            data-dock-surface-trigger
+                                            :data-surface="faceItem?.surface"
+                                            @pointerenter="warmControlSurfaces"
+                                            @focusin="warmControlSurfaces"
+                                        >
+                                            <component :is="iconFor(faceItem?.icon ?? '')" class="dock-glyph" aria-hidden="true" />
+                                        </DockTrigger>
+                                    </TooltipTrigger>
+                                    <TooltipContent>Editor surfaces</TooltipContent>
+                                </Tooltip>
                                 <DropdownMenuContent align="center" :side-offset="surfaceMenuOffset" :collision-padding="16" class="text-body p-1.5">
                                     <!-- C1-KF-10 — the showing surface is marked by the
                                          producer's own radio item (its leading dot,
@@ -668,9 +673,14 @@ watch(isSelectOpen, (open) => {
                      coarse-scale box (54 px) widened the fold to a 70x60 oval,
                      where the cell keeps it the circle the producer draws. -->
                 <template #collapsed>
-                    <DockControl aria-label="Scene" @focus="onCollapsedFocus">
-                        <component :is="currentIcon" :live="scenePlaying" class="dock-glyph" aria-hidden="true" />
-                    </DockControl>
+                    <Tooltip>
+                        <TooltipTrigger as-child>
+                            <DockControl aria-label="Scene" @focus="onCollapsedFocus">
+                                <component :is="currentIcon" :live="scenePlaying" class="dock-glyph" aria-hidden="true" />
+                            </DockControl>
+                        </TooltipTrigger>
+                        <TooltipContent>Scene</TooltipContent>
+                    </Tooltip>
                 </template>
             </GlassDock>
         </div>

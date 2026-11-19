@@ -20,6 +20,7 @@ import { defineComponent, nextTick } from "vue";
 import { mount } from "@vue/test-utils";
 import { createMemoryHistory, createRouter } from "vue-router";
 import { GlassDock } from "@mkbabb/glass-ui/dock";
+import { TooltipProvider } from "@mkbabb/glass-ui/tooltip";
 import MbabbMenu from "@app/dock/menu/MbabbMenu.vue";
 
 const savedResizeObserver = (globalThis as { ResizeObserver?: unknown })
@@ -60,11 +61,14 @@ afterAll(() => {
 
 const Host = defineComponent({
     name: "MenuHost",
-    components: { GlassDock, MbabbMenu },
+    components: { GlassDock, MbabbMenu, TooltipProvider },
+    // The app mounts its dock under glass's TooltipProvider (the seats' tooltips).
     template: `
-        <GlassDock collapse="open">
-            <MbabbMenu :on-scene-restore="noop" />
-        </GlassDock>
+        <TooltipProvider>
+            <GlassDock collapse="open">
+                <MbabbMenu :on-scene-restore="noop" />
+            </GlassDock>
+        </TooltipProvider>
     `,
     setup() {
         return { noop: () => {} };

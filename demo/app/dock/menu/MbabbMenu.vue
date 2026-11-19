@@ -12,7 +12,12 @@
              beside the sans 'Home'/scene trigger, not a mono identifier. The
              identifier register stays where the menu names the account as an
              identifier (the "@mbabb · GitHub" row below). -->
-        <DockTrigger ref="mbabbTrigger" for="dropdown" aria-label="@mbabb menu" class="dock-label">@mbabb</DockTrigger>
+        <Tooltip>
+            <TooltipTrigger as-child>
+                <DockTrigger ref="mbabbTrigger" for="dropdown" aria-label="@mbabb menu" class="dock-label">@mbabb</DockTrigger>
+            </TooltipTrigger>
+            <TooltipContent>@mbabb menu</TooltipContent>
+        </Tooltip>
         <!-- MM-15 — the dock menu is a popover, never `z-modal` (the demo's
              written z-contract reserves `--z-modal` (140) for modal dialogs).
              Since glass 10.1.1 (G-2) the rung is the overlay role's own: the
@@ -310,6 +315,7 @@ import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, Di
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuShortcut } from "@mkbabb/glass-ui/menu";
 import { useOptionalDockContext } from "@mkbabb/glass-ui/dock";
 import { DockTrigger } from "@mkbabb/glass-ui/dock-trigger";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@mkbabb/glass-ui/tooltip";
 import { Box, ExternalLink, Keyboard, Share2, Trash } from "@lucide/vue";
 import { registerShortcut } from "@mkbabb/glass-ui/keyboard";
 import KeyboardShortcutsModal from "./KeyboardShortcutsModal.vue";
