@@ -61,6 +61,17 @@ const fontsDecoded = Promise.race([
 
 void Promise.all([warmKfEngine().catch(() => undefined), fontsDecoded]).finally(
     () => {
+        // LAST-TEN KF-31 — the app arrives by a short fade over the first
+        // paint's ground (the critical sheet's `#app[data-arriving]`), never
+        // whole in one frame; the mark goes when the fade ends, so the host
+        // makes no stacking context at rest.
+        const host = document.getElementById("app");
+        host?.setAttribute("data-arriving", "");
+        host?.addEventListener("animationend", function arrived(e) {
+            if (e.target !== host) return;
+            host.removeAttribute("data-arriving");
+            host.removeEventListener("animationend", arrived);
+        });
         app.mount("#app");
     },
 );
