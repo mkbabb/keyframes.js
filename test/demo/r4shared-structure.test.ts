@@ -104,6 +104,7 @@ describe("limb (b) — one composables convention: a sibling composables/ direct
             "useIconSpin.ts",
             "useMenubarMeasure.ts",
             "usePlayActuation.ts",
+            "useStageSlide.ts",
         ]);
     });
 });
