@@ -273,23 +273,6 @@
     --filter-brand-color: invert(55%) sepia(80%) saturate(1496%) hue-rotate(220deg) brightness(95%) contrast(103%);
 }
 
-/* The slider handle keeps its 11.0.1 look: a light disc inside the fill's round
-   end. glass 11.0.2 made the thumb as tall as the track and painted it
-   --foreground (near-black in light, near-white in dark). Its supported token
-   --slider-thumb-bg takes a CSS background, so the 11.0.1 disc is painted back
-   inside the new thumb: --card, --slider-thumb-size across (1rem at md, 0.5rem
-   at sm), centred on the fill's round end (half the track less the disc past
-   the thumb box's centre), the fill showing around it. Declared on the Slider
-   root, where glass sets that Slider's size tokens. */
-.glass-slider {
-    --slider-thumb-bg: radial-gradient(
-        circle calc(var(--slider-thumb-size, 1rem) / 2)
-            at calc(50% + (var(--slider-track-height, 1.25rem) - var(--slider-thumb-size, 1rem)) / 2 - 0.25px) 50%,
-        var(--card) calc(100% - 0.5px),
-        transparent 100%
-    );
-}
-
 .dark {
     color-scheme: dark;
     /* Destructive-only dark arm: red survives HERE for error / destructive surfaces
