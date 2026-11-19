@@ -95,7 +95,8 @@
                  closes as it opens, and declines to return focus under it — the
                  same menu→dialog hand-off as Clear all); the producer's own
                  `DropdownMenuShortcut` seat prints the `?` hint. -->
-            <DropdownMenuItem text-value="Keyboard shortcuts" class="gap-2.5 px-1.5 py-1" @select="openShortcuts(mbabbTrigger?.$el ?? null, true)">
+            <!-- A coarse pointer has no keyboard to list (the `?` binding stays). -->
+            <DropdownMenuItem v-if="!coarsePointer" text-value="Keyboard shortcuts" class="gap-2.5 px-1.5 py-1" @select="openShortcuts(mbabbTrigger?.$el ?? null, true)">
                 <span class="w-7 shrink-0 flex justify-center"><Keyboard class="w-5 h-5" aria-hidden="true" /></span>
                 <div class="flex-1 min-w-0">
                     <span class="text-small text-foreground">Keyboard shortcuts</span>
@@ -114,7 +115,7 @@
                  rows alone fit (226 px). `v-if`, not a hidden class, so the
                  menu's roving focus never lands on an absent row. The glass half
                  (a scroll fade on overflowing menu content) stays relay-only. -->
-            <template v-if="!isShortLayout">
+            <template v-if="skins && !isShortLayout">
                 <!-- ppmycota logo — toggles pp mode.
                      [X.KF.W13R.m — MM-4 DISCHARGED at glass 10.0.0: every library
                      style rule now sits in `@layer components` (MIGRATION §10.0.0),
@@ -152,14 +153,19 @@
                      `CubeTarget :skin`) keys by `CUBE_SCENE_ID` on every scene, home
                      included. (The former ppmycota checkbox is this group's
                      ppmycota row.) -->
-                <DropdownMenuRadioGroup :model-value="cubeControls.cubeSkin ?? 'crayon'" @update:model-value="setCubeSkin">
-                    <DropdownMenuRadioItem value="crayon" @select.prevent text-value="Crayon" class="gap-2.5 px-1.5 py-1 cursor-pointer">
+                <!-- Only where a die is on the stage, under the group's name. The
+                     rows keep glass's start indicator column (no inline-start
+                     padding of their own), so the chosen skin's dot stands
+                     beside its mark rather than under it. -->
+                <DropdownMenuRadioGroup aria-labelledby="mbabb-menu-skin" :model-value="cubeControls.cubeSkin ?? 'crayon'" @update:model-value="setCubeSkin">
+                    <DropdownMenuLabel id="mbabb-menu-skin">Skin</DropdownMenuLabel>
+                    <DropdownMenuRadioItem value="crayon" @select.prevent text-value="Crayon" class="gap-2.5 pr-1.5 py-1 cursor-pointer">
                         <span class="w-7 shrink-0 flex justify-center"><Box class="w-5 h-5" aria-hidden="true" /></span>
                         <div class="flex-1 min-w-0">
                             <span class="text-small text-foreground">Crayon</span>
                         </div>
                     </DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem value="ppmycota" @select.prevent text-value="ppmycota" class="gap-2.5 px-1.5 py-1 cursor-pointer">
+                    <DropdownMenuRadioItem value="ppmycota" @select.prevent text-value="ppmycota" class="gap-2.5 pr-1.5 py-1 cursor-pointer">
                         <div class="ppmycota-logo-sm w-7 h-7 shrink-0"></div>
                         <div class="flex-1 min-w-0">
                             <!-- MM-21 — the brand colour is a UTILITY, and the old
@@ -201,7 +207,7 @@
                     <!-- Daraksha — her register on the die. The mark is a disc of
                          her canonical gradient (efflorescence → gulabi → haldi →
                          zari → tulsi), the menu's only gradient and no image. -->
-                    <DropdownMenuRadioItem value="daraksha" @select.prevent text-value="Daraksha" class="gap-2.5 px-1.5 py-1 cursor-pointer">
+                    <DropdownMenuRadioItem value="daraksha" @select.prevent text-value="Daraksha" class="gap-2.5 pr-1.5 py-1 cursor-pointer">
                         <span class="daraksha-mark w-7 h-7 shrink-0 rounded-full" aria-hidden="true"></span>
                         <div class="flex-1 min-w-0">
                             <span class="text-small text-foreground">Daraksha</span>
@@ -229,7 +235,6 @@
                 <span class="w-7 shrink-0 flex justify-center"><Trash class="w-5 h-5" aria-hidden="true" /></span>
                 <div class="flex-1 min-w-0">
                     <span class="text-small">Clear all &amp; reload</span>
-                    <p class="text-micro text-muted-foreground leading-tight">Reset every saved animation to defaults</p>
                 </div>
             </DropdownMenuItem>
 
@@ -319,7 +324,7 @@ import SharePopover from "./SharePopover.vue";
 import { Avatar, AvatarFallback, AvatarImage } from "@mkbabb/glass-ui";
 import { Button } from "@mkbabb/glass-ui/button";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@mkbabb/glass-ui/dialog";
-import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuShortcut } from "@mkbabb/glass-ui/menu";
+import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuShortcut } from "@mkbabb/glass-ui/menu";
 import { useGlobalDark } from "@mkbabb/glass-ui/dark";
 import { useOptionalDockContext } from "@mkbabb/glass-ui/dock";
 import { DockTrigger } from "@mkbabb/glass-ui/dock-trigger";
@@ -334,6 +339,8 @@ defineProps<{
     // Scene restore from a shared URL (passed straight to SharePopover). The shell
     // owns the real switch (runSceneSwitch); the menu only forwards the id.
     onSceneRestore: (id: string) => void;
+    /** A die is on the stage (the cube, and Home's backdrop): its skins are offered. */
+    skins?: boolean;
 }>();
 
 // This menu's own open state. It stays a `defineModel` — glass-ui 7.0.0's
@@ -403,6 +410,7 @@ function setCubeSkin(value: unknown): void {
 
 // A2-KE-L2-17 — the short layout (see the template), the controls pane's own query.
 const isShortLayout = useMediaQuery("(max-width: 1023px) and (max-height: 500px)");
+const coarsePointer = useMediaQuery("(pointer: coarse)");
 
 // A2-KE-L2-13 · UIA-KF-137 — the theme row's one writer. `toggleDark` (not a bare
 // write to `isDark`) so the flip keeps the controller's transition suppression.

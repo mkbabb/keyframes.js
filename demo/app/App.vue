@@ -33,7 +33,7 @@
         @update-selected-control="onDockSelectControl"
     >
         <template #items>
-            <MbabbMenu :on-scene-restore="runSceneSwitch" />
+            <MbabbMenu :on-scene-restore="runSceneSwitch" :skins="resolvedScene.id === HOME_SCENE_ID || resolvedScene.id === CUBE_SCENE_ID" />
         </template>
     </ChromeDock>
 
@@ -188,6 +188,7 @@ import { scenes, sceneMap, warmScene, homeScene, HomeBackdrop } from "./scene/sc
 // so the shell's graph paper stays off on that one scene: two grids at two
 // pitches interleaved behind the ball as a moiré. The room is the only ground.
 import { AMIGA_SCENE_ID } from "../scenes/amiga/amigaKeys";
+import { CUBE_SCENE_ID } from "../scenes/cube/cubeKeys";
 import type { SceneExposedApi } from "./scene/sceneExposedApi";
 import { useMonacoCancellationGuard } from "./lifecycle/useMonacoCancellationGuard";
 
