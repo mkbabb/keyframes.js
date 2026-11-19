@@ -3,7 +3,8 @@ import { computed, inject, nextTick, ref, watch, useTemplateRef, type Component 
 import { CONTROLS_PANE_HOVER_KEY } from "@components/instrument/transport/injectionKeys";
 import { useMediaQuery } from "@vueuse/core";
 import { Activity, Atom, SlidersHorizontal, Braces, Clock, Grid3X3 } from "@lucide/vue";
-import { GlassDock, DockSeparator } from "@mkbabb/glass-ui/dock";
+import { GlassDock, DockControl, DockSeparator } from "@mkbabb/glass-ui/dock";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@mkbabb/glass-ui/tooltip";
 import { DockTrigger } from "@mkbabb/glass-ui/dock-trigger";
 import { Button } from "@mkbabb/glass-ui/button";
 import {
@@ -171,7 +172,8 @@ const derivedSurfaces = computed<ControlSurface[]>(() => [
 const surfaceItems = computed(() =>
     dockSurfaceItems(derivedSurfaces.value, props.channelFacets),
 );
-const showSurfaceItems = computed(() => props.currentSceneId !== props.homeScene.id);
+const isHome = computed(() => props.currentSceneId === props.homeScene.id);
+const showSurfaceItems = computed(() => !isHome.value);
 /** OD19-K6 — the menu's rows: every titled item (the blank facet seat has no
  *  name to show). */
 const menuItems = computed(() => surfaceItems.value.filter((i) => i.title !== ""));
@@ -474,6 +476,25 @@ watch(isSelectOpen, (open) => {
                              the controls tab is the contextual section (≥2 only, the
                              elision render); the panel-collapse toggle + @mbabb chip
                              trail as nav (the toggle NEVER leads — VERDICT #6). -->
+
+                        <!-- Home: the dock's first seat on every scene (owner
+                             2026-11-12, "have a home button"; glass: a Home seat
+                             is an ordinary first seat). Its glyph is the Home
+                             row's own, so the seat and the list agree. On Home
+                             the scene trigger already reads Home, so the seat is
+                             not offered there (owner [110]: Home on Home is not
+                             an option). -->
+                        <template v-if="!isHome">
+                            <Tooltip>
+                                <TooltipTrigger as-child>
+                                    <DockControl shape="icon" aria-label="Home" data-dock-home @click="emit('switchScene', homeScene.id)">
+                                        <component :is="homeScene.icon" class="dock-glyph" aria-hidden="true" />
+                                    </DockControl>
+                                </TooltipTrigger>
+                                <TooltipContent>Home</TooltipContent>
+                            </Tooltip>
+                            <DockSeparator />
+                        </template>
 
                         <!-- rail-core: the scene trigger (identity first) -->
                         <Select
