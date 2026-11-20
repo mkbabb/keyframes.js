@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { mount } from "@vue/test-utils";
 import { nextTick } from "vue";
 import DicePair from "../../../demo/scenes/cube/dice/DicePair.vue";
+import { ROUND, cameraFor, tableFor } from "../../../demo/scenes/cube/dice/dicePhysics";
 
 /**
  * The pair as a component (jsdom, a stubbed frame clock and a stage of
@@ -75,10 +76,19 @@ const ptr = (type: string, x: number, y: number, t: number) => {
     return e;
 };
 
+const matrixOf = (el: Element) => /matrix3d\(([^)]+)\)/.exec((el as HTMLElement).style.transform)![1]!.split(",").map(Number);
 /** A die's centre (table px) from its matrix3d. */
 const centre = (el: Element) => {
-    const v = /matrix3d\(([^)]+)\)/.exec((el as HTMLElement).style.transform)![1]!.split(",").map(Number);
+    const v = matrixOf(el);
     return [v[12]!, v[13]!, v[14]!] as const;
+};
+/** How far the die's rounded body reaches from its centre along table x and
+ *  y at its attitude (the matrix's rows, over its scale). */
+const reach = (el: Element, side: number) => {
+    const v = matrixOf(el);
+    const k = Math.hypot(v[0]!, v[1]!, v[2]!);
+    const h = side / 2 - ROUND * side;
+    return [(h * (Math.abs(v[0]!) + Math.abs(v[4]!) + Math.abs(v[8]!))) / k + ROUND * side, (h * (Math.abs(v[1]!) + Math.abs(v[5]!) + Math.abs(v[9]!))) / k + ROUND * side];
 };
 
 async function mountPair() {
@@ -149,16 +159,19 @@ describe("the pair", () => {
             return { x: SIZE / 2 + p[0]! * k, y: SIZE / 2 + Y * k };
         };
         const at = toScreen(centre(dice()[0]!));
+        // Carried away from the other die (the carry height clears the
+        // table, not a die).
+        const away = Math.sign(at.x - toScreen(centre(dice()[1]!)).x) || 1;
         let t = 1000;
         stage.dispatchEvent(ptr("pointerdown", at.x, at.y, t));
         for (let i = 0; i < 20; i++) await frame();
-        // A steady carry to the right, 4 px a frame (240 px/s).
+        // A steady carry, 4 px a frame (240 px/s).
         let x = at.x;
         const gaps: number[] = [];
         const speeds: number[] = [];
         let prev = centre(dice()[0]!);
         for (let i = 0; i < 30; i++) {
-            x += 4;
+            x += 4 * away;
             t += 1000 / 60;
             stage.dispatchEvent(ptr("pointermove", x, at.y, t));
             await frame();
@@ -181,6 +194,46 @@ describe("the pair", () => {
         expect(thrown / carried).toBeLessThan(1.25);
         await runToRest();
         expect(w.emitted("rolled")).toHaveLength(1);
+        w.unmount();
+    });
+
+    it("a die carried against a wall keeps every corner inside it, so its release starts with no wall's push", async () => {
+        const { w, dice } = await mountPair();
+        await runToRest();
+        const stage = w.element as HTMLElement;
+        const tb = tableFor(cameraFor(SIZE, SIZE));
+        const persp = Math.max(900, 1.6 * SIZE);
+        const tilt = (38 * Math.PI) / 180;
+        const toScreen = (p: readonly number[]) => {
+            const Y = p[1]! * Math.cos(tilt) - p[2]! * Math.sin(tilt);
+            const Z = p[1]! * Math.sin(tilt) + p[2]! * Math.cos(tilt);
+            const k = persp / (persp - Z);
+            return { x: SIZE / 2 + p[0]! * k, y: SIZE / 2 + Y * k };
+        };
+        const at = toScreen(centre(dice()[0]!));
+        let t = 1000;
+        stage.dispatchEvent(ptr("pointerdown", at.x, at.y, t));
+        for (let i = 0; i < 20; i++) await frame();
+        // Out past the near corner on the die's side, 5 px a frame: it
+        // rolls all the way and is held at the walls.
+        const dir = at.x < SIZE / 2 ? -1 : 1;
+        let worst = -Infinity;
+        for (let i = 0; i < 90; i++) {
+            t += 1000 / 60;
+            stage.dispatchEvent(ptr("pointermove", at.x + 5 * dir * i, at.y + 5 * i, t));
+            await frame();
+            const c = centre(dice()[0]!);
+            const [rx, ry] = reach(dice()[0]!, tb.side);
+            worst = Math.max(worst, Math.abs(c[0]) + rx - tb.halfX, c[1] + ry - tb.nearY);
+        }
+        expect(worst).toBeLessThanOrEqual(1e-6);
+        // Still moving at the release: the first frame after it carries on
+        // the way the hand went, and is no longer than the throw's own step.
+        const before = centre(dice()[0]!);
+        stage.dispatchEvent(ptr("pointerup", at.x + 5 * dir * 90, at.y + 450, t + 2));
+        await frame();
+        const after = centre(dice()[0]!);
+        expect(Math.sign(after[0] - before[0]) === -dir).toBe(false);
         w.unmount();
     });
 });

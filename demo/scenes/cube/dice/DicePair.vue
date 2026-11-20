@@ -63,6 +63,7 @@ import type { CubeSkin } from "@state";
 import DiePips from "./DiePips.vue";
 import { DIE_FACES, valueColor, valueInk, type DieValue } from "./pips";
 import {
+    ROUND,
     TABLE_TILT,
     TILT_DEG,
     cameraFor,
@@ -343,11 +344,16 @@ function dieAt(sx: number, sy: number): number {
 
 /** How high a die is carried (its centre, px above the table). */
 const carryZ = () => table.side * 1.25;
-/** The hand's point on the carry plane, kept inside the walls. */
+/** How far a carried die reaches from its centre at any attitude (it rolls
+ *  in the hand): its rounded corner. */
+const REACH = Math.sqrt(3) * (0.5 - ROUND) + ROUND;
+/** The hand's point on the carry plane, kept far enough inside the walls
+ *  that no corner of the rolling die meets one: a release never starts with
+ *  a wall's push. */
 const carryTarget = (x: number, y: number): V3 => {
     const { sx, sy } = fromCentre(x, y);
     const p = unproject(cam, sx, sy, carryZ());
-    const m = table.side / 2;
+    const m = table.side * REACH;
     return [Math.max(-table.halfX + m, Math.min(table.halfX - m, p[0])), Math.max(-table.farY + m, Math.min(table.nearY - m, p[1])), p[2]];
 };
 
