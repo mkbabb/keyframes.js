@@ -865,7 +865,10 @@ const rung = computed<SheetRung>(() =>
 useStageReserve({
     active: computed(() => isMobileLayout.value && showSheet.value),
     side: sheetSide,
-    rung,
+    // The stage makes room as the plate starts to show, not at the press:
+    // while the plate waits for its first painted frame, the stage keeps its
+    // rest layout.
+    rung: computed(() => (sheetArriving.value ? "peek" : rung.value)),
     peek: PEEK_SNAP,
     open: OPEN_SNAP,
     sheetEl,

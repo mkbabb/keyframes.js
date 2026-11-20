@@ -218,8 +218,8 @@
    under reduced motion. Desktop sets none of the tokens: translate 0, scale 1,
    and no transform property at all (the rule is phone-scoped). An upright
    phone's sheet has no resting reserve: the stage is laid out for the band
-   above the opened sheet (no lift, no fit), and the glide only carries it
-   there from where it stood (useStageSlide). */
+   above the opened sheet (no lift, no fit), and the glide only carries the
+   die there from where it stood, at the size it stood (useStageSlide). */
 @media (max-width: 1023px) {
     .stage-glide {
         translate: calc(-0.5 * var(--stage-sheet-lift-inline, 0px))
