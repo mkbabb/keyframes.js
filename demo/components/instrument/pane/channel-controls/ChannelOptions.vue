@@ -68,7 +68,12 @@
                                  field rows' rhythm: the column's 0.5rem gap either
                                  side of its one separator, no extra margin, so the
                                  row is one control height, not a padded band. -->
-                            <Separator />
+                            <!-- The layer row is offered only where a layer can be
+                                 changed: on a multi-target group the engine never
+                                 composites layers, so blend, z-index and the
+                                 enabled switch are all inert, and a row that
+                                 opened a wholly disabled pane said nothing. -->
+                            <Separator v-if="blendAvailable" />
 
                             <!-- X.KF.W13X.controls · UIA-KF-269 · 273 — the drill
                                  row is the producer's quiet Button (its own focus
@@ -111,6 +116,7 @@
                                  around them is padded; its corner is the fields'
                                  own (the stadium the triggers above wear); `.layer-entry` below. -->
                             <Button
+                                v-if="blendAvailable"
                                 ref="layerEntryEl"
                                 emphasis="quiet"
                                 class="layer-entry justify-between gap-2 ps-3 pe-6 text-[length:var(--control-label)] [--button-quiet-ink:var(--foreground)]"
@@ -123,7 +129,7 @@
                                      where it leads: an unset op is the default
                                      composite, "replace" (it fell to "", a bare
                                      chevron over an empty value column). -->
-                                <span v-if="blendAvailable" class="ms-auto min-w-0 truncate font-normal text-muted-foreground">{{
+                                <span class="ms-auto min-w-0 truncate font-normal text-muted-foreground">{{
                                     layerConfig?.op ?? "replace"
                                 }}</span>
                                 <ChevronRight class="icon-sm" />
@@ -324,6 +330,9 @@ const stack = usePaneStack(
     toRef(getChannelControlsState(props.animation), "pane"),
 );
 const layerPaneId = useId();
+// A channel whose record left the layer pane open, on a group where the row is
+// not offered, shows its form.
+if (!props.blendAvailable && stack.isOpen("layer")) stack.pane.value = "main";
 const detailHeaderEl =
     useTemplateRef<InstanceType<typeof SubPaneHeader>>("detailHeaderEl");
 const layerHeaderEl =

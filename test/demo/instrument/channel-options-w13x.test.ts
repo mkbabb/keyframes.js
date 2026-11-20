@@ -402,16 +402,24 @@ describe("X.KF.W13X.controls — the options form and the layer pane (UIA-KF-166
         }
     });
 
-    it("(10) UIA-KF-082 · 270 — on a multi-target group the pane carries no caption (restraint), and z-index is disabled with blend and enabled", async () => {
+    it("(10) UIA-KF-082 · 270 — on a multi-target group, where nothing of the layer can change, the card offers no Layer row", async () => {
+        // Blend, z-index and the enabled switch are all inert without a single
+        // target: a row that opened a wholly disabled pane said nothing.
         const { wrapper } = mountCard(2);
         try {
-            await layerEntry(wrapper).trigger("click");
             await settle();
-            const pane = wrapper.get(`[id="${layerEntry(wrapper).attributes("aria-controls")}"]`);
-            expect(pane.find("[data-subpane-caption]").exists()).toBe(false);
-            expect(pane.get('[data-stub="NumberField"]').attributes()).toHaveProperty("data-disabled");
+            expect(wrapper.findAll("button").filter((b) => /^\s*layer\b/.test(b.text()))).toHaveLength(0);
+            expect(wrapper.text()).not.toMatch(/\blayer\b/);
         } finally {
             wrapper.unmount();
+        }
+        // A single target keeps the row, naming its blend.
+        const one = mountCard(1);
+        try {
+            await settle();
+            expect(layerEntry(one.wrapper).text()).toMatch(/layer\s*replace/);
+        } finally {
+            one.wrapper.unmount();
         }
     });
 
