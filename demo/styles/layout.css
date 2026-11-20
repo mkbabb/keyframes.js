@@ -329,6 +329,17 @@
     }
 }
 
+/* An upright phone: the transport is the page's one bottom dock, and it sits
+   12 px above the foot (its host's own padding, --dock-margin / 2 or the
+   home-indicator inset, below the anchor), not on the golden float the desk's
+   centred card uses: the 40-odd px band under the pill goes to the stage. The
+   stage's and the sheet's bottom insets read this anchor, so they follow. */
+@media (max-width: 1023px) and (min-height: 501px) {
+    :root {
+        --dock-bottom-anchor: calc(12px - var(--dock-margin) / 2);
+    }
+}
+
 /* X.KF.W13X.mobile (A2-KE-L2-11) — THE SHORT-VIEWPORT BUDGET (a phone in
    landscape, <= 500px tall). The mobile cap above subtracts the dock band from
    the work-area height so there is slack for the golden optical offsets to float

@@ -95,6 +95,16 @@ for (const vp of [
                 const free = await freeStage(page);
                 expect(free.heightShare).toBeGreaterThanOrEqual(2 / 3);
                 await expect(page.locator('button[aria-label="Controls"]')).toBeVisible();
+                // The one bottom dock sits 12 px above the foot (no band under it).
+                const gap = await page.evaluate(() => {
+                    const host = document.querySelector('[data-dock-tether="bottom"]');
+                    const plate = host?.querySelector(".pointer-events-auto")?.firstElementChild;
+                    const b = plate?.getBoundingClientRect();
+                    return b ? innerHeight - b.bottom : null;
+                });
+                expect(gap).not.toBeNull();
+                expect(gap).toBeGreaterThanOrEqual(10);
+                expect(gap).toBeLessThanOrEqual(16);
             });
         }
 
