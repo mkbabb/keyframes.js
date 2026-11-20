@@ -659,18 +659,19 @@ defineExpose({ throwBoth, relay, leave, valuesUp });
 }
 
 /* The shadow: one flat neutral ellipse on the table under each die (a circle
-   on the tilted table), solid to 55 % and soft at its rim; no blur filter.
-   Black at 22 % on light paper, 42 % on dark, so at rest it reads darker than
-   the table in both themes. */
+   on the tilted table), solid to 0.56 of a side, just past the die's own
+   footprint (half a side), and soft out to 0.8, so a die at rest stands in a
+   rim of its shadow; no blur filter. Black at 24 % on light paper and 58 % on
+   dark, where the table is itself near black. */
 .die-shadow {
     position: absolute;
-    inline-size: calc(var(--side) * 1.3);
-    block-size: calc(var(--side) * 1.3);
-    left: calc(var(--side) * -0.65);
-    top: calc(var(--side) * -0.65);
+    inline-size: calc(var(--side) * 1.6);
+    block-size: calc(var(--side) * 1.6);
+    left: calc(var(--side) * -0.8);
+    top: calc(var(--side) * -0.8);
     border-radius: 50%;
-    --die-shadow: light-dark(rgb(0 0 0 / 0.22), rgb(0 0 0 / 0.42));
-    background: radial-gradient(closest-side, var(--die-shadow) 55%, transparent);
+    --die-shadow: light-dark(rgb(0 0 0 / 0.24), rgb(0 0 0 / 0.58));
+    background: radial-gradient(closest-side, var(--die-shadow) 70%, transparent);
     pointer-events: none;
 }
 
