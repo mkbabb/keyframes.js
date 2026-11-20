@@ -14,7 +14,7 @@
  *   · home's transport keeps its controls withheld while home is open, whether
  *     or not the start screen is up (EditorShell's own `hideControls`).
  */
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { computed, defineComponent, effectScope, h, nextTick, reactive, ref } from "vue";
 import { mount, type VueWrapper } from "@vue/test-utils";
 
@@ -85,5 +85,48 @@ describe("UIA-KF-123 — with the start screen dismissed, home's transport still
         await nextTick();
 
         expect(document.querySelector('[aria-label="Reset animation"]')).toBeNull();
+    });
+});
+
+describe("Home's headline: a press opens the Scene list it names", () => {
+    it("the headline is a button that asks for the list, and it stays", async () => {
+        vi.doMock("@app/hero/TypingDots.vue", () => ({ default: defineComponent(() => () => h("span")) }));
+        const { default: EditorStartScreen } = await import("../../../demo/app/hero/EditorStartScreen.vue");
+        const w = mount(EditorStartScreen, { props: { hint: "or drag" }, attachTo: document.body });
+        wrappers.push(w);
+        const press = w.get("h1 button");
+        expect(press.text()).toMatch(/Select an animation/);
+        await press.trigger("click");
+        expect(w.emitted("pickScene")).toHaveLength(1);
+        expect(w.find("h1").exists()).toBe(true);
+    });
+
+    it("the dock opens its Scene list on that ask", async () => {
+        const { default: ChromeDock } = await import("../../../demo/app/dock/ChromeDock.vue");
+        const Glyph = defineComponent(() => () => h("span"));
+        const scenes = [{ id: "cube", label: "Cube", icon: Glyph }];
+        const dock = ref<{ openSceneList: () => Promise<void> } | null>(null);
+        const w = mount(
+            defineComponent(() => () =>
+                h(TooltipProvider, null, () =>
+                    h(ChromeDock, {
+                        ref: dock,
+                        currentSceneId: "home",
+                        scenes,
+                        homeScene: { id: "home", label: "Home", icon: Glyph },
+                        isControlsPanelOpen: false,
+                    }),
+                ),
+            ),
+            { attachTo: document.body },
+        );
+        wrappers.push(w);
+        await nextTick();
+        const trigger = () => document.querySelector('[aria-label="Scene"]');
+        expect(trigger()?.getAttribute("aria-expanded")).toBe("false");
+        await dock.value!.openSceneList();
+        await nextTick();
+        await nextTick();
+        expect(trigger()?.getAttribute("aria-expanded")).toBe("true");
     });
 });

@@ -306,8 +306,8 @@
     box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-progress) 55%, transparent);
     opacity: 0;
     transition:
-        box-shadow var(--duration-slow, 420ms) var(--ease-out, ease-out),
-        opacity var(--duration-slow, 420ms) var(--ease-out, ease-out);
+        box-shadow var(--duration-normal, 300ms) var(--ease-out, ease-out),
+        opacity var(--duration-normal, 300ms) var(--ease-out, ease-out);
 }
 @starting-style {
     .demo-box--dragging::before {

@@ -44,6 +44,7 @@ beforeAll(() => {
     (globalThis as { ResizeObserver?: unknown }).ResizeObserver = NoopResizeObserver;
     registerShortcut("Delete", () => {}, { label: "Delete keyframe", group: "Actions" });
     registerShortcut("Space", () => {}, { label: "Play / pause", group: "Playback" });
+    registerShortcut("KeyX", () => {}, { label: "Orbit on X axis (hold)", group: "Cube" });
 });
 
 let wrapper: VueWrapper | undefined;
@@ -110,13 +111,14 @@ describe("X.KF.W13X.overlays — Share", () => {
         await vi.waitFor(() => expect(field()!.getAttribute("aria-invalid")).not.toBe("true"));
     });
 
-    it("(3) UIA-KF-071 — 'Copy link' is the named primary; the load path is labelled", async () => {
+    it("(3) UIA-KF-071 — 'Copy link' is the named primary; the load path is named", async () => {
         await openShare();
         const names = buttons().map((b) => b.textContent?.trim());
         expect(names[0]).toBe("Copy link");
         expect(names).toContain("Load");
-        const id = field()!.id;
-        expect(id && pop()!.querySelector(`label[for="${id}"]`)?.textContent?.trim()).toBe("Load from link");
+        // Named for assistive tech; the placeholder and Load say it on screen.
+        expect(field()!.getAttribute("aria-label")).toBe("Load from link");
+        expect(pop()!.querySelector("label")).toBeNull();
     });
 
     it("(4) UIA-KF-224 — no native title tooltip in the popover", async () => {
@@ -178,11 +180,21 @@ describe("X.KF.W13X.overlays — Keyboard shortcuts", () => {
         }
     });
 
-    it("(10) UIA-KF-251 · 139 — sentence-case title, one-line description, no dead row radius", async () => {
+    it("(10) UIA-KF-251 · 139 — sentence-case title, no description line, no dead row radius", async () => {
         const d = await openShortcuts();
         expect(d.querySelector("h2")!.textContent!.trim()).toBe("Keyboard shortcuts");
-        expect(d.querySelector("p")!.textContent!.replace(/\s+/g, " ").trim()).toBe("Grouped by area.");
+        // The groups' own headings say how the list is ordered; a line saying
+        // so restates them.
+        expect(d.querySelector("p")).toBeNull();
+        expect(d.hasAttribute("aria-describedby")).toBe(false);
         for (const row of d.querySelectorAll("dl > div")) expect(row.classList).not.toContain("rounded-md");
+    });
+
+    it("(10b) a spatial key's cap and its spoken twin read the key, not its code", async () => {
+        const d = await openShortcuts();
+        const row = [...d.querySelectorAll("dl > div")].find((r) => r.querySelector("dt")!.textContent!.includes("Orbit on X axis"))!;
+        expect([...row.querySelectorAll("kbd")].map((k) => k.textContent!.trim())).toEqual(["X"]);
+        expect(row.querySelector("dd .sr-only")!.textContent!.trim()).toBe("X");
     });
 
     it("(11) UIA-KF-250 — the port hides the platform scrollbar", async () => {

@@ -238,7 +238,7 @@
                          ONE legend line beneath the lanes, each tag unbroken and
                          keyed by its lane's tone; in a 100 px gutter they wrapped to
                          two lines on a 14 px lane and printed over each other. -->
-                    <div class="derby-legend text-mono-caption tabular-nums">
+                    <div class="derby-legend text-mono-caption kf-caption tabular-nums" data-type-role="caption">
                         <span
                             v-for="lane in demo.derbyLanes"
                             :key="lane.name"

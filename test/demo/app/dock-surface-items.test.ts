@@ -5,9 +5,9 @@
  * item set is identical on every scene; a scene disables what it has no data
  * for and never invents an item. Home has no scene, so no items.
  */
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { defineComponent, h, nextTick } from "vue";
-import { flushPromises, mount } from "@vue/test-utils";
+import { DOMWrapper, flushPromises, mount } from "@vue/test-utils";
 import { TooltipProvider } from "@mkbabb/glass-ui/tooltip";
 import ChromeDock from "@app/dock/ChromeDock.vue";
 import {
@@ -127,6 +127,26 @@ describe("ChromeDock: one surface trigger whose menu opens the shared pane", () 
         expect(wrapper.find("[aria-label='Controls panel']").exists()).toBe(false);
         expect(rows()).toHaveLength(0);
         wrapper.unmount();
+    });
+
+    it("the menu is placed on its trigger (the tooltip around the trigger takes no anchor from it)", async () => {
+        // jsdom has no IntersectionObserver; floating-ui's move watch needs one.
+        vi.stubGlobal("IntersectionObserver", class { observe() {} unobserve() {} disconnect() {} takeRecords() { return []; } });
+        const { wrapper } = mountDock(springProps);
+        try {
+            const el = wrapper.find("[data-dock-surface-trigger]").element as HTMLElement;
+            el.getBoundingClientRect = () =>
+                ({ x: 600, y: 40, top: 40, left: 600, right: 640, bottom: 80, width: 40, height: 40, toJSON: () => ({}) }) as DOMRect;
+            await openMenu(wrapper);
+            const placed = () => rows()[0]?.closest<HTMLElement>("[data-reka-popper-content-wrapper]")?.style.transform ?? "";
+            // reka parks an unplaced popper at translate(0, -200%), off the top
+            // of the screen, where no row can be pressed.
+            await vi.waitFor(() => expect(placed()).not.toMatch(/-200%/));
+            expect(placed()).toMatch(/translate\(\s*\d/);
+        } finally {
+            wrapper.unmount();
+            vi.unstubAllGlobals();
+        }
     });
 
     it("its menu names the four surfaces, each row a glyph + its title", async () => {
@@ -302,5 +322,28 @@ describe("the one surface registry (X.KF.W13X.esc1)", () => {
     it("the dock item for a facet carries the registry's own glyph", () => {
         const spring = dockSurfaceItems(["controls", "keyframes", "timeline", "spring"]);
         expect(spring[3]).toMatchObject({ kind: "facet", label: "Physics", icon: SURFACE_META.spring.icon });
+    });
+});
+
+describe("ChromeDock: the theme is the dock's last seat", () => {
+    it("the last seat is the theme toggle, on Home and on a scene, and a press flips the theme", async () => {
+        for (const currentSceneId of ["home", "spring"]) {
+            const { wrapper } = mountDock({ ...springProps, currentSceneId });
+            // The open run of seats (the folded face lives in its own layer).
+            const run = wrapper.find("[aria-label='Scene'][role=combobox]").element.closest(".dock-layer")!;
+            const seats = [...run.querySelectorAll<HTMLElement>("button")].map((el) => new DOMWrapper(el));
+            const last = seats.at(-1)!;
+            expect(last.attributes("aria-label")).toBe("Dark mode");
+            const before = document.documentElement.classList.contains("dark");
+            expect(last.attributes("aria-pressed")).toBe(String(before));
+            await last.trigger("click");
+            await nextTick();
+            expect(document.documentElement.classList.contains("dark")).toBe(!before);
+            expect(last.attributes("aria-pressed")).toBe(String(!before));
+            await last.trigger("click");
+            await nextTick();
+            expect(document.documentElement.classList.contains("dark")).toBe(before);
+            wrapper.unmount();
+        }
     });
 });

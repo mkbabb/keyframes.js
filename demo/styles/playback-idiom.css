@@ -121,13 +121,18 @@
 .preview-eye__glyphs {
     display: grid;
 }
+/* A site glyph takes half its seat (the disc is --ball-size: 40 px on a desk,
+   50 px on a phone), so the glyphs read at the disc's own scale. */
+.playback-glyph,
+.preview-eye__glyph {
+    width: calc(var(--ball-size, 2.5rem) / 2);
+    height: calc(var(--ball-size, 2.5rem) / 2);
+}
 .preview-eye__glyph {
     grid-area: 1 / 1;
-    width: 1rem;
-    height: 1rem;
     transition:
-        opacity 420ms var(--preview-ease),
-        transform 420ms var(--preview-ease);
+        opacity var(--duration-normal, 300ms) var(--preview-ease),
+        transform var(--duration-normal, 300ms) var(--preview-ease);
 }
 [data-preview="shown"] .preview-eye__glyphs [data-glyph="eye-off"],
 [data-preview="hidden"] .preview-eye__glyphs [data-glyph="eye"] {
@@ -138,4 +143,11 @@
     .preview-eye__glyph {
         transition: none;
     }
+}
+
+/* The time scrub is a timeline: on a coarse pointer it answers a finger over
+   glass's larger touch band (its documented token; the rail's look does not
+   change). */
+.scrub-rail {
+    --slider-touch-target: 2.75rem;
 }

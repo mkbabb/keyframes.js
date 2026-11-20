@@ -117,6 +117,64 @@ describe("urlState", () => {
         expect(t.speed.value).toBe(1.4);
     });
 
+    it("a state a press opened pushes; putting it back goes Back; the same state as a side effect replaces", async () => {
+        vi.useFakeTimers();
+        const router = makeRouter();
+        const open = ref(false);
+        let pressed = false;
+        const keys: UrlKey<any>[] = [
+            {
+                key: "o",
+                get: () => open.value,
+                set: (v: boolean) => (open.value = v),
+                fallback: () => false,
+                ...flag,
+                history: () => {
+                    const p = pressed;
+                    pressed = false;
+                    return p ? "push" : "replace";
+                },
+                backOnUndo: true,
+            },
+        ];
+        const App = defineComponent({
+            setup() {
+                useUrlState(keys, { scene: () => "a" });
+                return () => h("div");
+            },
+        });
+        await router.push("/");
+        await router.push("/a");
+        mount(App, { global: { plugins: [router] } });
+        await settle(300);
+        const pushes = vi.spyOn(router, "push");
+        const backs = vi.spyOn(router, "back");
+
+        // A press opens it: one entry.
+        pressed = true;
+        open.value = true;
+        await settle(0);
+        expect(pushes).toHaveBeenCalledTimes(1);
+        expect(router.currentRoute.value.query).toEqual({ o: "1" });
+
+        // Closing it goes Back to the entry before (no entry written over).
+        open.value = false;
+        await settle(300);
+        expect(backs).toHaveBeenCalledTimes(1);
+        expect(router.currentRoute.value.fullPath).toBe("/a");
+        expect(open.value).toBe(false);
+
+        // Opened as a side effect (no press): a replace, and closing replaces.
+        open.value = true;
+        await settle(300);
+        expect(pushes).toHaveBeenCalledTimes(1);
+        expect(router.currentRoute.value.query).toEqual({ o: "1" });
+        open.value = false;
+        await settle(300);
+        expect(backs).toHaveBeenCalledTimes(1);
+        expect(router.currentRoute.value.fullPath).toBe("/a");
+    });
+
     it("a key does not bind, read or write while another scene is the route's", async () => {
         vi.useFakeTimers();
         const t = harness("/b");
@@ -127,5 +185,146 @@ describe("urlState", () => {
         t.speed.value = 2;
         await settle(300);
         expect(t.router.currentRoute.value.fullPath).toBe("/b?s=3");
+    });
+});
+
+// ── The scene's own keys (useSceneUrlState): the controls' rest follows the
+// layout. A desk opens the controls at a cold load; a phone does not (the
+// sheet would take half the screen). A link that names `sheet` still wins. ──
+const machine = vi.hoisted(() => ({
+    status: { value: "paused" },
+    controlSurfaces: { value: ["controls"] },
+    perScene: { value: {} as Record<string, { playing: boolean }> },
+    dispatch: () => {},
+}));
+vi.mock("@state", () => ({ HOME_SCENE_ID: "home", useSceneMachine: () => machine }));
+
+describe("useSceneUrlState: the controls at a cold load", () => {
+    const width0 = window.innerWidth;
+    afterEach(() => {
+        Object.defineProperty(window, "innerWidth", { value: width0, configurable: true });
+    });
+
+    async function bindScene(width: number, url: string) {
+        Object.defineProperty(window, "innerWidth", { value: width, configurable: true });
+        const { useSceneUrlState } = await import("../../../demo/app/scene/useSceneUrlState");
+        const { computed, reactive } = await import("vue");
+        const router = createRouter({
+            history: createMemoryHistory(),
+            routes: [{ path: "/cube", name: "cube", component: Stub }],
+        });
+        // The bucket as the store seeds it on a desk (open), so only the URL's
+        // reading of an absent `sheet` decides the rest.
+        const controls = reactive({
+            selectedControl: "controls",
+            selectedAnimation: "Rotations",
+            isTimelineExpanded: false,
+            isControlsPanelOpen: true,
+            ballPreview: "shown",
+            keyframeControls: { selectedKeyframesControl: "keyframes", dialogOpen: false, keyframes: "", addKeyframes: "" },
+        });
+        const App = defineComponent({
+            setup() {
+                useSceneUrlState({
+                    resolvedScene: computed(() => ({
+                        id: "cube",
+                        api: {
+                            autoPlays: false,
+                            // The cube's two channels: Matrix adds its own surface
+                            // only while it is the selected one.
+                            facility: {
+                                channels: [
+                                    { name: "Rotations", animation: {} },
+                                    { name: "Matrix", animation: {}, facets: [{ surface: "matrix-controls" }] },
+                                ],
+                                facets: [],
+                            },
+                        } as never,
+                    })),
+                    storedControls: computed(() => controls as never),
+                    bound: computed(() => true),
+                });
+                return () => h("div");
+            },
+        });
+        await router.push(url);
+        await router.isReady();
+        mount(App, { global: { plugins: [router] } });
+        await settle(300);
+        return { controls, router };
+    }
+
+    it("a phone opens with the controls closed and writes nothing", async () => {
+        vi.useFakeTimers();
+        const { controls, router } = await bindScene(390, "/cube");
+        expect(controls.isControlsPanelOpen).toBe(false);
+        expect(router.currentRoute.value.fullPath).toBe("/cube");
+    });
+
+    it("a desk opens with the controls open and writes nothing", async () => {
+        vi.useFakeTimers();
+        const { controls, router } = await bindScene(1440, "/cube");
+        expect(controls.isControlsPanelOpen).toBe(true);
+        expect(router.currentRoute.value.fullPath).toBe("/cube");
+    });
+
+    it("a link that names the sheet wins on either", async () => {
+        vi.useFakeTimers();
+        expect((await bindScene(390, "/cube?sheet=1")).controls.isControlsPanelOpen).toBe(true);
+        expect((await bindScene(1440, "/cube?sheet=0")).controls.isControlsPanelOpen).toBe(false);
+    });
+});
+
+describe("useSceneUrlState: a surface named beside its channel", () => {
+    // The machine's surface set still holds the first channel's surfaces when a
+    // link binds: the pane is read against the channel the same link names.
+    it("binds the Matrix surface from a cold link and keeps the URL", async () => {
+        vi.useFakeTimers();
+        machine.controlSurfaces.value = ["controls", "keyframes", "timeline"];
+        const { useSceneUrlState } = await import("../../../demo/app/scene/useSceneUrlState");
+        const { computed, reactive } = await import("vue");
+        for (const url of ["/cube?anim=Matrix&pane=matrix-controls", "/cube?anim=Matrix&pane=matrix-controls&play=0"]) {
+            const router = createRouter({
+                history: createMemoryHistory(),
+                routes: [{ path: "/cube", name: "cube", component: Stub }],
+            });
+            const controls = reactive({
+                selectedControl: "controls",
+                selectedAnimation: "Rotations",
+                isTimelineExpanded: false,
+                isControlsPanelOpen: true,
+                ballPreview: "shown",
+                keyframeControls: { selectedKeyframesControl: "keyframes", dialogOpen: false, keyframes: "", addKeyframes: "" },
+            });
+            const App = defineComponent({
+                setup() {
+                    useSceneUrlState({
+                        resolvedScene: computed(() => ({
+                            id: "cube",
+                            api: {
+                                autoPlays: true,
+                                facility: {
+                                    channels: [
+                                        { name: "Rotations", animation: {} },
+                                        { name: "Matrix", animation: {}, facets: [{ surface: "matrix-controls" }] },
+                                    ],
+                                    facets: [],
+                                },
+                            } as never,
+                        })),
+                        storedControls: computed(() => controls as never),
+                        bound: computed(() => true),
+                    });
+                    return () => h("div");
+                },
+            });
+            await router.push(url);
+            await router.isReady();
+            mount(App, { global: { plugins: [router] } });
+            await settle(300);
+            expect(controls.selectedAnimation).toBe("Matrix");
+            expect(controls.selectedControl).toBe("matrix-controls");
+            expect(router.currentRoute.value.query).toMatchObject({ anim: "Matrix", pane: "matrix-controls" });
+        }
     });
 });

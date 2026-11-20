@@ -134,7 +134,7 @@
                                 '--row-index': row.index,
                             }"
                         >
-                            <span class="seq-row-name text-mono-caption tabular-nums">{{ row.index + 1 }}</span>
+                            <span class="seq-row-name text-mono-caption kf-read tabular-nums">{{ row.index + 1 }}</span>
                             <div class="seq-track relative">
                                 <div class="progress-rail"></div>
                                 <!-- The traveller — the engine's child-animation

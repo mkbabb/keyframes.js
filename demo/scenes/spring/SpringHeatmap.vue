@@ -19,7 +19,8 @@
          where the facet overflows the rail's scroll body, open where it fits.
          It replaces the C14 margin spacer, which was whitespace in the scroll
          content at rest AND scrolled (a 90 px void under the presets). -->
-    <Collapsible ref="sectionEl" v-model:open="figureOpen" class="spring-heatmap-section grid gap-2">
+    <!-- The figure's words are its notes and axis ticks: true captions (13 px). -->
+    <Collapsible ref="sectionEl" v-model:open="figureOpen" class="spring-heatmap-section grid gap-2" data-type-role="caption">
         <!-- X.KF.W13V.y (OA-51; DESIGN-NOTE N-5) — ONE title line, and the
              field's legend beside it (X-DS pass 3; the y axis is named on its
              own ticks, below).
@@ -80,7 +81,7 @@
                      separator: '·' opens the tail's nowrap run, so the break falls
                      before it. A continuation line hangs under the first line's
                      text, not under the swatch (`.spring-heatmap-legend`). -->
-                <span class="spring-heatmap-legend min-w-0 whitespace-normal text-caption text-muted-foreground tabular-nums" title="Peak overshoot varies with damping ζ only; response sets the tempo, not the peak" data-figure-legend>
+                <span class="spring-heatmap-legend min-w-0 whitespace-normal text-caption kf-caption text-muted-foreground tabular-nums" title="Peak overshoot varies with damping ζ only; response sets the tempo, not the peak" data-figure-legend>
                     <!-- X-DS pass 16 (KF-C16-04) — the swatch keys the field's ramp.
                          r4 pass 5 (KF-C24-01) — so does the sentence: both show only
                          while the field does. -->
@@ -90,7 +91,7 @@
                 <!-- The readout keeps the last node it read, so it fades out on
                      its value instead of emptying first. -->
                 <span
-                    class="spring-heatmap-readout text-caption text-foreground tabular-nums"
+                    class="spring-heatmap-readout text-caption kf-caption text-foreground tabular-nums"
                     data-heatmap-hover
                     aria-hidden="true"
                 >{{ formatSeconds(readoutNode.r) }} · ζ {{ formatNumber(readoutNode.d) }} → {{ formatNumber(overshoot(readoutNode.d) * 100, 0) }} %</span>
@@ -105,10 +106,10 @@
                 <!-- KF-C3-11 — the y axis's title sits ON its axis, read along it
                      (the x axis's "response (s) →" is seated the same way); the
                      axis shows its own direction, so no arrow. -->
-                <span class="spring-heatmap-y-title text-caption text-muted-foreground" aria-hidden="true">damping ζ</span>
+                <span class="spring-heatmap-y-title text-caption kf-caption text-muted-foreground" aria-hidden="true">damping ζ</span>
                 <!-- The ζ axis — ticks at their true positions (the top is calm,
                      the bottom rings). -->
-                <div class="spring-heatmap-zeta text-caption text-muted-foreground tabular-nums" aria-hidden="true">
+                <div class="spring-heatmap-zeta text-caption kf-caption text-muted-foreground tabular-nums" aria-hidden="true">
                     <span v-for="tick in ZETA_TICKS" :key="tick.label" :style="{ top: tick.top }">
                         {{ tick.label }}
                     </span>
@@ -144,9 +145,9 @@
                          drawn at ζ = 1's true y; the regime labels sit ON the
                          vertical axis they describe, either side of it. -->
                     <span class="spring-heatmap-critical" :style="{ top: CRITICAL_TOP }" aria-hidden="true">
-                        <span class="spring-heatmap-tag text-caption text-muted-foreground">ζ = 1 · critical</span>
+                        <span class="spring-heatmap-tag text-caption kf-caption text-muted-foreground">ζ = 1 · critical</span>
                     </span>
-                    <span class="spring-heatmap-regime spring-heatmap-regime--over text-caption text-muted-foreground" aria-hidden="true">
+                    <span class="spring-heatmap-regime spring-heatmap-regime--over text-caption kf-caption text-muted-foreground" aria-hidden="true">
                         overdamped · no overshoot
                     </span>
                     <!-- X-DS pass 10 (KF-C10-05b) — the ringing regime is named IN
@@ -154,7 +155,7 @@
                          under the rule, where it sat beside gentle's pip on ζ = 1
                          and read as a second name for that dot. -->
                     <span
-                        class="spring-heatmap-regime spring-heatmap-regime--under text-caption text-muted-foreground"
+                        class="spring-heatmap-regime spring-heatmap-regime--under text-caption kf-caption text-muted-foreground"
                         :style="{ top: UNDER_TAG_TOP }"
                         aria-hidden="true"
                     >
@@ -174,7 +175,7 @@
                         :style="{ left: pip.left, top: pip.top }"
                         aria-hidden="true"
                     >
-                        <span class="text-caption">{{ pip.name }}</span>
+                        <span class="text-caption kf-caption">{{ pip.name }}</span>
                     </span>
 
                     <!-- The lattice cell under the pointer — the node a click would
@@ -200,7 +201,7 @@
                 </div>
 
                 <!-- The response axis. -->
-                <div class="spring-heatmap-x flex items-baseline justify-between gap-2 text-caption text-muted-foreground tabular-nums" aria-hidden="true">
+                <div class="spring-heatmap-x flex items-baseline justify-between gap-2 text-caption kf-caption text-muted-foreground tabular-nums" aria-hidden="true">
                     <span>{{ formatSeconds(RESPONSE_AXIS.min) }}</span>
                     <span>response (s) →</span>
                     <span>{{ formatSeconds(RESPONSE_AXIS.max) }}</span>

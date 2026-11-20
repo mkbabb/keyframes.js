@@ -155,7 +155,13 @@ export function prepareScene(id: string): Promise<unknown> {
 export function warmScene(id: string): void {
     // KEEP: cosmetic prefetch — a rejected warm is swallowed; the real mount
     // surfaces the error via <Suspense> (see the docblock above).
-    void loadScene(id).catch(() => {});
+    // A scene warmed on intent only (the Amiga) also does its pre-swap work
+    // here: the Scene list opening is the intent, so a pick starts the swap at
+    // once instead of building the room first. Page idle never reaches this
+    // for such a scene (`warmScenesAtIdle` skips it).
+    const loaded = loadScene(id);
+    if (intentOnly.has(id)) void loaded.then(() => prepareScene(id)).catch(() => {});
+    else void loaded.catch(() => {});
 }
 
 /**

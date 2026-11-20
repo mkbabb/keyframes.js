@@ -132,7 +132,7 @@
                                 </span>
                             </span>
                             <span
-                                class="tile-name text-mono-caption"
+                                class="tile-name text-mono-caption kf-read"
                                 data-register="code"
                                 >{{ item.name }}</span
                             >

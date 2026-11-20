@@ -1,3 +1,8 @@
+/* The slice shows a die and glyph buttons, no running text: glass's faces as
+ * files, fetched only if a glyph of theirs is drawn, not the app's inlined
+ * corpus (fonts.css), which was a quarter of the slice's stylesheet. */
+@import "@mkbabb/glass-ui/styles/font-files";
+
 /* The embed ground: transparent, so the slice sits on the host's own ground.
  * Unlayered, so it outranks the demo's `@layer base` html/body ground. The
  * slice's own document never scrolls, so its scroll CHAINS to the host page:

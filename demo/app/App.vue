@@ -18,6 +18,7 @@
          one config, no shadowing. -->
     <TooltipProvider :delay-duration="100" :skip-delay-duration="0">
     <ChromeDock
+        ref="chromeDockRef"
         :current-scene-id="resolvedScene.id"
         :scenes="scenes"
         :home-scene="homeScene"
@@ -33,7 +34,7 @@
         @update-selected-control="onDockSelectControl"
     >
         <template #items>
-            <MbabbMenu :on-scene-restore="runSceneSwitch" />
+            <MbabbMenu :on-scene-restore="runSceneSwitch" :skins="resolvedScene.id === HOME_SCENE_ID || resolvedScene.id === CUBE_SCENE_ID" />
         </template>
     </ChromeDock>
 
@@ -61,7 +62,10 @@
         </template>
 
         <template #start-screen>
-            <EditorStartScreen hint="or drag M. cubert &#x1F642;&#x200D;&#x2194;&#xFE0F;" />
+            <EditorStartScreen
+                hint="or drag M. cubert &#x1F642;&#x200D;&#x2194;&#xFE0F;"
+                @pick-scene="chromeDockRef?.openSceneList()"
+            />
         </template>
 
         <template #tabs-content>
@@ -188,6 +192,7 @@ import { scenes, sceneMap, warmScene, homeScene, HomeBackdrop } from "./scene/sc
 // so the shell's graph paper stays off on that one scene: two grids at two
 // pitches interleaved behind the ball as a moiré. The room is the only ground.
 import { AMIGA_SCENE_ID } from "../scenes/amiga/amigaKeys";
+import { CUBE_SCENE_ID } from "../scenes/cube/cubeKeys";
 import type { SceneExposedApi } from "./scene/sceneExposedApi";
 import { useMonacoCancellationGuard } from "./lifecycle/useMonacoCancellationGuard";
 
@@ -242,6 +247,7 @@ const sceneRef = shallowRef<SceneExposedApi | null>(null);
 // The scene-swap subject: the host the View Transition morphs and the focus
 // target routed to on `transition.finished` (the a11y MANDATORY).
 const sceneHostEl = useTemplateRef<HTMLElement>("sceneHostEl");
+const chromeDockRef = useTemplateRef<InstanceType<typeof ChromeDock>>("chromeDockRef");
 
 // Start with an empty AnimationGroup. The active scene's real group is bound
 // once the scene exposes it (after mount). markRaw groups are NEVER held in the

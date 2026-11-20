@@ -26,7 +26,9 @@
              so at 0 it read as a second, empty, unlabelled slider rather than
              the animation's playhead. The rail keeps its own specific name
              (aria-label); the readout is the sighted twin of the value text. -->
-        <div class="param-row">
+        <!-- An upright phone's scrub is the dock's (TransportScrub): one
+             scrub on the page, so the pane draws no time row there. -->
+        <div v-if="!uprightPhone" class="param-row">
             <LabeledField label="time" :control-labelable="false">
                 <Tooltip>
                     <TooltipTrigger as-child>
@@ -57,8 +59,11 @@
                                  the hand from press to release and follows the model
                                  again from where the hand left it, so the rail no
                                  longer seats itself from the gesture. -->
+                            <!-- The scrub takes glass's larger touch band
+                                 (`.scrub-rail`, playback-idiom.css; coarse
+                                 pointers only; the look is unchanged). -->
                             <Slider
-                                class="py-2"
+                                class="py-2 scrub-rail"
                                 variant="scrubber"
                                 aria-label="Scrub animation timeline"
                                 :value-text="() => timeReadout"
@@ -122,12 +127,12 @@
                                  its verb in the pane's own vocabulary: the
                                  direction table's "reverse" glyph (the two-way
                                  arrow there means "alternate"), flipped under
-                                 Reverse, at the eye disc's 1rem glyph rung. -->
+                                 Reverse, at the eye disc's glyph rung (half the disc). -->
                             <component
                                 :is="OPTION_GLYPHS.reverse"
                                 :data-glyph-motion="OPTION_GLYPH_MOTION.reverse"
                                 :class="[
-                                    'size-4 transition-transform duration-fast',
+                                    'playback-glyph transition-transform duration-fast',
                                     userReversed ? 'scale-x-[-1]' : '',
                                 ]"
                                 aria-hidden="true"
@@ -358,6 +363,10 @@ const timeReadout = computed(() => {
  *  it seats Reverse (the start disc) at the control height, the block the
  *  former verb row took, so the scroller's budget is unchanged. */
 const railShort = useMediaQuery("(min-width: 1024px) and (max-height: 889px)");
+
+/** An upright phone (the transport dock's own predicate): the dock carries
+ *  the scrub, so the ribbon's time row is not drawn. */
+const uprightPhone = useMediaQuery("(max-width: 1023px) and (min-height: 501px)");
 
 /** KF-P1-01 — the eye is offered where there is a preview to hide AND a mount
  *  that owns its state (an unbound harness mount offers none). OD19-K4 — on

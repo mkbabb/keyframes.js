@@ -1,12 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "@mkbabb/glass-ui/styles";
-/* The OFL woff2 corpus (Fira Code mono + the display/sans faces) is DELIBERATELY
-   excluded from the glass-ui `styles` index (loaded once, self-contained base64
-   @font-face, no external request). The consumer MUST import it or --font-mono:
-   "Fira Code" silently renders the SF Mono/Menlo fallback. This is the
-   AUTHORITATIVE Fira Code payload. */
-@import "@mkbabb/glass-ui/styles/fonts";
 /* The demo's OWNED design idioms + layout geometry — imported IMMEDIATELY AFTER the
    glass-ui cascade so the demo's --rainbow-* / @keyframes enter definitions are the
    AUTHORITATIVE copy (design-idioms.css); layout.css carries the work-area / dock /
@@ -256,6 +250,9 @@
        physics parameters and the duration fill share the ball's hue in both
        themes. One binding at the root, flat; no per-instance override. */
     --slider-range-bg: var(--color-progress);
+    /* The thumb wears the fill's colour, so the fill's end reads as the
+       handle; glass's documented thumb token, nothing painted inside it. */
+    --slider-thumb-bg: var(--slider-range-bg);
     --color-slider-track: color-mix(
         in srgb,
         var(--foreground) 35%,
@@ -271,23 +268,6 @@
        filter for the SVG logo marks. */
     --ppmycota-primary: var(--accent-kf);
     --filter-brand-color: invert(55%) sepia(80%) saturate(1496%) hue-rotate(220deg) brightness(95%) contrast(103%);
-}
-
-/* The slider handle keeps its 11.0.1 look: a light disc inside the fill's round
-   end. glass 11.0.2 made the thumb as tall as the track and painted it
-   --foreground (near-black in light, near-white in dark). Its supported token
-   --slider-thumb-bg takes a CSS background, so the 11.0.1 disc is painted back
-   inside the new thumb: --card, --slider-thumb-size across (1rem at md, 0.5rem
-   at sm), centred on the fill's round end (half the track less the disc past
-   the thumb box's centre), the fill showing around it. Declared on the Slider
-   root, where glass sets that Slider's size tokens. */
-.glass-slider {
-    --slider-thumb-bg: radial-gradient(
-        circle calc(var(--slider-thumb-size, 1rem) / 2)
-            at calc(50% + (var(--slider-track-height, 1.25rem) - var(--slider-thumb-size, 1rem)) / 2 - 0.25px) 50%,
-        var(--card) calc(100% - 0.5px),
-        transparent 100%
-    );
 }
 
 .dark {

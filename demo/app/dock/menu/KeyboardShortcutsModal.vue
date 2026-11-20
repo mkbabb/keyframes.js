@@ -89,6 +89,7 @@
              axis"), so every row is one line. -->
         <DialogContent
             scroll
+            :aria-describedby="undefined"
             class="max-w-md md:w-full md:max-w-2xl"
             @close-auto-focus="(event: Event) => emit('closeAutoFocus', event)"
             @interact-outside="
@@ -120,27 +121,9 @@
                 <!-- X.KF.W13X.overlays · UIA-KF-251 · UIA-KF-139 — sentence case,
                      the menu row's own casing ("Keyboard shortcuts"). -->
                 <DialogTitle>Keyboard shortcuts</DialogTitle>
-                <!-- KSM R-15 — ONE copy edit, four faces. The former line
-                     ("Press `?` to toggle this panel") hardcoded a binding the
-                     General group already derives ~34 rows below, so the `?`
-                     rendered TWICE in one dialog and the two paths agreed only
-                     by the accident of the formatter's trim fall-through; the
-                     literal bypassed the imported formatter that every other
-                     cap on this surface goes through; "panel" named a thing
-                     this is not (it is a modal dialog, and the demo's panels
-                     are the control surfaces); and the instruction was
-                     unactionable on touch, where no `?` key exists — the touch
-                     route is the header-ribbon button, which is why that
-                     button exists. The description now says what the list IS
-                     and restates no binding, so there is nothing left to
-                     duplicate, mis-format, mis-name or fail on touch.
-                     KSM R-18 — `text-muted-foreground` RESTATED the primitive's
-                     own DialogDescription tone and silently pinned this call
-                     site against any future producer re-tone; the `text-small`
-                     half is a real, winning override and stays. -->
-                <!-- X.KF.W13X.overlays · UIA-KF-251 — one line, no internal
-                     vocabulary ("registered … grouped by register"). -->
-                <DialogDescription class="text-small">Grouped by area.</DialogDescription>
+                <!-- No description line: the groups' own headings say how the
+                     list is ordered, so a line saying so restated them (the
+                     content's `aria-describedby` is dropped with it). -->
             </DialogHeader>
             <!-- X.KF.W13X.overlays · UIA-KF-016 — `relative`: the port is the
                  containing block of the rows' absolutely-positioned sr-only
@@ -290,7 +273,7 @@
                                             class="text-muted-foreground text-small"
                                             >{{ comboJoiner }}</span
                                         >
-                                        <kbd class="kbd" aria-hidden="true">{{ part }}</kbd>
+                                        <kbd class="kbd kf-caption" aria-hidden="true">{{ capOf(part) }}</kbd>
                                     </template>
                                     <!-- KSM R-17 — the Delete row UNDER-REPORTED its
                                          own binding. The producer's dispatcher matches
@@ -314,7 +297,7 @@
                                             class="text-muted-foreground text-small"
                                             >or</span
                                         >
-                                        <kbd class="kbd" aria-hidden="true">{{
+                                        <kbd class="kbd kf-caption" aria-hidden="true">{{
                                             aliasFor(shortcut.raw)
                                         }}</kbd>
                                     </template>
@@ -333,7 +316,6 @@ import { computed } from "vue";
 import {
     Dialog,
     DialogContent,
-    DialogDescription,
     DialogHeader,
     DialogTitle,
 } from "@mkbabb/glass-ui/dialog";
@@ -344,7 +326,7 @@ import {
     formatComboParts,
 } from "@mkbabb/glass-ui/keyboard";
 import { isInsideToaster } from "@utils/toastGuard";
-import { groupShortcuts } from "./groupShortcuts";
+import { capOf, groupShortcuts } from "./groupShortcuts";
 
 const open = defineModel<boolean>('open', { required: true });
 // LAST-TEN KF-05 — the close's focus return is the opener's to name (MbabbMenu).
@@ -373,7 +355,7 @@ const comboJoiner =
 // verbatim. It is the demo's own datum (the string passed to `registerShortcut`),
 // it is identical on every platform, and it is speakable where `⌘⇧Z` is not.
 // The durable cure is the producer companion to `formatComboParts` on the relay.
-const spokenCombo = (raw: string): string => raw.split("+").join(" ");
+const spokenCombo = (raw: string): string => raw.split("+").map(capOf).join(" ");
 
 // KSM R-17 — an INTERIM mirror of the producer dispatcher's alias table, kept to
 // the ONE entry whose alias is a DIFFERENT physical key (the table's other

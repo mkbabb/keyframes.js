@@ -421,7 +421,7 @@ defineExpose({
 @media (prefers-reduced-motion: no-preference) {
     .pane-status-enter-active .pane-status__tick :deep(path) {
         stroke-dasharray: 24;
-        animation: pane-status-tick 360ms var(--ease-out, ease-out) both;
+        animation: pane-status-tick var(--duration-normal, 300ms) var(--ease-out, ease-out) both;
     }
 }
 @keyframes pane-status-tick {
