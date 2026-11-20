@@ -84,7 +84,7 @@ const centre = (el: Element) => {
 };
 /** How far the die's rounded body reaches from its centre along table x and
  *  y at its attitude (the matrix's rows, over its scale). */
-const reach = (el: Element, side: number) => {
+const reach = (el: Element, side: number): [number, number] => {
     const v = matrixOf(el);
     const k = Math.hypot(v[0]!, v[1]!, v[2]!);
     const h = side / 2 - ROUND * side;
