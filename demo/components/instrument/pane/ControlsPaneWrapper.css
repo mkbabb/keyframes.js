@@ -257,9 +257,13 @@
     .controls-pane-wrapper.controls-pane--closed {
         pointer-events: none;
         /* LAST-TEN KF-18 — the [rail] track lands at 0 at once (the stage
-           slides on a transform), so a closing pane is not clipped away in
-           one frame: it fades where it stood, over the sliding stage. */
-        overflow: visible;
+           slides on a transform). A closing pane keeps the rail's width, so
+           its own clip does not follow the track to 0 in one frame: it fades
+           where it stood, over the sliding stage, and is hidden once the fade
+           has run (no press, no focus reaches it). */
+        width: var(--rail-width);
+        visibility: hidden;
+        transition: visibility 0s linear var(--duration-fast);
     }
     .controls-pane--open .controls-pane {
         opacity: 1;
