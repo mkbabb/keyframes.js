@@ -222,8 +222,8 @@ describe("the hand at full rate", () => {
         expect(Math.abs(a - b) / a).toBeLessThan(1e-9);
     });
 
-    // K2 — the hand at the frame, never ahead of where it may be.
-    it("a touch is shown at most a frame along its predicted path; once it stops the lead returns over frames, never in one", async () => {
+    // K2 — the hand at the frame, never ahead of it.
+    it("a touch is never shown past its newest sample, whatever the browser predicts, and a stopped touch never steps back", async () => {
         // Real-only: the move without a prediction.
         const o = await mountOrbit();
         o.el.dispatchEvent(ptr("pointerdown", 1, 200, 300, 0));
@@ -239,29 +239,38 @@ describe("the hand at full rate", () => {
         el.dispatchEvent(ptr("pointerdown", 1, 200, 300, 0));
         const predicted = () => [ptr("pointermove", 1, 240, 300, 16), ptr("pointermove", 1, 260, 300, 32)];
         document.dispatchEvent(ptr("pointermove", 1, 230, 300, 8, { getPredictedEvents: predicted }));
-        // The frame's instant is 16 ms: the predicted point there, 10 px on
-        // (at most one 120 Hz frame past the newest sample, 8.33 ms: 8.33/8 of
-        // the way, capped at the point itself), never the 32 ms one.
+        // The frame's instant (16 ms) is past the newest sample (8 ms): the
+        // touch holds it, as a mouse does; the predicted path is not shown.
         now = 20;
         await frame(0);
-        const led = screenAngle(q(shown(el)));
-        expect(led).toBeGreaterThan(real);
-        const onePx = (2 / 160) * (1 + 1e-9);
-        expect(led - real).toBeLessThanOrEqual(10.5 * onePx);
-        // No move since: the lead comes back on its follower, a little each frame.
-        const steps: number[] = [];
-        let last = led;
+        expect(screenAngle(q(shown(el)))).toBe(real);
+        // No move since: nothing comes back, nothing moves.
         for (let i = 0; i < 30; i++) {
             await frame(1000 / 120);
-            const a = screenAngle(q(shown(el)));
-            steps.push(last - a);
-            last = a;
+            expect(screenAngle(q(shown(el)))).toBe(real);
         }
-        expect(last).toBeCloseTo(real, 12);
-        const back = steps.filter((d) => d > 1e-12);
-        expect(back.length).toBeGreaterThanOrEqual(3);
-        expect(Math.max(...back)).toBeLessThan(0.5 * (led - real));
         document.dispatchEvent(ptr("pointerup", 1, 230, 300, 500));
+        w.unmount();
+    });
+
+    it("a second finger joining shows no step before either finger moves", async () => {
+        const { w, el } = await mountOrbit();
+        el.dispatchEvent(ptr("pointerdown", 1, 160, 300, 0));
+        for (let i = 1; i <= 6; i++) document.dispatchEvent(ptr("pointermove", 1, 160 + 6 * i, 300, 8 * i));
+        // A frame between the last two samples shows the finger behind its newest.
+        now = 46;
+        await frame(0);
+        const before = shown(el);
+        // The second finger lands; the frame that follows (its instant, 46 ms,
+        // still before the first finger's newest sample) shows the same pose.
+        el.dispatchEvent(ptr("pointerdown", 2, 260, 340, 49));
+        now = 50;
+        await frame(0);
+        const after = shown(el);
+        expect(quatAngleBetween(q(after), q(before))).toBeLessThan(1e-9);
+        expect(Math.hypot(after.translate.x - before.translate.x, after.translate.y - before.translate.y)).toBeLessThan(1e-9);
+        document.dispatchEvent(ptr("pointerup", 2, 260, 340, 60));
+        document.dispatchEvent(ptr("pointerup", 1, 196, 300, 60));
         w.unmount();
     });
 
@@ -309,6 +318,34 @@ describe("the hand at full rate", () => {
         expect(first).toBeGreaterThan(0);
         w.unmount();
     });
+});
+
+describe("the release on the frames' clock", () => {
+    for (const [name, upAt, deliveredAt] of [
+        ["delivered late (14 ms after its time)", 84, 98],
+        ["delivered at once", 88.5, 89],
+    ] as const)
+        it(`a release ${name}: the coast's first frame travels about one frame of the drag, never two, never none`, async () => {
+            const { w, el } = await mountOrbit();
+            el.dispatchEvent(ptr("pointerdown", 1, 120, 300, 0));
+            now = 0;
+            // A steady drag at 120 Hz: a move every 8 ms, a frame every 8.33.
+            for (let k = 1; k <= 10; k++) {
+                document.dispatchEvent(ptr("pointermove", 1, 120 + 10 * k, 300, 8 * k));
+                while (now + 1000 / 120 <= 8 * k + 4) await frame(1000 / 120);
+            }
+            // Frames on until the release reaches the page.
+            while (now + 1000 / 120 < deliveredAt) await frame(1000 / 120);
+            document.dispatchEvent(ptr("pointerup", 1, 220, 300, upAt));
+            const atUp = screenAngle(q(shown(el)));
+            await frame(1000 / 120);
+            const first = screenAngle(q(shown(el))) - atUp;
+            // One frame of the drag: 10 px in 8 ms, over 8.33 ms, on R 160.
+            const oneFrame = ((10 / 8) * (1000 / 120) * 2) / 160;
+            expect(first).toBeGreaterThan(0.5 * oneFrame);
+            expect(first).toBeLessThan(1.5 * oneFrame);
+            w.unmount();
+        });
 });
 
 describe("fun", () => {

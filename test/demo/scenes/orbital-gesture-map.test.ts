@@ -286,7 +286,9 @@ describe("M5 — mouse buttons: left orbits, middle and right pan", () => {
         // Inside the bound (the centre's right bound is 374 − ½·160·2 = 214).
         document.dispatchEvent(ptr("pointermove", 1, CENTRE.x + 6, CENTRE.y + 3, 8, "mouse", button));
         document.dispatchEvent(ptr("pointermove", 1, CENTRE.x + 12, CENTRE.y + 6, 16, "mouse", button));
-        await flush();
+        // The frames run while the hand is down: they reach its newest sample
+        // (each shows it 4 ms back), and the release leaves from the pose shown.
+        await flush(3);
         document.dispatchEvent(ptr("pointerup", 1, CENTRE.x + 12, CENTRE.y + 6, 300, "mouse", button));
         await flush();
         const out = { t: { ...shown(el).translate }, angle: screenRotation(q(shown(el))).angle };

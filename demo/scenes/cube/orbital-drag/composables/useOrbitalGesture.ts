@@ -146,10 +146,12 @@ const REST_PAN = [0.01, 0.5] as const;
  * whatever the digitiser's cadence.
  */
 export const RESAMPLE_BACK_MS = 4;
-/** Past its newest sample a touch or a pen is carried on along the browser's
- *  predicted path, at most this many frames ahead and never against the
- *  motion. A mouse is never carried ahead: it holds its newest sample. */
-export const LEAD_FRAMES = 1;
+/** Past its newest sample a touch or a pen may be carried on along the
+ *  browser's predicted path, at most this many frames ahead and never against
+ *  the motion; a mouse is never carried ahead. Off (0): a lead must return when
+ *  the hand stops, and on 120 Hz frames that return is a 2° step back against
+ *  the drag. Every pointer holds its newest sample. */
+export const LEAD_FRAMES = 0;
 /** A lead returns (through its follower) once the hand has sent nothing for
  *  this many of its own sample intervals, or frames, whichever is longer. */
 const STOP_INTERVALS = 1.5;
@@ -450,6 +452,18 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
         }
         readFrame();
         pending = false;
+        // The frames resample each hand from the point anchored: its older
+        // samples lie behind it, and a frame shown from them before its next
+        // move would step the die with no finger moving.
+        for (const h of pointers.values()) {
+            const newest = h.trail[h.trail.length - 1];
+            h.trail = [{ t: newest?.t ?? h.shownT, x: h.x, y: h.y }];
+            h.ahead = [];
+            h.lead.x.fill(0);
+            h.lead.T.fill(0);
+            h.lead.v.fill(0);
+            h.seenAge = null;
+        }
         if (ids.length >= 2) {
             mode = "pair";
             pairIds = [ids[0]!, ids[1]!];
@@ -774,15 +788,15 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
     };
 
     /**
-     * A hand leaves from the pose the eye last saw, or from its newest real
-     * sample where that is further on: a lead shown ahead of the newest sample
-     * is never taken back (no snap at release), and a sample the frames had
-     * not yet reached is never dropped.
+     * A hand leaves from the pose the eye last saw (K2): the coast, or the
+     * finger that stays, carries on from there. A sample the frames had not
+     * yet reached (the frame shows the hand 4 ms back) is not jumped to: on a
+     * flick that would be up to a frame and a half of travel in one frame.
+     * With no frame shown since the anchor, it leaves from the newest sample.
      */
     const leaveFrom = () => {
         if (!anchored()) return;
-        const ahead = [...pointers.values()].some((h) => h.shownT > (h.trail[h.trail.length - 1]?.t ?? Infinity));
-        if (ahead && shown) {
+        if (shown) {
             state.q = [shown.q[0], shown.q[1], shown.q[2], shown.q[3]];
             state.t = { ...shown.t };
             state.s = shown.s;
@@ -794,6 +808,13 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
 
     const onPointerUp = (event: PointerEvent) => {
         if (!pointers.has(event.pointerId)) return;
+        // The coast carries on from the pose shown, on the frames' own clock:
+        // from the frame that showed it (two frames before the release at
+        // most), so its first frame travels one frame on. Clocked at the
+        // release's timestamp instead, a release delivered late (a touch end
+        // arrives up to 14 ms after its time) puts two frames' travel in one,
+        // and one delivered early nearly none.
+        const from = shown && lastHandFrame >= 0 ? Math.max(lastHandFrame, event.timeStamp - 2 * frameMs) : event.timeStamp;
         leaveFrom();
         pointers.delete(event.pointerId);
         releaseCapture(event);
@@ -813,9 +834,7 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
         isActive.value = false;
         samples.length = 0;
         shown = null;
-        // The coast is clocked at the release's own time, so its first frame
-        // already travels (never a frame at elapsed 0).
-        onGestureEnd({ omega, pan, zoom, at, time: event.timeStamp });
+        onGestureEnd({ omega, pan, zoom, at, time: from });
     };
 
     const onPointerCancel = (event: PointerEvent) => {
