@@ -159,8 +159,7 @@ for (const vp of [
             expect(Math.abs((await sheetTop(page)) - top0)).toBeLessThanOrEqual(1);
             const die1 = await dieBox(page);
             expect(Math.abs(die1.y - die0.y)).toBeLessThanOrEqual(1);
-            await page.mouse.click(1, 1).catch(() => {});
-            await page.waitForTimeout(600);
+            expect(await sheetTop(page)).not.toBeNull();
 
             // Back closes it and leaves the cube showing.
             await page.goBack();
