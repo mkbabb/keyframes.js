@@ -78,7 +78,9 @@ export function useStageReserve(params: StageReserveParams) {
         // Never mid-drag: the drag's live size is not a rung.
         if (el?.hasAttribute("data-dragging")) return;
         const s = side.value;
-        const peekSize = sheetRungSize(el, s, peek.value);
+        // A rung of 0 is no resting sheet (an upright phone's sheet is closed
+        // at rest): the stage reserves nothing for it.
+        const peekSize = peek.value > 0 ? sheetRungSize(el, s, peek.value) : 0;
         const lift = rung.value === "open" ? Math.max(0, sheetRungSize(el, s, open.value) - peekSize) : 0;
         write(
             s === "bottom"

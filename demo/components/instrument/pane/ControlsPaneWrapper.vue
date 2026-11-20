@@ -203,9 +203,15 @@
     <Dialog
         v-if="isMobileLayout && showSheet"
         :modal="false"
-        :open="true"
+        :open="sheetMounted"
         @update:open="(open: boolean) => { if (!open) emit('setControlsPanelOpen', false); }"
     >
+        <!-- An upright phone's sheet truly closes: it is there only while the
+             controls are open (the transport dock's Controls seat opens it),
+             so the stage holds the screen at rest. It fades in on glass's
+             panel clock and out on its fast clock (`sheet-animate`), never a
+             cut at the sheet's chrome floor. A short landscape phone keeps
+             the side rail, always shown. -->
         <!-- KF-SKEL-9 — the `controls-drawer--stage-*` emission is DELETED (the
              decision is the emitter's, taken whole in `AnimationControlsGroup`;
              the rationale, including why ADOPT is barred, lives at that site so
@@ -243,11 +249,12 @@
             :detents="snapPoints"
             v-model:detent="activeSnap"
             scroll
-            class="controls-drawer-content"
+            class="controls-drawer-content sheet-animate [--tw-enter-translate-x:0]"
             :data-rung="rung"
             :style="sheetStyle"
             @click.capture="onParkedHeaderPress"
             @open-auto-focus.prevent
+            @interact-outside="onSheetOutside"
             @focusin="onSheetFocusIn"
             @focusout="onSheetFocusOut"
         >
@@ -312,7 +319,7 @@ import ChannelControls from "./channel-controls/ChannelControls.vue";
 import RibbonBar from "./RibbonBar.vue";
 import SequenceTimeline from "../timeline/SequenceTimeline.vue";
 import { useControlsLayout } from "./composables/useControlsLayout";
-import { rowBoundaryPeek, useStageReserve } from "./composables/useStageReserve";
+import { useStageReserve } from "./composables/useStageReserve";
 import type { SheetRung } from "./composables/useStageReserve";
 import { FOLD_EDGES_KEY, useFoldLanding } from "./composables/useFoldLanding";
 // The sheet's bottom lift above the menubar is the `bottom` style set on
@@ -582,14 +589,22 @@ if (isMobileLayout.value) {
 // FULL 0.6 is the editing room.
 const isShortLayout = useMediaQuery("(max-width: 1023px) and (max-height: 500px)");
 const sheetSide = computed(() => (isShortLayout.value ? "right" : "bottom"));
-// D-28 — the portrait PEEK lands on a row boundary, measured once per scene
-// mount (useStageReserve's `rowBoundaryPeek`); 0.12 is its seed before the
-// sheet has laid out (glass's floor holds it at header height meanwhile).
-const measuredPeek = shallowRef<number | null>(null);
-const PEEK_SNAP = computed(() => (isShortLayout.value ? 0.36 : (measuredPeek.value ?? 0.12)));
+// An upright phone has no resting peek: the sheet is closed (absent) or at
+// OPEN or FULL. PEEK is the landscape rail's rest only; 0 says "none".
+const PEEK_SNAP = computed(() => (isShortLayout.value ? 0.36 : 0));
 const OPEN_SNAP = computed(() => (isShortLayout.value ? 0.46 : 0.36));
 const FULL_SNAP = computed(() => (isShortLayout.value ? 0.6 : 1));
-const snapPoints = computed(() => [PEEK_SNAP.value, OPEN_SNAP.value, FULL_SNAP.value]);
+const snapPoints = computed(() =>
+    isShortLayout.value
+        ? [PEEK_SNAP.value, OPEN_SNAP.value, FULL_SNAP.value]
+        : [OPEN_SNAP.value, FULL_SNAP.value],
+);
+/** The sheet's dialog is open: always as the landscape rail, and on an
+ *  upright phone only while the controls are open. */
+const sheetMounted = computed(
+    () => isShortLayout.value || props.storedControls.isControlsPanelOpen,
+);
+
 // The band the sheet lives in: above the transport, below the top dock. The
 // bottom sheet's FULL rung is capped at it; the side sheet spans it.
 const fullBand = "calc(100dvh - var(--stage-top-inset) - var(--stage-bottom-inset))";
@@ -623,9 +638,26 @@ const activeSnap = computed<number | null>({
             Math.abs(c - t) < Math.abs(a - t) ? c : a,
         );
         atFull.value = nearest === FULL_SNAP.value;
-        emit("setControlsPanelOpen", nearest !== PEEK_SNAP.value);
+        // A flick onto 0 (or a null) closes an upright sheet; the landscape
+        // rail parks at its PEEK as before.
+        const closes = isShortLayout.value ? nearest === PEEK_SNAP.value : v === null || t <= 0;
+        emit("setControlsPanelOpen", !closes);
     },
 });
+
+// A press on either dock (or a list one opened) never closes the sheet: the
+// Controls seat is one of them, and a press that closed the sheet on its way
+// down would reopen it on its click. A press on the stage still lowers it.
+const onSheetOutside = (e: Event): void => {
+    const original = (e as CustomEvent<{ originalEvent?: Event }>).detail?.originalEvent;
+    const target = original?.target ?? e.target;
+    if (
+        target instanceof Element &&
+        target.closest("[data-dock-tether], [data-reka-popper-content-wrapper], [role=listbox], [role=menu]")
+    ) {
+        e.preventDefault();
+    }
+};
 
 // X-DS r9 pass 7 (KF-C7-01) — A PARKED PEEK'S TITLE ROW RAISES THE SHEET.
 // The peek shows one row of the pane: the surface's ConfiguratorLayer header
@@ -647,20 +679,6 @@ const activeSnap = computed<number | null>({
 const sheetEl = () => document.querySelector<HTMLElement>(".controls-drawer-content");
 const rung = computed<SheetRung>(() =>
     !props.storedControls.isControlsPanelOpen ? "peek" : atFull.value ? "full" : "open",
-);
-// A row is a whole control line: the first layer's header, then each field.
-const PEEK_ROWS = '[data-slot="configurator-layer-trigger"], [data-slot="labeled-field"], .param-row';
-const measurePeek = () => {
-    if (!isMobileLayout.value || isShortLayout.value) return;
-    const t = rowBoundaryPeek(sheetEl(), PEEK_ROWS);
-    if (t !== null && t < OPEN_SNAP.value) measuredPeek.value = t;
-};
-watch(
-    () => [isMobileLayout.value && showSheet.value, props.storedControls.selectedAnimation] as const,
-    ([on]) => {
-        if (on) void nextTick(() => requestAnimationFrame(measurePeek));
-    },
-    { immediate: true, flush: "post" },
 );
 useStageReserve({
     active: computed(() => isMobileLayout.value && showSheet.value),
