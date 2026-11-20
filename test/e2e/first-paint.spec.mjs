@@ -49,16 +49,21 @@ for (const cell of [
                 await route.continue();
             });
             await page.addInitScript(() => {
-                const R = (window.__arrive = { opacity: [], ground: null });
+                const R = (window.__arrive = { opacity: [], ground: null, done: false });
                 const watch = () => {
                     const host = document.getElementById("app");
                     if (!host) return requestAnimationFrame(watch);
                     new MutationObserver((_, mo) => {
                         if (!host.firstElementChild) return;
                         mo.disconnect();
+                        // Every frame for 700 ms (over twice the fade) and at
+                        // least 40 frames: a frame count is a time only at
+                        // 60 Hz; at 120 Hz forty frames end inside the fade.
+                        const t0 = performance.now();
                         const sample = () => {
                             R.opacity.push(Number(getComputedStyle(host).opacity));
-                            if (R.opacity.length < 40) requestAnimationFrame(sample);
+                            if (R.opacity.length < 40 || performance.now() - t0 < 700) requestAnimationFrame(sample);
+                            else R.done = true;
                         };
                         sample();
                     }).observe(host, { childList: true });
@@ -73,7 +78,7 @@ for (const cell of [
                 mounted: !!document.getElementById("app")?.firstElementChild,
             }));
             expect(before.mounted).toBe(false);
-            await page.waitForFunction(() => window.__arrive.opacity.length >= 40, null, { timeout: 20_000 });
+            await page.waitForFunction(() => window.__arrive.done, null, { timeout: 20_000 });
             const after = await page.evaluate(() => ({
                 ground: getComputedStyle(document.body).backgroundColor,
                 opacity: window.__arrive.opacity,
@@ -83,6 +88,16 @@ for (const cell of [
             expect(after.opacity[0]).toBeLessThan(0.5);
             expect(after.opacity.at(-1)).toBe(1);
             expect(after.opacity.filter((o) => o > 0.05 && o < 0.95).length).toBeGreaterThan(3);
+            // The arrival is the page's first contentful paint. Content painted
+            // under a fade that starts at a true zero is never reported when
+            // nothing repaints after it (the cube), so the page had no FCP and
+            // no LCP, and Lighthouse could not score it.
+            await expect
+                .poll(
+                    () => page.evaluate(() => performance.getEntriesByType("paint").some((p) => p.name === "first-contentful-paint")),
+                    { message: "the arrival is reported as the first contentful paint", timeout: 5_000 },
+                )
+                .toBe(true);
         });
     });
 }
