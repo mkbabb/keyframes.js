@@ -94,7 +94,8 @@ async function mountOrbit() {
 /** The on-screen rotation the orbit authored since identity (G·Q·G⁻¹). */
 const screenRotation = (q: Quat) => quatToAxisAngle(quatMultiply(quatMultiply(G, q), quatConjugate(G)));
 
-/** Two fingers from (a0, b0) to (a, b) in `steps`, then released. */
+/** Two fingers from (a0, b0) to (a, b) in `steps`, then released: moving
+ *  (a throw, `true`), after a 100 ms hold (placed, `"held"`), or not at all. */
 async function twoFinger(
     el: HTMLElement,
     a0: [number, number],
@@ -102,7 +103,7 @@ async function twoFinger(
     a: [number, number],
     b: [number, number],
     steps = 20,
-    release = true,
+    release: boolean | "held" = true,
 ) {
     let t = 0;
     el.dispatchEvent(ptr("pointerdown", 1, a0[0], a0[1], t));
@@ -116,8 +117,9 @@ async function twoFinger(
     }
     await flush();
     if (release) {
-        document.dispatchEvent(ptr("pointerup", 1, a[0], a[1], t + 2));
-        document.dispatchEvent(ptr("pointerup", 2, b[0], b[1], t + 2));
+        const up = release === "held" ? t + 100 : t + 2;
+        document.dispatchEvent(ptr("pointerup", 1, a[0], a[1], up));
+        document.dispatchEvent(ptr("pointerup", 2, b[0], b[1], up));
         await flush();
     }
 }
@@ -125,7 +127,7 @@ async function twoFinger(
 describe("G2.3 — the mounted orbit: one channel per hand motion", () => {
     it("(a) a spread 80 → 160 px about a fixed centroid zooms 2× and does nothing else", async () => {
         const { w, model, el } = await mountOrbit();
-        await twoFinger(el, [160, 300], [240, 300], [120, 300], [280, 300]);
+        await twoFinger(el, [160, 300], [240, 300], [120, 300], [280, 300], 20, "held");
         expect(Math.abs(model.value.scale.x - 2)).toBeLessThan(0.01);
         expect(screenRotation(model.value.quaternion!).angle).toBeLessThan(1e-12);
         expect(Math.abs(model.value.translate.x)).toBeLessThan(1);
@@ -158,7 +160,7 @@ describe("G2.3 — the mounted orbit: one channel per hand motion", () => {
     // 80 px stays inside the bound (the whole die on the stage: the centre's bottom bound is 545 − ½·160·2 = 385).
     it("(c) a two-finger 80 px drag pans 80 ± 1 px, no zoom, no roll", async () => {
         const { w, model, el } = await mountOrbit();
-        await twoFinger(el, [170, 300], [230, 300], [170, 380], [230, 380]);
+        await twoFinger(el, [170, 300], [230, 300], [170, 380], [230, 380], 20, "held");
         expect(Math.abs(model.value.translate.y - 80)).toBeLessThan(1);
         expect(Math.abs(model.value.translate.x)).toBeLessThan(1e-9);
         expect(model.value.scale.x).toBe(1);

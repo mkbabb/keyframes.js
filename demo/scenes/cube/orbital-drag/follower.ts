@@ -103,3 +103,16 @@ export const rebaseFollower = (f: Follower): void => {
         f.x[i] = 0;
     }
 };
+
+/**
+ * The seconds a frame at `now` steps a motion last stepped, or started, at
+ * `since` (both ms on the page's clock: an event's `timeStamp` and the frame's
+ * rAF time share it). A start stamped after the frame began steps a sliver
+ * (4 ms), never nothing; a gap past 100 ms (a stalled tab, or a clock that is
+ * not the frame's) steps one 60 Hz frame.
+ */
+export const frameSeconds = (since: number, now: number): number => {
+    const d = now - since;
+    if (d > 100 || d < -50) return 1 / 60;
+    return (d < 0 ? 4 : d) / 1000;
+};

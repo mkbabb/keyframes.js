@@ -157,14 +157,16 @@ const tick = (now: number) => {
     frameHandle = 0;
     const wheel = gesture.flushWheel(now);
     const owed = wheel === "owed";
-    const ahead = gesture.unwindPrediction(now);
+    // The hand at the frame's own instant (K2): resampled, never ahead of
+    // where a touch's predicted path allows, a mouse never ahead at all.
+    const hand = gesture.handAt(now);
     const coasting = inertia.advance(now);
     const homing = stepHome(now);
-    if (dirty || coasting || homing || wheel !== "idle" || ahead === "unwound") {
+    if (dirty || coasting || homing || wheel !== "idle" || hand !== "idle") {
         dirty = false;
         writeModel();
     }
-    if (coasting || homing || owed || ahead === "ahead") requestFrame();
+    if (coasting || homing || owed || hand === "settling") requestFrame();
 };
 const requestFrame = () => {
     if (!frameHandle) frameHandle = requestAnimationFrame(tick);
@@ -237,7 +239,8 @@ const gesture = useOrbitalGesture({
     },
     onGestureEnd: (release) => {
         commitNow();
-        if (!inertia.start(release)) writeModel(true);
+        // K3: the coast is clocked at the release's own time.
+        if (!inertia.start(release, release.time)) writeModel(true);
     },
     // A wheel notch glides out on the coast's own decay, conjugated into Q's
     // frame (G is fixed, so turning the axis by G⁻¹ is the conjugation).

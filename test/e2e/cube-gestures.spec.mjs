@@ -787,3 +787,114 @@ test.describe("touch: no stray face", () => {
         });
     }
 });
+
+// ── The hand at the frame (smoothness: docs/notes/cube-smoothness.md) ─────
+// Every gate reads EVERY frame, on the GPU lane, on the slice and on the
+// demo, by touch (CDP multi-touch, 390×844) and by mouse (CDP mouse,
+// 1440×900). Born red: before the cure a throw ran up to 99 px ahead of the
+// finger and turned back 4-27° at release, its coast's first frame stood
+// still, and a stopped hand stepped back 0.3-3.4°.
+import { MOUSE_SEQUENCE, dot3, framesOf, mouseReplay, unit3 } from "./cube-hand.mjs";
+
+const DEG = Math.PI / 180;
+const HAND_CELLS = {
+    touch: { viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, hasTouch: true, isMobile: true },
+    mouse: { viewport: { width: 1440, height: 900 }, deviceScaleFactor: 2 },
+};
+
+/** Play one recorded hand by touch or by mouse, every frame recorded. */
+const recordBy = async (c, input, which, settleMs) => {
+    await c.page.evaluate(() => window.__hand.start());
+    await sleep(40);
+    if (input === "touch") await replay(c.cdp, c.offset, c.geom, SEQUENCE[which]);
+    else await mouseReplay(c.cdp, c.offset, c.geom, MOUSE_SEQUENCE[which]);
+    await sleep(settleMs);
+    return c.page.evaluate(() => window.__hand.stop());
+};
+const sum3 = (vs) => vs.reduce((s, v) => [s[0] + v[0], s[1] + v[1], s[2] + v[2]], [0, 0, 0]);
+
+test.describe("the hand at the frame", () => {
+    test.setTimeout(120_000);
+    let browser = null;
+    test.beforeAll(async () => {
+        browser = await chromium.launch({ args: GPU });
+    });
+    test.afterAll(async () => {
+        await browser?.close();
+    });
+    const open = async (where, input) => {
+        const ctx = await browser.newContext(HAND_CELLS[input]);
+        const page = await ctx.newPage();
+        const c = await cell(page, where === "slice" ? embedUrl() : demoUrl());
+        return { ctx, c };
+    };
+
+    for (const where of ["slice", "demo"])
+        for (const input of ["touch", "mouse"]) {
+            test(`${where} · ${input}: G1 a throw leaves from the pose shown, never turning back, never standing still`, async () => {
+                const { ctx, c } = await open(where, input);
+                try {
+                    const { frames, up } = framesOf(await recordBy(c, input, "flick", 700));
+                    const iUp = frames.findIndex((f) => f.time >= up.d);
+                    expect(iUp).toBeGreaterThan(3);
+                    const axis = unit3(sum3(frames.slice(iUp - 4, iUp - 1).map((f) => f.inc)));
+                    // The last drag frame, the release, and the coast's first frames.
+                    const around = frames.slice(iUp - 1, iUp + 6).map((f) => ({ along: dot3(f.inc, axis), mag: Math.hypot(...f.inc) }));
+                    const back = Math.min(...around.map((a) => a.along));
+                    const still = around.filter((a) => a.mag < 1e-5).length;
+                    test.info().annotations.push({
+                        type: "G1",
+                        description: `${where}/${input}: per-frame turn along the throw ${around.map((a) => (a.along / DEG).toFixed(2)).join(" ")}°`,
+                    });
+                    expect(back).toBeGreaterThan(-0.2 * DEG);
+                    expect(still).toBe(0);
+                } finally {
+                    await ctx.close();
+                }
+            });
+
+            test(`${where} · ${input}: G2 the die is never ahead of the hand (a touch by at most a frame), G3 a stopped hand never steps it back`, async () => {
+                const { ctx, c } = await open(where, input);
+                try {
+                    const { frames, down, lastMove, up, moves } = framesOf(await recordBy(c, input, "drag", 300));
+                    const q0 = frames[0].q;
+                    const R = c.geom.R;
+                    // The hand's own speed (px/ms): the median between real moves.
+                    const speeds = [];
+                    for (let i = 1; i < moves.length; i++) {
+                        const dt = moves[i].t - moves[i - 1].t;
+                        if (dt > 0) speeds.push(Math.hypot(moves[i].x - moves[i - 1].x, moves[i].y - moves[i - 1].y) / dt);
+                    }
+                    speeds.sort((a, b) => a - b);
+                    const speed = speeds[speeds.length >> 1] ?? 0;
+                    // G2: each frame of the steady drag (from the fourth move to the last).
+                    const steady = frames.filter((f) => f.wt !== null && f.newest && f.newest.d >= moves[3].d && f.newest.d <= lastMove.d && f.time < up.d);
+                    expect(steady.length).toBeGreaterThan(10);
+                    const leads = steady.map((f) => ((turn(q0, f.q) - owed(c.geom, down, f.newest)) * R) / 2);
+                    const allowed = steady.map((f) => (input === "touch" ? speed * (f.dt ?? 8.4) : 0) + 1);
+                    const over = leads.filter((l, i) => l > allowed[i]);
+                    // G3: once the hand has stopped (after its last move), the pose
+                    // never travels back along the drag.
+                    const iStop = frames.findIndex((f) => f.time >= lastMove.d);
+                    const iUp = frames.findIndex((f) => f.time >= up.d);
+                    const axis = unit3(sum3(frames.slice(1, iStop).map((f) => f.inc)));
+                    let cum = 0;
+                    let peak = -Infinity;
+                    let back = 0;
+                    for (let i = iStop; i < (iUp < 0 ? frames.length : iUp); i++) {
+                        cum += dot3(frames[i].inc, axis);
+                        peak = Math.max(peak, cum);
+                        back = Math.max(back, peak - cum);
+                    }
+                    test.info().annotations.push({
+                        type: "G2/G3",
+                        description: `${where}/${input}: lead max ${Math.max(...leads).toFixed(2)} px (allowed ${Math.max(...allowed).toFixed(2)}); back after the stop ${(back / DEG).toFixed(3)}°`,
+                    });
+                    expect(over, `frames ahead: ${over.map((l) => l.toFixed(1)).join(" ")} px`).toEqual([]);
+                    expect(back).toBeLessThanOrEqual(0.1 * DEG);
+                } finally {
+                    await ctx.close();
+                }
+            });
+        }
+});

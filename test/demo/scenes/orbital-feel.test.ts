@@ -164,6 +164,9 @@ describe("the hand at full rate", () => {
             } else for (const p of pts) document.dispatchEvent(mk(p));
             document.dispatchEvent(ptr("pointerup", 1, 240, 300, 33));
             const at = q(model.value);
+            // The coast is clocked at the release (K3): each throw's frames
+            // run on from its own release time.
+            now = 33;
             for (let i = 0; i < 4; i++) await frame();
             const out = quatAngleBetween(q(model.value), at);
             w.unmount();
@@ -175,28 +178,91 @@ describe("the hand at full rate", () => {
         expect(Math.abs(a - b) / a).toBeLessThan(1e-9);
     });
 
-    it("a predicted point is shown, and the real one again once the finger stops", async () => {
+    // K2 — the hand at the frame, never ahead of where it may be.
+    it("a touch is shown at most a frame along its predicted path; once it stops the lead returns over frames, never in one", async () => {
         // Real-only: the move without a prediction.
         const o = await mountOrbit();
         o.el.dispatchEvent(ptr("pointerdown", 1, 200, 300, 0));
         document.dispatchEvent(ptr("pointermove", 1, 230, 300, 8));
-        await frame(1);
+        now = 20;
+        await frame(0);
         const real = screenAngle(q(o.model.value));
-        document.dispatchEvent(ptr("pointerup", 1, 230, 300, 9));
         o.w.unmount();
-        while (queue.length) await frame();
+        queue = [];
 
         now = 0;
         const { w, model, el } = await mountOrbit();
         el.dispatchEvent(ptr("pointerdown", 1, 200, 300, 0));
-        document.dispatchEvent(ptr("pointermove", 1, 230, 300, 8, { getPredictedEvents: () => [ptr("pointermove", 1, 240, 300, 16)] }));
-        await frame(1);
-        expect(screenAngle(q(model.value))).toBeGreaterThan(real);
-        // No move for 30 ms: the real point.
-        now = 40;
-        await frame(1);
-        expect(screenAngle(q(model.value))).toBeCloseTo(real, 12);
+        const predicted = () => [ptr("pointermove", 1, 240, 300, 16), ptr("pointermove", 1, 260, 300, 32)];
+        document.dispatchEvent(ptr("pointermove", 1, 230, 300, 8, { getPredictedEvents: predicted }));
+        // The frame's instant is 16 ms: the predicted point there, 10 px on
+        // (at most one 120 Hz frame past the newest sample, 8.33 ms: 8.33/8 of
+        // the way, capped at the point itself), never the 32 ms one.
+        now = 20;
+        await frame(0);
+        const led = screenAngle(q(model.value));
+        expect(led).toBeGreaterThan(real);
+        const onePx = (2 / 160) * (1 + 1e-9);
+        expect(led - real).toBeLessThanOrEqual(10.5 * onePx);
+        // No move since: the lead comes back on its follower, a little each frame.
+        const steps: number[] = [];
+        let last = led;
+        for (let i = 0; i < 30; i++) {
+            await frame(1000 / 120);
+            const a = screenAngle(q(model.value));
+            steps.push(last - a);
+            last = a;
+        }
+        expect(last).toBeCloseTo(real, 12);
+        const back = steps.filter((d) => d > 1e-12);
+        expect(back.length).toBeGreaterThanOrEqual(3);
+        expect(Math.max(...back)).toBeLessThan(0.5 * (led - real));
         document.dispatchEvent(ptr("pointerup", 1, 230, 300, 500));
+        w.unmount();
+    });
+
+    it("a mouse is never shown ahead of its newest sample, predicted or not", async () => {
+        const { w, model, el } = await mountOrbit();
+        const mouse = (type: string, x: number, t: number, extra = {}) => {
+            const e = ptr(type, 1, x, 300, t, extra);
+            Object.defineProperty(e, "pointerType", { value: "mouse" });
+            return e;
+        };
+        el.dispatchEvent(mouse("pointerdown", 200, 0));
+        document.dispatchEvent(mouse("pointermove", 230, 8, { getPredictedEvents: () => [mouse("pointermove", 240, 16)] }));
+        now = 20;
+        await frame(0);
+        const shown = screenAngle(q(model.value));
+        for (let i = 0; i < 6; i++) await frame(1000 / 120);
+        expect(screenAngle(q(model.value))).toBe(shown);
+        document.dispatchEvent(mouse("pointerup", 230, 500));
+        w.unmount();
+    });
+
+    it("a throw leaves from the pose shown: no step back at the release, and its first frame travels on", async () => {
+        const { w, model, el } = await mountOrbit();
+        el.dispatchEvent(ptr("pointerdown", 1, 120, 300, 0));
+        let t = 0;
+        let prev = screenAngle(q(model.value));
+        const per: number[] = [];
+        for (let i = 1; i <= 10; i++) {
+            t = 8 * i;
+            const x = 120 + 12 * i;
+            document.dispatchEvent(
+                ptr("pointermove", 1, x, 300, t, { getPredictedEvents: () => [ptr("pointermove", 1, x + 12, 300, t + 8)] }),
+            );
+            now = t + 12;
+            await frame(0);
+            const a = screenAngle(q(model.value));
+            per.push(a - prev);
+            prev = a;
+        }
+        document.dispatchEvent(ptr("pointerup", 1, 240, 300, t + 1));
+        const atUp = screenAngle(q(model.value));
+        expect(atUp).toBeGreaterThanOrEqual(prev - 1e-12);
+        await frame(1000 / 120);
+        const first = screenAngle(q(model.value)) - atUp;
+        expect(first).toBeGreaterThan(0);
         w.unmount();
     });
 });

@@ -18,6 +18,8 @@ import type { Box, Vec2 } from "../similarity";
 import { SILHOUETTE, UNBOUNDED, ZOOM_BAND_LN, banded, clampTo, panInterval, unbanded } from "../bounds";
 import type { Interval } from "../bounds";
 import type { GestureEvent, PressedKeys } from "../types";
+import { createFollower, followerNear, landFollower, stepFollower } from "../follower";
+import type { Follower } from "../follower";
 import type { OrbitPose, OrbitRelease } from "./useOrbitalInertia";
 
 /** What the reader needs from its host, read once per gesture anchor. */
@@ -121,9 +123,22 @@ export const WHEEL_SMOOTH_MS = 24;
 /** Below these (rad, ln s) the follower's remainder is landed whole. */
 const WHEEL_REST_RAD = 1e-5;
 const WHEEL_REST_LN = 1e-5;
-/** A prediction stands this long past the last real move before the real
- *  point is shown again (ms): a frame and a half at 60 Hz. */
-const PREDICTION_HOLD_MS = 24;
+/**
+ * THE HAND AT THE FRAME. Each frame shows the hand where it was this long
+ * before the frame began (ms), read between the two real samples on either
+ * side of that instant, so every frame takes the hand at the same phase
+ * whatever the digitiser's cadence.
+ */
+export const RESAMPLE_BACK_MS = 4;
+/** Past its newest sample a touch or a pen is carried on along the browser's
+ *  predicted path, at most this many frames ahead and never against the
+ *  motion. A mouse is never carried ahead: it holds its newest sample. */
+export const LEAD_FRAMES = 1;
+/** A lead returns (through its follower) once the hand has sent nothing for
+ *  this many of its own sample intervals, or frames, whichever is longer. */
+const STOP_INTERVALS = 1.5;
+/** The lead's follower (1/s): the continuous inputs' stiffness. */
+const LEAD_OMEGA = 90;
 /** A wheel stream ends after this quiet gap (ms). */
 const WHEEL_STREAM_GAP_MS = 300;
 /** A pan or zoom wheel stream holds the rubber band until this long after its
@@ -221,7 +236,39 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
         reducedMotion,
     } = params;
 
-    const pointers = new Map<number, { x: number; y: number; touch: boolean }>();
+    /** A real sample of one pointer (client px, its event's own time). */
+    type HandSample = { t: number; x: number; y: number };
+    /** A pointer down on the surface: where it is (its newest real sample),
+     *  its recent real samples, and, for a touch or a pen, the browser's
+     *  predicted path past the newest. */
+    type Hand = {
+        x: number;
+        y: number;
+        touch: boolean;
+        /** A touch or a pen may be carried a frame ahead; a mouse never. */
+        predicts: boolean;
+        trail: HandSample[];
+        ahead: HandSample[];
+        /** The lead shown past the newest sample (px), on its follower. */
+        lead: Follower;
+        /** The newest sample's age at the first frame that saw it (ms): the
+         *  page's delivery delay, so a stop is read on the hand's own clock. */
+        seenAge: number | null;
+        /** The hand time the frame last showed for this pointer. */
+        shownT: number;
+    };
+    const pointers = new Map<number, Hand>();
+    const newHand = (x: number, y: number, t: number, kind: string): Hand => ({
+        x,
+        y,
+        touch: kind === "touch",
+        predicts: kind === "touch" || kind === "pen",
+        trail: [{ t, x, y }],
+        ahead: [],
+        lead: createFollower(2, LEAD_OMEGA),
+        seenAge: null,
+        shownT: t,
+    });
     const isActive = ref(false);
 
     const pressedKeys = ref<PressedKeys>({
@@ -288,9 +335,11 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
     let thetaPrev = 0;
     /** The pair's last centroid (client px), the zoom coast's anchor. */
     let releaseCentroid: Vec2 = { x: 0, y: 0 };
-    /** The last real move's time, and whether the pose shown is a prediction. */
-    let lastMoveAt = 0;
-    let shownAhead = false;
+    /** The pose the last frame showed for the hand, while one is down. */
+    let shown: OrbitState | null = null;
+    /** The frame interval, measured (ms); a 120 Hz frame until known. */
+    let frameMs = 1000 / 120;
+    let lastHandFrame = -1;
 
     const samples: AttitudeSample[] = [];
     /** One sample per instant: the moves of one instant (a pair's two fingers
@@ -378,7 +427,7 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
     };
 
     const anchor = () => {
-        shownAhead = false;
+        shown = null;
         const ids = [...pointers.keys()];
         if (ids.length === 0) {
             mode = "idle";
@@ -493,11 +542,7 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
             // A middle (1) or right (2) mouse button pans, as Shift-drag does.
             buttonPan = event.pointerType === "mouse" && (event.button === 1 || event.button === 2);
         }
-        pointers.set(event.pointerId, {
-            x: event.clientX,
-            y: event.clientY,
-            touch: event.pointerType === "touch",
-        });
+        pointers.set(event.pointerId, newHand(event.clientX, event.clientY, event.timeStamp, event.pointerType));
         isActive.value = true;
         // The stage takes the keyboard on a mouse or pen press (the arrows turn
         // the die); preventDefault above withholds the browser's own focus.
@@ -540,13 +585,10 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
      * Every move at full rate: the browser hands one pointermove a frame and
      * keeps the hand's other samples in `getCoalescedEvents()` (a 120 or 240 Hz
      * digitiser under a 60 Hz frame), so each is applied and sampled in turn and
-     * the release reads the hand's true speed. Then, where the browser predicts
-     * (`getPredictedEvents()`, Chromium), the pose is shown at the predicted
-     * point, so the face under the finger lands where the finger will be when
-     * the frame reaches the glass. The anchored modes recompute from the
-     * gesture's anchor every move, so the next real move replaces the
-     * prediction with no residue; the off-die drive sums its moves, so it shows
-     * real moves only.
+     * the release reads the hand's true speed. The move itself shows nothing:
+     * the frame shows the hand where it was at the frame's own instant
+     * (`handAt`), from the samples kept here. For a touch or a pen the
+     * browser's predicted path (`getPredictedEvents()`, Chromium) is kept too.
      */
     const onPointerMove = (event: PointerEvent) => {
         const p = pointers.get(event.pointerId);
@@ -570,44 +612,142 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
         // A modifier change mid-drag re-anchors (orbit ↔ pan), never jumps.
         if ((mode === "pan") !== (shift || buttonPan) && pointers.size === 1) anchor();
         for (const m of moves) {
+            const t = m.timeStamp || event.timeStamp;
             p.x = m.clientX;
             p.y = m.clientY;
+            const tr = p.trail;
+            if (tr.length > 0 && tr[tr.length - 1]!.t >= t) tr.pop();
+            tr.push({ t, x: p.x, y: p.y });
+            while (tr.length > 3 && t - tr[0]!.t > 100) tr.shift();
             if (!applyMode(p)) return;
-            pushSample(m.timeStamp || event.timeStamp);
+            pushSample(t);
         }
-        lastMoveAt = event.timeStamp;
-        shownAhead = false;
-        const predicted = mode !== "drive" && typeof event.getPredictedEvents === "function" ? event.getPredictedEvents() : [];
-        const ahead = predicted[predicted.length - 1];
-        if (ahead && Number.isFinite(ahead.clientX) && Number.isFinite(ahead.clientY)) {
-            const real = { x: p.x, y: p.y };
-            p.x = ahead.clientX;
-            p.y = ahead.clientY;
-            applyMode(p);
-            p.x = real.x;
-            p.y = real.y;
-            shownAhead = true;
+        p.seenAge = null;
+        p.ahead = [];
+        if (p.predicts && typeof event.getPredictedEvents === "function") {
+            for (const a of event.getPredictedEvents()) {
+                if (Number.isFinite(a.clientX) && Number.isFinite(a.clientY) && Number.isFinite(a.timeStamp))
+                    p.ahead.push({ t: a.timeStamp, x: a.clientX, y: a.clientY });
+            }
         }
         requestCommit();
     };
 
+    /** The anchored modes recompute the pose from the anchor at any point, so
+     *  the frame may show the hand at any instant; the off-die drive sums its
+     *  moves and shows real moves only. */
+    const anchored = () => !pending && (mode === "orbit" || mode === "pan" || mode === "pair");
+
     /**
-     * A finger that stops sends no more moves, so a prediction shown for its
-     * last move would stand ahead of it. Once no move has come for a frame and
-     * a half, the real point is shown again (the host's frame loop calls this;
-     * true while a prediction still stands).
+     * Where one pointer is shown at the frame's instant t*:
+     *  · between its two newest samples, the line between them;
+     *  · past its newest, a mouse holds it; a touch or a pen is carried on
+     *    along the predicted point nearest t*, at most LEAD_FRAMES ahead of the
+     *    newest sample and never against the motion;
+     *  · once the hand has stopped, that lead returns on its follower (no step).
+     * Returns the point and whether the lead is still returning.
      */
-    const unwindPrediction = (now: number): "ahead" | "unwound" | "idle" => {
-        if (!shownAhead) return "idle";
-        if (pointers.size === 0 || mode === "idle" || mode === "drive") {
-            shownAhead = false;
-            return "idle";
+    const handPoint = (h: Hand, now: number, tStar: number): { x: number; y: number; settling: boolean } => {
+        const tr = h.trail;
+        const newest = tr[tr.length - 1];
+        const prev = tr[tr.length - 2];
+        if (!newest) return { x: h.x, y: h.y, settling: false };
+        if (h.seenAge === null) h.seenAge = now - newest.t;
+        const interval = prev ? newest.t - prev.t : frameMs;
+        const stopped = now - newest.t - h.seenAge > STOP_INTERVALS * Math.max(frameMs, interval);
+        if (tStar < newest.t && prev && tStar >= prev.t && newest.t > prev.t) {
+            const k = (tStar - prev.t) / (newest.t - prev.t);
+            const L = h.lead;
+            L.x[0] = L.x[1] = L.T[0] = L.T[1] = L.v[0] = L.v[1] = 0;
+            h.shownT = tStar;
+            return { x: prev.x + (newest.x - prev.x) * k, y: prev.y + (newest.y - prev.y) * k, settling: true };
         }
-        if (now - lastMoveAt < PREDICTION_HOLD_MS) return "ahead";
-        shownAhead = false;
-        const p = pointers.get(mode === "pair" ? pairIds[0] : [...pointers.keys()][0]!);
-        if (p) applyMode(p);
-        return "unwound";
+        const L = h.lead;
+        if (!stopped) {
+            let lx = 0;
+            let ly = 0;
+            let lt = newest.t;
+            if (h.predicts && prev && tStar > newest.t) {
+                let best: HandSample | null = null;
+                for (const a of h.ahead) {
+                    if (a.t > newest.t && (!best || Math.abs(a.t - tStar) < Math.abs(best.t - tStar))) best = a;
+                }
+                if (best) {
+                    const k = Math.min(1, (LEAD_FRAMES * frameMs) / (best.t - newest.t));
+                    const dx = (best.x - newest.x) * k;
+                    const dy = (best.y - newest.y) * k;
+                    if (dx * (newest.x - prev.x) + dy * (newest.y - prev.y) > 0) {
+                        lx = dx;
+                        ly = dy;
+                        lt = newest.t + (best.t - newest.t) * k;
+                    }
+                }
+            }
+            L.x[0] = L.T[0] = lx;
+            L.x[1] = L.T[1] = ly;
+            L.v[0] = L.v[1] = 0;
+            h.shownT = lt;
+            // A lead shown keeps the frames coming: the hand may have stopped.
+            return { x: newest.x + lx, y: newest.y + ly, settling: lx !== 0 || ly !== 0 };
+        }
+        L.T[0] = L.T[1] = 0;
+        stepFollower(L, frameMs / 1000);
+        const home = followerNear(L, 0.05, 1);
+        if (home) landFollower(L);
+        h.shownT = L.x[0] === 0 && L.x[1] === 0 ? newest.t : newest.t + 1e-6;
+        return { x: newest.x + L.x[0]!, y: newest.y + L.x[1]!, settling: !home };
+    };
+
+    /**
+     * The frame shows the hand (the host's frame loop calls this before it
+     * commits): each pointer of an anchored gesture is resampled at the frame's
+     * instant and the pose is recomputed there. "settling" while a later frame
+     * still has a sample to reach or a lead to return; "shown" when this frame
+     * moved the pose; "idle" with no hand to show or nothing new.
+     */
+    const handAt = (now: number): "settling" | "shown" | "idle" => {
+        if (pointers.size === 0 || !anchored()) return "idle";
+        if (lastHandFrame >= 0 && now - lastHandFrame > 2 && now - lastHandFrame < 34) frameMs = now - lastHandFrame;
+        lastHandFrame = now;
+        const tStar = now - RESAMPLE_BACK_MS;
+        const ids = mode === "pair" ? pairIds : [[...pointers.keys()][0]!];
+        const real: Array<[Hand, number, number]> = [];
+        let settling = false;
+        let same = shown !== null;
+        for (const id of ids) {
+            const h = pointers.get(id);
+            if (!h) continue;
+            const at = handPoint(h, now, tStar);
+            settling ||= at.settling;
+            real.push([h, h.x, h.y]);
+            if (h.x !== at.x || h.y !== at.y) same = false;
+            h.x = at.x;
+            h.y = at.y;
+        }
+        // The real moves leave the anchored pose at the newest sample; the
+        // frame's pose is the same law at the frame's point.
+        const keep = { vPrev, thetaPrev, releaseCentroid };
+        const h0 = real[0]?.[0];
+        if (h0) applyMode(h0);
+        vPrev = keep.vPrev;
+        thetaPrev = keep.thetaPrev;
+        releaseCentroid = keep.releaseCentroid;
+        for (const [h, x, y] of real) {
+            h.x = x;
+            h.y = y;
+        }
+        const was = shown;
+        const now_: OrbitState = { q: [state.q[0], state.q[1], state.q[2], state.q[3]], t: { ...state.t }, s: state.s };
+        shown = now_;
+        if (settling) return "settling";
+        const still =
+            same &&
+            was !== null &&
+            was.s === now_.s &&
+            was.t.x === now_.t.x &&
+            was.t.y === now_.t.y &&
+            was.q.every((v, i) => v === now_.q[i]);
+        return still ? "idle" : "shown";
     };
 
     const releaseCapture = (event: PointerEvent) => {
@@ -618,11 +758,29 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
         }
     };
 
+    /**
+     * A hand leaves from the pose the eye last saw, or from its newest real
+     * sample where that is further on: a lead shown ahead of the newest sample
+     * is never taken back (no snap at release), and a sample the frames had
+     * not yet reached is never dropped.
+     */
+    const leaveFrom = () => {
+        if (!anchored()) return;
+        const ahead = [...pointers.values()].some((h) => h.shownT > (h.trail[h.trail.length - 1]?.t ?? Infinity));
+        if (ahead && shown) {
+            state.q = [shown.q[0], shown.q[1], shown.q[2], shown.q[3]];
+            state.t = { ...shown.t };
+            state.s = shown.s;
+            return;
+        }
+        const h = pointers.get(mode === "pair" ? pairIds[0] : [...pointers.keys()][0]!);
+        if (h) applyMode(h);
+    };
+
     const onPointerUp = (event: PointerEvent) => {
-        const up = pointers.get(event.pointerId);
-        // The pose last shown may be a prediction: land the real one first.
-        if (up && mode !== "drive" && mode !== "idle" && !pending) applyMode(up);
-        if (!pointers.delete(event.pointerId)) return;
+        if (!pointers.has(event.pointerId)) return;
+        leaveFrom();
+        pointers.delete(event.pointerId);
         releaseCapture(event);
         if (pointers.size > 0) {
             // 2 → 1 re-anchors the arcball at the finger that stayed (no jump).
@@ -639,7 +797,10 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
         buttonPan = false;
         isActive.value = false;
         samples.length = 0;
-        onGestureEnd({ omega, pan, zoom, at });
+        shown = null;
+        // The coast is clocked at the release's own time, so its first frame
+        // already travels (never a frame at elapsed 0).
+        onGestureEnd({ omega, pan, zoom, at, time: event.timeStamp });
     };
 
     const onPointerCancel = (event: PointerEvent) => {
@@ -651,6 +812,7 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
         buttonPan = false;
         isActive.value = false;
         samples.length = 0;
+        shown = null;
         onGestureEnd({ omega: [0, 0, 0] });
     };
 
@@ -938,7 +1100,7 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
         handleWheel,
         flushWheel,
         dropOwed,
-        unwindPrediction,
+        handAt,
         panBy,
         zoomBy,
         pose,

@@ -181,3 +181,90 @@ export function readHand(raw, geom) {
         poses: P,
     };
 }
+
+/** The rotation vector (rad) that takes attitude a to b (b·a⁻¹), in the
+ *  frame the attitudes are written in. */
+export const rotvec = (a, b) => {
+    const [ax, ay, az, aw] = a;
+    const [bx, by, bz, bw] = b;
+    let w = bw * aw + bx * ax + by * ay + bz * az;
+    let x = -bw * ax + bx * aw - by * az + bz * ay;
+    let y = -bw * ay + by * aw - bz * ax + bx * az;
+    let z = -bw * az + bz * aw - bx * ay + by * ax;
+    if (w < 0) [w, x, y, z] = [-w, -x, -y, -z];
+    const s = Math.hypot(x, y, z);
+    if (s < 1e-15) return [0, 0, 0];
+    const angle = 2 * Math.atan2(s, w);
+    return [(x / s) * angle, (y / s) * angle, (z / s) * angle];
+};
+export const dot3 = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+export const unit3 = (a) => {
+    const n = Math.hypot(a[0], a[1], a[2]) || 1;
+    return [a[0] / n, a[1] / n, a[2] / n];
+};
+
+/** Each frame's turn from the frame before (rotation vectors; the first is 0). */
+export const incrementsOf = (P) => P.map((p, i) => (i === 0 ? [0, 0, 0] : rotvec(P[i - 1].q, p.q)));
+
+/**
+ * Dispatch a mouse hand: `steps` = [{ type: "down"|"move"|"up", u, wait }],
+ * each point in R units about the die's centre, as Chromium mouse events
+ * (CDP Input.dispatchMouseEvent) at their own pace.
+ */
+export async function mouseReplay(cdp, offset, geom, steps) {
+    for (const s of steps) {
+        const x = offset.x + geom.c.x + s.u.x * geom.R;
+        const y = offset.y + geom.c.y + s.u.y * geom.R;
+        const type = s.type === "down" ? "mousePressed" : s.type === "up" ? "mouseReleased" : "mouseMoved";
+        await cdp.send("Input.dispatchMouseEvent", {
+            type,
+            x,
+            y,
+            button: "left",
+            buttons: s.type === "up" ? 0 : 1,
+            clickCount: s.type === "move" ? 0 : 1,
+        });
+        if (s.wait) await sleep(s.wait);
+    }
+}
+
+/** A mouse drag from u0 to u1 in n moves `every` ms apart; released moving, or after a hold. */
+export const mouseStroke = (u0, u1, n, every = 8, hold = 0) => {
+    const steps = [{ type: "down", u: u0, wait: every }];
+    for (let i = 1; i <= n; i++)
+        steps.push({ type: "move", u: { x: u0.x + ((u1.x - u0.x) * i) / n, y: u0.y + ((u1.y - u0.y) * i) / n }, wait: every });
+    if (hold) steps[steps.length - 1].wait = hold;
+    steps.push({ type: "up", u: u1 });
+    return steps;
+};
+
+/** The same recorded hand as SEQUENCE, by mouse. */
+export const MOUSE_SEQUENCE = {
+    drag: mouseStroke({ x: -0.45, y: 0.1 }, { x: 0.35, y: -0.15 }, 30, 8, 160),
+    flick: mouseStroke({ x: -0.4, y: 0.05 }, { x: 0.45, y: -0.05 }, 12, 8, 0),
+};
+
+/**
+ * Every frame of a recorded hand, read for the hand-at-the-frame gates:
+ *  · `frames`: each frame's pose, its turn from the frame before (rotation
+ *    vector), the time of the write it shows, and the newest move delivered
+ *    before that write;
+ *  · `down`, `up`, `lastMove`: the hand's events.
+ */
+export function framesOf(raw) {
+    const P = posesOf(raw);
+    const inc = incrementsOf(P);
+    const moves = raw.ev.filter((e) => e.type === "pointermove");
+    const down = raw.ev.find((e) => e.type === "pointerdown");
+    const up = [...raw.ev].reverse().find((e) => e.type === "pointerup");
+    const frames = P.map((p, i) => {
+        const until = i + 1 < raw.f.length ? raw.f[i + 1].t : Infinity;
+        const writes = raw.m.filter((m) => m.t >= raw.f[i].t && m.t < until);
+        const wt = writes.length ? writes[writes.length - 1].t : null;
+        const at = wt ?? raw.f[i].t;
+        const newest = [...moves].reverse().find((e) => e.d <= at) ?? null;
+        return { ...p, inc: inc[i], wt, newest, dt: i + 1 < raw.f.length ? raw.f[i + 1].t - raw.f[i].t : null };
+    });
+    const lastMove = moves.filter((e) => !up || e.d <= up.d).pop() ?? null;
+    return { frames, down, up, lastMove, moves };
+}

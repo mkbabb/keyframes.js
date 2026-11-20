@@ -5,6 +5,7 @@ import type { DecaySample } from "@mkbabb/keyframes.js";
 import { norm3 } from "../arcball";
 import type { Vec3 } from "../arcball";
 import type { Vec2 } from "../similarity";
+import { frameSeconds } from "../follower";
 import { axisMotion, clampTo, excess, sampleAxis } from "../bounds";
 import type { AxisMotion, Interval } from "../bounds";
 import {
@@ -31,6 +32,8 @@ export interface OrbitRelease {
     zoom?: number;
     /** Where a zoom coast is anchored (client px): the release's centroid. */
     at?: Vec2;
+    /** The release's own time (ms, its event's `timeStamp`): the coast's clock. */
+    time?: number;
 }
 
 /** The pose the pan and zoom channels move, and where they may rest. */
@@ -64,6 +67,8 @@ interface Channel {
     sample: (t: number) => DecaySample;
     rate0: number;
     startedAt: number;
+    /** Started at its input's own time, not yet re-read on a frame's clock. */
+    fresh: boolean;
     travelled: number;
     /** A glide's exact travel; −1 for a release coast (no landing). */
     total: number;
@@ -106,6 +111,8 @@ export function useOrbitalInertia(params: OrbitalInertiaParams) {
     let zoomAt: Vec2 = { x: 0, y: 0 };
     /** Motions made without a clock (t0 −1) take their first frame's. */
     let pending = false;
+    /** Motions made at their input's own time (s) re-read it on their first frame. */
+    let poseFresh: number | null = null;
 
     const coasting = () => rotation !== null || panX !== null || panY !== null || zoom !== null;
 
@@ -119,6 +126,7 @@ export function useOrbitalInertia(params: OrbitalInertiaParams) {
         sample: decay({ velocity: rate0, friction: k }),
         rate0,
         startedAt: now,
+        fresh: now >= 0,
         travelled: 0,
         total,
         k,
@@ -127,7 +135,11 @@ export function useOrbitalInertia(params: OrbitalInertiaParams) {
 
     /** Advance one channel to `now`; false once it rests. */
     const step = (c: Channel, now: number): boolean => {
+        // K3: a channel clocked by its input starts at that input's time, so
+        // its first frame already travels (frameSeconds: never elapsed 0).
         if (c.startedAt < 0) c.startedAt = now;
+        else if (c.fresh) c.startedAt = now - 1000 * frameSeconds(c.startedAt, now);
+        c.fresh = false;
         const s = c.sample((now - c.startedAt) / 1000);
         const resting =
             c.total >= 0 ? s.velocity < COAST_REST_FRACTION * c.rate0 : s.velocity < Math.max(COAST_REST_RATE, 1e-9);
@@ -159,6 +171,11 @@ const ZOOM_MIN_RATE = 0.03;
             stamp(panY, t);
             stamp(zoom, t);
             pending = false;
+        }
+        if (poseFresh !== null) {
+            const t0 = t - frameSeconds(poseFresh * 1000, t * 1000);
+            for (const m of [panX, panY, zoom]) if (m && m.t0 === poseFresh) m.t0 = t0;
+            poseFresh = null;
         }
         if (zoom) {
             const z = sampleAxis(zoom, t, pose.read().z, POSE_FRICTION, COAST_REST_FRACTION, ZOOM_REST, SPRING_K);
@@ -218,6 +235,7 @@ const ZOOM_MIN_RATE = 0.03;
         panX = axisMotion(p.c.x, pan.x, p.x, t0);
         panY = axisMotion(p.c.y, pan.y, p.y, t0);
         pending = t0 < 0;
+        poseFresh = t0 < 0 ? null : t0;
     };
 
     /**
