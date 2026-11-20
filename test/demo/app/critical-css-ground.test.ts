@@ -37,6 +37,6 @@ describe("the first paint's ground (KF-31)", () => {
     });
 
     it("lets the app arrive by a fade, inside a layer", () => {
-        expect(critical()).toMatch(/@layer base \{\s*#app\[data-arriving\] \{ animation: kf-app-arrive [^}]+\}\s*@keyframes kf-app-arrive \{ from \{ opacity: 0; \} \}\s*\}/);
+        expect(critical()).toMatch(/@layer base \{\s*#app\[data-arriving\] \{ animation: kf-app-arrive [^}]+\}\s*@keyframes kf-app-arrive \{ from \{ opacity: 0\.01; \} \}\s*\}/);
     });
 });

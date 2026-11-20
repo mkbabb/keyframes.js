@@ -40,6 +40,10 @@ export function criticalCSSPlugin(): Plugin {
                 // it in one frame when it mounts. The app then arrives by a
                 // short fade (`data-arriving`, set by main.ts at mount and
                 // cleared when the fade ends), never whole in one frame.
+                // The fade starts at 0.01, not 0: content first painted under
+                // a true zero is not reported as the first contentful paint
+                // when nothing repaints after the fade (the cube), so the page
+                // reported no FCP or LCP. 0.01 reads as nothing.
                 const criticalCSS = `
 @layer properties, theme, base, components, utilities;
 :root {
@@ -71,7 +75,7 @@ export function criticalCSSPlugin(): Plugin {
 }
 @layer base {
     #app[data-arriving] { animation: kf-app-arrive var(--duration-normal, 0.3s) var(--ease-out, ease-out) both; }
-    @keyframes kf-app-arrive { from { opacity: 0; } }
+    @keyframes kf-app-arrive { from { opacity: 0.01; } }
 }
 html, body {
     background-color: var(--background);
