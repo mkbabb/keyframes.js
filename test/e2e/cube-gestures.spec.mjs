@@ -36,8 +36,7 @@ test.afterAll(async () => {
     await server?.close();
 });
 
-const embedUrl = () =>
-    REMOTE ? `${base}/embed/#/cube?skin=daraksha&scheme=light` : `${base}/embed/index.html#/cube?skin=daraksha&scheme=light`;
+const embedUrl = () => (REMOTE ? `${base}/embed/#/cube?${HOST_SLICE}` : `${base}/embed/index.html#/cube?${HOST_SLICE}`);
 
 /** The orbit's pose off its container's transform: the pan (px), the
  *  attitude as a unit quaternion, the scale. */
@@ -208,7 +207,7 @@ test.describe("touch", () => {
 // ── Apple-like direct manipulation (owner 2026-11-15) ──────────────────
 // Real Chromium multi-touch (CDP Input.dispatchTouchEvent), read per frame
 // by a recorder in the die's document (cube-hand.mjs).
-import { SEQUENCE, geometry, installRecorder, owed, parsePose, readHand, replay, sleep, stroke, turn } from "./cube-hand.mjs";
+import { HOST_SLICE, SEQUENCE, geometry, installRecorder, owed, parsePose, readHand, replay, sleep, stroke, turn } from "./cube-hand.mjs";
 
 const demoUrl = () => (REMOTE ? `${base}/#/cube` : `${base}/index.html#/cube`);
 

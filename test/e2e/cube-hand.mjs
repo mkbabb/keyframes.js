@@ -122,6 +122,9 @@ export const owed = (geom, p0, p) =>
 
 export const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
+/** The slice as its host frames it: the host's skin, the light scheme. */
+export const HOST_SLICE = "skin=daraksha&scheme=light";
+
 /**
  * Dispatch a hand: `steps` = [{ type, pts: [{ u: {x, y}, id }], wait }], each
  * point in R units about the die's centre, as Chromium touches at page px

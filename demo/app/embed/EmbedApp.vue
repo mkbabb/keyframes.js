@@ -10,6 +10,7 @@
                 :skin="route.skin"
                 :host-transport="route.transport === 'host'"
                 :fill="route.stage === 'fill'"
+                :faces="route.faces"
                 @transport="(playing) => bridge.post({ type: 'transport', playing })"
             />
         </main>

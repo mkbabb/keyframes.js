@@ -5,7 +5,7 @@
  * `set-playing` / `reset`), so the slice draws no transport of its own.
  * `stage=fill`: the stage fills the frame the host gives it (the host sizes the
  * frame; the slice reports no size), so a zoomed die meets the frame's edge,
- * not a square inside it.
+ * not a square inside it. `faces=pips`: the cube is marked as a die.
  */
 import type { CubeSkin } from "@state";
 import type { Scheme } from "./bridge";
@@ -18,6 +18,8 @@ export interface SliceRoute {
     transport: "own" | "host";
     /** The stage's box: a square on the frame's width ("square"), or the frame. */
     stage: "square" | "fill";
+    /** The cube's faces: numerals (the default) or a die's pips. */
+    faces: "numerals" | "pips";
 }
 
 const SKINS: readonly CubeSkin[] = ["crayon", "ppmycota", "daraksha"];
@@ -35,5 +37,6 @@ export function parseSliceRoute(hash: string): SliceRoute {
         scheme: scheme === "dark" || scheme === "light" ? scheme : null,
         transport: query.get("transport") === "host" ? "host" : "own",
         stage: query.get("stage") === "fill" ? "fill" : "square",
+        faces: query.get("faces") === "pips" ? "pips" : "numerals",
     };
 }

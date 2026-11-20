@@ -32,6 +32,7 @@
                 ref="cubeTargetRef"
                 :is-playing="playing"
                 :skin="skin"
+                :faces="faces ?? 'numerals'"
                 scroll-owner="stage"
                 bare
                 v-model:transform="transformSliderValues"
@@ -64,7 +65,13 @@ import { PLAY_FILL } from "../../components/instrument/transport/playFill";
 import type { GesturePhase, TransportLook } from "./bridge";
 import { isSpaceActivationTarget } from "../../components/instrument/transport/composables/useControlsKeyboardShortcuts";
 
-const props = defineProps<{ skin: CubeSkin; hostTransport?: boolean; fill?: boolean }>();
+const props = defineProps<{
+    skin: CubeSkin;
+    hostTransport?: boolean;
+    fill?: boolean;
+    /** The cube's faces (`faces=pips`: a die). */
+    faces?: "numerals" | "pips";
+}>();
 const skin = computed(() => props.skin);
 
 const emit = defineEmits<{ (e: "transport", playing: boolean): void }>();
