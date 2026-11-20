@@ -58,9 +58,10 @@
                                  again from where the hand left it, so the rail no
                                  longer seats itself from the gesture. -->
                             <!-- The scrub takes glass's larger touch band
-                                 (coarse pointers only; the look is unchanged). -->
+                                 (`.scrub-rail`, playback-idiom.css; coarse
+                                 pointers only; the look is unchanged). -->
                             <Slider
-                                class="py-2 [--slider-touch-target:2.75rem]"
+                                class="py-2 scrub-rail"
                                 variant="scrubber"
                                 aria-label="Scrub animation timeline"
                                 :value-text="() => timeReadout"
@@ -124,12 +125,12 @@
                                  its verb in the pane's own vocabulary: the
                                  direction table's "reverse" glyph (the two-way
                                  arrow there means "alternate"), flipped under
-                                 Reverse, at the eye disc's 1rem glyph rung. -->
+                                 Reverse, at the eye disc's glyph rung (half the disc). -->
                             <component
                                 :is="OPTION_GLYPHS.reverse"
                                 :data-glyph-motion="OPTION_GLYPH_MOTION.reverse"
                                 :class="[
-                                    'size-4 transition-transform duration-fast',
+                                    'playback-glyph transition-transform duration-fast',
                                     userReversed ? 'scale-x-[-1]' : '',
                                 ]"
                                 aria-hidden="true"

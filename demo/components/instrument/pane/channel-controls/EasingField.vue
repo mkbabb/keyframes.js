@@ -107,7 +107,7 @@
                     aria-label="Edit easing curve"
                     @click.stop="(e: MouseEvent) => emit('edit', e.currentTarget as HTMLElement)"
                 >
-                    <Pencil class="icon-sm" />
+                    <Pencil class="size-[calc(var(--control-h-md)*0.44)]" />
                 </button>
             </TooltipTrigger>
             <TooltipContent>Edit easing curve</TooltipContent>

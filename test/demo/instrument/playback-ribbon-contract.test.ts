@@ -924,3 +924,17 @@ describe("C2-KF-02 — the Reverse disc speaks the pane's direction vocabulary",
         expect(others).not.toContain(drawn);
     });
 });
+
+describe("the playback row's glyphs take half their seat", () => {
+    it("Reverse and the preview eye draw at half the disc (--ball-size / 2), the one rung", async () => {
+        const seat = mountRibbon({ preview: "shown" });
+        await settle();
+        const reverse = seat.root.querySelector("button[aria-pressed] svg");
+        expect(reverse?.getAttribute("class") ?? "").toMatch(/\bplayback-glyph\b/);
+        const css = await import("node:fs").then((fs) =>
+            fs.readFileSync(`${process.cwd()}/demo/styles/playback-idiom.css`, "utf8"),
+        );
+        // The rung the glyph class reads: half the seat it sits in.
+        expect(css).toMatch(/\.playback-glyph,\s*\.preview-eye__glyph\s*\{\s*width:\s*calc\(var\(--ball-size[^)]*\)\s*\/\s*2\);\s*height:\s*calc\(var\(--ball-size[^)]*\)\s*\/\s*2\);/);
+    });
+});
