@@ -32,9 +32,17 @@ export const installRecorder = (frame) =>
             (e) => H.on && H.ev.push({ type: "wheel", t: e.timeStamp, d: performance.now(), dx: e.deltaX, dy: e.deltaY, mode: e.deltaMode, shift: e.shiftKey }),
             { capture: true, passive: true },
         );
+        // A message posted from rAF is handled after the frame's style, layout
+        // and paint: its time ends the frame's main-thread work.
+        const ch = new MessageChannel();
+        ch.port1.onmessage = (e) => {
+            const f = H.f[e.data];
+            if (f) f.done = performance.now();
+        };
         const loop = (t) => {
             if (!H.on) return;
             H.f.push({ t, sy: scrollY, vs: visualViewport?.scale ?? 1 });
+            ch.port2.postMessage(H.f.length - 1);
             requestAnimationFrame(loop);
         };
         H.start = () => {
@@ -155,7 +163,7 @@ export const SEQUENCE = {
 };
 
 /** Per-frame poses of a recording, and the rotation increments between them. */
-export const posesOf = (raw) => raw.f.map((x) => ({ ...parsePose(x.tf), time: x.t, sy: x.sy, vs: x.vs }));
+export const posesOf = (raw) => raw.f.map((x) => ({ ...parsePose(x.tf), time: x.t, sy: x.sy, vs: x.vs, done: x.done }));
 
 /** What one hand did to the die: the drag's turn, and the flick's carry and coast. */
 export function readHand(raw, geom) {

@@ -35,6 +35,7 @@
                     :frame="orbitFrame"
                     :bounds="orbitBounds"
                     @pressed-keys="onPressedKeys"
+                    @frame="(pose) => emit('orbitFrame', pose)"
                 >
                     <div
                         ref="rollEl"
@@ -179,6 +180,11 @@ const props = withDefaults(
 );
 
 const transform = defineModel<TransformState>("transform", { required: true });
+
+const emit = defineEmits<{
+    /** The orbit's pan (px) and zoom, every frame they change and at rest. */
+    (e: "orbitFrame", pose: { t: { x: number; y: number }; s: number }): void;
+}>();
 
 const cubeEl = useTemplateRef<HTMLElement>("cubeEl");
 const graphEl = useTemplateRef<HTMLElement>("graphEl");

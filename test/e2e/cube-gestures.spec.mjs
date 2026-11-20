@@ -1032,3 +1032,75 @@ test.describe("the follower: notches, Shift + scroll, trackpad streams", () => {
         });
     }
 });
+
+// ── G7: frames (one write per frame) ─────────────────────────────────────
+// A throw and its coast, a trackpad stream (desk) and a two-finger pinch
+// (phone, the CPU throttled 4×), every frame kept: no frame over its budget,
+// and each frame's main-thread work (rAF to the end of its paint) no more
+// than the note measured before the cure (median 2.4 ms on the desk, 5.7 ms
+// at 4×).
+test.describe("G7 frames", () => {
+    test.setTimeout(120_000);
+    let browser = null;
+    test.beforeAll(async () => {
+        browser = await chromium.launch({ args: GPU });
+    });
+    test.afterAll(async () => {
+        await browser?.close();
+    });
+    const BUDGET = { mouse: { frame: 17, work: 2.4 }, touch: { frame: 34, work: 5.7 } };
+    const pinch = () => {
+        const n = 30;
+        const steps = [{ type: "touchStart", pts: [{ u: { x: -0.3, y: 0 }, id: 1 }, { u: { x: 0.3, y: 0 }, id: 2 }], wait: 8 }];
+        for (let i = 1; i <= n; i++) {
+            const r = 0.3 + (0.3 * i) / n;
+            steps.push({ type: "touchMove", pts: [{ u: { x: -r, y: 0.002 * i }, id: 1 }, { u: { x: r, y: 0.002 * i }, id: 2 }], wait: 8 });
+        }
+        steps.push({ type: "touchEnd", pts: [] });
+        return steps;
+    };
+    for (const where of ["slice", "demo"])
+        for (const input of ["mouse", "touch"]) {
+            test(`${where} · ${input === "mouse" ? "desk" : "phone at 4×"}: no frame over budget, main-thread work no more than before`, async () => {
+                const ctx = await browser.newContext(HAND_CELLS[input]);
+                try {
+                    const page = await ctx.newPage();
+                    const c = await cell(page, where === "slice" ? embedUrl() : demoUrl());
+                    if (input === "touch") await c.cdp.send("Emulation.setCPUThrottlingRate", { rate: 4 });
+                    const runs = [];
+                    runs.push(await recordBy(c, input, "flick", 1800));
+                    if (input === "mouse") {
+                        await c.cdp.send("Input.dispatchMouseEvent", { type: "mouseMoved", x: c.geom.c.x, y: c.geom.c.y, button: "none" });
+                        await page.evaluate(() => window.__hand.start());
+                        await sleep(40);
+                        await wheelStream(c.cdp, c.geom.c, STREAMS.trackpad120);
+                        await sleep(600);
+                        runs.push(await page.evaluate(() => window.__hand.stop()));
+                    } else {
+                        await page.evaluate(() => window.__hand.start());
+                        await sleep(40);
+                        await replay(c.cdp, c.offset, c.geom, pinch());
+                        await sleep(900);
+                        runs.push(await page.evaluate(() => window.__hand.stop()));
+                    }
+                    const intervals = [];
+                    const work = [];
+                    for (const raw of runs) {
+                        for (let i = 1; i < raw.f.length; i++) intervals.push(raw.f[i].t - raw.f[i - 1].t);
+                        for (const f of raw.f) if (f.done) work.push(f.done - f.t);
+                    }
+                    work.sort((a, b) => a - b);
+                    const median = work[work.length >> 1] ?? 0;
+                    test.info().annotations.push({
+                        type: "G7",
+                        description: `${where}/${input}: ${intervals.length} frames, longest ${Math.max(...intervals).toFixed(1)} ms; work median ${median.toFixed(2)} ms, max ${(work[work.length - 1] ?? 0).toFixed(2)} ms`,
+                    });
+                    expect(intervals.length).toBeGreaterThan(100);
+                    expect(Math.max(...intervals)).toBeLessThanOrEqual(BUDGET[input].frame);
+                    expect(median).toBeLessThanOrEqual(BUDGET[input].work);
+                } finally {
+                    await ctx.close();
+                }
+            });
+        }
+});

@@ -35,6 +35,7 @@ import {
     type Quat,
 } from "../../../demo/scenes/cube/orbital-drag/arcball";
 import { attitudeQuat } from "../../../demo/scenes/cube/graphAttitude";
+import { shown } from "./orbit-shown";
 
 const G = attitudeQuat();
 const CENTRE = { x: 200, y: 300 };
@@ -99,36 +100,36 @@ const ptr = (type: string, id: number, x: number, y: number, t: number, pointerT
     return e;
 };
 
-const q = (m: TransformState): Quat => (m.quaternion as Quat | undefined) ?? [0, 0, 0, 1];
+const q = (m: { quaternion?: unknown }): Quat => (m.quaternion as Quat | undefined) ?? [0, 0, 0, 1];
 /** The screen-frame rotation the orbit authored since identity (G·Q·G⁻¹). */
 const screenRotation = (qq: Quat) => quatToAxisAngle(quatMultiply(quatMultiply(G, qq), quatConjugate(G)));
 
 describe("M1 — a two-finger scroll orbits the die and never pans it", () => {
     it("Δy +30 px pitches 2·30/R about the screen's horizontal; the die stays put; the page does not scroll", async () => {
-        const { w, model, el } = await mountOrbit();
+        const { w, el } = await mountOrbit();
         const e = wheel({ deltaY: 30 });
         el.dispatchEvent(e);
         // The scroll is laid onto the frames by the follower (WHEEL_SMOOTH_MS).
         await flush(40);
         expect(e.defaultPrevented).toBe(true);
-        const r = screenRotation(q(model.value));
+        const r = screenRotation(q(shown(el)));
         expect(r.angle).toBeCloseTo((2 * 30) / R, 9);
         expect(Math.abs(r.axis[0])).toBeCloseTo(1, 9);
-        expect(model.value.translate.x).toBe(0);
-        expect(model.value.translate.y).toBe(0);
-        expect(model.value.scale.x).toBe(1);
+        expect(shown(el).translate.x).toBe(0);
+        expect(shown(el).translate.y).toBe(0);
+        expect(shown(el).scale.x).toBe(1);
         w.unmount();
     });
 
     it("Δx −40 px yaws 2·40/R about the screen's vertical; the die stays put", async () => {
-        const { w, model, el } = await mountOrbit();
+        const { w, el } = await mountOrbit();
         el.dispatchEvent(wheel({ deltaX: -40, deltaY: 0 }));
         await flush(40);
-        const r = screenRotation(q(model.value));
+        const r = screenRotation(q(shown(el)));
         expect(r.angle).toBeCloseTo((2 * 40) / R, 9);
         expect(Math.abs(r.axis[1])).toBeCloseTo(1, 9);
-        expect(model.value.translate.x).toBe(0);
-        expect(model.value.translate.y).toBe(0);
+        expect(shown(el).translate.x).toBe(0);
+        expect(shown(el).translate.y).toBe(0);
         w.unmount();
     });
 
@@ -136,21 +137,21 @@ describe("M1 — a two-finger scroll orbits the die and never pans it", () => {
         // A one-finger drag upward by 30 px turns the die the same way as a
         // scroll whose content moves up by 30 px (Δy = +30 under natural scrolling).
         const turnByWheel = async () => {
-            const { w, model, el } = await mountOrbit();
+            const { w, el } = await mountOrbit();
             el.dispatchEvent(wheel({ deltaY: 30 }));
             await flush(40);
-            const out = q(model.value);
+            const out = q(shown(el));
             w.unmount();
             return out;
         };
         const turnByDrag = async () => {
-            const { w, model, el } = await mountOrbit();
+            const { w, el } = await mountOrbit();
             el.dispatchEvent(ptr("pointerdown", 1, CENTRE.x, CENTRE.y, 0));
             document.dispatchEvent(ptr("pointermove", 1, CENTRE.x, CENTRE.y - 30, 8));
             await flush();
             document.dispatchEvent(ptr("pointerup", 1, CENTRE.x, CENTRE.y - 30, 300));
             await flush();
-            const out = q(model.value);
+            const out = q(shown(el));
             w.unmount();
             return out;
         };
@@ -160,7 +161,7 @@ describe("M1 — a two-finger scroll orbits the die and never pans it", () => {
     });
 
     it("a trackpad's stream, momentum tail included, is laid onto the frames: it sums, nothing coasts after, nothing pans", async () => {
-        const { w, model, el } = await mountOrbit();
+        const { w, el } = await mountOrbit();
         // A flick: the hand's ramp, then the OS's own momentum bleeding out.
         const stream = [2, 5, 9, 14, 12, 9, 6, 4, 2, 1, 1];
         let t = 0;
@@ -169,12 +170,12 @@ describe("M1 — a two-finger scroll orbits the die and never pans it", () => {
             await flush();
         }
         await flush(40);
-        const after = q(model.value);
+        const after = q(shown(el));
         expect(screenRotation(after).angle).toBeCloseTo((2 * stream.reduce((a, b) => a + b)) / R, 9);
         await flush(30);
-        expect(quatAngleBetween(q(model.value), after)).toBe(0);
-        expect(model.value.translate.x).toBe(0);
-        expect(model.value.translate.y).toBe(0);
+        expect(quatAngleBetween(q(shown(el)), after)).toBe(0);
+        expect(shown(el).translate.x).toBe(0);
+        expect(shown(el).translate.y).toBe(0);
         w.unmount();
     });
 });
@@ -189,36 +190,36 @@ describe("M2 — a mouse wheel notch orbits too, glided out", () => {
     });
 
     it("a LINE-mode notch (3 lines = 48 px) glides to 2·48/R about the screen's horizontal and pans nothing", async () => {
-        const { w, model, el } = await mountOrbit();
+        const { w, el } = await mountOrbit();
         el.dispatchEvent(wheel({ deltaY: 3, deltaMode: 1 }));
         await nextTick();
-        expect(screenRotation(q(model.value)).angle).toBe(0);
+        expect(screenRotation(q(shown(el))).angle).toBe(0);
         let frames = 0;
-        let prev = q(model.value);
+        let prev = q(shown(el));
         for (let i = 0; i < 90; i++) {
             await flush();
-            if (quatAngleBetween(q(model.value), prev) > 0) frames++;
-            prev = q(model.value);
+            if (quatAngleBetween(q(shown(el)), prev) > 0) frames++;
+            prev = q(shown(el));
         }
         expect(frames).toBeGreaterThanOrEqual(12);
-        const r = screenRotation(q(model.value));
+        const r = screenRotation(q(shown(el)));
         expect(r.angle).toBeCloseTo((2 * 48) / R, 9);
         expect(Math.abs(r.axis[0])).toBeCloseTo(1, 9);
-        expect(model.value.translate.y).toBe(0);
+        expect(shown(el).translate.y).toBe(0);
         w.unmount();
     });
 
     it("under reduced motion a notch's glide is shortened, never cut", async () => {
         reduce = true;
-        const { w, model, el } = await mountOrbit();
+        const { w, el } = await mountOrbit();
         el.dispatchEvent(wheel({ deltaY: 100 }));
         await nextTick();
         // Nothing jumps in the event's own task.
-        expect(screenRotation(q(model.value)).angle).toBe(0);
+        expect(screenRotation(q(shown(el))).angle).toBe(0);
         const angles: number[] = [];
         for (let i = 0; i < 30; i++) {
             await flush();
-            angles.push(screenRotation(q(model.value)).angle);
+            angles.push(screenRotation(q(shown(el))).angle);
         }
         // More than one frame of travel, and resting well inside the full glide's ~30 frames.
         expect(angles.filter((a, i) => i > 0 && a > angles[i - 1]!).length).toBeGreaterThanOrEqual(3);
@@ -231,56 +232,56 @@ describe("M2 — a mouse wheel notch orbits too, glided out", () => {
 
 describe("M3 — Shift + scroll pans, banded, and springs back", () => {
     it("Shift + Δy +30 moves the die's centre −30 (content follows the fingers) and turns nothing", async () => {
-        const { w, model, el } = await mountOrbit();
+        const { w, el } = await mountOrbit();
         el.dispatchEvent(wheel({ deltaY: 30, shiftKey: true }));
         // The pan follows its target (FOLLOW_OMEGA) and lands it exactly.
         await flush(40);
-        expect(model.value.translate.y).toBeCloseTo(-30, 9);
-        expect(model.value.translate.x).toBe(0);
-        expect(screenRotation(q(model.value)).angle).toBe(0);
+        expect(shown(el).translate.y).toBeCloseTo(-30, 9);
+        expect(shown(el).translate.x).toBe(0);
+        expect(screenRotation(q(shown(el))).angle).toBe(0);
         w.unmount();
     });
 
     it("a Shift-scroll past the bound rides the band, then springs back onto it", async () => {
         const TOP = STAGE.top + (0.5 - PAN_OUT) * SIDE * SILHOUETTE;
-        const { w, model, el } = await mountOrbit();
+        const { w, el } = await mountOrbit();
         for (let i = 0; i < 5; i++) {
             el.dispatchEvent(wheel({ deltaY: 200, shiftKey: true }));
             await flush();
         }
         // The pan's follower lands the stream; then the band lets go.
         await flush(40);
-        expect(CENTRE.y + model.value.translate.y).toBeLessThan(TOP);
+        expect(CENTRE.y + shown(el).translate.y).toBeLessThan(TOP);
         await new Promise((r) => setTimeout(r, WHEEL_LIVE_MS + 20));
         const ys: number[] = [];
         for (let i = 0; i < 120; i++) {
             await flush();
-            ys.push(CENTRE.y + model.value.translate.y);
+            ys.push(CENTRE.y + shown(el).translate.y);
         }
         // Eased home: monotone, more than one frame, landing exactly.
         for (let i = 1; i < ys.length; i++) expect(ys[i]!).toBeGreaterThanOrEqual(ys[i - 1]! - 1e-9);
         expect(new Set(ys.map((y) => y.toFixed(3))).size).toBeGreaterThan(5);
         expect(ys.at(-1)).toBe(TOP);
-        expect(screenRotation(q(model.value)).angle).toBe(0);
+        expect(screenRotation(q(shown(el))).angle).toBe(0);
         w.unmount();
     });
 });
 
 describe("M4 — the pinch zooms at the cursor", () => {
     it("Ctrl + Δy −15 (Chromium's pinch) zooms e^0.15 and turns nothing", async () => {
-        const { w, model, el } = await mountOrbit();
+        const { w, el } = await mountOrbit();
         el.dispatchEvent(wheel({ deltaY: -15, ctrlKey: true }));
         // The zoom is laid onto the frames by the follower (WHEEL_SMOOTH_MS).
         await flush(40);
-        expect(Math.abs(model.value.scale.x - Math.exp(0.15))).toBeLessThan(1e-9);
-        expect(screenRotation(q(model.value)).angle).toBe(0);
+        expect(Math.abs(shown(el).scale.x - Math.exp(0.15))).toBeLessThan(1e-9);
+        expect(screenRotation(q(shown(el))).angle).toBe(0);
         w.unmount();
     });
 });
 
 describe("M5 — mouse buttons: left orbits, middle and right pan", () => {
     const dragWith = async (button: number) => {
-        const { w, model, el } = await mountOrbit();
+        const { w, el } = await mountOrbit();
         el.dispatchEvent(ptr("pointerdown", 1, CENTRE.x, CENTRE.y, 0, "mouse", button));
         // Inside the bound (the centre's right bound is 374 − ½·160·2 = 214).
         document.dispatchEvent(ptr("pointermove", 1, CENTRE.x + 6, CENTRE.y + 3, 8, "mouse", button));
@@ -288,7 +289,7 @@ describe("M5 — mouse buttons: left orbits, middle and right pan", () => {
         await flush();
         document.dispatchEvent(ptr("pointerup", 1, CENTRE.x + 12, CENTRE.y + 6, 300, "mouse", button));
         await flush();
-        const out = { t: { ...model.value.translate }, angle: screenRotation(q(model.value)).angle };
+        const out = { t: { ...shown(el).translate }, angle: screenRotation(q(shown(el))).angle };
         w.unmount();
         return out;
     };
@@ -322,7 +323,7 @@ describe("M5 — mouse buttons: left orbits, middle and right pan", () => {
 
 describe("M6 — touch: one finger orbits; two fingers pan, pinch and twist in one gesture", () => {
     it("a pair that spreads 2×, twists 30° and whose centroid moves (+30, +20) does all three at once", async () => {
-        const { w, model, el } = await mountOrbit();
+        const { w, el } = await mountOrbit();
         const a0 = { x: 170, y: 300 };
         const b0 = { x: 230, y: 300 };
         let t = 0;
@@ -342,15 +343,15 @@ describe("M6 — touch: one finger orbits; two fingers pan, pinch and twist in o
             if (i % 2 === 0) await flush();
         }
         await flush();
-        expect(Math.abs(model.value.scale.x - 2)).toBeLessThan(0.02);
-        const r = screenRotation(q(model.value));
+        expect(Math.abs(shown(el).scale.x - 2)).toBeLessThan(0.02);
+        const r = screenRotation(q(shown(el)));
         // Each channel sits behind its soft dead zone (similarity.ts), paid
         // back as the gesture grows: 30° lands 30 − 4²/30 ≈ 29.5°.
         expect(Math.abs(r.angle * DEG - 30)).toBeLessThan(1);
         expect(Math.abs(r.axis[2])).toBeCloseTo(1, 6);
         // The centroid started on the die's centre, so the die's centre rides it.
-        expect(Math.abs(model.value.translate.x - 30)).toBeLessThan(1.5);
-        expect(Math.abs(model.value.translate.y - 20)).toBeLessThan(1.5);
+        expect(Math.abs(shown(el).translate.x - 30)).toBeLessThan(1.5);
+        expect(Math.abs(shown(el).translate.y - 20)).toBeLessThan(1.5);
         document.dispatchEvent(ptr("pointerup", 1, 0, 0, t + 400, "touch"));
         document.dispatchEvent(ptr("pointerup", 2, 0, 0, t + 400, "touch"));
         w.unmount();

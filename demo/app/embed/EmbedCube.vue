@@ -7,8 +7,9 @@
          a pinch or Ctrl-wheel zooms, Safari's twist rolls; a drag around the
          die off it rolls it), so no gesture over it scrolls the host. The
          stage is the orbit's bound: no more than a quarter of the die leaves
-         it, and a die thrown past springs back. The paper and its axes ride the orbit's pan and zoom,
-         so panning reads as moving across paper. The die keeps its face
+         it, and a die thrown past springs back. The paper and its axes are one
+         sheet that rides the orbit's pan and zoom (one transform a frame), so
+         panning reads as moving across paper. The die keeps its face
          numerals, as in the app; the axis-lock lines stay the app's. Under
          `transport=host` the host carries Play / Pause and Reset in its own
          dock (the bridge's set-playing / reset), so no transport is drawn
@@ -19,12 +20,13 @@
             :class="{ 'embed-cube-stage--fill': fill }"
             data-orbit-stage
             :data-skin="skin"
-            :style="paperVars"
         >
-            <div class="embed-cube-paper grid-background" aria-hidden="true"></div>
-            <div class="embed-cube-axes" aria-hidden="true">
-                <div class="embed-cube-axis stage-field-x"></div>
-                <div class="embed-cube-axis stage-field-y"></div>
+            <div class="embed-cube-ground" aria-hidden="true">
+                <div ref="sheetEl" class="embed-cube-sheet">
+                    <div class="embed-cube-paper grid-background"></div>
+                    <div class="embed-cube-axis stage-field-x"></div>
+                    <div class="embed-cube-axis stage-field-y"></div>
+                </div>
             </div>
             <CubeTarget
                 ref="cubeTargetRef"
@@ -33,6 +35,7 @@
                 scroll-owner="stage"
                 bare
                 v-model:transform="transformSliderValues"
+                @orbit-frame="moveSheet"
             />
         </div>
         <TransportDock
@@ -121,16 +124,15 @@ const releaseSpace = registerShortcut(
     { label: "Play / Pause", group: "Playback" },
 );
 
-// The paper's origin is the die's projected centre: the stage's centre plus
-// the orbit's screen pan, ruled at the orbit's zoom.
-const paperVars = computed(() => {
-    const { translate, scale } = transformSliderValues.value;
-    return {
-        "--paper-x": `${translate.x}px`,
-        "--paper-y": `${translate.y}px`,
-        "--paper-zoom": String(scale.x),
-    };
-});
+// The sheet's centre is the die's projected centre: the stage's centre plus
+// the orbit's screen pan, magnified by the orbit's zoom. One transform a
+// frame on one layer (no custom property on the stage, which restyled the
+// whole subtree and repainted the paper every frame).
+const sheetEl = useTemplateRef<HTMLElement>("sheetEl");
+const moveSheet = ({ t, s }: { t: { x: number; y: number }; s: number }) => {
+    const el = sheetEl.value;
+    if (el) el.style.transform = `translate(${t.x}px, ${t.y}px) scale(${s})`;
+};
 
 onMounted(() => {
     const target = cubeTargetRef.value;
@@ -205,33 +207,39 @@ defineExpose({ setPlaying, reset, relayGesture, transportLook });
     --graph-ink: light-dark(oklch(39% 0.1 356), oklch(90% 0.055 18));
 }
 
-.embed-cube-paper,
-.embed-cube-axes {
+/* The ground: the stage's own box, fading into the host's at the rim. It
+   stays put; the sheet inside it moves. */
+.embed-cube-ground {
     position: absolute;
     inset: 0;
+    overflow: hidden;
     pointer-events: none;
     mask-image: var(--paper-fade);
 }
 
-/* The shared graph paper (design-idioms.css), its tiles scaled by the zoom
-   and its lines struck through the die's projected centre. */
+/* THE SHEET: the paper and the coordinate frame on one layer, three stages
+   wide and tall about the stage's centre (so a pan or a zoom-out never shows
+   its edge inside the fade), moved by the orbit's one transform per frame
+   (moveSheet). */
+.embed-cube-sheet {
+    position: absolute;
+    inset: -100%;
+    display: grid;
+    place-items: center;
+    transform-origin: 50% 50%;
+}
+
+/* The shared graph paper (design-idioms.css), its lines struck through the
+   sheet's centre (150cqi: the sheet is three stages wide, the stage a size
+   container), which is the die's projected centre. */
 .embed-cube-paper {
-    --paper-origin: calc(50cqi + var(--paper-x)) calc(50cqb + var(--paper-y));
-    background-size:
-        calc(var(--graph-major) * var(--paper-zoom)) calc(var(--graph-major) * var(--paper-zoom)),
-        calc(var(--graph-major) * var(--paper-zoom)) calc(var(--graph-major) * var(--paper-zoom)),
-        calc(var(--graph-pitch) * var(--paper-zoom)) calc(var(--graph-pitch) * var(--paper-zoom)),
-        calc(var(--graph-pitch) * var(--paper-zoom)) calc(var(--graph-pitch) * var(--paper-zoom));
-    background-position: var(--paper-origin), var(--paper-origin), var(--paper-origin), var(--paper-origin);
+    position: absolute;
+    inset: 0;
+    background-position: 150cqi 150cqb, 150cqi 150cqb, 150cqi 150cqb, 150cqi 150cqb;
 }
 
 /* The coordinate frame (design-idioms.css `.stage-field-{x,y}`): quarter rules
-   whose middle pair are the axes through the die, carried with the pan and
-   scaled with the zoom. */
-.embed-cube-axes {
-    display: grid;
-    place-items: center;
-}
+   whose middle pair are the axes through the die. */
 .embed-cube-axis {
     grid-area: 1 / 1;
     inline-size: 76cqmin;
@@ -240,7 +248,6 @@ defineExpose({ setPlaying, reset, relayGesture, transportLook });
        rounds them, so no square corner shows in a rounded card (Daraksha's
        rounding census, R7). */
     border-radius: var(--radius-panel, 12px);
-    transform: translate(var(--paper-x), var(--paper-y)) scale(var(--paper-zoom));
 }
 
 /* The die takes the card (owner 2026-11-16): its side is half the stage's

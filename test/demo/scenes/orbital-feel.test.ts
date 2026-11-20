@@ -12,6 +12,7 @@ import { defaultTransformState, type TransformState } from "../../../demo/scenes
 import { quatAngleBetween, quatConjugate, quatMultiply, quatToAxisAngle, type Quat } from "../../../demo/scenes/cube/orbital-drag/arcball";
 import { attitudeQuat } from "../../../demo/scenes/cube/graphAttitude";
 import { coastTravel, MAX_COAST_RATE } from "../../../demo/scenes/cube/orbital-drag/composables/inertiaDecay";
+import { shown } from "./orbit-shown";
 
 const G = attitudeQuat();
 const CENTRE = { x: 200, y: 300 };
@@ -71,7 +72,7 @@ async function mountOrbit() {
     return { w, model, el: w.element as HTMLElement };
 }
 
-const q = (m: TransformState): Quat => (m.quaternion as Quat | undefined) ?? [0, 0, 0, 1];
+const q = (m: { quaternion?: unknown }): Quat => (m.quaternion as Quat | undefined) ?? [0, 0, 0, 1];
 const screenAngle = (qq: Quat) => quatToAxisAngle(quatMultiply(quatMultiply(G, qq), quatConjugate(G))).angle;
 
 describe("one frame loop", () => {
@@ -94,15 +95,58 @@ describe("one frame loop", () => {
     });
 });
 
+describe("one write per frame", () => {
+    it("a throw and its coast write the container's transform once a frame; the model, its emits and the render catch up once, at rest", async () => {
+        const { w, model, el } = await mountOrbit();
+        const writes: number[] = [];
+        let frameNo = 0;
+        const mo = new MutationObserver((records) => {
+            for (const r of records) if (r.attributeName === "style") writes.push(frameNo);
+        });
+        mo.observe(el, { attributes: true, attributeFilter: ["style"] });
+        const frames = w.emitted("frame")?.length ?? 0;
+        el.dispatchEvent(ptr("pointerdown", 1, 160, 300, 0));
+        for (let i = 1; i <= 8; i++) {
+            document.dispatchEvent(ptr("pointermove", 1, 160 + 10 * i, 300, 8 * i));
+            frameNo++;
+            now = 8 * i + 4;
+            await frame(0);
+        }
+        document.dispatchEvent(ptr("pointerup", 1, 240, 300, 66));
+        const rotatesAtRelease = w.emitted("rotate")?.length ?? 0;
+        let running = 0;
+        while (queue.length && running < 2000) {
+            frameNo++;
+            await frame(1000 / 120);
+            running++;
+            // While the die moves no readout is emitted.
+            if (queue.length) expect(w.emitted("rotate")?.length ?? 0).toBe(rotatesAtRelease);
+        }
+        await nextTick();
+        mo.disconnect();
+        // At most one style write in any frame.
+        const perFrame = new Map<number, number>();
+        for (const f of writes) perFrame.set(f, (perFrame.get(f) ?? 0) + 1);
+        expect(Math.max(...perFrame.values())).toBe(1);
+        expect(running).toBeGreaterThan(20);
+        // The model caught up once, at rest, with what the frames showed.
+        expect((w.emitted("rotate")?.length ?? 0) - rotatesAtRelease).toBe(1);
+        expect(quatAngleBetween(q(model.value), q(shown(el)))).toBeLessThan(1e-9);
+        // The per-frame consumer (the slice's paper) heard every frame that moved.
+        expect((w.emitted("frame")?.length ?? 0) - frames).toBeGreaterThan(20);
+        w.unmount();
+    });
+});
+
 describe("the trackpad follower", () => {
     it("events at 90 Hz under a 120 Hz frame: every frame of the stream turns the die, none stalls, and the sum lands", async () => {
-        const { w, model, el } = await mountOrbit();
+        const { w, el } = await mountOrbit();
         // 24 events of 6 px, 11.1 ms apart, against 8.33 ms frames.
         let t = 0;
         let nextEvent = 0;
         let sent = 0;
         const per: number[] = [];
-        let last = q(model.value);
+        let last = q(shown(el));
         while (sent < 24 || queue.length) {
             if (sent < 24 && t >= nextEvent) {
                 el.dispatchEvent(wheel(6, t));
@@ -111,7 +155,7 @@ describe("the trackpad follower", () => {
             }
             t += 1000 / 120;
             await frame(1000 / 120);
-            const cur = q(model.value);
+            const cur = q(shown(el));
             per.push(quatAngleBetween(cur, last));
             last = cur;
             if (per.length > 400) break;
@@ -122,29 +166,29 @@ describe("the trackpad follower", () => {
         const mean = streaming.reduce((a, b) => a + b, 0) / streaming.length;
         expect(Math.max(...streaming)).toBeLessThan(2 * mean);
         // R: the arcball radius at side 160 is 2h = 160.
-        expect(screenAngle(q(model.value))).toBeCloseTo((2 * 6 * 24) / 160, 9);
+        expect(screenAngle(q(shown(el)))).toBeCloseTo((2 * 6 * 24) / 160, 9);
         w.unmount();
     });
 });
 
 describe("the keyboard", () => {
     it("ArrowRight glides 15° about the screen's vertical (Shift: 45°), eased over frames", async () => {
-        const { w, model, el } = await mountOrbit();
+        const { w, el } = await mountOrbit();
         el.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true, cancelable: true }));
         const steps: number[] = [];
-        let last = q(model.value);
+        let last = q(shown(el));
         while (queue.length) {
             await frame();
-            const cur = q(model.value);
+            const cur = q(shown(el));
             steps.push(quatAngleBetween(cur, last));
             last = cur;
         }
-        expect((screenAngle(q(model.value)) * 180) / Math.PI).toBeCloseTo(15, 9);
+        expect((screenAngle(q(shown(el))) * 180) / Math.PI).toBeCloseTo(15, 9);
         expect(steps.filter((s) => s > 0).length).toBeGreaterThan(8);
         expect(Math.max(...steps)).toBeLessThan((15 * Math.PI) / 180 / 4);
         el.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowLeft", shiftKey: true, bubbles: true, cancelable: true }));
         while (queue.length) await frame();
-        expect((screenAngle(q(model.value)) * 180) / Math.PI).toBeCloseTo(30, 9);
+        expect((screenAngle(q(shown(el))) * 180) / Math.PI).toBeCloseTo(30, 9);
         w.unmount();
     });
 });
@@ -152,7 +196,7 @@ describe("the keyboard", () => {
 describe("the hand at full rate", () => {
     it("coalesced moves are each sampled: one event carrying 4 coalesced moves reads the same throw as 4 events", async () => {
         const throwOf = async (coalesced: boolean) => {
-            const { w, model, el } = await mountOrbit();
+            const { w, el } = await mountOrbit();
             el.dispatchEvent(ptr("pointerdown", 1, 160, 300, 0));
             const pts = [1, 2, 3, 4, 5, 6, 7, 8].map((i) => ({ x: 160 + 10 * i, y: 300, t: 4 * i }));
             const mk = (p: { x: number; y: number; t: number }) => ptr("pointermove", 1, p.x, p.y, p.t);
@@ -163,12 +207,12 @@ describe("the hand at full rate", () => {
                 }
             } else for (const p of pts) document.dispatchEvent(mk(p));
             document.dispatchEvent(ptr("pointerup", 1, 240, 300, 33));
-            const at = q(model.value);
+            const at = q(shown(el));
             // The coast is clocked at the release (K3): each throw's frames
             // run on from its own release time.
             now = 33;
             for (let i = 0; i < 4; i++) await frame();
-            const out = quatAngleBetween(q(model.value), at);
+            const out = quatAngleBetween(q(shown(el)), at);
             w.unmount();
             return out;
         };
@@ -186,12 +230,12 @@ describe("the hand at full rate", () => {
         document.dispatchEvent(ptr("pointermove", 1, 230, 300, 8));
         now = 20;
         await frame(0);
-        const real = screenAngle(q(o.model.value));
+        const real = screenAngle(q(shown(o.el)));
         o.w.unmount();
         queue = [];
 
         now = 0;
-        const { w, model, el } = await mountOrbit();
+        const { w, el } = await mountOrbit();
         el.dispatchEvent(ptr("pointerdown", 1, 200, 300, 0));
         const predicted = () => [ptr("pointermove", 1, 240, 300, 16), ptr("pointermove", 1, 260, 300, 32)];
         document.dispatchEvent(ptr("pointermove", 1, 230, 300, 8, { getPredictedEvents: predicted }));
@@ -200,7 +244,7 @@ describe("the hand at full rate", () => {
         // the way, capped at the point itself), never the 32 ms one.
         now = 20;
         await frame(0);
-        const led = screenAngle(q(model.value));
+        const led = screenAngle(q(shown(el)));
         expect(led).toBeGreaterThan(real);
         const onePx = (2 / 160) * (1 + 1e-9);
         expect(led - real).toBeLessThanOrEqual(10.5 * onePx);
@@ -209,7 +253,7 @@ describe("the hand at full rate", () => {
         let last = led;
         for (let i = 0; i < 30; i++) {
             await frame(1000 / 120);
-            const a = screenAngle(q(model.value));
+            const a = screenAngle(q(shown(el)));
             steps.push(last - a);
             last = a;
         }
@@ -222,7 +266,7 @@ describe("the hand at full rate", () => {
     });
 
     it("a mouse is never shown ahead of its newest sample, predicted or not", async () => {
-        const { w, model, el } = await mountOrbit();
+        const { w, el } = await mountOrbit();
         const mouse = (type: string, x: number, t: number, extra = {}) => {
             const e = ptr(type, 1, x, 300, t, extra);
             Object.defineProperty(e, "pointerType", { value: "mouse" });
@@ -232,18 +276,18 @@ describe("the hand at full rate", () => {
         document.dispatchEvent(mouse("pointermove", 230, 8, { getPredictedEvents: () => [mouse("pointermove", 240, 16)] }));
         now = 20;
         await frame(0);
-        const shown = screenAngle(q(model.value));
+        const held = screenAngle(q(shown(el)));
         for (let i = 0; i < 6; i++) await frame(1000 / 120);
-        expect(screenAngle(q(model.value))).toBe(shown);
+        expect(screenAngle(q(shown(el)))).toBe(held);
         document.dispatchEvent(mouse("pointerup", 230, 500));
         w.unmount();
     });
 
     it("a throw leaves from the pose shown: no step back at the release, and its first frame travels on", async () => {
-        const { w, model, el } = await mountOrbit();
+        const { w, el } = await mountOrbit();
         el.dispatchEvent(ptr("pointerdown", 1, 120, 300, 0));
         let t = 0;
-        let prev = screenAngle(q(model.value));
+        let prev = screenAngle(q(shown(el)));
         const per: number[] = [];
         for (let i = 1; i <= 10; i++) {
             t = 8 * i;
@@ -253,15 +297,15 @@ describe("the hand at full rate", () => {
             );
             now = t + 12;
             await frame(0);
-            const a = screenAngle(q(model.value));
+            const a = screenAngle(q(shown(el)));
             per.push(a - prev);
             prev = a;
         }
         document.dispatchEvent(ptr("pointerup", 1, 240, 300, t + 1));
-        const atUp = screenAngle(q(model.value));
+        const atUp = screenAngle(q(shown(el)));
         expect(atUp).toBeGreaterThanOrEqual(prev - 1e-12);
         await frame(1000 / 120);
-        const first = screenAngle(q(model.value)) - atUp;
+        const first = screenAngle(q(shown(el))) - atUp;
         expect(first).toBeGreaterThan(0);
         w.unmount();
     });
@@ -269,16 +313,16 @@ describe("the hand at full rate", () => {
 
 describe("fun", () => {
     it("a hard flick (300 px in 60 ms at R 160) coasts over a turn, capped at six turns a second", async () => {
-        const { w, model, el } = await mountOrbit();
+        const { w, el } = await mountOrbit();
         // Through the die's middle, across its whole disc and past it.
         el.dispatchEvent(ptr("pointerdown", 1, 50, 300, 0));
         for (let i = 1; i <= 12; i++) document.dispatchEvent(ptr("pointermove", 1, 50 + 25 * i, 300, 5 * i));
         document.dispatchEvent(ptr("pointerup", 1, 350, 300, 62));
         let travel = 0;
-        let last = q(model.value);
+        let last = q(shown(el));
         while (queue.length) {
             await frame();
-            const cur = q(model.value);
+            const cur = q(shown(el));
             travel += quatAngleBetween(cur, last);
             last = cur;
         }
@@ -292,7 +336,7 @@ describe("fun", () => {
 describe("reduced motion", () => {
     it("a flick does not coast; Home is a fade (opacity), never a travel", async () => {
         reduce = true;
-        const { w, model, el } = await mountOrbit();
+        const { w, el } = await mountOrbit();
         const animate = vi.fn((_k: Keyframe[], _o: KeyframeAnimationOptions) => {
             const a = { onfinish: null as null | (() => void), cancel: vi.fn() };
             return a as unknown as Animation;
@@ -302,18 +346,18 @@ describe("reduced motion", () => {
         for (let i = 1; i <= 8; i++) document.dispatchEvent(ptr("pointermove", 1, 160 + 10 * i, 300, 4 * i));
         document.dispatchEvent(ptr("pointerup", 1, 240, 300, 33));
         await frame();
-        const placed = q(model.value);
+        const placed = q(shown(el));
         for (let i = 0; i < 20; i++) await frame();
-        expect(quatAngleBetween(q(model.value), placed)).toBe(0);
+        expect(quatAngleBetween(q(shown(el)), placed)).toBe(0);
         (w.vm as unknown as { home: () => void }).home();
         expect(animate).toHaveBeenCalledTimes(1);
         expect(animate.mock.calls[0]![0]).toEqual([{ opacity: 1 }, { opacity: 0 }]);
         // The pose holds until the die has faded out, then it is home, and fades in.
         await frame();
-        expect(quatAngleBetween(q(model.value), placed)).toBe(0);
+        expect(quatAngleBetween(q(shown(el)), placed)).toBe(0);
         (animate.mock.results[0]!.value as { onfinish: () => void }).onfinish();
         await nextTick();
-        expect(screenAngle(q(model.value))).toBe(0);
+        expect(screenAngle(q(shown(el)))).toBe(0);
         expect(animate.mock.calls[1]![0]).toEqual([{ opacity: 0 }, { opacity: 1 }]);
         w.unmount();
     });
