@@ -162,10 +162,11 @@ for (const vp of [
             expect(await page.evaluate(() => history.length)).toBe(len0 + 1);
             expect(await sheetTop(page)).not.toBeNull();
 
-            // A press on the top dock moves neither the sheet nor the die.
+            // A press on the top dock moves neither the sheet nor the die. On a
+            // phone the top dock rests folded: its one seen seat is the face.
             const top0 = await sheetTop(page);
             const die0 = await dieBox(page);
-            const dock = page.locator('[data-dock-tether="top"] button').first();
+            const dock = page.locator('[data-dock-tether="top"] button:visible').first();
             await dock.tap();
             await page.waitForTimeout(900);
             expect(Math.abs((await sheetTop(page)) - top0)).toBeLessThanOrEqual(1);
