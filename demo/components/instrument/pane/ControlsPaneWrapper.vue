@@ -343,7 +343,7 @@ import {
 } from "@mkbabb/glass-ui/select";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@mkbabb/glass-ui/tooltip";
 import { SkipBack } from "@lucide/vue";
-import { createReusableTemplate, useMediaQuery } from "@vueuse/core";
+import { createReusableTemplate, useEventListener, useMediaQuery } from "@vueuse/core";
 import {
     type ComponentPublicInstance,
     computed,
@@ -699,13 +699,24 @@ const activeSnap = computed<number | null>({
 // A press on either dock (or a list one opened) never closes the sheet: the
 // Controls seat is one of them, and a press that closed the sheet on its way
 // down would reopen it on its click. A press on the stage still lowers it.
+const KEEPS_SHEET = "[data-dock-tether], [data-reka-popper-content-wrapper], [role=listbox], [role=menu]";
+// A touch's outside press is judged at its click, after the pointerup: by then
+// a press on Play has swapped its glyph, so the pressed node is out of the
+// document and can no longer say where it was. Each press is read where it
+// lands, while its target is still in place.
+const keptPresses = new WeakSet<Event>();
+useEventListener(
+    () => (isMobileLayout.value ? document : null),
+    "pointerdown",
+    (e: PointerEvent) => {
+        if (e.target instanceof Element && e.target.closest(KEEPS_SHEET)) keptPresses.add(e);
+    },
+    { capture: true, passive: true },
+);
 const onSheetOutside = (e: Event): void => {
     const original = (e as CustomEvent<{ originalEvent?: Event }>).detail?.originalEvent;
     const target = original?.target ?? e.target;
-    if (
-        target instanceof Element &&
-        target.closest("[data-dock-tether], [data-reka-popper-content-wrapper], [role=listbox], [role=menu]")
-    ) {
+    if ((original && keptPresses.has(original)) || (target instanceof Element && target.closest(KEEPS_SHEET))) {
         e.preventDefault();
     }
 };

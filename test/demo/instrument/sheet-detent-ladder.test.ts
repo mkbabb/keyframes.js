@@ -274,6 +274,41 @@ describe("the mobile sheet's detent ladder", () => {
         return calls;
     }
 
+    it("a tap on a dock seat keeps the sheet open, though the seat's glyph left the document before the tap's click", async () => {
+        // reka judges a touch's outside press at its click; Play swaps its glyph
+        // at the pointerup, so the pressed node is detached by then.
+        const { rec } = await mountAt(390, 844, "subject", true);
+        const dock = document.createElement("div");
+        dock.setAttribute("data-dock-tether", "bottom");
+        const seat = document.createElement("button");
+        const glyph = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        seat.append(glyph);
+        dock.append(seat);
+        document.body.append(dock);
+        const outside = (target: Element) => {
+            const press = new window.PointerEvent("pointerdown", { bubbles: true, cancelable: true, pointerType: "touch" });
+            target.dispatchEvent(press);
+            return press;
+        };
+        try {
+            const press = outside(glyph);
+            seat.replaceChildren(document.createElementNS("http://www.w3.org/2000/svg", "svg"));
+            const judged = new CustomEvent("dismissableLayer.pointerDownOutside", { cancelable: true, detail: { originalEvent: press } });
+            rec.attrs.onInteractOutside(judged);
+            expect(judged.defaultPrevented).toBe(true);
+            // A press on the stage still lowers it.
+            const stage = document.createElement("div");
+            document.body.append(stage);
+            const other = outside(stage);
+            const judgedStage = new CustomEvent("dismissableLayer.pointerDownOutside", { cancelable: true, detail: { originalEvent: other } });
+            rec.attrs.onInteractOutside(judgedStage);
+            expect(judgedStage.defaultPrevented).toBe(false);
+            stage.remove();
+        } finally {
+            dock.remove();
+        }
+    });
+
     it("an upright phone's opened sheet leads with Reset and the channel select (the dock leaves them out at rest)", async () => {
         const calls = await mountTwoChannels(390, 844);
         const sheet = document.querySelector('[data-stub="SheetContent"]')!;
