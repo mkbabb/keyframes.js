@@ -116,8 +116,7 @@
                         <div class="param-field">
                             <!-- The 250 ms wait is for a passing hover only: a
                                  mouse press on the word opens it at once. -->
-                            <Popover
-                                trigger="hover"
+                            <Popover trigger="hover"
                                 :open-delay="250"
                                 :open="openTerm === p.key"
                                 @update:open="(v: boolean) => onTermOpen(p.key, v)"
