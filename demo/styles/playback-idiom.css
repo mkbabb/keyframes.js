@@ -131,8 +131,8 @@
 .preview-eye__glyph {
     grid-area: 1 / 1;
     transition:
-        opacity 420ms var(--preview-ease),
-        transform 420ms var(--preview-ease);
+        opacity var(--duration-normal, 300ms) var(--preview-ease),
+        transform var(--duration-normal, 300ms) var(--preview-ease);
 }
 [data-preview="shown"] .preview-eye__glyphs [data-glyph="eye-off"],
 [data-preview="hidden"] .preview-eye__glyphs [data-glyph="eye"] {

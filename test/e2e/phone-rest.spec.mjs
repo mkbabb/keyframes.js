@@ -200,3 +200,36 @@ test.describe("upright phone 390x844: the die and the folded dock", () => {
         expect(Math.abs(plate.w - plate.h)).toBeLessThanOrEqual(1);
     });
 });
+
+test.describe("desk 1440: the site's own motions read as done within the band", () => {
+    test.use({ viewport: { width: 1440, height: 900 } });
+
+    test("Sequence's lanes land by about 300 ms (the stagger is short), none removed", async ({ page }) => {
+        await page.goto(at("/"));
+        await page.waitForTimeout(1200);
+        // Collect the lane entries as they start.
+        await page.evaluate(() => {
+            window.__lanes = [];
+            const seen = new Set();
+            const tick = () => {
+                for (const a of document.getAnimations()) {
+                    const t = a.effect?.target;
+                    if (!(t instanceof Element) || !t.classList.contains("seq-row") || seen.has(a)) continue;
+                    seen.add(a);
+                    const k = a.effect.getTiming();
+                    window.__lanes.push({ delay: Number(k.delay), duration: Number(k.duration) });
+                }
+                if (performance.now() < 20_000) requestAnimationFrame(tick);
+            };
+            requestAnimationFrame(tick);
+        });
+        await page.evaluate(() => (location.hash = "#/sequence"));
+        await page.waitForSelector(".seq-row", { timeout: 30_000 });
+        await page.waitForTimeout(1500);
+        const lanes = await page.evaluate(() => window.__lanes);
+        expect(lanes.length).toBeGreaterThan(0);
+        for (const l of lanes) expect(l.duration).toBeLessThanOrEqual(300);
+        const lastEnd = Math.max(...lanes.map((l) => l.delay + l.duration));
+        expect(lastEnd).toBeLessThanOrEqual(400);
+    });
+});
