@@ -33,7 +33,10 @@
              pointer-events-auto child), so the band outside it never
              swallows a press meant for the stage beneath. -->
         <div class="pointer-events-auto dock-vt-group">
-            <GlassDock ref="dockRef" collapse="closed" :fit-content="true">
+            <!-- An upright phone's transport is the page's one bottom dock: it
+                 never folds (Play, the scene's choices and Controls stay in
+                 view), and its Controls seat opens the sheet. -->
+            <GlassDock ref="dockRef" :collapse="phoneDock ? false : 'closed'" :fit-content="true">
                 <!-- Expanded state: full controls.
                      T.C1 — THE TRANSPORT RECUT (rail-core | section | nav on glass-ui
                      DockSeparator). PLAY LEADS as rail-core, drawn FIRST from the
@@ -194,6 +197,27 @@
                         <TooltipContent>Reset animation</TooltipContent>
                     </Tooltip>
                     </template>
+
+                    <!-- The phone's Controls seat: it opens and closes the
+                         controls sheet (on a desk the pane is a rail, opened
+                         from the top dock). -->
+                    <template v-if="phoneDock && controlsSeat">
+                        <DockSeparator />
+                        <Tooltip>
+                            <TooltipTrigger as-child>
+                                <DockControl
+                                    shape="icon"
+                                    aria-label="Controls"
+                                    :aria-expanded="storedControls.isControlsPanelOpen === true"
+                                    data-controls-seat
+                                    @click="emit('toggleControls')"
+                                >
+                                    <SlidersHorizontal class="icon-lg" />
+                                </DockControl>
+                            </TooltipTrigger>
+                            <TooltipContent>Controls</TooltipContent>
+                        </Tooltip>
+                    </template>
                 </div>
 
             </GlassDock>
@@ -208,7 +232,9 @@ import {
     List,
     Pause,
     Play,
+    SlidersHorizontal,
 } from "@lucide/vue";
+import { useMediaQuery } from "@vueuse/core";
 
 import { DockControl, DockSeparator } from "@mkbabb/glass-ui/dock";
 import { DockTrigger } from "@mkbabb/glass-ui/dock-trigger";
@@ -265,7 +291,7 @@ const {
     onPlayBlur,
 } = usePlayActuation(actuatePlay);
 
-const { storedControls, isPlaying, animationNames, startScreen = false, contained = false } = defineProps<{
+const { storedControls, isPlaying, animationNames, startScreen = false, contained = false, controlsSeat = false } = defineProps<{
     storedControls: StoredAnimationGroupControlOptions;
     isPlaying: boolean;
     animationNames: string[];
@@ -273,7 +299,15 @@ const { storedControls, isPlaying, animationNames, startScreen = false, containe
     startScreen?: boolean;
     /** In its host's flow (an embed slice's foot), not fixed to the viewport. */
     contained?: boolean;
+    /** The scene has a controls pane: on an upright phone the dock offers the
+     *  seat that opens it. */
+    controlsSeat?: boolean;
 }>();
+
+/** An upright phone (under the desk's 1024 px, over a landscape phone's
+ *  500 px height): the transport is the one bottom dock and never folds. */
+const uprightPhone = useMediaQuery("(max-width: 1023px) and (min-height: 501px)");
+const phoneDock = computed(() => !contained && uprightPhone.value);
 
 if (!contained) useMenubarMeasure(menubarHostEl);
 
@@ -281,6 +315,7 @@ const emit = defineEmits<{
     (e: "togglePlay"): void;
     (e: "reset", all: boolean): void;
     (e: "selectAnimation", name: string): void;
+    (e: "toggleControls"): void;
 }>();
 
 // T.C1 / T.B5-RENDER — the channel zone: `>1 channels ⇒ select`, else ABSENT

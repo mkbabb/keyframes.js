@@ -122,6 +122,8 @@
             @toggle-play="toggleAnimationGroup"
             @reset="(all: boolean) => all ? clear() : reset()"
             @select-animation="onSelectAnimation"
+            :controls-seat="hasControlSurfaces && !hideControls"
+            @toggle-controls="onToggleControls"
         />
     </div>
 </template>
@@ -137,7 +139,7 @@ import { clamp } from "@mkbabb/value.js/math";
 import ControlsPaneWrapper from "../pane/ControlsPaneWrapper.vue";
 import TransportDock from "./TransportDock.vue";
 
-import { getStoredAnimationGroupControlOptions } from "@state";
+import { getStoredAnimationGroupControlOptions, markSheetPress } from "@state";
 import type { AnimationGroup, KeyframesAnimation } from "@mkbabb/keyframes.js";
 import { GROUP_PAINTS_KEY, type TransportChannel } from "./transportSource";
 import { useAnimationGroupActions } from "./composables/useAnimationGroupActions";
@@ -315,6 +317,14 @@ onMounted(() => {
 });
 
 const transportDockRef = useTemplateRef<InstanceType<typeof TransportDock>>("transportDockRef");
+
+/** The phone's Controls seat: a press opens the sheet (an entry in history,
+ *  so Back closes it) or closes it. */
+const onToggleControls = (): void => {
+    const open = storedControls.value.isControlsPanelOpen !== true;
+    if (open) markSheetPress();
+    storedControls.value.isControlsPanelOpen = open;
+};
 
 // ── KF-M1 — the visible-stage box V (D-2 · D-3) ─────────────────────────────
 // The phone sheet publishes its settled PEEK reserve and its OPEN lift
