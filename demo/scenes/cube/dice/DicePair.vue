@@ -1,10 +1,4 @@
 <template>
-    <!-- THE PAIR: two dice on the stage's own graph paper, laid as a table
-         seen from above at an angle (dicePhysics.ts: the model, the camera and
-         the table). A tap throws both; a flick throws them along it; a die
-         pressed is picked up and carried (it rolls in the hand) and thrown on
-         release; two fingers on a held die twist it. Space or Enter throws.
-         One frame loop, running only while something moves. -->
     <div
         ref="stageEl"
         class="dice-stage"
@@ -16,6 +10,13 @@
         @pointerdown="onDown"
         @keydown="onKey"
     >
+        <!-- THE PAIR (one root, so this comment never makes it a fragment):
+             two dice on the stage's own graph paper, laid as a table seen
+             from above at an angle (dicePhysics.ts: the model, the camera and
+             the table). A tap throws both; a flick throws them along it; a
+             die pressed is picked up and carried (it rolls in the hand) and
+             thrown on release; two fingers on a held die twist it. Space or
+             Enter throws. One frame loop, running only while something moves. -->
         <div class="dice-camera" :style="cameraVars">
             <div class="dice-table">
                 <div class="dice-floor grid-background" aria-hidden="true"></div>
@@ -354,7 +355,12 @@ function onDown(e: PointerEvent) {
     const el = stageEl.value;
     if (!el || tweens.size) return;
     pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
-    el.setPointerCapture?.(e.pointerId);
+    // A pointer the platform cannot capture (one already gone) still counts.
+    try {
+        el.setPointerCapture(e.pointerId);
+    } catch {
+        /* not capturable */
+    }
     if (pointers.size === 1) {
         el.addEventListener("pointermove", onMove);
         el.addEventListener("pointerup", onUp);
@@ -461,7 +467,7 @@ function onUp(e: PointerEvent) {
             const sp = Math.hypot(v[0], v[1]);
             const cap = 14 * s;
             const k = sp > cap ? cap / sp : 1;
-            const moving = sp > 1.5 * s;
+            const moving = sp > 0.6 * s;
             const vv: V3 = [v[0] * k, v[1] * k, moving ? 2.5 * s : 0];
             const roll = rollingSpin(vv, s);
             const r = moving ? randomSpin(4, 10, rnd) : ([0, 0, 0] as V3);
@@ -568,6 +574,9 @@ function dropIn(i: number) {
  */
 async function leave(single: StageDie | null): Promise<void> {
     if (held) held = null;
+    // An entrance still settling gives way to the leave.
+    for (const t of tweens) t.done();
+    tweens.clear();
     if (reducedMotion() || !single) return;
     const to = onTable(single);
     const s = table.side;
