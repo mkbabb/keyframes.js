@@ -13,6 +13,7 @@
                 :faces="route.faces"
                 :dice="route.dice"
                 @transport="(playing) => bridge.post({ type: 'transport', playing })"
+                @rolled="(values) => bridge.post({ type: 'rolled', values })"
             />
         </main>
     </TooltipProvider>
@@ -22,7 +23,7 @@
 import { nextTick, onMounted, onScopeDispose, useTemplateRef } from "vue";
 import { useGlobalDark } from "@mkbabb/glass-ui/dark";
 import { TooltipProvider } from "@mkbabb/glass-ui/tooltip";
-import { createEmbedBridge, type Scheme } from "./bridge";
+import { createEmbedBridge, SLICE_FEATURES, type Scheme } from "./bridge";
 import { parseSliceRoute } from "./params";
 import EmbedCube from "./EmbedCube.vue";
 
@@ -75,6 +76,9 @@ const cubeRef = useTemplateRef<InstanceType<typeof EmbedCube>>("cubeRef");
 bridge.onSetPlaying((playing) => cubeRef.value?.setPlaying(playing));
 bridge.onReset(() => cubeRef.value?.reset());
 bridge.onGesture((g) => cubeRef.value?.relayGesture(g.phase, g.scale, g.rotation, g.x, g.y));
+// The dice: one die or the pair, and the host's throw.
+bridge.onSetDice((count) => void cubeRef.value?.setDice(count));
+bridge.onThrow(() => cubeRef.value?.throwPair());
 onMounted(async () => {
     await nextTick();
     await document.fonts?.ready;
@@ -90,6 +94,8 @@ onMounted(async () => {
         height: Math.ceil(box.height),
         // The cube's own Play seat's look, for a host that carries it.
         ...(cubeRef.value ? { transport: cubeRef.value.transportLook() } : {}),
+        // What the slice can do beyond v1's first messages.
+        features: SLICE_FEATURES,
     });
     // A filled stage takes the host's box; only a square one reports its own.
     if (route.stage !== "fill") bridge.observeSize(el);

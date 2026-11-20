@@ -4,6 +4,7 @@
  */
 import { describe, expect, it, vi } from "vitest";
 import {
+    EMBED_HOSTS,
     EMBED_NS,
     EMBED_VERSION,
     createEmbedBridge,
@@ -101,6 +102,31 @@ describe("bridge", () => {
         expect(readHostMessage({ ns: EMBED_NS, v: EMBED_VERSION, type: "set-playing", playing: "yes" })).toBeNull();
         expect(readHostMessage({ ns: EMBED_NS, v: EMBED_VERSION, type: "reset" })).toEqual({ type: "reset" });
         expect(readHostMessage({ ns: EMBED_NS, v: 2, type: "reset" })).toBeNull();
+        expect(readHostMessage({ ns: EMBED_NS, v: EMBED_VERSION, type: "set-dice", count: 2 })).toEqual({ type: "set-dice", count: 2 });
+        expect(readHostMessage({ ns: EMBED_NS, v: EMBED_VERSION, type: "set-dice", count: 3 })).toBeNull();
+        expect(readHostMessage({ ns: EMBED_NS, v: EMBED_VERSION, type: "throw" })).toEqual({ type: "throw" });
+    });
+    it("takes set-dice and throw only from the host origin and the parent window, and posts what the dice rolled", () => {
+        const host = EMBED_HOSTS[0]!;
+        const f = framed({ hostname: "keyframes.babb.dev", ancestor: host });
+        const bridge = createEmbedBridge(f.win);
+        const counts: number[] = [];
+        let throws = 0;
+        bridge.onSetDice((n) => counts.push(n));
+        bridge.onThrow(() => throws++);
+        const dice = { ns: EMBED_NS, v: EMBED_VERSION, type: "set-dice", count: 2 };
+        const toss = { ns: EMBED_NS, v: EMBED_VERSION, type: "throw" };
+        f.dispatch({ origin: "https://evil.example", source: f.parent as unknown as Window, data: dice });
+        f.dispatch({ origin: host, source: {} as Window, data: toss });
+        f.dispatch({ origin: host, source: f.parent as unknown as Window, data: dice });
+        f.dispatch({ origin: host, source: f.parent as unknown as Window, data: toss });
+        expect(counts).toEqual([2]);
+        expect(throws).toBe(1);
+        bridge.post({ type: "rolled", values: [3, 5] });
+        expect(f.parent.postMessage).toHaveBeenCalledWith({ ns: EMBED_NS, v: EMBED_VERSION, type: "rolled", values: [3, 5] }, host);
+        bridge.dispose();
+        f.dispatch({ origin: host, source: f.parent as unknown as Window, data: toss });
+        expect(throws).toBe(1);
     });
     it("takes reset only from the host origin and the parent window", () => {
         const f = framed({ hostname: "keyframes.babb.dev", ancestor: "https://daraksha.babb.dev" });

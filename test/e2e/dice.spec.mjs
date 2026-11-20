@@ -383,3 +383,103 @@ test.describe("pair", () => {
             }
         });
 });
+
+// ── The embed: a host frames the slice and speaks babb-embed v1 ─────────
+// The host is a loopback page of the test's own (the slice accepts a loopback
+// host when it is served from loopback): it frames the slice, records what
+// the slice posts and posts set-dice and throw to it.
+const framedHost = async (page, query) => {
+    const slice = new URL(sliceUrl(query));
+    const hostUrl = `http://localhost:${slice.port}/__host.html`;
+    await page.route(hostUrl, (route) =>
+        route.fulfill({
+            contentType: "text/html",
+            body: `<!doctype html><meta charset="utf-8"><style>html,body{margin:0}iframe{border:0;width:600px;height:600px}</style>
+<iframe id="f" src="${slice.href}"></iframe>
+<script>
+  window.got = [];
+  addEventListener("message", (e) => { if (e.data && e.data.ns === "babb-embed") got.push(e.data); });
+  window.send = (m) => document.getElementById("f").contentWindow.postMessage({ ns: "babb-embed", v: 1, ...m }, "${slice.origin}");
+</script>`,
+        }),
+    );
+    await page.goto(hostUrl);
+    await page.waitForFunction(() => window.got.some((m) => m.type === "ready"), null, { timeout: 20_000 });
+    const frame = page.frames().find((f) => f.url().startsWith(slice.origin + slice.pathname));
+    return frame;
+};
+
+test.describe("embed", () => {
+    test.setTimeout(120_000);
+    test.skip(!!REMOTE, "the framed host is a loopback page");
+
+    test("ready lists the dice; set-dice swaps one die and the pair with no reload; throw rolls and the slice posts the values it says", async () => {
+        const ctx = await browser.newContext({ viewport: { width: 700, height: 700 } });
+        try {
+            const page = await ctx.newPage();
+            const frame = await framedHost(page, `${HOST_SLICE}&faces=pips&transport=host`);
+            const ready = await page.evaluate(() => window.got.find((m) => m.type === "ready"));
+            expect(ready.features).toEqual(["pips", "dice"]);
+            const origin = await frame.evaluate(() => performance.timeOrigin);
+            // 1 → 2: the pair takes the stage; the one die is gone from it.
+            await page.evaluate(() => window.send({ type: "set-dice", count: 2 }));
+            await frame.waitForFunction(() => document.querySelectorAll(".dice-stage .die").length === 2, null, { timeout: 10_000 });
+            await frame.waitForFunction(() => getComputedStyle(document.querySelector(".cube-stage")).display === "none", null, { timeout: 5_000 });
+            await sleep(1500);
+            // The host's throw: both come to rest, and rolled matches what is said.
+            await page.evaluate(() => (window.got = []));
+            await page.evaluate(() => window.send({ type: "throw" }));
+            await page.waitForFunction(() => window.got.some((m) => m.type === "rolled"), null, { timeout: 8_000 });
+            const rolled = await page.evaluate(() => window.got.filter((m) => m.type === "rolled"));
+            expect(rolled).toHaveLength(1);
+            expect(rolled[0].values).toHaveLength(2);
+            for (const v of rolled[0].values) expect(v >= 1 && v <= 6).toBe(true);
+            const said = await frame.locator(".dice-stage [aria-live]").textContent();
+            expect(said).toBe(`${rolled[0].values[0]} and ${rolled[0].values[1]}`);
+            // 2 → 1: the die returns to its orbit, the pair leaves.
+            await page.evaluate(() => window.send({ type: "set-dice", count: 1 }));
+            await frame.waitForFunction(() => document.querySelectorAll(".dice-stage").length === 0, null, { timeout: 10_000 });
+            expect(await frame.evaluate(() => getComputedStyle(document.querySelector(".cube-stage")).display)).not.toBe("none");
+            expect(await frame.locator(".cube .die-pip").count()).toBe(21);
+            // No reload throughout.
+            expect(await frame.evaluate(() => performance.timeOrigin)).toBe(origin);
+        } finally {
+            await ctx.close();
+        }
+    });
+
+    test("under reduced motion the swap is one fade, and still no reload", async () => {
+        const ctx = await browser.newContext({ viewport: { width: 700, height: 700 }, reducedMotion: "reduce" });
+        try {
+            const page = await ctx.newPage();
+            const frame = await framedHost(page, `${HOST_SLICE}&faces=pips&transport=host`);
+            const origin = await frame.evaluate(() => performance.timeOrigin);
+            await page.evaluate(() => window.send({ type: "set-dice", count: 2 }));
+            await frame.waitForFunction(() => document.querySelectorAll(".dice-stage .die").length === 2, null, { timeout: 10_000 });
+            await sleep(400);
+            await page.evaluate(() => window.send({ type: "set-dice", count: 1 }));
+            await frame.waitForFunction(() => document.querySelectorAll(".dice-stage").length === 0, null, { timeout: 10_000 });
+            expect(await frame.evaluate(() => performance.timeOrigin)).toBe(origin);
+        } finally {
+            await ctx.close();
+        }
+    });
+});
+
+test.describe("scene", () => {
+    test.setTimeout(60_000);
+    test("the Cube scene takes faces=pips and dice=2 by URL", async () => {
+        const ctx = await browser.newContext({ viewport: { width: 1200, height: 900 } });
+        try {
+            const page = await ctx.newPage();
+            const at = (hash) => (REMOTE ? `${base}/#${hash}` : `${base}/index.html#${hash}`);
+            await page.goto(at("/cube?faces=pips&play=0"));
+            await page.waitForFunction(() => document.querySelectorAll(".cube .die-pip").length === 21, null, { timeout: 20_000 });
+            await page.goto(at("/cube?faces=pips&dice=2&play=0"));
+            await page.reload();
+            await page.waitForFunction(() => document.querySelectorAll(".dice-stage .die").length === 2, null, { timeout: 20_000 });
+        } finally {
+            await ctx.close();
+        }
+    });
+});
