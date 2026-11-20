@@ -74,6 +74,22 @@ const defaultStoredAnimationGroupControlOptions: StoredAnimationGroupControlOpti
 export const controlsOpenAtRest = (): boolean =>
     typeof window === "undefined" || window.innerWidth >= 1024;
 
+/**
+ * A press on the phone's Controls seat: the sheet it opens is a surface the
+ * person asked for, so the URL's next `sheet` write pushes an entry (Back then
+ * closes it). Any other change of the sheet (a side effect) replaces. The
+ * mark is good for one write, and only briefly.
+ */
+let sheetPressAt = -Infinity;
+export const markSheetPress = (): void => {
+    sheetPressAt = Date.now();
+};
+export const takeSheetPress = (): boolean => {
+    const fresh = Date.now() - sheetPressAt < 1000;
+    sheetPressAt = -Infinity;
+    return fresh;
+};
+
 const seedOptions = (): StoredAnimationGroupControlOptions => ({
     ...structuredClone(defaultStoredAnimationGroupControlOptions),
     isControlsPanelOpen: controlsOpenAtRest(),

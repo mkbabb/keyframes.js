@@ -117,6 +117,64 @@ describe("urlState", () => {
         expect(t.speed.value).toBe(1.4);
     });
 
+    it("a state a press opened pushes; putting it back goes Back; the same state as a side effect replaces", async () => {
+        vi.useFakeTimers();
+        const router = makeRouter();
+        const open = ref(false);
+        let pressed = false;
+        const keys: UrlKey<any>[] = [
+            {
+                key: "o",
+                get: () => open.value,
+                set: (v: boolean) => (open.value = v),
+                fallback: () => false,
+                ...flag,
+                history: () => {
+                    const p = pressed;
+                    pressed = false;
+                    return p ? "push" : "replace";
+                },
+                backOnUndo: true,
+            },
+        ];
+        const App = defineComponent({
+            setup() {
+                useUrlState(keys, { scene: () => "a" });
+                return () => h("div");
+            },
+        });
+        await router.push("/");
+        await router.push("/a");
+        mount(App, { global: { plugins: [router] } });
+        await settle(300);
+        const pushes = vi.spyOn(router, "push");
+        const backs = vi.spyOn(router, "back");
+
+        // A press opens it: one entry.
+        pressed = true;
+        open.value = true;
+        await settle(0);
+        expect(pushes).toHaveBeenCalledTimes(1);
+        expect(router.currentRoute.value.query).toEqual({ o: "1" });
+
+        // Closing it goes Back to the entry before (no entry written over).
+        open.value = false;
+        await settle(300);
+        expect(backs).toHaveBeenCalledTimes(1);
+        expect(router.currentRoute.value.fullPath).toBe("/a");
+        expect(open.value).toBe(false);
+
+        // Opened as a side effect (no press): a replace, and closing replaces.
+        open.value = true;
+        await settle(300);
+        expect(pushes).toHaveBeenCalledTimes(1);
+        expect(router.currentRoute.value.query).toEqual({ o: "1" });
+        open.value = false;
+        await settle(300);
+        expect(backs).toHaveBeenCalledTimes(1);
+        expect(router.currentRoute.value.fullPath).toBe("/a");
+    });
+
     it("a key does not bind, read or write while another scene is the route's", async () => {
         vi.useFakeTimers();
         const t = harness("/b");

@@ -1,5 +1,5 @@
 import type { ComputedRef } from "vue";
-import { controlsOpenAtRest } from "@state/controlOptionsStore";
+import { controlsOpenAtRest, takeSheetPress } from "@state/controlOptionsStore";
 import { defaultControlSurfaceFor, surfacesFor } from "@state/controlSurfaces";
 import {
     HOME_SCENE_ID,
@@ -15,7 +15,8 @@ import { flag, oneOf, useUrlState, type UrlKey } from "./urlState";
  *   anim   the selected channel (default: the scene's first)       push
  *   pane   the controls surface (default: the scene's own)          push
  *   sheet  the controls pane / phone sheet; absent = the layout's
- *          rest (open on a desk, closed on a phone)                 replace
+ *          rest (open on a desk, closed on a phone)       replace; a press
+ *          on the phone's Controls seat pushes, and closing goes Back
  *   ball   0 = the ball preview hidden                              replace
  *   tl     1 = the timeline expanded                                replace
  *   play   1 / 0 = playing / paused, where it differs from the
@@ -80,7 +81,10 @@ export function useSceneUrlState(opts: {
             },
             fallback: controlsOpenAtRest,
             ...flag,
-            history: "replace",
+            // Opened by a press on the Controls seat: a push (and closing it
+            // again goes Back); any other change of the sheet replaces.
+            history: () => (takeSheetPress() ? "push" : "replace"),
+            backOnUndo: true,
         } satisfies UrlKey<boolean>,
         {
             key: "ball",
