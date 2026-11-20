@@ -199,10 +199,14 @@ const installPairRecorder = (page) =>
                 t,
                 tf: dice.map((d) => d.style.transform),
                 bodies: dice.every((d) => getComputedStyle(d).visibility === "visible" && [...d.querySelectorAll(".die-face")].every((f) => getComputedStyle(f).opacity === "1")),
+                // Read only when asked (a style read per face would weigh on the frames gate).
+                pips: R.fades ? [...document.querySelectorAll(".dice-stage .die-pips")].map((p) => Number(getComputedStyle(p).opacity)) : [],
+                fills: R.fades ? [...document.querySelectorAll(".dice-stage .die-fill")].map((p) => getComputedStyle(p).backgroundColor) : [],
             });
             requestAnimationFrame(loop);
         };
-        R.start = () => {
+        R.start = ({ fades = false } = {}) => {
+            R.fades = fades;
             R.f = [];
             R.hand = [];
             R.on = true;
@@ -210,7 +214,7 @@ const installPairRecorder = (page) =>
         };
         R.stop = () => {
             R.on = false;
-            return R.f.map(({ t, tf, bodies }) => ({ t, tf, bodies }));
+            return R.f.map(({ t, tf, bodies, pips, fills }) => ({ t, tf, bodies, pips, fills }));
         };
     });
 
@@ -364,7 +368,7 @@ test.describe("pair", () => {
         }
     });
 
-    test("reduced motion: a throw relabels the dice where they lie; no die transform changes and every frame shows both bodies", async () => {
+    test("reduced motion: a throw relabels the dice where they lie; no die transform changes, every frame shows both bodies, and the pips and colours fade (never a cut)", async () => {
         const ctx = await browser.newContext({ ...desk, reducedMotion: "reduce" });
         try {
             const page = await ctx.newPage();
@@ -372,13 +376,22 @@ test.describe("pair", () => {
             await pairReady(page);
             const tap = await clearOfDice(page);
             const pipsBefore = await page.evaluate(() => [...document.querySelectorAll(".dice-stage .die")].map((d) => d.querySelectorAll(".die-pip").length));
-            await page.evaluate(() => window.__pair.start());
+            await page.evaluate(() => window.__pair.start({ fades: true }));
             await page.mouse.click(tap.x, tap.y);
             await sleep(900);
             const frames = await page.evaluate(() => window.__pair.stop());
             expect(frames.length).toBeGreaterThan(20);
             expect(new Set(frames.map((f) => f.tf.join())).size).toBe(1);
             expect(frames.every((f) => f.bodies)).toBe(true);
+            // The pips fade out and back over several frames each; a face
+            // whose colour changes passes through colours between.
+            const pipsBetween = frames.filter((f) => f.pips.some((o) => o > 0.05 && o < 0.95)).length;
+            const [first, last] = [frames[0], frames.at(-1)];
+            const changed = first.fills.map((c, i) => c !== last.fills[i]);
+            const colourBetween = frames.filter((f) => f.fills.some((c, i) => changed[i] && c !== first.fills[i] && c !== last.fills[i])).length;
+            console.log(`reduced throw: ${pipsBetween} frames with the pips between, ${changed.filter(Boolean).length} faces recoloured, ${colourBetween} frames between colours`);
+            expect(pipsBetween).toBeGreaterThanOrEqual(8);
+            if (changed.some(Boolean)) expect(colourBetween).toBeGreaterThanOrEqual(6);
             const said = await page.locator(".dice-stage [aria-live]").textContent();
             expect(said).toMatch(/^[1-6] and [1-6]$/);
             // Still a true die each: 21 pips.
@@ -486,7 +499,7 @@ test.describe("embed", () => {
         }
     });
 
-    test("under reduced motion the swap is one fade, and still no reload", async () => {
+    test("under reduced motion the swap is one cross-fade: every frame shows a body, none is cut, and no reload", async () => {
         const ctx = await browser.newContext({ viewport: { width: 700, height: 700 }, reducedMotion: "reduce" });
         let closeHost = async () => {};
         try {
@@ -494,11 +507,35 @@ test.describe("embed", () => {
             const { frame, close } = await framedHost(page, `${HOST_SLICE}&faces=pips&transport=host`);
             closeHost = close;
             const origin = await frame.evaluate(() => performance.timeOrigin);
-            await page.evaluate(() => window.send({ type: "set-dice", count: 2 }));
-            await frame.waitForFunction(() => document.querySelectorAll(".dice-stage .die").length === 2, null, { timeout: 10_000 });
-            await sleep(400);
-            await page.evaluate(() => window.send({ type: "set-dice", count: 1 }));
-            await frame.waitForFunction(() => document.querySelectorAll(".dice-stage").length === 0, null, { timeout: 10_000 });
+            // Each frame: the shown opacity of the one die's stage and of the pair's.
+            await frame.evaluate(() => {
+                const R = (window.__op = []);
+                const shown = (el) => (!el || getComputedStyle(el).display === "none" ? 0 : Number(getComputedStyle(el).opacity));
+                const loop = () => {
+                    R.push([shown(document.querySelector(".cube-stage")), shown(document.querySelector(".dice-stage"))]);
+                    if (R.length < 3000) requestAnimationFrame(loop);
+                };
+                requestAnimationFrame(loop);
+            });
+            const swap = async (count, done) => {
+                const from = await frame.evaluate(() => window.__op.length);
+                await page.evaluate((count) => window.send({ type: "set-dice", count }), count);
+                await frame.waitForFunction(done, null, { timeout: 10_000 });
+                await sleep(400);
+                return frame.evaluate((from) => window.__op.slice(from), from);
+            };
+            const fades = (op) => ({
+                blank: op.filter(([a, b]) => a + b < 0.9).length,
+                between: op.filter(([a, b]) => [a, b].some((o) => o > 0.05 && o < 0.95)).length,
+            });
+            const to2 = fades(await swap(2, () => document.querySelectorAll(".dice-stage .die").length === 2 && getComputedStyle(document.querySelector(".cube-stage")).display === "none"));
+            const to1 = fades(await swap(1, () => document.querySelectorAll(".dice-stage").length === 0));
+            console.log(`reduced swap: 1 to 2 ${JSON.stringify(to2)}, 2 to 1 ${JSON.stringify(to1)}`);
+            for (const f of [to2, to1]) {
+                expect(f.blank).toBe(0);
+                // A fade, not a cut: the 200 ms cross-fade spans several frames.
+                expect(f.between).toBeGreaterThanOrEqual(6);
+            }
             expect(await frame.evaluate(() => performance.timeOrigin)).toBe(origin);
         } finally {
             await ctx.close();

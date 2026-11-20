@@ -45,7 +45,7 @@
                                 color: valueInk(labels[i - 1]![f.side]),
                             }"
                         >
-                            <DiePips :value="labels[i - 1]![f.side]" :class="{ 'die-pips--out': pipsOut }" />
+                            <DiePips :value="labels[i - 1]![f.side]" />
                         </div>
                     </div>
                 </div>
@@ -56,7 +56,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, shallowReactive, shallowRef, useTemplateRef } from "vue";
+import { computed, nextTick, onBeforeUnmount, shallowReactive, shallowRef, useTemplateRef } from "vue";
 import { useResizeObserver } from "@vueuse/core";
 import { SpringProgress } from "@mkbabb/keyframes.js";
 import type { CubeSkin } from "@state";
@@ -278,30 +278,45 @@ function landed() {
 // ── Throws ───────────────────────────────────────────────────────────
 /** Reduced motion's throw: the dice keep their place and their attitude;
  *  each is relabelled by the turn of its marks that brings the rolled value
- *  up, so it is still a true die. The pips go out (120 ms), the face colours
- *  cross over (200 ms), the pips come back (160 ms). Nothing moves and
- *  nothing vanishes. */
-const pipsOut = shallowRef(false);
+ *  up, so it is still a true die. The pips fade out (120 ms), the face colours
+ *  cross over (200 ms) as the pips fade back (160 ms after 40). Nothing moves
+ *  and nothing vanishes. The fades are Web Animations: a reduced-motion reset
+ *  that zeroes every CSS transition (the design system has one) would turn
+ *  them into cuts, and a fade is the motion reduced motion keeps. */
+const fadeRun = (el: Element, keyframes: Keyframe[], options: KeyframeAnimationOptions) =>
+    typeof el.animate === "function" ? el.animate(keyframes, options) : null;
+const ran = (runs: Array<Animation | null>) => Promise.all(runs.map((a) => a?.finished.catch(() => undefined)));
 let relabelling = false;
-function relabelThrow() {
+async function relabelThrow() {
     if (relabelling) return;
     relabelling = true;
     said.value = "";
-    pipsOut.value = true;
-    window.setTimeout(() => {
-        for (const d of dice) d.labels = relabelUp(d.q, d.labels, randValue());
-        labels.value = [{ ...dice[0]!.labels }, { ...dice[1]!.labels }];
-        pipsOut.value = false;
-        window.setTimeout(() => {
-            relabelling = false;
-            landed();
-        }, 200);
-    }, 120);
+    const root = stageEl.value;
+    const pips = () => [...(root?.querySelectorAll(".die-pips") ?? [])];
+    const fills = [...(root?.querySelectorAll(".die-fill") ?? [])];
+    const out = pips().map((el) => fadeRun(el, [{ opacity: 1 }, { opacity: 0 }], { duration: 120, easing: "ease-in", fill: "forwards" }));
+    await ran(out);
+    const was = fills.map((el) => getComputedStyle(el).backgroundColor);
+    for (const d of dice) d.labels = relabelUp(d.q, d.labels, randValue());
+    labels.value = [{ ...dice[0]!.labels }, { ...dice[1]!.labels }];
+    await nextTick();
+    const cross = fills.map((el, i) => {
+        const now = getComputedStyle(el).backgroundColor;
+        return now === was[i] ? null : fadeRun(el, [{ backgroundColor: was[i]! }, { backgroundColor: now }], { duration: 200, easing: "ease-in-out" });
+    });
+    const back = pips().map((el) => fadeRun(el, [{ opacity: 0 }, { opacity: 1 }], { duration: 160, delay: 40, easing: "ease-out", fill: "backwards" }));
+    for (const a of out) a?.cancel();
+    await ran([...cross, ...back]);
+    relabelling = false;
+    landed();
 }
 
 /** Throw both dice (a tap, Space or Enter), or along a flick (table px/s). */
 function throwBoth(flick?: V3) {
-    if (reducedMotion()) return relabelThrow();
+    if (reducedMotion()) {
+        void relabelThrow();
+        return;
+    }
     if (tweens.size) return;
     throwDice(dice, table, { tall: tall(), rnd, ...(flick ? { flick } : {}) });
     said.value = "";
@@ -699,13 +714,6 @@ defineExpose({ throwBoth, relay, leave, valuesUp });
     inset: -0.5px;
     border-radius: inherit;
     transition: background-color 200ms ease-in-out;
-}
-.die-fill :deep(.die-pips) {
-    transition: opacity 160ms ease-out 40ms;
-}
-.die-fill :deep(.die-pips--out) {
-    opacity: 0;
-    transition: opacity 120ms ease-in;
 }
 
 /* The core: six planes inset 4 % in the seam ink. */

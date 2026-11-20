@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, onTestFinished, vi } from "vitest";
 import { mount } from "@vue/test-utils";
 import { nextTick } from "vue";
 import DicePair from "../../../demo/scenes/cube/dice/DicePair.vue";
@@ -121,20 +121,55 @@ describe("the pair", () => {
         w.unmount();
     });
 
-    it("under reduced motion a throw relabels the dice where they lie: no transform changes, the pips cross over, the values are said", async () => {
+    it("under reduced motion a throw relabels the dice where they lie: no transform changes, the pips fade across (never a cut), the values are said", async () => {
         reduce = true;
-        vi.useFakeTimers({ toFake: ["setTimeout"] });
+        // The fades are Web Animations (a reduced-motion reset zeroes CSS
+        // transitions); each run is held until the test lets it finish.
+        const runs: Array<{ el: Element; keyframes: Keyframe[]; options: KeyframeAnimationOptions; finish: () => void; cancelled: boolean }> = [];
+        // jsdom has no Element.animate: this one stands in for the test.
+        Object.defineProperty(Element.prototype, "animate", {
+            configurable: true,
+            writable: true,
+            value(this: Element, keyframes: Keyframe[], options: KeyframeAnimationOptions) {
+                let finish = () => {};
+                const finished = new Promise<void>((r) => (finish = r));
+                const run = { el: this, keyframes, options, finish, cancelled: false };
+                runs.push(run);
+                return { finished, cancel: () => (run.cancelled = true) } as unknown as Animation;
+            },
+        });
+        onTestFinished(() => {
+            delete (Element.prototype as { animate?: unknown }).animate;
+        });
+        const settle = async () => {
+            for (let i = 0; i < 4; i++) await nextTick();
+        };
         const { w, dice, said } = await mountPair();
         await runToRest();
         const before = dice().map((d) => (d as HTMLElement).style.transform);
         (w.vm as unknown as { throwBoth: () => void }).throwBoth();
-        await nextTick();
-        expect(w.element.querySelectorAll(".die-pips--out").length).toBe(12);
-        vi.advanceTimersByTime(120);
-        await nextTick();
-        expect(w.element.querySelectorAll(".die-pips--out").length).toBe(0);
-        vi.advanceTimersByTime(200);
-        await nextTick();
+        await settle();
+        // The pips fade out, every face's, together, before any label changes.
+        const out = runs.filter((r) => r.el.classList.contains("die-pips"));
+        expect(out).toHaveLength(12);
+        for (const r of out) {
+            expect(r.keyframes).toEqual([{ opacity: 1 }, { opacity: 0 }]);
+            expect(r.options.duration).toBe(120);
+        }
+        expect(w.emitted("rolled")).toBeUndefined();
+        for (const r of out) r.finish();
+        await settle();
+        // They fade back once the labels have turned; the out-fades are dropped.
+        const back = runs.slice(out.length).filter((r) => r.el.classList.contains("die-pips"));
+        expect(back).toHaveLength(12);
+        for (const r of back) {
+            expect(r.keyframes).toEqual([{ opacity: 0 }, { opacity: 1 }]);
+            expect(r.options.fill).toBe("backwards");
+        }
+        expect(out.every((r) => r.cancelled)).toBe(true);
+        expect(w.emitted("rolled")).toBeUndefined();
+        for (const r of runs.slice(out.length)) r.finish();
+        await settle();
         expect(dice().map((d) => (d as HTMLElement).style.transform)).toEqual(before);
         expect(queue.length).toBe(0);
         const rolled = w.emitted("rolled") as [[number, number]][];

@@ -14,7 +14,7 @@
          lines stay the app's. `dice=2` (or the host's set-dice) sets the pair
          on the stage in place of the one die (DicePair, loaded only then): the
          one die settles onto the table as the second drops in beside it, and
-         back. Under
+         back; under reduced motion, one cross-fade. Under
          `transport=host` the host carries Play / Pause and Reset in its own
          dock (the bridge's set-playing / reset), so no transport is drawn
          here; Space still toggles. -->
@@ -25,7 +25,7 @@
             data-orbit-stage
             :data-skin="skin"
         >
-            <div class="embed-cube-ground" :class="{ 'embed-cube-ground--away': count === 2 }" aria-hidden="true">
+            <div ref="groundEl" class="embed-cube-ground" :class="{ 'embed-cube-ground--away': groundAway }" aria-hidden="true">
                 <div ref="sheetEl" class="embed-cube-sheet">
                     <div class="embed-cube-paper grid-background"></div>
                     <div class="embed-cube-axis stage-field-x"></div>
@@ -109,9 +109,13 @@ const pairRef = useTemplateRef<PairApi>("pairRef");
 const count = ref<1 | 2>(props.dice ?? 1);
 const oneShown = ref(count.value === 1);
 const pairShown = ref(count.value === 2);
-/** Under reduced motion the swap is one fade: the side going is veiled. */
+/** Under reduced motion the swap is one cross-fade: the side coming waits
+ *  veiled, then rises as the side going falls. */
 const oneVeiled = ref(false);
 const pairVeiled = ref(false);
+/** The app's paper leaves under the pair (which brings its own table). */
+const groundAway = ref(count.value === 2);
+const groundEl = useTemplateRef<HTMLElement>("groundEl");
 const arrival = shallowRef<StageDie | null>(null);
 let pairPainted: (() => void) | null = null;
 const onPairShown = () => {
@@ -121,7 +125,6 @@ const onPairShown = () => {
 const FADE_MS = 200;
 const reducedMotion = () => window.matchMedia?.("(prefers-reduced-motion: reduce)").matches === true;
 const nextFrame = () => new Promise<void>((r) => requestAnimationFrame(() => r()));
-const wait = (ms: number) => new Promise<void>((r) => window.setTimeout(r, ms));
 
 // Paused on load: the die rests at its opening attitude (no settle sweep, no
 // spin) until Play. `started` is the group's own (true from the first Play
@@ -172,6 +175,30 @@ const singleDie = (): StageDie => {
  */
 let swapping = false;
 let wanted: 1 | 2 | null = null;
+
+/**
+ * Reduced motion's swap: the side coming rises from nothing as the side going
+ * and the paper (when it goes) fall away, together, over FADE_MS. The fades
+ * are Web Animations: a reduced-motion reset that zeroes every CSS transition
+ * (the design system has one) would make them cuts, and a fade is the motion
+ * reduced motion keeps. The classes take the end values beneath them; the
+ * returned drop removes the animations once the side gone is hidden.
+ */
+const crossFade = async (toPair: boolean) => {
+    const one = (cubeTargetRef.value as { $el?: Element } | null)?.$el;
+    const pair = (pairRef.value as { $el?: Element } | null)?.$el;
+    const fadeRun = (el: Element | null | undefined, from: number, to: number) =>
+        el && typeof el.animate === "function"
+            ? el.animate([{ opacity: from }, { opacity: to }], { duration: FADE_MS, easing: "ease-in-out", fill: "forwards" })
+            : null;
+    const runs = [fadeRun(toPair ? pair : one, 0, 1), fadeRun(toPair ? one : pair, 1, 0), fadeRun(groundEl.value, toPair ? 1 : 0, toPair ? 0 : 1)];
+    pairVeiled.value = !toPair;
+    oneVeiled.value = toPair;
+    groundAway.value = toPair;
+    await Promise.all(runs.map((a) => a?.finished.catch(() => undefined)));
+    return () => runs.forEach((a) => a?.cancel());
+};
+
 const setDice = async (n: 1 | 2) => {
     if (swapping) {
         wanted = n;
@@ -181,6 +208,7 @@ const setDice = async (n: 1 | 2) => {
     swapping = true;
     const fade = reducedMotion();
     count.value = n;
+    if (!fade) groundAway.value = n === 2;
     if (n === 2) {
         if (playing.value) setPlaying(false);
         arrival.value = fade ? null : singleDie();
@@ -190,27 +218,31 @@ const setDice = async (n: 1 | 2) => {
         await painted;
         if (fade) {
             await nextFrame();
-            pairVeiled.value = false;
-            oneVeiled.value = true;
-            await wait(FADE_MS);
+            const drop = await crossFade(true);
+            oneShown.value = false;
             oneVeiled.value = false;
+            await nextTick();
+            drop();
+        } else {
+            oneShown.value = false;
         }
-        oneShown.value = false;
     } else {
         if (fade) {
             oneVeiled.value = true;
             oneShown.value = true;
             await nextFrame();
-            oneVeiled.value = false;
-            pairVeiled.value = true;
-            await wait(FADE_MS);
+            const drop = await crossFade(false);
+            pairShown.value = false;
+            pairVeiled.value = false;
+            await nextTick();
+            drop();
         } else {
             await pairRef.value?.leave(singleDie());
             oneShown.value = true;
             await nextTick();
+            pairShown.value = false;
+            pairVeiled.value = false;
         }
-        pairShown.value = false;
-        pairVeiled.value = false;
     }
     swapping = false;
     const next = wanted;
@@ -347,14 +379,11 @@ defineExpose({ setPlaying, reset, relayGesture, transportLook, setDice, throwPai
     opacity: 0;
 }
 
-/* Reduced motion's swap between the one die and the pair: one fade, on the
-   flat stage boxes (never on a 3D die). */
+/* Reduced motion's swap between the one die and the pair: one cross-fade on
+   the flat stage boxes (never on a 3D die), run as Web Animations
+   (crossFade); the side waiting to come in is veiled. */
 .embed-cube-veiled {
     opacity: 0;
-}
-:deep(.cube-stage),
-:deep(.dice-stage) {
-    transition: opacity 200ms ease-in-out;
 }
 
 /* THE SHEET: the paper and the coordinate frame on one layer, three stages
