@@ -26,7 +26,9 @@
              so at 0 it read as a second, empty, unlabelled slider rather than
              the animation's playhead. The rail keeps its own specific name
              (aria-label); the readout is the sighted twin of the value text. -->
-        <div class="param-row">
+        <!-- An upright phone's scrub is the dock's (TransportScrub): one
+             scrub on the page, so the pane draws no time row there. -->
+        <div v-if="!uprightPhone" class="param-row">
             <LabeledField label="time" :control-labelable="false">
                 <Tooltip>
                     <TooltipTrigger as-child>
@@ -361,6 +363,10 @@ const timeReadout = computed(() => {
  *  it seats Reverse (the start disc) at the control height, the block the
  *  former verb row took, so the scroller's budget is unchanged. */
 const railShort = useMediaQuery("(min-width: 1024px) and (max-height: 889px)");
+
+/** An upright phone (the transport dock's own predicate): the dock carries
+ *  the scrub, so the ribbon's time row is not drawn. */
+const uprightPhone = useMediaQuery("(max-width: 1023px) and (min-height: 501px)");
 
 /** KF-P1-01 — the eye is offered where there is a preview to hide AND a mount
  *  that owns its state (an unbound harness mount offers none). OD19-K4 — on

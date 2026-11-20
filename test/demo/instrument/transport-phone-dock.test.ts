@@ -130,6 +130,9 @@ afterAll(() => {
     Object.defineProperty(window, "matchMedia", { configurable: true, value: savedMM });
 });
 
+let playhead = 0.25;
+const scrubbed: number[] = [];
+
 function mountAt(w: number, h0: number, controlsSeat: boolean, onToggle: () => void = () => {}) {
     viewport = { w, h: h0 };
     return mount(
@@ -142,6 +145,8 @@ function mountAt(w: number, h0: number, controlsSeat: boolean, onToggle: () => v
                             isPlaying: false,
                             animationNames: ["alpha", "beta"],
                             controlsSeat,
+                            getScrubT: () => playhead,
+                            scrubTo: (f: number) => scrubbed.push(f),
                             onToggleControls: onToggle,
                         }),
                 }),
@@ -151,6 +156,7 @@ function mountAt(w: number, h0: number, controlsSeat: boolean, onToggle: () => v
 }
 
 const seat = (w: { element: Element }) => w.element.querySelector('button[aria-label="Controls"]');
+const timeSliders = () => document.querySelectorAll('[role="slider"][aria-label="Time"]');
 
 describe("the phone's one bottom dock", () => {
     it("an upright phone: the dock never folds and offers Play and a Controls seat that says whether the controls are open", async () => {
@@ -166,9 +172,32 @@ describe("the phone's one bottom dock", () => {
         w.unmount();
     });
 
-    it("a scene with no controls pane offers no Controls seat", () => {
+    it("an upright phone: the dock holds the page's one scrub, named Time, at the selected channel's playhead", () => {
+        playhead = 0.25;
+        const w = mountAt(390, 844, true);
+        const sliders = timeSliders();
+        expect(sliders).toHaveLength(1);
+        expect(w.element.contains(sliders[0]!)).toBe(true);
+        // The thumb speaks the playhead (jsdom lays out no thumb, so its
+        // value text is the read; aria-valuenow waits on a measured box).
+        expect(sliders[0]!.getAttribute("aria-valuetext")).toBe("25 %");
+        // No visible "time" label: the bar says it.
+        expect(w.element.textContent ?? "").not.toMatch(/\btime\b/i);
+        w.unmount();
+    });
+
+    it("an upright phone with a controls sheet: the channel select and Reset are the sheet's, not the dock's", () => {
+        const w = mountAt(390, 844, true);
+        expect(w.element.querySelector('button[aria-label="Reset animation"]')).toBeNull();
+        expect(w.element.querySelector('[aria-label="Channel to edit"]')).toBeNull();
+        w.unmount();
+    });
+
+    it("a scene with no controls pane offers no Controls seat, and keeps Reset in the dock beside the scrub", () => {
         const w = mountAt(390, 844, false);
         expect(seat(w)).toBeNull();
+        expect(timeSliders()).toHaveLength(1);
+        expect(w.element.querySelector('button[aria-label="Reset animation"]')).not.toBeNull();
         w.unmount();
     });
 
@@ -177,6 +206,9 @@ describe("the phone's one bottom dock", () => {
             const w = mountAt(vw, vh, true);
             expect(w.element.querySelector("[data-collapse]")!.getAttribute("data-collapse")).toBe("closed");
             expect(seat(w)).toBeNull();
+            // The scrub stays the pane's rail there.
+            expect(timeSliders()).toHaveLength(0);
+            expect(w.element.querySelector('button[aria-label="Reset animation"]')).not.toBeNull();
             w.unmount();
         }
     });

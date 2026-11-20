@@ -55,6 +55,8 @@
             @scrub-start="onScrubStart"
             @scrub-end="onScrubEnd"
             @set-controls-panel-open="(open) => { storedControls.isControlsPanelOpen = open; }"
+            @reset="reset()"
+            @select-animation="onSelectAnimation"
             @stage-reserve="onStageReserve"
             @vue:unmounted="onStageReserve(NO_STAGE_RESERVE)"
         >
@@ -123,7 +125,11 @@
             @reset="(all: boolean) => all ? clear() : reset()"
             @select-animation="onSelectAnimation"
             :controls-seat="hasControlSurfaces && !hideControls"
+            :get-scrub-t="getActiveT"
+            :scrub-to="scrubActive"
             @toggle-controls="onToggleControls"
+            @scrub-start="onScrubStart"
+            @scrub-end="onScrubEnd"
         />
     </div>
 </template>

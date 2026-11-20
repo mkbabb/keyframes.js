@@ -100,13 +100,27 @@
                 </template>
 
                 <div class="transport-row flex items-center">
+                    <!-- An upright phone's dock carries the playhead: the one
+                         scrub on the page, beside Play (the pane's own time row
+                         is not drawn there). -->
+                    <TransportScrub
+                        v-if="phoneDock && getScrubT && scrubTo"
+                        :get-t="getScrubT"
+                        :scrub="scrubTo"
+                        :is-playing="isPlaying"
+                        @scrub-start="emit('scrubStart')"
+                        @scrub-end="emit('scrubEnd')"
+                    />
                     <!-- section (contextual): the animation select. Rendered ONLY when
                          channelZone is INHABITED (≥2 channels — kind "select"). One or
                          zero channels ⇒ zone ABSENT: NO node and NO flanking separator
                          (T.B5-RENDER — the single-animation static NAME span is DELETED;
                          a lone animation is the scene identity, transported without a
                          dead 1-item dropdown or a demoted label). -->
-                    <template v-if="channelZoneKind === 'select'">
+                    <!-- On an upright phone with a controls sheet, the channel
+                         select and Reset are rows of the opened sheet: a fifth
+                         seat would take the scrub under 150 px. -->
+                    <template v-if="channelZoneKind === 'select' && !sheetHoldsExtras">
                         <DockSeparator />
                         <!-- X.KF.W13X.transport — the channel Select, bare on the dock:
                              (UIA-KF-257) no Tooltip and no wrapper div — the trigger
@@ -184,7 +198,7 @@
                          (CLUTTER lens). The channel list stays there: the pick is
                          carried into the scene Play opens (carryHomePick), which
                          is what the start screen's copy asks for. -->
-                    <template v-if="!startScreen">
+                    <template v-if="!startScreen && !sheetHoldsExtras">
                     <DockSeparator />
                     <Tooltip>
                         <TooltipTrigger as-child>
@@ -259,6 +273,7 @@ import { usePlayActuation } from "./composables/usePlayActuation";
 import { useMenubarMeasure } from "./composables/useMenubarMeasure";
 import { useIconSpin } from "./composables/useIconSpin";
 import { PLAY_FILL } from "./playFill";
+import TransportScrub from "./TransportScrub.vue";
 import type { StoredAnimationGroupControlOptions } from "@state";
 
 const dockRef = useTemplateRef<InstanceType<typeof GlassDock>>("dockRef");
@@ -291,7 +306,16 @@ const {
     onPlayBlur,
 } = usePlayActuation(actuatePlay);
 
-const { storedControls, isPlaying, animationNames, startScreen = false, contained = false, controlsSeat = false } = defineProps<{
+const {
+    storedControls,
+    isPlaying,
+    animationNames,
+    startScreen = false,
+    contained = false,
+    controlsSeat = false,
+    getScrubT,
+    scrubTo,
+} = defineProps<{
     storedControls: StoredAnimationGroupControlOptions;
     isPlaying: boolean;
     animationNames: string[];
@@ -302,12 +326,18 @@ const { storedControls, isPlaying, animationNames, startScreen = false, containe
     /** The scene has a controls pane: on an upright phone the dock offers the
      *  seat that opens it. */
     controlsSeat?: boolean;
+    /** The selected channel's playhead in [0, 1], and the seat for it: the
+     *  upright phone's dock scrub reads and writes through these. */
+    getScrubT?: () => number;
+    scrubTo?: (fraction: number) => void;
 }>();
 
 /** An upright phone (under the desk's 1024 px, over a landscape phone's
  *  500 px height): the transport is the one bottom dock and never folds. */
 const uprightPhone = useMediaQuery("(max-width: 1023px) and (min-height: 501px)");
 const phoneDock = computed(() => !contained && uprightPhone.value);
+/** The opened sheet holds the channel select and Reset on an upright phone. */
+const sheetHoldsExtras = computed(() => phoneDock.value && controlsSeat);
 
 if (!contained) useMenubarMeasure(menubarHostEl);
 
@@ -316,6 +346,8 @@ const emit = defineEmits<{
     (e: "reset", all: boolean): void;
     (e: "selectAnimation", name: string): void;
     (e: "toggleControls"): void;
+    (e: "scrubStart"): void;
+    (e: "scrubEnd"): void;
 }>();
 
 // T.C1 / T.B5-RENDER — the channel zone: `>1 channels ⇒ select`, else ABSENT
