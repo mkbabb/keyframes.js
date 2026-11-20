@@ -43,7 +43,7 @@
                          call). The copy control copies the literal either way. -->
                     <code
                         v-if="literal !== demo.currentEasingName.value"
-                        class="literal-text text-mono-small"
+                        class="literal-text text-mono-small kf-read"
                         data-readout="primary"
                         >{{ literal }}</code
                     >

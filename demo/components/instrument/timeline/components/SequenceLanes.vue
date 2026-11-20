@@ -30,7 +30,7 @@
                  takes the sans caption, as the stage readout's own "clock"
                  label does (`.stage-readout > :first-child`); the lane rows'
                  index @ offset stay the mono data caption (T.D4). -->
-            <span class="seq-lane-label text-caption text-muted-foreground">clock</span>
+            <span class="seq-lane-label text-caption kf-read text-muted-foreground">clock</span>
         </template>
         <template #scrub>
             <!-- The clock's own row: its rail and its ball, at the playhead. -->
@@ -43,7 +43,7 @@
             <!-- X.KF.W13X.sq+dh (§0dz) — ONE label register per row: the index
                  and its offset are one muted mono caption. The lane's tone
                  already keys the row. -->
-            <span class="seq-lane-label text-mono-caption text-muted-foreground tabular-nums">
+            <span class="seq-lane-label text-mono-caption kf-caption text-muted-foreground tabular-nums" data-type-role="caption">
                 {{ formatMs(lane.at) }}
             </span>
         </template>

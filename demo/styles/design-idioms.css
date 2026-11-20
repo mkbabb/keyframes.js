@@ -412,7 +412,20 @@
 /* .code-token — inline-code for in-prose API names (camelCase, case-preserving mono). */
 .code-token {
     font-family: var(--font-mono);
-    font-size: var(--type-caption);
+    font-size: max(0.8125rem, var(--type-caption));
+}
+
+/* §type-floor — the site's own words, at the study's floors (2.6): a word
+   that is read (a name, a value, a label) is 14 px or more at any width; a
+   true caption (an axis tick, a subscript, a lane's offset) 13 px. glass's
+   caption step bottoms at 12 px on a phone, so the site's captions and
+   names carry a floor over the step they read; glass's own type is glass's.
+   Unlayered: they win over the size a type utility sets, nothing else. */
+.kf-read {
+    font-size: max(0.875rem, var(--type-small));
+}
+.kf-caption {
+    font-size: max(0.8125rem, var(--type-caption));
 }
 
 /* §LABEL-subgrid — the UNIFORM label-column idiom. A panel applies

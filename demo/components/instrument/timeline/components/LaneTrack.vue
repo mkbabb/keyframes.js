@@ -72,7 +72,8 @@
                 >
                     <span
                         v-if="tick.label"
-                        class="lane-track-tick-label text-mono-caption tabular-nums absolute left-0 text-muted-foreground whitespace-nowrap"
+                        data-type-role="caption"
+                        class="lane-track-tick-label text-mono-caption kf-caption tabular-nums absolute left-0 text-muted-foreground whitespace-nowrap"
                         :data-edge="edgeOf(tick.at)"
                     >{{ tick.label }}</span>
                 </div>

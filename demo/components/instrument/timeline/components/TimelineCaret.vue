@@ -77,7 +77,8 @@
             v-if="!isEditing"
             ref="readoutEl"
             type="button"
-            class="kf-focus-ring timeline-caret-readout text-mono-caption text-primary leading-none cursor-pointer select-none whitespace-nowrap tabular-nums underline-offset-2"
+            data-type-role="caption"
+            class="kf-focus-ring timeline-caret-readout text-mono-caption kf-caption text-primary leading-none cursor-pointer select-none whitespace-nowrap tabular-nums underline-offset-2"
             :class="
                 isSelected
                     ? 'underline decoration-solid decoration-2'
