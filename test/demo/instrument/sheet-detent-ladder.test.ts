@@ -13,7 +13,9 @@
  *
  * - An upright phone's sheet truly closes: there is no parked peek. The
  *   ladder is OPEN and FULL; closed is absent (the dialog is not open), not a
- *   resting rung, so the stage holds the screen at rest.
+ *   resting rung, so the stage holds the screen at rest. On its way out the
+ *   plate fades where it stands (`data-leaving`, its rung held), then the
+ *   dialog closes.
  *
  * The glass Sheet is stubbed at its seam (it records the ladder it is handed);
  * the Dialog stub renders its content only while open, as reka's does; the
@@ -205,11 +207,15 @@ describe("the mobile sheet's detent ladder", () => {
         await nextTick();
         expect(storedControls.isControlsPanelOpen).toBe(true);
         expect(rec.props.detent).toBe(d[1]);
-        // a flick onto 0 closes it: the sheet leaves, nothing parks
+        // a flick onto 0 closes it: the plate fades where it stands (it takes
+        // no press and holds its rung while it fades), then the sheet leaves;
+        // nothing parks
         rec.emit("update:detent", null);
         await nextTick();
         expect(storedControls.isControlsPanelOpen).toBe(false);
-        expect(sheetShown()).toBe(false);
+        expect(rec.attrs["data-leaving"]).toBe("");
+        expect(rec.props.detent).toBe(d[1]);
+        await vi.waitFor(() => expect(sheetShown()).toBe(false), { timeout: 1000 });
         // the next open is the open rung, not full
         storedControls.isControlsPanelOpen = true;
         await nextTick();

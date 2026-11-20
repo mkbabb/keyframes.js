@@ -208,10 +208,12 @@
     >
         <!-- An upright phone's sheet truly closes: it is there only while the
              controls are open (the transport dock's Controls seat opens it),
-             so the stage holds the screen at rest. It fades in on glass's
-             panel clock and out on its fast clock (`sheet-animate`), never a
-             cut at the sheet's chrome floor. A short landscape phone keeps
-             the side rail, always shown. -->
+             so the stage holds the screen at rest. It arrives and leaves by a
+             fade on the site's own clock (`fadeSheet`, `sheetLeaving`): on
+             its way out the plate fades where it stands, and glass closes the
+             dialog only once it is at opacity 0, so glass's drop to its chrome
+             floor and its removal are never seen. A short landscape phone
+             keeps the side rail, always shown. -->
         <!-- KF-SKEL-9 — the `controls-drawer--stage-*` emission is DELETED (the
              decision is the emitter's, taken whole in `AnimationControlsGroup`;
              the rationale, including why ADOPT is barred, lives at that site so
@@ -249,11 +251,13 @@
             :detents="snapPoints"
             v-model:detent="activeSnap"
             scroll
-            class="controls-drawer-content sheet-animate [--tw-enter-translate-x:0]"
+            class="controls-drawer-content"
             :data-rung="rung"
+            :data-leaving="sheetLeaving ? '' : undefined"
             :style="sheetStyle"
             @click.capture="onParkedHeaderPress"
             @open-auto-focus.prevent
+            @close-auto-focus="onSheetCloseAutoFocus"
             @interact-outside="onSheetOutside"
             @focusin="onSheetFocusIn"
             @focusout="onSheetFocusOut"
@@ -651,9 +655,14 @@ const snapPoints = computed(() =>
         : [OPEN_SNAP.value, FULL_SNAP.value],
 );
 /** The sheet's dialog is open: always as the landscape rail, and on an
- *  upright phone only while the controls are open. */
+ *  upright phone while the controls are open and while the plate fades out. */
 const sheetMounted = computed(
-    () => isShortLayout.value || props.storedControls.isControlsPanelOpen,
+    () => isShortLayout.value || props.storedControls.isControlsPanelOpen || sheetFading.value,
+);
+/** An upright phone's plate holds opacity 0: on its way out (fading, then
+ *  closed by glass at opacity 0) and until its arrival's fade begins. */
+const sheetLeaving = computed(
+    () => !isShortLayout.value && (!props.storedControls.isControlsPanelOpen || sheetArriving.value),
 );
 
 // The band the sheet lives in: above the transport, below the top dock. The
@@ -670,15 +679,109 @@ const sheetStyle = computed(() =>
 // knows open/closed only). A drag, fling or grip key lands on the NEAREST rung;
 // a null or a flick onto 0 reads as peek.
 const atFull = shallowRef(false);
+// An upright phone's sheet arrives and leaves by a fade on the site's own
+// clock. On its way out, the dialog stays open at the rung it stood on while
+// the plate fades; once the fade has run, glass closes it, unseen. (glass's own
+// exit fade ended, with no fill, before its spring exit did, so the plate
+// showed again at the chrome floor and was then removed in one frame.) The
+// fade is a Web Animation: glass's reduced-motion rule zeroes every CSS
+// transition, and reduced motion asks for a short fade, never a cut.
+const reducedMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
+const SHEET_IN_MS = 200;
+const SHEET_OUT_MS = 180;
+const SHEET_REDUCED_MS = 140;
+const sheetFading = shallowRef(false);
+// A plate that mounts arrives once its first frame is painted (that frame
+// mounts the pane and can run long), so its whole fade is seen.
+const sheetArriving = shallowRef(false);
+let sheetFade: Animation | null = null;
+/** The plate's opacity as it reads now (null when there is no plate). */
+const sheetOpacity = (): number | null => {
+    const el = sheetEl();
+    return el ? Number(getComputedStyle(el).opacity) : null;
+};
+/** Fade the plate from `from` to `to`; null when there is no plate. */
+const fadeSheet = (from: number, to: 0 | 1): Animation | null => {
+    const el = sheetEl();
+    if (!el || typeof el.animate !== "function") return null;
+    sheetFade?.cancel();
+    const fallback = to === 1 ? "ease-out" : "ease-in";
+    const token = getComputedStyle(el).getPropertyValue(`--${fallback}`).trim();
+    const timing = (easing: string): KeyframeAnimationOptions => ({
+        duration: reducedMotion.value ? SHEET_REDUCED_MS : to === 1 ? SHEET_IN_MS : SHEET_OUT_MS,
+        easing,
+        fill: "forwards",
+    });
+    const frames = [{ opacity: from }, { opacity: to }];
+    let fade: Animation;
+    try {
+        fade = el.animate(frames, timing(token || fallback));
+    } catch {
+        // An easing this engine cannot read (a `linear()` token on an older one).
+        fade = el.animate(frames, timing(fallback));
+    }
+    sheetFade = fade;
+    return fade;
+};
+const endFade = (): void => {
+    // glass returns focus to the opener when the dialog closes on a focus
+    // inside it; after a touch it is let go instead (`onSheetCloseAutoFocus`).
+    const held = document.activeElement;
+    if (touchInput && held instanceof HTMLElement && sheetEl()?.contains(held)) held.blur();
+    sheetFading.value = false;
+    atFull.value = false;
+    restPort();
+};
 watch(
     () => props.storedControls.isControlsPanelOpen,
-    (open) => {
+    (open, was) => {
+        const upright = isMobileLayout.value && !isShortLayout.value;
+        // Read before the plate's state is written (a running fade's value).
+        const shown = upright ? sheetOpacity() : null;
+        sheetArriving.value = false;
+        if (!open && was && upright) {
+            sheetFading.value = true;
+            void nextTick(() => {
+                const fade = fadeSheet(shown ?? 1, 0);
+                if (!fade) return endFade();
+                // One frame at 0 is painted before glass closes the dialog.
+                fade.finished.then(() => {
+                    if (sheetFade === fade) requestAnimationFrame(() => sheetFade === fade && endFade());
+                }, () => {});
+            });
+            return;
+        }
+        sheetFading.value = false;
         if (!open) atFull.value = false;
+        if (!open || !upright) return;
+        const arrive = (from: number): void => {
+            sheetArriving.value = false;
+            const fade = fadeSheet(from, 1);
+            fade?.finished.then(() => {
+                if (sheetFade !== fade) return;
+                fade.cancel();
+                sheetFade = null;
+            }, () => {});
+        };
+        // A plate still shown (on its way out) turns back from where it is.
+        if (shown !== null) {
+            void nextTick(() => arrive(shown));
+            return;
+        }
+        sheetArriving.value = true;
+        void nextTick(() =>
+            requestAnimationFrame(() =>
+                requestAnimationFrame(() => {
+                    if (sheetArriving.value) arrive(0);
+                }),
+            ),
+        );
     },
 );
+onBeforeUnmount(() => sheetFade?.cancel());
 const activeSnap = computed<number | null>({
     get: () =>
-        !props.storedControls.isControlsPanelOpen
+        !props.storedControls.isControlsPanelOpen && !sheetFading.value
             ? PEEK_SNAP.value
             : atFull.value
               ? FULL_SNAP.value
@@ -688,10 +791,11 @@ const activeSnap = computed<number | null>({
         const nearest = snapPoints.value.reduce((a, c) =>
             Math.abs(c - t) < Math.abs(a - t) ? c : a,
         );
-        atFull.value = nearest === FULL_SNAP.value;
         // A flick onto 0 (or a null) closes an upright sheet; the landscape
-        // rail parks at its PEEK as before.
+        // rail parks at its PEEK as before. A close keeps the rung the plate
+        // stood on while it fades (the close resets it).
         const closes = isShortLayout.value ? nearest === PEEK_SNAP.value : v === null || t <= 0;
+        if (!closes) atFull.value = nearest === FULL_SNAP.value;
         emit("setControlsPanelOpen", !closes);
     },
 });
@@ -705,14 +809,30 @@ const KEEPS_SHEET = "[data-dock-tether], [data-reka-popper-content-wrapper], [ro
 // document and can no longer say where it was. Each press is read where it
 // lands, while its target is still in place.
 const keptPresses = new WeakSet<Event>();
+// Whether the last input was a touch: a sheet put away by touch returns no
+// focus to the seat that opened it (on a touch screen that focus only raises
+// the seat's tooltip, which then stood for a second); a key still does.
+let touchInput = false;
 useEventListener(
     () => (isMobileLayout.value ? document : null),
     "pointerdown",
     (e: PointerEvent) => {
+        touchInput = e.pointerType === "touch" || e.pointerType === "pen";
         if (e.target instanceof Element && e.target.closest(KEEPS_SHEET)) keptPresses.add(e);
     },
     { capture: true, passive: true },
 );
+useEventListener(
+    () => (isMobileLayout.value ? document : null),
+    "keydown",
+    () => {
+        touchInput = false;
+    },
+    { capture: true, passive: true },
+);
+const onSheetCloseAutoFocus = (e: Event): void => {
+    if (touchInput) e.preventDefault();
+};
 const onSheetOutside = (e: Event): void => {
     const original = (e as CustomEvent<{ originalEvent?: Event }>).detail?.originalEvent;
     const target = original?.target ?? e.target;
@@ -821,10 +941,21 @@ const onSheetFocusOut = (e: FocusEvent) => {
 watch(
     () => props.storedControls.isControlsPanelOpen,
     (open) => {
-        if (!open && isMobileLayout.value) void nextTick(restPort);
+        // A fading sheet rests its port once it is out of sight (`endFade`).
+        if (!open && isMobileLayout.value && !sheetFading.value) void nextTick(restPort);
     },
 );
 
 </script>
 
 <style scoped src="./ControlsPaneWrapper.css"></style>
+
+<style>
+/* The upright phone sheet (portalled, so unscoped): on its way out it holds
+   opacity 0 until glass removes it, and takes no press (the fade itself is the
+   wrapper's Web Animation). */
+.controls-drawer-content[data-side="bottom"][data-leaving] {
+    opacity: 0;
+    pointer-events: none;
+}
+</style>

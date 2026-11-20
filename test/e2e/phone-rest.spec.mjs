@@ -9,6 +9,10 @@
  * - Play adds no entry and leaves the sheet open.
  * - A press on the top dock moves neither the sheet nor the die.
  * - A tap on the stage lowers the sheet.
+ * - The sheet leaves by a fade where it stands (Close, and a tap on the
+ *   stage): its opacity never rises once it falls, its top edge holds while
+ *   it shows, and no shown plate is removed in one frame. Under reduced
+ *   motion it arrives and leaves by a short fade, never a cut.
  * - The die's side reaches the screen's width over 2.2 at 390x844 at rest;
  *   the folded top dock is a circle (square within 1 px).
  *
@@ -180,6 +184,72 @@ for (const vp of [
             expect(await sheetTop(page)).toBeNull();
             expect(await page.evaluate(() => location.hash)).toMatch(/^#\/cube/);
         });
+
+        for (const reduced of [false, true]) {
+            test(`the sheet leaves by a fade where it stands${reduced ? " (reduced motion)" : ""}`, async ({ page }) => {
+                await throttle(page);
+                if (reduced) await page.emulateMedia({ reducedMotion: "reduce" });
+                await page.goto(at("/cube"));
+                await page.waitForSelector(".cube", { timeout: 30_000 });
+                await page.waitForTimeout(2500);
+                const sample = () =>
+                    page.evaluate(() => {
+                        window.__plate = [];
+                        const tick = () => {
+                            const s = document.querySelector(".controls-drawer-content");
+                            const b = s?.getBoundingClientRect();
+                            window.__plate.push(b && b.height > 0 ? { top: b.top, o: Number(getComputedStyle(s).opacity) } : null);
+                            if (window.__plate.length < 150) requestAnimationFrame(tick);
+                        };
+                        requestAnimationFrame(tick);
+                    });
+                const seat = page.locator('button[aria-label="Controls"]');
+
+                // Arriving: never whole in its first shown frame.
+                await sample();
+                await seat.tap();
+                await page.waitForTimeout(1800);
+                const arrive = (await page.evaluate(() => window.__plate)).filter((t) => t !== null && t.o > 0.02);
+                expect(arrive.length).toBeGreaterThanOrEqual(3);
+                expect(arrive[0].o).toBeLessThan(0.5);
+
+                const closes = [
+                    ["Close", () => page.locator('.controls-drawer-content [data-slot="dialog-close"]').tap()],
+                    ["a stage tap", () => page.touchscreen.tap(40, 200)],
+                ];
+                for (const [how, act] of closes) {
+                    if (how !== "Close") {
+                        await seat.tap();
+                        await page.waitForTimeout(1800);
+                    }
+                    await sample();
+                    await page.waitForTimeout(50);
+                    await act();
+                    await page.waitForTimeout(1600);
+                    const f = await page.evaluate(() => window.__plate);
+                    const start = f.findIndex((t) => t !== null && t.o < 0.98);
+                    expect(start, `${how}: the plate starts to fade`).toBeGreaterThan(0);
+                    const top0 = f[start - 1].top;
+                    for (let i = start; i < f.length; i++) {
+                        const prev = f[i - 1];
+                        const cur = f[i];
+                        if (prev && prev.o > 0.05) {
+                            // A shown plate is never removed in one frame ...
+                            expect(cur, `${how}: frame ${i} removes a shown plate`).not.toBeNull();
+                            // ... nor shows again once it has started to fall ...
+                            expect(cur.o, `${how}: frame ${i} rises`).toBeLessThanOrEqual(prev.o + 0.02);
+                        }
+                        // ... and while it shows it stands where it stood.
+                        if (cur && cur.o > 0.05) expect(Math.abs(cur.top - top0), `${how}: frame ${i} moves`).toBeLessThanOrEqual(2);
+                    }
+                    // A fade, not a cut: frames between whole and gone.
+                    const mid = f.slice(start).filter((t) => t !== null && t.o > 0.05 && t.o < 0.95);
+                    expect(mid.length, `${how}: frames in the fade`).toBeGreaterThanOrEqual(2);
+                    expect(await sheetTop(page)).toBeNull();
+                    await expect(seat).toHaveAttribute("aria-expanded", "false");
+                }
+            });
+        }
 
         test("a tap on the stage lowers the sheet", async ({ page }) => {
             await page.goto(at("/cube?sheet=1"));
