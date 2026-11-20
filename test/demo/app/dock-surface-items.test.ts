@@ -5,7 +5,7 @@
  * item set is identical on every scene; a scene disables what it has no data
  * for and never invents an item. Home has no scene, so no items.
  */
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { defineComponent, h, nextTick } from "vue";
 import { DOMWrapper, flushPromises, mount } from "@vue/test-utils";
 import { TooltipProvider } from "@mkbabb/glass-ui/tooltip";
@@ -127,6 +127,26 @@ describe("ChromeDock: one surface trigger whose menu opens the shared pane", () 
         expect(wrapper.find("[aria-label='Controls panel']").exists()).toBe(false);
         expect(rows()).toHaveLength(0);
         wrapper.unmount();
+    });
+
+    it("the menu is placed on its trigger (the tooltip around the trigger takes no anchor from it)", async () => {
+        // jsdom has no IntersectionObserver; floating-ui's move watch needs one.
+        vi.stubGlobal("IntersectionObserver", class { observe() {} unobserve() {} disconnect() {} takeRecords() { return []; } });
+        const { wrapper } = mountDock(springProps);
+        try {
+            const el = wrapper.find("[data-dock-surface-trigger]").element as HTMLElement;
+            el.getBoundingClientRect = () =>
+                ({ x: 600, y: 40, top: 40, left: 600, right: 640, bottom: 80, width: 40, height: 40, toJSON: () => ({}) }) as DOMRect;
+            await openMenu(wrapper);
+            const placed = () => rows()[0]?.closest<HTMLElement>("[data-reka-popper-content-wrapper]")?.style.transform ?? "";
+            // reka parks an unplaced popper at translate(0, -200%), off the top
+            // of the screen, where no row can be pressed.
+            await vi.waitFor(() => expect(placed()).not.toMatch(/-200%/));
+            expect(placed()).toMatch(/translate\(\s*\d/);
+        } finally {
+            wrapper.unmount();
+            vi.unstubAllGlobals();
+        }
     });
 
     it("its menu names the four surfaces, each row a glyph + its title", async () => {

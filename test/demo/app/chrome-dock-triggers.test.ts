@@ -152,6 +152,31 @@ describe("UIA-KF-131 — a dock popup starts below the dock, not inside it", () 
     });
 });
 
+describe("the @mbabb menu is placed on its trigger", () => {
+    it("(8) the menu leaves reka's unplaced parking (the tooltip around the trigger takes no anchor from it)", async () => {
+        // jsdom has no IntersectionObserver; floating-ui's move watch needs one.
+        vi.stubGlobal("IntersectionObserver", class { observe() {} unobserve() {} disconnect() {} takeRecords() { return []; } });
+        const w = mountDock();
+        try {
+            const mbabb = w.find('[aria-label="@mbabb menu"]').element as HTMLElement;
+            mbabb.getBoundingClientRect = () =>
+                ({ x: 900, y: 40, top: 40, left: 900, right: 970, bottom: 80, width: 70, height: 40, toJSON: () => ({}) }) as DOMRect;
+            const init = { bubbles: true, cancelable: true, button: 0 };
+            mbabb.dispatchEvent(new window.PointerEvent("pointerdown", init));
+            mbabb.dispatchEvent(new window.PointerEvent("pointerup", init));
+            mbabb.dispatchEvent(new window.MouseEvent("click", { ...init, detail: 1 }));
+            await vi.waitFor(() => expect(document.querySelector("[role=menu]")).toBeTruthy());
+            const placed = () =>
+                document.querySelector("[role=menu]")?.closest<HTMLElement>("[data-reka-popper-content-wrapper]")?.style.transform ?? "";
+            await vi.waitFor(() => expect(placed()).not.toMatch(/-200%/));
+            expect(placed()).toMatch(/translate\(\s*\d/);
+        } finally {
+            w.unmount();
+            vi.unstubAllGlobals();
+        }
+    });
+});
+
 describe("UIA-KF-237 — the glyph-only scene trigger keeps the label's line box", () => {
     it("(5) below 400 px (word hidden, OA-40) the Scene trigger's min block-size is one line box inside the producer's trigger padding", () => {
         const w = mountDock();

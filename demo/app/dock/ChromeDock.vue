@@ -592,7 +592,10 @@ defineExpose({ openSceneList });
                                     </TooltipTrigger>
                                     <TooltipContent>Editor surfaces</TooltipContent>
                                 </Tooltip>
-                                <DropdownMenuContent align="center" :side-offset="surfaceMenuOffset" :collision-padding="16" class="text-body p-1.5">
+                                <!-- `reference`: the tooltip around the trigger is the
+                                     nearer popper root, so the trigger anchors the
+                                     tooltip; the menu is placed on it by name. -->
+                                <DropdownMenuContent align="center" :side-offset="surfaceMenuOffset" :collision-padding="16" :reference="surfaceTrigger?.$el" class="text-body p-1.5">
                                     <!-- C1-KF-10 — the showing surface is marked by the
                                          producer's own radio item (its leading dot,
                                          `aria-checked`), the affordance the Scene

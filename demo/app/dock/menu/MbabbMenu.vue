@@ -31,7 +31,10 @@
              through to the primitive's floating content. The producer half —
              a default padding on every floating content from
              `--popover-viewport-pad` — stays relay-only (O-59). -->
-        <DropdownMenuContent align="end" :side-offset="menuOffset" :collision-padding="16" class="min-w-[var(--dock-panel-width)] text-body p-1.5" @close-auto-focus="onMenuCloseAutoFocus">
+        <!-- `reference`: the tooltip around the trigger is the nearer popper
+             root, so the trigger anchors the tooltip; the menu is placed on it
+             by name. -->
+        <DropdownMenuContent align="end" :side-offset="menuOffset" :collision-padding="16" :reference="mbabbTrigger?.$el" class="min-w-[var(--dock-panel-width)] text-body p-1.5" @close-auto-focus="onMenuCloseAutoFocus">
             <!-- Share.
                  MM-8 + MM-9, the one voice pass, applied at all FOUR of its
                  sites (here, the Clear-all sub-line, and the two @mbabb lines).
