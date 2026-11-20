@@ -447,6 +447,15 @@ defineExpose({ resetIconSpin });
     z-index: 1;
 }
 
+/* An upright phone: the plate's group lays the dock out as a flex item, so no
+   line box leaves a strip under the plate (it stood 6 px over the group's
+   foot) and the plate itself sits 12 px above the screen's foot. */
+@media (max-width: 1023px) and (min-height: 501px) {
+    .dock-vt-group {
+        display: flex;
+    }
+}
+
 .menubar-safe-pb {
     padding-bottom: max(
         calc(var(--dock-margin) / 2),
