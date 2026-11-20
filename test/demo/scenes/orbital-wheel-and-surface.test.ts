@@ -271,15 +271,20 @@ describe("U4 — an Alt-wheel notch glides out; a trackpad stream stays direct",
         return steps;
     };
 
-    it("one 100 px notch: ≥ 12 frames, ≤ 6° a frame, landing exactly on the capped 40°", async () => {
+    it("one 100 px notch: ≥ 12 frames, a soft first frame (under a tenth of the notch), never past, landing exactly on the capped 40°", async () => {
         const { w, model, el } = await mountOrbit();
         el.dispatchEvent(wheel({ deltaY: 100, altKey: true }));
         await nextTick();
         // Nothing jumps in the event's own task.
         expect(screenRotation(q(model.value)).angle).toBe(0);
         const steps = await glideSteps(model);
-        expect(steps.filter((s) => s > 0).length).toBeGreaterThanOrEqual(12);
-        expect(Math.max(...steps) * DEG).toBeLessThanOrEqual(6);
+        const moving = steps.filter((s) => s > 0);
+        expect(moving.length).toBeGreaterThanOrEqual(12);
+        // The follower starts soft: no impulse in the notch's first frame
+        // (at 60 Hz it takes 1 − 1.5·e^(−0.5) ≈ 9 % of the notch).
+        expect(moving[0]! * DEG).toBeLessThan(0.1 * 40);
+        expect(moving[0]!).toBeLessThan(Math.max(...moving));
+        expect(steps.every((s) => s >= 0)).toBe(true);
         expect(Math.abs(screenRotation(q(model.value)).angle - (40 / DEG))).toBeLessThan(1e-9);
         w.unmount();
     });
@@ -504,13 +509,14 @@ describe("U8 — Shift + scroll pans, the content following the fingers", () => 
     it("a +30 px Shift-wheel moves the die's centre −30 px and turns nothing", async () => {
         const { w, model, el } = await mountOrbit();
         el.dispatchEvent(wheel({ deltaY: 30, shiftKey: true }));
-        await flush();
+        // The pan follows its target (FOLLOW_OMEGA) and lands it exactly.
+        await flush(40);
         expect(model.value.translate.y).toBeCloseTo(-30, 9);
         expect(model.value.translate.x).toBe(0);
         expect(screenRotation(q(model.value)).angle).toBe(0);
         // 10 px across (the right bound is 374 − ½·160·2 = 214).
         el.dispatchEvent(wheel({ deltaX: -10, deltaY: 0, shiftKey: true }));
-        await flush();
+        await flush(40);
         expect(model.value.translate.x).toBeCloseTo(10, 9);
         w.unmount();
     });
@@ -519,7 +525,7 @@ describe("U8 — Shift + scroll pans, the content following the fingers", () => 
         const pan = async (deltas: number[]) => {
             const { w, model, el } = await mountOrbit();
             for (const d of deltas) el.dispatchEvent(wheel({ deltaY: d, shiftKey: true }, 1));
-            await flush();
+            await flush(40);
             const ty = model.value.translate.y;
             await flush(30);
             expect(model.value.translate.y).toBe(ty);
@@ -536,7 +542,8 @@ describe("U8 — Shift + scroll pans, the content following the fingers", () => 
             el.dispatchEvent(wheel({ deltaY: 200, shiftKey: true }));
             await flush();
         }
-        // Live: past the bound, on the band.
+        // Live: past the bound, on the band (once the pan's follower has landed).
+        await flush(40);
         expect(CENTRE.y + model.value.translate.y).toBeLessThan(TOP);
         expect(CENTRE.y + model.value.translate.y).toBeGreaterThan(TOP - (STAGE.bottom - STAGE.top));
         // The stream ends WHEEL_LIVE_MS after its last event; the spring takes over.

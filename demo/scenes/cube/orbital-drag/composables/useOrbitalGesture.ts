@@ -18,7 +18,17 @@ import type { Box, Vec2 } from "../similarity";
 import { SILHOUETTE, UNBOUNDED, ZOOM_BAND_LN, banded, clampTo, panInterval, unbanded } from "../bounds";
 import type { Interval } from "../bounds";
 import type { GestureEvent, PressedKeys } from "../types";
-import { createFollower, followerNear, landFollower, stepFollower } from "../follower";
+import {
+    createFollower,
+    followerIdle,
+    followerNear,
+    frameSeconds,
+    holdFollower,
+    landFollower,
+    moveTarget,
+    rebaseFollower,
+    stepFollower,
+} from "../follower";
 import type { Follower } from "../follower";
 import type { OrbitPose, OrbitRelease } from "./useOrbitalInertia";
 
@@ -69,8 +79,6 @@ export interface OrbitalGestureParams {
     /** The last pointer left: the release's rates (ω in rad/s in Q's frame,
      *  the pan in screen px/s, the zoom in ln s/s). */
     onGestureEnd: (release: OrbitRelease) => void;
-    /** A wheel notch's rotation (axis·angle, SCREEN frame), to glide out. */
-    onGlide: (rotation: Vec3) => void;
     /** A pan or zoom wheel stream has ended: spring back what stands past a
      *  bound, anchored at the stream's last point. */
     onSettle?: (at: Vec2) => void;
@@ -102,27 +110,35 @@ export const WHEEL_ZOOM_STEP_CAP = 0.25;
 /** A pixel wheel event at least this large, an integer multiple of its
  *  stream's first event, is a NOTCH (a mouse wheel), and glides. */
 export const NOTCH_MIN_PX = 50;
-/** One notch's travel cap (rad). The glide drains on the coast's decay
- *  (k = 9/s), whose first 60 Hz frame takes 1 − e^(−9/60) ≈ 13.9 % of the
- *  notch, so a 40° notch moves ≤ 5.6° in any frame. Uncapped, a 100 px notch
- *  is 2·100/R: 42° at R 270 (1440) but 72° at R 160, a 10° first frame. */
+/** One notch's travel cap (rad). Uncapped, a 100 px notch is 2·100/R: 42° at
+ *  R 270 (1440) but 72° at R 160. */
 export const NOTCH_MAX_RAD = (40 * Math.PI) / 180;
 /** Page mode: a touch drag turns the die only once it has gone this far
  *  (px), mostly sideways; a mostly vertical one is the host's scroll. */
 export const PAGE_TOUCH_SLOP_PX = 10;
 /**
- * A trackpad's two-finger scroll arrives at its own rate (60 to 120 events a
- * second, unevenly against a 60 or 120 Hz display), so applied as it comes the
- * die steps: two events in one frame, none in the next. The stream's rotation
- * is laid onto the frames through a first-order follower of this time constant
- * (ms): every frame takes 1 − e^(−Δt/τ) of what is still owed, so the turn
- * flows at the hand's speed one short lag behind it and lands exactly on the
- * sum. The OS's own momentum events carry the throw through the same follower.
+ * THE FOLLOWERS (follower.ts). Every stepped input moves a target and the die
+ * follows it on the critically damped spring, by its exact step on the
+ * frame's dt: a trackpad's scroll (60 to 120 events a second, unevenly
+ * against the frames, the OS's momentum events carrying its throw), a mouse
+ * notch, an arrow key, a pinch, a twist, Shift + scroll and a host's relayed
+ * gesture. Three channels: the turn (a screen-frame rotation vector, applied
+ * as its per-frame difference), the zoom (ln s) and the pan (screen px).
+ *
+ * FOLLOW_OMEGA for the continuous inputs: 2/ω = 22 ms behind the hand.
  */
-export const WHEEL_SMOOTH_MS = 24;
-/** Below these (rad, ln s) the follower's remainder is landed whole. */
-const WHEEL_REST_RAD = 1e-5;
-const WHEEL_REST_LN = 1e-5;
+export const FOLLOW_OMEGA = 90;
+/** NOTCH_OMEGA for one quantum of travel (a mouse notch, an arrow key): it
+ *  starts soft and rests in about 0.3 s. */
+export const NOTCH_OMEGA = 30;
+/** Under reduced motion the hand is still smoothed (smoothing the hand is not
+ *  decoration); a notch is quicker by this factor, never cut. */
+export const REDUCED_NOTCH_SPEEDUP = 3;
+/** Below these a follower lands its remainder whole: (distance, speed per s)
+ *  for the turn (rad), the zoom (ln s) and the pan (px). */
+const REST_TURN = [1e-5, 1e-3] as const;
+const REST_ZOOM = [1e-5, 1e-3] as const;
+const REST_PAN = [0.01, 0.5] as const;
 /**
  * THE HAND AT THE FRAME. Each frame shows the hand where it was this long
  * before the frame began (ms), read between the two real samples on either
@@ -231,7 +247,6 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
         requestCommit,
         onGestureStart,
         onGestureEnd,
-        onGlide,
         onSettle,
         reducedMotion,
     } = params;
@@ -864,64 +879,94 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
         },
     };
 
-    // The pan is summed per FRAME and applied once (flushWheel, from the
-    // frame loop); the zoom and the scroll's turn are OWED and laid onto the
-    // frames by the follower. Coalesced or split events land the same pose.
-    let zoomLn = 0;
+    // The turn, the zoom and the pan follow their targets (THE FOLLOWERS);
+    // the host's frame loop steps them (flushWheel). Coalesced or split events
+    // move the same targets and land the same pose.
+    const turnF = createFollower(3, FOLLOW_OMEGA);
+    const zoomF = createFollower(1, FOLLOW_OMEGA);
+    const panF = createFollower(2, FOLLOW_OMEGA);
+    /** The followers' clock (ms): the last frame that stepped them, or the
+     *  input that woke them (K3); −1 while all three rest. */
+    let clock = -1;
+    /** The clock was set by the input that woke the followers: their first
+     *  frame steps from that input's time, catching up at most one frame (so
+     *  the first frame is never still, and a notch still starts soft). */
+    let woke = false;
+    let lastFlush = -1;
     let zoomAt: Vec2 = { x: 0, y: 0 };
-    let panPx: Vec2 = { x: 0, y: 0 };
     let streamAt = -Infinity;
     let streamFirst = 0;
-    /** The two-finger scroll's rotation still owed (screen frame, axis·angle). */
-    let owedTurn: Vec3 = [0, 0, 0];
-    let lastFlush = -1;
+    const resting = () => followerIdle(turnF) && followerIdle(zoomF) && followerIdle(panF);
+
+    /** The notch stiffness, quicker under reduced motion. */
+    const notchOmega = () => NOTCH_OMEGA * ((reducedMotion?.() ?? false) ? REDUCED_NOTCH_SPEEDUP : 1);
+
+    /** Move a follower's target by `d` at stiffness ω; resting followers
+     *  start at the input's own time `t` (ms). */
+    const owe = (f: Follower, d: readonly number[], omega: number, t: number) => {
+        if (resting()) {
+            clock = t;
+            woke = true;
+        }
+        f.omega = omega;
+        moveTarget(f, d);
+        requestCommit();
+    };
 
     /**
-     * Apply the frame's summed wheel zoom and pan, and the follower's share of
-     * the scroll's owed rotation (the host's frame loop calls it). Returns
-     * "owed" while rotation is still owed (the loop keeps running), "landed"
-     * when this frame turned the die and nothing is left, else "idle".
+     * Step the followers to the frame at `now` and apply what they moved: the
+     * pan, the zoom (anchored at the stream's point) and the turn (the host's
+     * frame loop calls it). "owed" while any still travels (the loop keeps
+     * running), "landed" when this frame moved the die and all three rest,
+     * else "idle".
      */
     const flushWheel = (now?: number): "owed" | "landed" | "idle" => {
-        const d = panPx;
-        panPx = { x: 0, y: 0 };
-        const dt = now === undefined || lastFlush < 0 ? 1000 / 60 : Math.max(0, Math.min(100, now - lastFlush));
-        lastFlush = now ?? -1;
         if (pointers.size > 0) {
-            owedTurn = [0, 0, 0];
-            zoomLn = 0;
+            dropOwed();
             return "idle";
         }
-        if (d.x !== 0 || d.y !== 0) panBy(d);
-        const follow = 1 - Math.exp(-dt / WHEEL_SMOOTH_MS);
-        const instant = reducedMotion?.() ?? false;
+        if (resting()) {
+            clock = -1;
+            return "idle";
+        }
+        const t = now ?? (clock < 0 ? 0 : clock + 1000 / 60);
+        if (lastFlush >= 0 && t - lastFlush > 2 && t - lastFlush < 34) frameMs = t - lastFlush;
+        lastFlush = t;
+        const since = clock < 0 ? 1 / 60 : frameSeconds(clock, t);
+        const dt = woke ? Math.min(since, frameMs / 1000) : since;
+        woke = false;
+        clock = t;
         let moved = false;
         let owing = false;
-        if (zoomLn !== 0) {
-            const whole = instant || Math.abs(zoomLn) < WHEEL_REST_LN;
-            const step = whole ? zoomLn : zoomLn * follow;
-            zoomLn = whole ? 0 : zoomLn - step;
-            zoomBy(step, zoomAt);
-            moved = true;
-            owing ||= !whole;
-        }
-        const left = Math.hypot(owedTurn[0], owedTurn[1], owedTurn[2]);
-        if (left > 0) {
-            const whole = instant || left < WHEEL_REST_RAD;
-            const f = whole ? 1 : follow;
-            const w: Vec3 = [owedTurn[0] * f, owedTurn[1] * f, owedTurn[2] * f];
-            owedTurn = whole ? [0, 0, 0] : [owedTurn[0] - w[0], owedTurn[1] - w[1], owedTurn[2] - w[2]];
-            turnBy(w);
-            moved = true;
-            owing ||= !whole;
-        }
+        const step = (f: Follower, rest: readonly [number, number], apply: (d: number[]) => void) => {
+            if (followerIdle(f)) return;
+            const x0 = [...f.x];
+            stepFollower(f, dt);
+            const home = followerNear(f, rest[0], rest[1]);
+            if (home) landFollower(f);
+            const d = f.x.map((x, i) => x - x0[i]!);
+            if (d.some((v) => v !== 0)) {
+                apply(d);
+                moved = true;
+            }
+            if (home) rebaseFollower(f);
+            else owing = true;
+        };
+        step(panF, REST_PAN, (d) => panBy({ x: d[0]!, y: d[1]! }));
+        step(zoomF, REST_ZOOM, (d) => zoomBy(d[0]!, zoomAt));
+        step(turnF, REST_TURN, (d) => turnBy([d[0]!, d[1]!, d[2]!]));
+        if (!owing) clock = -1;
         return owing ? "owed" : moved ? "landed" : "idle";
     };
 
-    /** A gesture took the die: whatever the scroll still owed is dropped. */
+    /** A gesture took the die: each follower stops where it stands (its
+     *  target becomes its place, its speed nothing). */
     const dropOwed = () => {
-        owedTurn = [0, 0, 0];
-        zoomLn = 0;
+        for (const f of [turnF, zoomF, panF]) {
+            holdFollower(f);
+            rebaseFollower(f);
+        }
+        clock = -1;
     };
 
     /** The pan / zoom stream's end: the rubber band lets go (the spring). */
@@ -932,8 +977,8 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
         clearTimeout(liveTimer);
         liveTimer = setTimeout(() => {
             liveTimer = undefined;
-            // The follower still owes zoom: the band holds until it has landed.
-            if (zoomLn !== 0) return holdLive();
+            // The followers still owe zoom or pan: the band holds until they land.
+            if (!followerIdle(zoomF) || !followerIdle(panF)) return holdLive();
             poseLive = false;
             onSettle?.(zoomAt);
         }, WHEEL_LIVE_MS);
@@ -962,43 +1007,39 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
         }
         // Every stream's end settles (a pan or zoom past a bound springs back).
         holdLive();
+        const n = notchCount(event.deltaMode, major, streamFirst);
+        const omega = n > 0 ? notchOmega() : FOLLOW_OMEGA;
         if (zoom) {
-            // One event moves at most a capped step (a mouse notch: e^0.25),
-            // owed and laid onto the frames by the follower.
-            zoomLn += Math.max(-WHEEL_ZOOM_STEP_CAP, Math.min(WHEEL_ZOOM_STEP_CAP, -dy / WHEEL_ZOOM_PX));
-            requestCommit();
+            // One event moves at most a capped step (a mouse notch: e^0.25).
+            owe(zoomF, [Math.max(-WHEEL_ZOOM_STEP_CAP, Math.min(WHEEL_ZOOM_STEP_CAP, -dy / WHEEL_ZOOM_PX))], omega, event.timeStamp);
             return;
         }
         if (pan) {
             // Shift + scroll pans, the content following the fingers. The OS
             // carries a trackpad's momentum in the stream itself, so the wheel
             // never coasts here; its end springs back inside the bound.
-            panPx = { x: panPx.x + WHEEL_PAN_SIGN * dx, y: panPx.y + WHEEL_PAN_SIGN * dy };
-            requestCommit();
+            owe(panF, [WHEEL_PAN_SIGN * dx, WHEEL_PAN_SIGN * dy], omega, event.timeStamp);
             return;
         }
         // The two-finger scroll ORBITS through a virtual pointer moved by
         // (−Δx, −Δy): the die's near face follows the fingers, Δx yawing about
         // the screen's vertical, Δy pitching about its horizontal. No anchor,
-        // no coast stop: a running glide keeps running and this composes onto it.
+        // no coast stop: a running coast keeps running and this composes onto it.
         f = frame();
         R = radius(f);
         axis = latchAxis();
         const w = latched(driveVector({ x: -dx, y: -dy }, R));
-        const n = notchCount(event.deltaMode, major, streamFirst);
-        if (n > 0) {
-            // A mouse notch is one quantum of travel: glided out, not jumped,
-            // and no more than NOTCH_MAX_RAD a notch.
-            const a = Math.hypot(w[0], w[1], w[2]);
-            const k = a > n * NOTCH_MAX_RAD ? (n * NOTCH_MAX_RAD) / a : 1;
-            onGlide([w[0] * k, w[1] * k, w[2] * k]);
-            return;
-        }
-        // A trackpad's pixel stream (and the OS's own momentum events, which
-        // carry its throw) is owed, and laid onto the frames by the follower.
-        owedTurn = [owedTurn[0] + w[0], owedTurn[1] + w[1], owedTurn[2] + w[2]];
-        requestCommit();
+        // A mouse notch is one quantum of travel, no more than NOTCH_MAX_RAD
+        // a notch, followed softly (NOTCH_OMEGA); a trackpad's pixel stream,
+        // the OS's momentum events included, at FOLLOW_OMEGA.
+        const a = Math.hypot(w[0], w[1], w[2]);
+        const k = n > 0 && a > n * NOTCH_MAX_RAD ? (n * NOTCH_MAX_RAD) / a : 1;
+        owe(turnF, [w[0] * k, w[1] * k, w[2] * k], omega, event.timeStamp);
     };
+
+    /** An arrow key's turn (axis·angle, SCREEN frame): one quantum of travel,
+     *  followed as a notch is. */
+    const nudge = (w: Vec3, t: number) => owe(turnF, w, notchOmega(), t);
 
     // ── Safari gesture* (and the host's relay of it) ────────────────────
     // Desktop Safari's trackpad pinch and twist arrive as gesture* with no
@@ -1010,27 +1051,33 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
     const touchDown = () => [...pointers.values()].some((p) => p.touch);
     let trackpad = false;
     let relayed = false;
-    let gestureAt: Vec2 = { x: 0, y: 0 };
+    /** The gesture's scale (ln) and rotation (rad) as far as the followers owe them. */
+    let gestureLn = 0;
+    let gestureRoll = 0;
 
     const gestureBegin = (at: Vec2) => {
         onGestureStart();
         readFrame();
-        gestureAt = Number.isFinite(at.x) && Number.isFinite(at.y) ? { ...at } : { ...c0 };
+        zoomAt = Number.isFinite(at.x) && Number.isFinite(at.y) ? { ...at } : { ...c0 };
+        gestureLn = 0;
+        gestureRoll = 0;
     };
 
-    const gestureApply = (scale: number, rotationDeg: number) => {
-        state.s = showScale(Math.log(s0 * (scale > 0 ? scale : 1)));
-        const k = state.s / sShow0;
-        setTranslate({
-            x: t0.x + ((k - 1) * (c0.x - gestureAt.x)) / f.fit,
-            y: t0.y + ((k - 1) * (c0.y - gestureAt.y)) / f.fit,
-        });
-        state.q = applyScreenDelta(q0, quatFromAxisAngle([0, 0, 1], ((rotationDeg || 0) * Math.PI) / 180), G);
-        requestCommit();
+    /** The gesture's scale and rotation set the zoom's and the roll's
+     *  targets, anchored at the gesture's point; the followers bring the die
+     *  there (never a pose written straight from an event). */
+    const gestureApply = (scale: number, rotationDeg: number, t: number) => {
+        const ln = Math.log(scale > 0 ? scale : 1);
+        const roll = ((rotationDeg || 0) * Math.PI) / 180;
+        owe(zoomF, [ln - gestureLn], FOLLOW_OMEGA, t);
+        owe(turnF, [0, 0, roll - gestureRoll], FOLLOW_OMEGA, t);
+        gestureLn = ln;
+        gestureRoll = roll;
     };
 
-    /** The gesture lets go: whatever stands past a bound springs back. */
-    const gestureFinish = () => onGestureEnd({ omega: [0, 0, 0] });
+    /** The gesture lets go: once the followers land, whatever stands past a
+     *  bound springs back (the wheel stream's own settle). */
+    const gestureFinish = () => holdLive();
 
     const onGestureStartEvent = (event: Event) => {
         event.preventDefault();
@@ -1046,7 +1093,7 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
         event.preventDefault();
         if (!trackpad) return;
         const e = event as GestureEvent;
-        gestureApply(e.scale, e.rotation);
+        gestureApply(e.scale, e.rotation, event.timeStamp);
     };
 
     const onGestureEndEvent = (event: Event) => {
@@ -1063,7 +1110,7 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
             relayed = true;
             gestureBegin(at);
         } else if (phase === "change") {
-            if (relayed && !trackpad) gestureApply(scale, rotationDeg);
+            if (relayed && !trackpad) gestureApply(scale, rotationDeg, performance.now());
         } else if (relayed) {
             relayed = false;
             if (!trackpad) gestureFinish();
@@ -1100,6 +1147,7 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
         handleWheel,
         flushWheel,
         dropOwed,
+        nudge,
         handAt,
         panBy,
         zoomBy,

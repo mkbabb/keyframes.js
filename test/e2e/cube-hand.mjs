@@ -27,6 +27,11 @@ export const installRecorder = (frame) =>
                 capture: true,
                 passive: true,
             });
+        addEventListener(
+            "wheel",
+            (e) => H.on && H.ev.push({ type: "wheel", t: e.timeStamp, d: performance.now(), dx: e.deltaX, dy: e.deltaY, mode: e.deltaMode, shift: e.shiftKey }),
+            { capture: true, passive: true },
+        );
         const loop = (t) => {
             if (!H.on) return;
             H.f.push({ t, sy: scrollY, vs: visualViewport?.scale ?? 1 });
@@ -267,4 +272,110 @@ export function framesOf(raw) {
     });
     const lastMove = moves.filter((e) => !up || e.d <= up.d).pop() ?? null;
     return { frames, down, up, lastMove, moves };
+}
+
+// ── Wheel streams on an absolute schedule ─────────────────────────────
+// Each event carries a digitiser-like timestamp (the schedule's, evenly
+// spaced with a small jitter), whatever moment the CDP send leaves at, so the
+// page reads the stream as a trackpad or a mouse wrote it.
+
+/** A deterministic jitter source. */
+export const seeded = (seed) => () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+
+/** A macOS-like trackpad two-finger scroll: a ramp, a hold, the OS's momentum tail. */
+export function trackpadDeltas({ hz = 120, peak = 16, ramp = 10, hold = 30, decay = 0.94, seed = 11, jitter = 0.2 } = {}) {
+    const rnd = seeded(seed);
+    const ds = [];
+    for (let i = 0; i < ramp; i++) ds.push((peak * (i + 1)) / ramp);
+    for (let i = 0; i < hold; i++) ds.push(peak);
+    for (let d = peak; d > 0.35; d *= decay) ds.push(d);
+    const out = [];
+    let t = 0;
+    let carry = 0;
+    for (const raw of ds) {
+        t += (1000 / hz) * (1 + jitter * (rnd() * 2 - 1));
+        carry += raw;
+        const v = Math.round(carry);
+        carry -= v;
+        if (v !== 0) out.push({ at: t, d: v });
+    }
+    return out;
+}
+
+/** The recorded streams the smoothness gates are read on (docs/notes/cube-smoothness.md). */
+export const STREAMS = {
+    trackpad120: { deltas: () => trackpadDeltas({ hz: 120, seed: 11 }), axis: "y" },
+    trackpad90diag: { deltas: () => trackpadDeltas({ hz: 90, peak: 18, seed: 13 }), axis: "xy" },
+    trackpad60: { deltas: () => trackpadDeltas({ hz: 60, peak: 26, ramp: 6, hold: 16, decay: 0.9, seed: 14 }), axis: "x" },
+    trackpadSlow: { deltas: () => trackpadDeltas({ hz: 120, peak: 1.3, ramp: 4, hold: 70, decay: 0.8, seed: 15 }), axis: "y" },
+    notches: { deltas: () => [0, 70, 140, 210, 280].map((at) => ({ at, d: 100 })), axis: "y" },
+    shiftPan: { deltas: () => trackpadDeltas({ hz: 120, peak: 8, seed: 17 }), axis: "x", modifiers: 8 },
+};
+
+/** Send a stream of wheel events at (x, y) on its schedule, each stamped with its own time. */
+export async function wheelStream(cdp, at, stream) {
+    const deltas = stream.deltas();
+    const t0 = performance.now() + 30;
+    const wall0 = Date.now() + 30;
+    const pending = [];
+    for (const w of deltas) {
+        const wait = t0 + w.at - performance.now();
+        if (wait > 1.5) await sleep(wait - 1);
+        while (performance.now() < t0 + w.at) {}
+        const dx = stream.axis === "x" ? w.d : stream.axis === "xy" ? w.d * 0.6 : 0;
+        const dy = stream.axis === "y" ? w.d : stream.axis === "xy" ? w.d * 0.8 : 0;
+        pending.push(
+            cdp.send("Input.dispatchMouseEvent", {
+                type: "mouseWheel",
+                x: at.x,
+                y: at.y,
+                deltaX: dx,
+                deltaY: dy,
+                modifiers: stream.modifiers ?? 0,
+                button: "none",
+                timestamp: (wall0 + w.at) / 1000,
+            }),
+        );
+    }
+    await Promise.all(pending);
+    return deltas;
+}
+
+/**
+ * The smoothness of a per-frame series over its moving part (the measure the
+ * note's tables use): the RMS of each frame's rate against its centred 7-frame
+ * mean, over frames moving at least 4 % of the peak; and the stalls, frames
+ * that do not move between two that do.
+ */
+export function smoothness(series, dts) {
+    const peak = Math.max(0, ...series.map(Math.abs));
+    const floor = 0.04 * peak;
+    const rate = series.map((x, i) => x / Math.max(1, dts[i] ?? 8.33));
+    const rel = [];
+    for (let i = 3; i < rate.length - 3; i++) {
+        const w = rate.slice(i - 3, i + 4);
+        const ma = w.reduce((a, b) => a + b, 0) / 7;
+        if (Math.abs(ma) * Math.max(1, dts[i] ?? 8.33) < floor) continue;
+        rel.push((rate[i] - ma) / ma);
+    }
+    const ripple = Math.sqrt(rel.reduce((a, b) => a + b * b, 0) / Math.max(1, rel.length));
+    let stalls = 0;
+    for (let i = 1; i < series.length - 1; i++)
+        if (Math.abs(series[i]) < 0.1 * floor && Math.abs(series[i - 1]) > floor && Math.abs(series[i + 1]) > floor) stalls++;
+    return { ripple, stalls, peak };
+}
+
+/** The time shift (ms) that best lays the rendered cumulative travel on the hand's own. */
+export function lagOf(times, rendered, inputs) {
+    const cum = (t) => inputs.reduce((a, w) => a + (w.t <= t ? w.v : 0), 0);
+    let best = { L: 0, err: Infinity };
+    for (let L = 0; L <= 150; L++) {
+        let err = 0;
+        for (let i = 0; i < times.length; i++) {
+            const e = rendered[i] - cum(times[i] - L);
+            err += e * e;
+        }
+        if (err < best.err) best = { L, err };
+    }
+    return best.L;
 }

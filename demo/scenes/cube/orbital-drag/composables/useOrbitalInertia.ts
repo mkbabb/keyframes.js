@@ -12,11 +12,9 @@ import {
     COAST_MIN_RATE,
     COAST_REST_FRACTION,
     COAST_REST_RATE,
-    GLIDE_FRICTION,
     MAX_PAN_COAST_RATE,
     MAX_ZOOM_COAST_RATE,
     POSE_FRICTION,
-    REDUCED_MOTION_SETTLE_SPEEDUP,
     SPRING_K,
     coastRate,
     inertiaFactorToFriction,
@@ -70,8 +68,6 @@ interface Channel {
     /** Started at its input's own time, not yet re-read on a frame's clock. */
     fresh: boolean;
     travelled: number;
-    /** A glide's exact travel; −1 for a release coast (no landing). */
-    total: number;
     k: number;
     /** Apply `step` of travel. */
     apply: (step: number) => void;
@@ -92,11 +88,6 @@ interface Channel {
  * that crosses its bound becomes the critically damped spring (SPRING_K)
  * there, and a pose let go past a bound springs back from where it stands.
  * Under reduced motion a pose past its bound is put on it.
- *
- * The GLIDE is a rotation with a known total (a wheel notch, an arrow key):
- * θ drains at r₀ = |θ|·k on GLIDE_FRICTION and lands EXACTLY on θ. Glides
- * stack: a new one adds into what is still to travel (any axis). Under
- * reduced motion it is shortened, never cut.
  */
 export function useOrbitalInertia(params: OrbitalInertiaParams) {
     const { inertiaFactor, rotateBy, pose, requestFrame, onRest, reducedMotion } = params;
@@ -122,13 +113,12 @@ export function useOrbitalInertia(params: OrbitalInertiaParams) {
         if (was) onRest?.();
     };
 
-    const channel = (rate0: number, apply: Channel["apply"], total = -1, now = -1, k = friction): Channel => ({
+    const channel = (rate0: number, apply: Channel["apply"], now = -1, k = friction): Channel => ({
         sample: decay({ velocity: rate0, friction: k }),
         rate0,
         startedAt: now,
         fresh: now >= 0,
         travelled: 0,
-        total,
         k,
         apply,
     });
@@ -141,10 +131,8 @@ export function useOrbitalInertia(params: OrbitalInertiaParams) {
         else if (c.fresh) c.startedAt = now - 1000 * frameSeconds(c.startedAt, now);
         c.fresh = false;
         const s = c.sample((now - c.startedAt) / 1000);
-        const resting =
-            c.total >= 0 ? s.velocity < COAST_REST_FRACTION * c.rate0 : s.velocity < Math.max(COAST_REST_RATE, 1e-9);
-        // A glide lands its whole travel at the rest.
-        const at = c.total >= 0 ? (resting ? c.total : Math.min(s.value, c.total)) : s.value;
+        const resting = s.velocity < Math.max(COAST_REST_RATE, 1e-9);
+        const at = s.value;
         const d = at - c.travelled;
         c.travelled = at;
         if (d !== 0) c.apply(d);
@@ -253,7 +241,7 @@ const ZOOM_MIN_RATE = 0.03;
         const r0 = rate < COAST_MIN_RATE ? 0 : coastRate(rate, reduce);
         if (r0 > 0) {
             axis = [r.omega[0] / rate, r.omega[1] / rate, r.omega[2] / rate];
-            rotation = channel(r0, rotate(axis), -1, t0);
+            rotation = channel(r0, rotate(axis), t0);
         }
 
         // The pan's starting speed is the gained, capped release speed along
@@ -283,25 +271,5 @@ const ZOOM_MIN_RATE = 0.03;
         if (coasting()) requestFrame();
     };
 
-    /**
-     * Glide out a rotation `theta` (axis·angle, rad, in the attitude's frame),
-     * added into whatever rotation is still to travel. Returns the starting rate.
-     */
-    const glide = (theta: Vec3, now?: number): number => {
-        // What is left of the running rotation (a coast: its analytic rest).
-        const left = rotation
-            ? (rotation.total >= 0 ? rotation.total : Math.max(0, rotation.rate0 - COAST_REST_RATE) / rotation.k) - rotation.travelled
-            : 0;
-        const v: Vec3 = [theta[0] + axis[0] * left, theta[1] + axis[1] * left, theta[2] + axis[2] * left];
-        const angle = norm3(v);
-        if (angle === 0) return 0;
-        const dir: Vec3 = [v[0] / angle, v[1] / angle, v[2] / angle];
-        const k = (reducedMotion?.() ?? false) ? GLIDE_FRICTION * REDUCED_MOTION_SETTLE_SPEEDUP : GLIDE_FRICTION;
-        axis = dir;
-        rotation = channel(angle * k, rotate(dir), angle, now ?? -1, k);
-        requestFrame();
-        return rotation.rate0;
-    };
-
-    return { start, stop, advance, glide, settle, friction, coasting };
+    return { start, stop, advance, settle, friction, coasting };
 }

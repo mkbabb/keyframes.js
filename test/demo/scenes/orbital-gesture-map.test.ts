@@ -233,7 +233,8 @@ describe("M3 — Shift + scroll pans, banded, and springs back", () => {
     it("Shift + Δy +30 moves the die's centre −30 (content follows the fingers) and turns nothing", async () => {
         const { w, model, el } = await mountOrbit();
         el.dispatchEvent(wheel({ deltaY: 30, shiftKey: true }));
-        await flush();
+        // The pan follows its target (FOLLOW_OMEGA) and lands it exactly.
+        await flush(40);
         expect(model.value.translate.y).toBeCloseTo(-30, 9);
         expect(model.value.translate.x).toBe(0);
         expect(screenRotation(q(model.value)).angle).toBe(0);
@@ -247,6 +248,8 @@ describe("M3 — Shift + scroll pans, banded, and springs back", () => {
             el.dispatchEvent(wheel({ deltaY: 200, shiftKey: true }));
             await flush();
         }
+        // The pan's follower lands the stream; then the band lets go.
+        await flush(40);
         expect(CENTRE.y + model.value.translate.y).toBeLessThan(TOP);
         await new Promise((r) => setTimeout(r, WHEEL_LIVE_MS + 20));
         const ys: number[] = [];

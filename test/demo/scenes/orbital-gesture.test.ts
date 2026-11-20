@@ -338,7 +338,8 @@ describe("G2.4 — ONE multitouch source (D-14)", () => {
         const { w, model, el } = await mountOrbit();
         el.dispatchEvent(gestureEvent("gesturestart", 1, 0));
         window.dispatchEvent(gestureEvent("gesturechange", 1.5, 0));
-        await flush();
+        // The gesture sets the zoom's target; its follower lands it.
+        await flush(40);
         expect(Math.abs(model.value.scale.x - 1.5)).toBeLessThan(1e-6);
         window.dispatchEvent(gestureEvent("gestureend", 1.5, 0));
         w.unmount();
@@ -357,12 +358,14 @@ describe("G2.4 — ONE multitouch source (D-14)", () => {
         };
         el.dispatchEvent(g("gesturestart", 1, 0));
         window.dispatchEvent(g("gesturechange", 1.5, 30));
-        await flush();
+        await flush(40);
         const k = model.value.scale.x;
         expect(k).toBeCloseTo(1.5, 9);
         const c = { x: CENTRE.x + model.value.translate.x, y: CENTRE.y + model.value.translate.y };
-        expect(Math.abs(c.x + k * (at.x - CENTRE.x) - at.x)).toBeLessThan(1e-6);
-        expect(Math.abs(c.y + k * (at.y - CENTRE.y) - at.y)).toBeLessThan(1e-6);
+        // Within half a pixel: the follower's way to ×1.5 crosses the x band
+        // (the bound flips as the die outgrows the stage), as a wheel pinch does.
+        expect(Math.abs(c.x + k * (at.x - CENTRE.x) - at.x)).toBeLessThan(0.5);
+        expect(Math.abs(c.y + k * (at.y - CENTRE.y) - at.y)).toBeLessThan(0.5);
         const r = screenRotation(model.value.quaternion!);
         expect((r.angle * 180) / Math.PI).toBeCloseTo(30, 6);
         expect(Math.abs(r.axis[2])).toBeCloseTo(1, 9);
@@ -377,13 +380,13 @@ describe("G2.4 — ONE multitouch source (D-14)", () => {
         const at = { x: CENTRE.x - 20, y: CENTRE.y - 34 };
         orbit.relayGesture("start", 1, 0, at);
         orbit.relayGesture("change", 1.5, 30, at);
-        await flush();
+        await flush(40);
         const k = model.value.scale.x;
         expect(k).toBeCloseTo(1.5, 9);
         const c = { x: CENTRE.x + model.value.translate.x, y: CENTRE.y + model.value.translate.y };
-        expect(Math.abs(c.x + k * (at.x - CENTRE.x) - at.x)).toBeLessThan(1e-6);
+        expect(Math.abs(c.x + k * (at.x - CENTRE.x) - at.x)).toBeLessThan(0.5);
         orbit.relayGesture("end", 1.5, 30, at);
-        await flush(5);
+        await flush(40);
         // While its own gesture runs, a relay writes nothing.
         el.dispatchEvent(gestureEvent("gesturestart", 1, 0));
         const before = model.value.scale.x;

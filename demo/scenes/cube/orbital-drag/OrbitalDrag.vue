@@ -15,14 +15,12 @@ import { computed, onMounted, onUnmounted, shallowRef, useTemplateRef, watch } f
 import { attitudeQuat } from "../graphAttitude";
 import {
     quatCanonical,
-    quatConjugate,
     quatDot,
     quatFromAxisAngle,
     quatMultiply,
     quatSlerp,
     quatToAxisAngle,
     panInPlane,
-    rotateVec,
 } from "./arcball";
 import type { Quat, Vec3 } from "./arcball";
 import type { TransformBounds, TransformState } from "./transform";
@@ -92,7 +90,6 @@ if (Object.keys(model.value).length === 0) {
 const containerRef = useTemplateRef<HTMLElement>("containerRef");
 const bounds = props.bounds ?? defaultTransformBounds;
 const G: Quat = attitudeQuat();
-const Ginv: Quat = quatConjugate(G);
 
 const seedQuaternion = (): Quat => {
     const stored = model.value.quaternion;
@@ -242,9 +239,6 @@ const gesture = useOrbitalGesture({
         // K3: the coast is clocked at the release's own time.
         if (!inertia.start(release, release.time)) writeModel(true);
     },
-    // A wheel notch glides out on the coast's own decay, conjugated into Q's
-    // frame (G is fixed, so turning the axis by G⁻¹ is the conjugation).
-    onGlide: (w) => void inertia.glide(rotateVec(Ginv, w)),
     // A wheel stream's end settles: a pan or zoom past a bound springs back,
     // and with nothing left moving the readout folds.
     onSettle: (at) => {
@@ -319,12 +313,12 @@ const goTo = (to: OrbitPose) => {
 };
 const goHome = () => goTo(LOAD_POSE);
 
-// ── The keyboard: the arrows turn the die on the same decay ─────────
+// ── The keyboard: the arrows turn the die on the notch's follower ───
 // With the stage focused, an arrow turns the die 15° (Shift: 45°) about the
 // screen's vertical (← →) or horizontal (↑ ↓), the near face moving with the
-// arrow, glided out on the coast's own closed form (a held key's repeats
-// stack into one glide); Home returns it. Under reduced motion the glide is
-// shortened, never cut.
+// arrow, followed as a wheel notch is (a held key's repeats add to one
+// target); Home returns it. Under reduced motion the follower is quicker,
+// never cut.
 const ARROW_STEP_RAD = (15 * Math.PI) / 180;
 const ARROW_TURN: Record<string, Vec3> = {
     ArrowLeft: [0, -1, 0],
@@ -345,7 +339,7 @@ const onKeydown = (event: KeyboardEvent) => {
     event.stopPropagation();
     home = null;
     const a = ARROW_STEP_RAD * (event.shiftKey ? 3 : 1);
-    inertia.glide(rotateVec(Ginv, [dir[0] * a, dir[1] * a, dir[2] * a]));
+    gesture.nudge([dir[0] * a, dir[1] * a, dir[2] * a], event.timeStamp);
 };
 
 // ── The axis latch — KF-AX-1 ≡ OD-3/OD-4/OD-5/OD-6/OD-25/OD-31 ──────

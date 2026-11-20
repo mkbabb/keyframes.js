@@ -246,7 +246,6 @@ describe("KF-AX-2 — the latch gates BOTH gesture paths (the one reader, KF-M2)
                 requestCommit: () => {},
                 onGestureStart: () => {},
                 onGestureEnd: () => {},
-                onGlide: () => {},
             }),
         )!;
         return {

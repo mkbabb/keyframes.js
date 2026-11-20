@@ -898,3 +898,137 @@ test.describe("the hand at the frame", () => {
             });
         }
 });
+
+// ── Every stepped input on one critically damped follower ─────────────────
+// Mouse notches, Shift + scroll and trackpad streams shaped like macOS's,
+// each event stamped with its own digitiser-like time, on the GPU lane at
+// 1440×900, every frame read. Born red: a notch started at full speed,
+// stalled a frame and crept for about 0.53 s; Shift + scroll was applied as
+// it came (ripple 0.33-0.40, 3-9 stalls); a 60 Hz stream rippled ±23 %.
+import { STREAMS, incrementsOf, lagOf, posesOf, smoothness, wheelStream } from "./cube-hand.mjs";
+
+/** Today's measured ripple and lag (ms) per stream (docs/notes/cube-smoothness.md). */
+const TODAY = {
+    slice: { trackpad120: [0.082, 27], trackpad90diag: [0.147, 29], trackpad60: [0.228, 26], trackpadSlow: [0.122, 27] },
+    demo: { trackpad120: [0.093, 35], trackpad90diag: [0.156, 37], trackpad60: [0.255, 35], trackpadSlow: [0.116, 35] },
+};
+
+test.describe("the follower: notches, Shift + scroll, trackpad streams", () => {
+    test.setTimeout(120_000);
+    let browser = null;
+    test.beforeAll(async () => {
+        browser = await chromium.launch({ args: GPU });
+    });
+    test.afterAll(async () => {
+        await browser?.close();
+    });
+
+    /** Open a desk cell, put the pointer on the die, play one stream, every frame recorded. */
+    const play = async (where, name, settleMs = 900) => {
+        const ctx = await browser.newContext(HAND_CELLS.mouse);
+        try {
+            const page = await ctx.newPage();
+            const c = await cell(page, where === "slice" ? embedUrl() : demoUrl());
+            await c.cdp.send("Input.dispatchMouseEvent", { type: "mouseMoved", x: c.geom.c.x, y: c.geom.c.y, button: "none" });
+            await sleep(100);
+            await page.evaluate(() => window.__hand.start());
+            await sleep(40);
+            await wheelStream(c.cdp, c.geom.c, STREAMS[name]);
+            await sleep(settleMs);
+            const raw = await page.evaluate(() => window.__hand.stop());
+            return { raw, geom: c.geom };
+        } finally {
+            await ctx.close();
+        }
+    };
+
+    /** The turn per frame along the stream's own axis, with each frame's interval. */
+    const turnSeries = (raw) => {
+        const P = posesOf(raw);
+        const inc = incrementsOf(P).slice(1);
+        const axis = unit3(sum3(inc));
+        const along = inc.map((v) => dot3(v, axis));
+        const dts = P.slice(1).map((p, i) => p.time - P[i].time);
+        const times = P.slice(1).map((p) => p.time);
+        let acc = 0;
+        const cum = along.map((a) => (acc += a));
+        return { P, along, dts, times, cum, total: turn(P[0].q, P[P.length - 1].q) };
+    };
+    /** The moving stretch: the first frame that moves to the last. */
+    const moving = (series) => {
+        const peak = Math.max(...series.map(Math.abs));
+        const a = series.findIndex((x) => Math.abs(x) > 1e-3 * peak);
+        let b = series.length - 1;
+        while (b > a && Math.abs(series[b]) <= 1e-3 * peak) b--;
+        return [a, b + 1];
+    };
+
+    for (const where of ["slice", "demo"]) {
+        test(`${where}: G4 five mouse notches 70 ms apart start soft, never stall, and rest within 350 ms of the last`, async () => {
+            const { raw } = await play(where, "notches", 900);
+            const s = turnSeries(raw);
+            const wheels = raw.ev.filter((e) => e.type === "wheel");
+            expect(wheels.length).toBe(5);
+            const [a, b] = moving(s.along);
+            const live = s.along.slice(a, b);
+            const stillFrames = live.filter((x) => Math.abs(x) < 1e-5).length;
+            const largest = Math.max(...live);
+            // Rest: within 0.05° of where it ends.
+            const end = s.cum[s.cum.length - 1];
+            const iRest = s.cum.findIndex((c, i) => i >= a && s.cum.slice(i).every((x) => Math.abs(end - x) < 0.05 * DEG));
+            const restMs = s.times[iRest] - wheels[wheels.length - 1].d;
+            test.info().annotations.push({
+                type: "G4",
+                description: `${where}: first ${(live[0] / DEG).toFixed(2)}° of largest ${(largest / DEG).toFixed(2)}°; ${stillFrames} still; rest ${restMs.toFixed(0)} ms after the last notch`,
+            });
+            expect(stillFrames).toBe(0);
+            expect(live[0]).toBeLessThanOrEqual(0.4 * largest);
+            expect(restMs).toBeLessThanOrEqual(350);
+        });
+
+        test(`${where}: G5 Shift + scroll pans with no stalled frame and ripple at most 0.15`, async () => {
+            const { raw } = await play(where, "shiftPan", 900);
+            const P = raw.f.map((x) => {
+                const m = /translate3d\(([-\d.e]+)px,\s*([-\d.e]+)px,\s*([-\d.e]+)px/.exec(x.tf);
+                return { t: x.t, p: m ? [Number(m[1]), Number(m[2]), Number(m[3])] : [0, 0, 0] };
+            });
+            const wheels = raw.ev.filter((e) => e.type === "wheel");
+            const dts = P.slice(1).map((p, i) => p.t - P[i].t);
+            const step = P.slice(1).map((p, i) => Math.hypot(p.p[0] - P[i].p[0], p.p[1] - P[i].p[1], p.p[2] - P[i].p[2]));
+            // While the stream runs: from the first frame after its first event to its last.
+            const i0 = P.findIndex((p) => p.t > wheels[0].d);
+            const i1 = P.findIndex((p) => p.t > wheels[wheels.length - 1].d);
+            const during = step.slice(i0, i1 < 0 ? step.length : i1);
+            const sm = smoothness(during, dts.slice(i0, i1 < 0 ? dts.length : i1));
+            test.info().annotations.push({ type: "G5", description: `${where}: ripple ${sm.ripple.toFixed(3)}, ${sm.stalls} stalls over ${during.length} frames` });
+            expect(sm.stalls).toBe(0);
+            expect(sm.ripple).toBeLessThanOrEqual(0.15);
+        });
+
+        test(`${where}: G6 trackpad streams: 60 and 120 Hz ripple at most 0.15, the others below today's, every sum landing, lag no more than today's`, async () => {
+            const out = [];
+            for (const name of ["trackpad120", "trackpad90diag", "trackpad60", "trackpadSlow"]) {
+                const { raw, geom } = await play(where, name, 700);
+                const s = turnSeries(raw);
+                const wheels = raw.ev.filter((e) => e.type === "wheel");
+                const inputs = wheels.map((w) => ({ t: w.t, v: (2 * Math.hypot(w.dx, w.dy)) / geom.R }));
+                const want = inputs.reduce((x, w) => x + w.v, 0);
+                const [a, b] = moving(s.along);
+                const sm = smoothness(s.along.slice(a, b), s.dts.slice(a, b));
+                const lag = lagOf(s.times, s.cum, inputs);
+                out.push({ name, ripple: sm.ripple, lag, landed: Math.abs(s.total - want) });
+            }
+            test.info().annotations.push({
+                type: "G6",
+                description: `${where}: ${out.map((o) => `${o.name} ripple ${o.ripple.toFixed(3)} lag ${o.lag} ms, off by ${(o.landed / DEG).toFixed(4)}°`).join("; ")}`,
+            });
+            for (const o of out) {
+                const [ripple, lag] = TODAY[where][o.name];
+                if (o.name === "trackpad120" || o.name === "trackpad60") expect(o.ripple, o.name).toBeLessThanOrEqual(0.15);
+                else expect(o.ripple, o.name).toBeLessThan(ripple);
+                expect(o.landed, o.name).toBeLessThan(1e-3);
+                expect(o.lag, o.name).toBeLessThanOrEqual(lag);
+            }
+        });
+    }
+});
