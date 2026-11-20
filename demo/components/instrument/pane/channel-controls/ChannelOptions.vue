@@ -46,7 +46,19 @@
                                  header (glass ConfiguratorLayer: the title, its
                                  baseline and the trailing chevron), not a bare h3
                                  a few px off their title line. -->
-                            <ConfiguratorLayer :label="channelName" default-open>
+                            <!-- An upright phone's sheet is one layer: its first
+                                 row is Reset and the channel select (where the
+                                 scene has two channels; one is the scene's own),
+                                 so the section's title row says nothing there and
+                                 the fields stand on the pane's inset without it. -->
+                            <component
+                                :is="uprightPhone ? 'div' : ConfiguratorLayer"
+                                v-bind="
+                                    uprightPhone
+                                        ? { class: 'flex flex-col gap-2 px-(--configurator-pad-inline) pb-2' }
+                                        : { label: channelName, defaultOpen: true }
+                                "
+                            >
                             <ChannelOptionsForm
                                 v-model:open-select="openSelect"
                                 :animation="animation"
@@ -134,7 +146,7 @@
                                 }}</span>
                                 <ChevronRight class="icon-sm" />
                             </Button>
-                            </ConfiguratorLayer>
+                            </component>
                         </div>
                     </div>
 
@@ -230,8 +242,12 @@ import {
 } from "@state";
 
 import { computed, ref, toRef, useId, useTemplateRef } from "vue";
+import { useMediaQuery } from "@vueuse/core";
 
 import ChannelOptionsForm from "./ChannelOptionsForm.vue";
+
+/** An upright phone: the opened sheet names the channel in its first row. */
+const uprightPhone = useMediaQuery("(max-width: 1023px) and (min-height: 501px)");
 import EasingField from "./EasingField.vue";
 import LayerConfigPanel from "./LayerConfigPanel.vue";
 import SubPaneHeader from "./SubPaneHeader.vue";

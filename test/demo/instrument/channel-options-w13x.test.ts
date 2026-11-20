@@ -660,3 +660,41 @@ describe("OD19-K3 — the direction and fill-mode selects lead with their value'
         }
     });
 });
+
+describe("the upright phone's one-layer sheet", () => {
+    /** The viewport the media queries read, as a phone or a desk. */
+    const at = (w: number, h: number) => (query: string) => {
+        let ok = true;
+        for (const [, kind, axis, px] of query.matchAll(/\((max|min)-(width|height): (\d+)px\)/g)) {
+            const v = axis === "height" ? h : w;
+            ok &&= kind === "max" ? v <= Number(px) : v >= Number(px);
+        }
+        return { matches: ok, media: query, addEventListener: () => {}, removeEventListener: () => {}, addListener: () => {}, removeListener: () => {}, onchange: null, dispatchEvent: () => false };
+    };
+
+    it("(18) on an upright phone the Controls surface draws no title row (the sheet's first row names the channel); a desk keeps it", async () => {
+        const saved = Object.getOwnPropertyDescriptor(window, "matchMedia");
+        try {
+            Object.defineProperty(window, "matchMedia", { configurable: true, value: at(390, 844) });
+            const phone = mountCard(1);
+            try {
+                await settle();
+                expect(phone.wrapper.find("[data-slot=configurator-layer-trigger]").exists()).toBe(false);
+                expect(phone.wrapper.text()).toMatch(/duration/);
+            } finally {
+                phone.wrapper.unmount();
+            }
+            Object.defineProperty(window, "matchMedia", { configurable: true, value: at(1440, 900) });
+            const desk = mountCard(1);
+            try {
+                await settle();
+                expect(desk.wrapper.find("[data-slot=configurator-layer-trigger]").exists()).toBe(true);
+            } finally {
+                desk.wrapper.unmount();
+            }
+        } finally {
+            if (saved) Object.defineProperty(window, "matchMedia", saved);
+            else delete (window as { matchMedia?: unknown }).matchMedia;
+        }
+    });
+});
