@@ -114,13 +114,20 @@
                 <div class="flex flex-col gap-3">
                     <div v-for="p in PARAMS" :key="p.key" class="param-row">
                         <div class="param-field">
-                            <Popover trigger="hover" :open-delay="250">
+                            <!-- The 250 ms wait is for a passing hover only: a
+                                 mouse press on the word opens it at once. -->
+                            <Popover trigger="hover"
+                                :open-delay="250"
+                                :open="openTerm === p.key"
+                                @update:open="(v: boolean) => onTermOpen(p.key, v)"
+                            >
                                 <PopoverTrigger as-child>
                                     <button
                                         :id="`${uid}-${p.key}`"
                                         :ref="(el) => { termEls[p.key] = el as HTMLElement | null; }"
                                         type="button"
                                         class="param-term focus-ring"
+                                        @pointerdown="(e: PointerEvent) => { if (e.pointerType === 'mouse') openTerm = p.key; }"
                                     >
                                         {{ p.label }}
                                     </button>
@@ -273,6 +280,13 @@ const PARAMS: readonly ParamRow[] = [
  *  stands in the gutter beside the rail and covers none of the pane's controls. */
 const uid = useId();
 const termEls = reactive<Record<ParamKey, HTMLElement | null>>({ response: null, damping: null });
+/** The one term whose explanation is open (a press opens it at once; glass's
+ *  hover arm opens and closes it on its own clocks). */
+const openTerm = ref<ParamKey | null>(null);
+const onTermOpen = (key: ParamKey, open: boolean): void => {
+    if (open) openTerm.value = key;
+    else if (openTerm.value === key) openTerm.value = null;
+};
 const OUTSIDE_GAP = 12;
 const outsideOffset = (key: ParamKey): number => {
     const term = termEls[key];

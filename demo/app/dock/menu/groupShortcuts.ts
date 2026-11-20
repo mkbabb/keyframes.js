@@ -60,3 +60,14 @@ export function groupShortcuts<T extends GroupableShortcut>(
 
     return groups;
 }
+
+/**
+ * A key cap prints the key a person presses. A spatial binding is registered
+ * by its code (`KeyX`, `Digit1`: the same key on every layout) and the
+ * formatter prints a code as it was registered, so the cap would read "KeyX".
+ * Every other part (modifiers, arrows, named keys) is the formatter's own.
+ */
+export function capOf(part: string): string {
+    const m = /^(?:Key([A-Z])|Digit([0-9]))$/.exec(part);
+    return m ? (m[1] ?? m[2]!) : part;
+}

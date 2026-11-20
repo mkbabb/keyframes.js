@@ -11,8 +11,13 @@
  *   degenerate (the 204px glass chrome floor exceeds 0.12 and 0.36 of 390px);
  *   there the sheet is a RIGHT side sheet between the dock bands.
  *
+ * - An upright phone's sheet truly closes: there is no parked peek. The
+ *   ladder is OPEN and FULL; closed is absent (the dialog is not open), not a
+ *   resting rung, so the stage holds the screen at rest.
+ *
  * The glass Sheet is stubbed at its seam (it records the ladder it is handed);
- * the pane wrapper is REAL — the ladder is the wrapper's.
+ * the Dialog stub renders its content only while open, as reka's does; the
+ * pane wrapper is REAL — the ladder is the wrapper's.
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp, defineComponent, h, nextTick, reactive } from "vue";
@@ -32,7 +37,10 @@ vi.mock("@mkbabb/glass-ui/sheet", () => ({
     }),
 }));
 vi.mock("@mkbabb/glass-ui/dialog", () => ({
-    Dialog: defineComponent({ setup: (_p, { slots }) => () => slots.default?.() }),
+    Dialog: defineComponent({
+        props: ["open", "modal"],
+        setup: (p, { slots }) => () => (p.open ? slots.default?.() : null),
+    }),
     DialogTitle: defineComponent({ setup: (_p, { slots }) => () => h("h2", slots.default?.()) }),
 }));
 vi.mock("@components/instrument/pane/channel-controls/ChannelControls.vue", () => ({
@@ -68,8 +76,16 @@ Object.defineProperty(window, "matchMedia", {
     }),
 });
 
-const { default: ControlsPaneWrapper } =
+const { default: ControlsPaneWrapperBare } =
     await import("@components/instrument/pane/ControlsPaneWrapper.vue");
+const { TooltipProvider } = await import("@mkbabb/glass-ui/tooltip");
+/** The wrapper under a TooltipProvider, as the app mounts it (the phone
+ *  sheet's first row carries tooltips). */
+const ControlsPaneWrapper = defineComponent({
+    inheritAttrs: false,
+    setup: (_p, { attrs }) => () =>
+        h(TooltipProvider, null, { default: () => h(ControlsPaneWrapperBare as any, attrs) }),
+});
 
 const mounted: { unmount: () => void; el: HTMLElement }[] = [];
 afterEach(() => {
@@ -80,12 +96,12 @@ afterEach(() => {
     sheetProps.splice(0);
 });
 
-async function mountAt(w: number, ht: number, stageMode: "subject" | "editor") {
+async function mountAt(w: number, ht: number, stageMode: "subject" | "editor", open = false) {
     viewport = { w, h: ht };
     const storedControls = reactive({
         selectedAnimation: "a",
         selectedControl: "controls",
-        isControlsPanelOpen: false,
+        isControlsPanelOpen: open,
         isTimelineExpanded: false,
     });
     const group = {
@@ -114,10 +130,19 @@ async function mountAt(w: number, ht: number, stageMode: "subject" | "editor") {
     app.mount(el);
     mounted.push({ unmount: () => app.unmount(), el });
     await nextTick();
+    // The wrapper's mobile mount-reset lowers the controls; a case that wants
+    // them open opens them, as the Controls seat does.
+    if (open) {
+        storedControls.isControlsPanelOpen = true;
+        await nextTick();
+    }
     const rec = sheetProps.at(-1);
     if (!rec) throw new Error("no SheetContent mounted");
     return { rec, storedControls };
 }
+
+/** The sheet as it stands: the last SheetContent mounted, if it is still in the DOM. */
+const sheetShown = () => document.querySelector('[data-stub="SheetContent"]') !== null;
 
 describe("the mobile sheet's detent ladder", () => {
     it.each([
@@ -125,33 +150,70 @@ describe("the mobile sheet's detent ladder", () => {
         [390, 844],
         [768, 1024],
     ])("UIA-KF-217 — the editor stage's open rung holds the stage floor (%ix%i)", async (w, h) => {
-        const { rec, storedControls } = await mountAt(w, h, "editor");
-        storedControls.isControlsPanelOpen = true;
-        await nextTick();
+        const { rec } = await mountAt(w, h, "editor", true);
         expect(rec.props.side).toBe("bottom");
         expect(rec.props.detent).toBeLessThanOrEqual(0.36);
     });
 
-    it("A2-KE-L2-10 — a FULL rung above the open one, capped at the band between the docks", async () => {
-        const { rec, storedControls } = await mountAt(390, 844, "subject");
+    it("an upright phone's sheet is closed at rest: absent, not parked", async () => {
+        viewport = { w: 390, h: 844 };
+        const storedControls = reactive({
+            selectedAnimation: "a",
+            selectedControl: "controls",
+            isControlsPanelOpen: false,
+            isTimelineExpanded: false,
+        });
+        const el = document.createElement("div");
+        document.body.appendChild(el);
+        const app = createApp(
+            defineComponent({
+                setup: () => () =>
+                    h(ControlsPaneWrapper as any, {
+                        animationGroup: { animations: { a: { animation: { id: "a" }, layer: undefined } }, singleTarget: true },
+                        blendAvailable: true,
+                        storedControls,
+                        stageMode: "subject",
+                        isPlaying: false,
+                        onSetControlsPanelOpen: (v: boolean) => {
+                            storedControls.isControlsPanelOpen = v;
+                        },
+                    }),
+            }),
+        );
+        app.mount(el);
+        mounted.push({ unmount: () => app.unmount(), el });
+        await nextTick();
+        expect(sheetShown()).toBe(false);
+        expect(sheetProps).toHaveLength(0);
+        storedControls.isControlsPanelOpen = true;
+        await nextTick();
+        expect(sheetShown()).toBe(true);
+    });
+
+    it("A2-KE-L2-10 — the ladder is OPEN and FULL: a FULL rung above the open one, capped at the band between the docks", async () => {
+        const { rec, storedControls } = await mountAt(390, 844, "subject", true);
         const d: number[] = rec.props.detents;
-        expect(d.length).toBe(3);
-        expect(d[2]).toBeGreaterThan(d[1]!);
+        expect(d.length).toBe(2);
+        expect(d[0]).toBe(0.36);
+        expect(d[1]).toBeGreaterThan(d[0]!);
+        expect(rec.props.detent).toBe(d[0]);
         const style = rec.attrs.style as Record<string, string>;
         expect(style.maxBlockSize).toContain("var(--stage-top-inset)");
         expect(style.maxBlockSize).toContain("var(--stage-bottom-inset)");
-        // the grip / drag landing on FULL opens the sheet AT full
-        rec.emit("update:detent", d[2]);
+        // the grip / drag landing on FULL takes the sheet to full
+        rec.emit("update:detent", d[1]);
         await nextTick();
         expect(storedControls.isControlsPanelOpen).toBe(true);
-        expect(rec.props.detent).toBe(d[2]);
-        // a close parks at peek, and the next open is the open rung, not full
-        storedControls.isControlsPanelOpen = false;
+        expect(rec.props.detent).toBe(d[1]);
+        // a flick onto 0 closes it: the sheet leaves, nothing parks
+        rec.emit("update:detent", null);
         await nextTick();
-        expect(rec.props.detent).toBe(d[0]);
+        expect(storedControls.isControlsPanelOpen).toBe(false);
+        expect(sheetShown()).toBe(false);
+        // the next open is the open rung, not full
         storedControls.isControlsPanelOpen = true;
         await nextTick();
-        expect(rec.props.detent).toBe(d[1]);
+        expect(sheetProps.at(-1)!.props.detent).toBe(d[0]);
     });
 
     it.each([
@@ -167,5 +229,102 @@ describe("the mobile sheet's detent ladder", () => {
         const style = rec.attrs.style as Record<string, string>;
         expect(style.top).toBe("var(--stage-top-inset)");
         expect(style.bottom).toBe("var(--stage-bottom-inset)");
+    });
+
+    /** Mount with two channels and count what the sheet's first row offers. */
+    async function mountTwoChannels(w: number, ht: number) {
+        viewport = { w, h: ht };
+        const storedControls = reactive({
+            selectedAnimation: "a",
+            selectedControl: "controls",
+            isControlsPanelOpen: true,
+            isTimelineExpanded: false,
+        });
+        const calls = { reset: 0, picked: [] as string[] };
+        const el = document.createElement("div");
+        document.body.appendChild(el);
+        const app = createApp(
+            defineComponent({
+                setup: () => () =>
+                    h(ControlsPaneWrapper as any, {
+                        animationGroup: {
+                            animations: {
+                                a: { animation: { id: "a" }, layer: undefined },
+                                b: { animation: { id: "b" }, layer: undefined },
+                            },
+                            singleTarget: true,
+                        },
+                        blendAvailable: true,
+                        storedControls,
+                        stageMode: "subject",
+                        isPlaying: false,
+                        onSetControlsPanelOpen: (v: boolean) => {
+                            storedControls.isControlsPanelOpen = v;
+                        },
+                        onReset: () => calls.reset++,
+                        onSelectAnimation: (name: string) => calls.picked.push(name),
+                    }),
+            }),
+        );
+        app.mount(el);
+        mounted.push({ unmount: () => app.unmount(), el });
+        await nextTick();
+        storedControls.isControlsPanelOpen = true;
+        await nextTick();
+        return calls;
+    }
+
+    it("a tap on a dock seat keeps the sheet open, though the seat's glyph left the document before the tap's click", async () => {
+        // reka judges a touch's outside press at its click; Play swaps its glyph
+        // at the pointerup, so the pressed node is detached by then.
+        const { rec } = await mountAt(390, 844, "subject", true);
+        const dock = document.createElement("div");
+        dock.setAttribute("data-dock-tether", "bottom");
+        const seat = document.createElement("button");
+        const glyph = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        seat.append(glyph);
+        dock.append(seat);
+        document.body.append(dock);
+        const outside = (target: Element) => {
+            const press = new window.PointerEvent("pointerdown", { bubbles: true, cancelable: true, pointerType: "touch" });
+            target.dispatchEvent(press);
+            return press;
+        };
+        try {
+            const press = outside(glyph);
+            seat.replaceChildren(document.createElementNS("http://www.w3.org/2000/svg", "svg"));
+            const judged = new CustomEvent("dismissableLayer.pointerDownOutside", { cancelable: true, detail: { originalEvent: press } });
+            rec.attrs.onInteractOutside(judged);
+            expect(judged.defaultPrevented).toBe(true);
+            // A press on the stage still lowers it.
+            const stage = document.createElement("div");
+            document.body.append(stage);
+            const other = outside(stage);
+            const judgedStage = new CustomEvent("dismissableLayer.pointerDownOutside", { cancelable: true, detail: { originalEvent: other } });
+            rec.attrs.onInteractOutside(judgedStage);
+            expect(judgedStage.defaultPrevented).toBe(false);
+            stage.remove();
+        } finally {
+            dock.remove();
+        }
+    });
+
+    it("an upright phone's opened sheet leads with Reset and the channel select (the dock leaves them out at rest)", async () => {
+        const calls = await mountTwoChannels(390, 844);
+        const sheet = document.querySelector('[data-stub="SheetContent"]')!;
+        const reset = sheet.querySelector<HTMLButtonElement>('button[aria-label="Reset animation"]');
+        expect(reset).not.toBeNull();
+        expect(sheet.querySelector('[aria-label="Channel to edit"]')).not.toBeNull();
+        // Reset is the sheet's first control.
+        expect(sheet.querySelector("button")).toBe(reset);
+        reset!.click();
+        expect(calls.reset).toBe(1);
+    });
+
+    it("a landscape phone's rail adds no such row: its transport keeps Reset and the channel select", async () => {
+        await mountTwoChannels(844, 390);
+        const sheet = document.querySelector('[data-stub="SheetContent"]')!;
+        expect(sheet.querySelector('button[aria-label="Reset animation"]')).toBeNull();
+        expect(sheet.querySelector('[aria-label="Channel to edit"]')).toBeNull();
     });
 });

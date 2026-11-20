@@ -23,7 +23,18 @@
                  its duration. The editor sits on the BARE surface: the pane's
                  Card is the one plate, so no second tinted card nests inside it
                  (the same one-frame rule as the Sequence stage, `.sq`). -->
-            <ConfiguratorLayer label="Easing" default-open body-class="flex flex-col">
+            <!-- An upright phone's sheet holds this one section, under the
+                 sheet's own first row: a title row there only takes height
+                 from the curve, so the fields stand on the section's inset
+                 without it. -->
+            <component
+                :is="uprightPhone ? 'div' : ConfiguratorLayer"
+                v-bind="
+                    uprightPhone
+                        ? { class: 'flex flex-col px-(--configurator-pad-inline) pb-2' }
+                        : { label: 'Easing', defaultOpen: true, bodyClass: 'flex flex-col' }
+                "
+            >
                 <!-- KF-ES-12 ≡ KF-TFP-1 — the picker sits in the shared
                      `useEasingPickerSeat` (demo/composables), the SAME
                      seat the transport's TimingFunctionPanel uses. A tile that
@@ -114,13 +125,14 @@
                     />
                     <output class="param-value" aria-hidden="true">{{ demo.duration.value }} ms</output>
                 </div>
-            </ConfiguratorLayer>
+            </component>
         </div>
     </div>
 </template>
 
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
+import { useMediaQuery } from "@vueuse/core";
 import { Separator } from "@mkbabb/glass-ui";
 import { Button } from "@mkbabb/glass-ui/button";
 import { LabeledSlider } from "@mkbabb/glass-ui/labeled-field";
@@ -140,6 +152,9 @@ import {
     type SeatTruth,
 } from "@composables/useEasingPickerSeat";
 import type { EasingDemoContext } from "./easingKeys";
+
+/** An upright phone: the sheet's first row heads this section. */
+const uprightPhone = useMediaQuery("(max-width: 1023px) and (min-height: 501px)");
 
 const props = defineProps<{ demo: EasingDemoContext }>();
 const demo = props.demo;

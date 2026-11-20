@@ -26,6 +26,7 @@
  */
 import { describe, expect, it } from "vitest";
 import {
+    capOf,
     DEFAULT_SHORTCUT_GROUP,
     groupShortcuts,
     type GroupableShortcut,
@@ -97,5 +98,19 @@ describe("groupShortcuts — R-10's extracted rule", () => {
 
         expect(grouped.size).toBe(0);
         expect(grouped.has(DEFAULT_SHORTCUT_GROUP)).toBe(false);
+    });
+});
+
+describe("capOf: a key cap prints the key, not its code", () => {
+    it("a spatial letter or digit binding prints the letter or the digit", () => {
+        expect(capOf("KeyX")).toBe("X");
+        expect(capOf("KeyZ")).toBe("Z");
+        expect(capOf("Digit1")).toBe("1");
+    });
+
+    it("every other part is left as the formatter gave it", () => {
+        for (const part of ["⌘", "Shift", "Space", "←", "Del", "?", "Esc", "Keyboard"]) {
+            expect(capOf(part)).toBe(part);
+        }
     });
 });

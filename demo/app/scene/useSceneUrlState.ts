@@ -1,5 +1,6 @@
 import type { ComputedRef } from "vue";
-import { defaultControlSurfaceFor } from "@state/controlSurfaces";
+import { controlsOpenAtRest, takeSheetPress } from "@state/controlOptionsStore";
+import { defaultControlSurfaceFor, surfacesFor } from "@state/controlSurfaces";
 import {
     HOME_SCENE_ID,
     useSceneMachine,
@@ -13,7 +14,9 @@ import { flag, oneOf, useUrlState, type UrlKey } from "./urlState";
  *
  *   anim   the selected channel (default: the scene's first)       push
  *   pane   the controls surface (default: the scene's own)          push
- *   sheet  0 = the controls pane / phone sheet closed               replace
+ *   sheet  the controls pane / phone sheet; absent = the layout's
+ *          rest (open on a desk, closed on a phone)       replace; a press
+ *          on the phone's Controls seat pushes, and closing goes Back
  *   ball   0 = the ball preview hidden                              replace
  *   tl     1 = the timeline expanded                                replace
  *   play   1 / 0 = playing / paused, where it differs from the
@@ -59,7 +62,15 @@ export function useSceneUrlState(opts: {
                 controls().selectedControl = v;
             },
             fallback: () => defaultControlSurfaceFor(scene()),
-            ...oneOf(() => machine.controlSurfaces.value as readonly string[]),
+            // Read against the channel as it now stands (`anim` is applied
+            // first), not the machine's set, which follows a tick behind: a
+            // link naming Matrix and its own surface binds both.
+            ...oneOf(() =>
+                surfacesFor(
+                    opts.resolvedScene.value.api?.facility,
+                    controls().selectedAnimation ?? undefined,
+                ) as readonly string[],
+            ),
             history: "push",
         } satisfies UrlKey<string>,
         {
@@ -68,9 +79,12 @@ export function useSceneUrlState(opts: {
             set: (v: boolean) => {
                 controls().isControlsPanelOpen = v;
             },
-            fallback: () => true,
+            fallback: controlsOpenAtRest,
             ...flag,
-            history: "replace",
+            // Opened by a press on the Controls seat: a push (and closing it
+            // again goes Back); any other change of the sheet replaces.
+            history: () => (takeSheetPress() ? "push" : "replace"),
+            backOnUndo: true,
         } satisfies UrlKey<boolean>,
         {
             key: "ball",

@@ -189,8 +189,8 @@
 .seq-stage.is-powering-on .seq-row {
     /* LAST-TEN KF-26 — a panel-scale entrance on glass's panel spring, not a
        private 420 ms curve. */
-    animation: seq-lane-drop var(--spring-panel-duration) var(--spring-panel) backwards;
-    animation-delay: calc(var(--row-index, 0) * 60ms + 120ms);
+    animation: seq-lane-drop var(--duration-fast, 200ms) var(--spring-panel) backwards;
+    animation-delay: calc(var(--row-index, 0) * 20ms);
 }
 @keyframes seq-lane-drop {
     from { opacity: 0; transform: translateY(-8px); }

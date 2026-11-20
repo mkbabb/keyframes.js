@@ -49,7 +49,9 @@ export function useShareState(
     // X.KF.W13X.overlays · UIA-KF-070 — each action reports whether it
     // COMPLETED, so the host can dismiss the whole menu stack on completion
     // instead of leaving a modal menu open over the scene.
-    const shareState = async (): Promise<boolean> => {
+    // `stay`: the copy was asked for by opening the surface (the menu's Share
+    // row), so the surface stays and says it was done; no toast says it twice.
+    const shareState = async ({ stay = false }: { stay?: boolean } = {}): Promise<boolean> => {
         const activeScene = route.name as string;
         const state = getAllState(activeScene);
         const encoded = encodeStateToHash(state);
@@ -73,6 +75,7 @@ export function useShareState(
             copyFallbackUrl.value = url;
             return false;
         }
+        if (stay) return true;
         sharePopoverOpen.value = false;
         toast({ title: "Link copied", tone: "success" });
         return true;

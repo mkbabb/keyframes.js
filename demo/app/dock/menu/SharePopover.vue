@@ -61,8 +61,9 @@
                     :loading="sharing"
                     @click="onShare"
                 >
-                    <Copy class="icon-md" />
-                    Copy link
+                    <Check v-if="copied" class="icon-md" />
+                    <Copy v-else class="icon-md" />
+                    {{ copied ? "Link copied" : "Copy link" }}
                 </Button>
                 <!-- X.KF.W13X.r4dock · UIA-KF-321 — a refused copy offers the
                      link here, read-only and selected (useShareState.ts). -->
@@ -90,27 +91,29 @@
                      `autocomplete="off"`; `type="url"` is deliberately NOT set —
                      the field accepts a bare base64 param (useShareState.ts).
                      UIA-KF-142 — a refused load marks the field: the producer's
-                     `invalid` skin, and the reason in LabeledField's error slot,
-                     which the field names through `aria-describedby` and the
-                     field announces (`errorLive` polite). The verdict clears on
-                     the next edit (useShareState.ts). -->
-                <LabeledField label="Load from link" :invalid="loadError !== null">
-                    <template #default="{ controlId, describedBy, invalid }">
-                        <Input
-                            :id="controlId"
-                            v-model="loadHashInput"
-                            :aria-describedby="describedBy"
-                            :invalid="invalid"
-                            placeholder="Paste a share link"
-                            inputmode="url"
-                            enterkeyhint="go"
-                            autocomplete="off"
-                            class="font-mono"
-                            @keydown.enter="onLoad"
-                        />
-                    </template>
-                    <template #error>{{ loadError }}</template>
-                </LabeledField>
+                     `invalid` skin, and the reason in the line under it, which
+                     the field names through `aria-describedby` and announces
+                     (polite). The verdict clears on the next edit
+                     (useShareState.ts). No visible label: the placeholder and
+                     Load say what the field is for; the name stays for
+                     assistive tech. -->
+                <div class="grid gap-1.5">
+                    <Input
+                        v-model="loadHashInput"
+                        aria-label="Load from link"
+                        :aria-describedby="loadError !== null ? loadErrorId : undefined"
+                        :invalid="loadError !== null"
+                        placeholder="Paste a share link"
+                        inputmode="url"
+                        enterkeyhint="go"
+                        autocomplete="off"
+                        class="font-mono"
+                        @keydown.enter="onLoad"
+                    />
+                    <p v-if="loadError !== null" :id="loadErrorId" class="text-small text-destructive" aria-live="polite">
+                        {{ loadError }}
+                    </p>
+                </div>
                 <!-- The Load action is DISABLED on an empty field (the empty
                      submit was a silent return). -->
                 <Button
@@ -128,10 +131,10 @@
 </template>
 
 <script setup lang="ts">
-import { nextTick, ref, useTemplateRef, watch } from "vue";
+import { nextTick, ref, useId, useTemplateRef, watch } from "vue";
 import type { ComponentPublicInstance } from "vue";
 import { PopoverAnchor } from "reka-ui";
-import { Copy, ArrowRight } from "@lucide/vue";
+import { ArrowRight, Check, Copy } from "@lucide/vue";
 // SP-18 (W6-I): every glass symbol on its own subpath beside `./forms`.
 import { Button } from "@mkbabb/glass-ui/button";
 import { Popover, PopoverContent } from "@mkbabb/glass-ui/popover";
@@ -194,6 +197,27 @@ const onShare = async () => {
 const onLoad = () => {
     loadFromInput();
 };
+const loadErrorId = useId();
+
+// The menu's Share row copies on its own press (one press for the act) and
+// then opens this surface, which says the link is copied and keeps the load
+// path in reach. Called inside the press's handler, so the write runs in the
+// press's own activation. A refusal takes the fallback above (the link,
+// selected, in place of the copy).
+const copied = ref(false);
+watch(open, (isOpen) => {
+    if (!isOpen) copied.value = false;
+});
+const copyAtOpen = async () => {
+    if (sharing.value) return;
+    sharing.value = true;
+    try {
+        copied.value = await shareState({ stay: true });
+    } finally {
+        sharing.value = false;
+    }
+};
+defineExpose({ copyAtOpen });
 
 // UIA-KF-248 — focus lands on the primary action. glass `Button` is a
 // single-root component over the native `<button>`, so its instance `$el` IS the

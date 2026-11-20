@@ -6,7 +6,7 @@ import { Activity, Atom, SlidersHorizontal, Braces, Clock, Grid3X3 } from "@luci
 import { GlassDock, DockControl, DockSeparator } from "@mkbabb/glass-ui/dock";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@mkbabb/glass-ui/tooltip";
 import { DockTrigger } from "@mkbabb/glass-ui/dock-trigger";
-import { Button } from "@mkbabb/glass-ui/button";
+import { DarkModeToggle } from "@mkbabb/glass-ui/dark-mode-toggle";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -416,6 +416,16 @@ watch(isSelectOpen, (open) => {
     if (open) dockRef.value?.keepOpen();
     else dockRef.value?.release();
 });
+
+/** Open the Scene list from outside the dock (Home's headline names it): the
+ *  dock unfolds to the face that holds the trigger, then the list opens. */
+async function openSceneList(): Promise<void> {
+    dockRef.value?.expand();
+    await nextTick();
+    sceneSelectOpen.value = true;
+}
+
+defineExpose({ openSceneList });
 </script>
 
 <template>
@@ -566,18 +576,26 @@ watch(isSelectOpen, (open) => {
                         <template v-if="showSurfaceItems">
                             <DockSeparator />
                             <DropdownMenu v-model:open="surfaceMenuOpen">
-                                <DockTrigger
-                                    ref="surfaceTrigger"
-                                    for="dropdown"
-                                    aria-label="Editor surfaces"
-                                    data-dock-surface-trigger
-                                    :data-surface="faceItem?.surface"
-                                    @pointerenter="warmControlSurfaces"
-                                    @focusin="warmControlSurfaces"
-                                >
-                                    <component :is="iconFor(faceItem?.icon ?? '')" class="dock-glyph" aria-hidden="true" />
-                                </DockTrigger>
-                                <DropdownMenuContent align="center" :side-offset="surfaceMenuOffset" :collision-padding="16" class="text-body p-1.5">
+                                <Tooltip>
+                                    <TooltipTrigger as-child>
+                                        <DockTrigger
+                                            ref="surfaceTrigger"
+                                            for="dropdown"
+                                            aria-label="Editor surfaces"
+                                            data-dock-surface-trigger
+                                            :data-surface="faceItem?.surface"
+                                            @pointerenter="warmControlSurfaces"
+                                            @focusin="warmControlSurfaces"
+                                        >
+                                            <component :is="iconFor(faceItem?.icon ?? '')" class="dock-glyph" aria-hidden="true" />
+                                        </DockTrigger>
+                                    </TooltipTrigger>
+                                    <TooltipContent>Editor surfaces</TooltipContent>
+                                </Tooltip>
+                                <!-- `reference`: the tooltip around the trigger is the
+                                     nearer popper root, so the trigger anchors the
+                                     tooltip; the menu is placed on it by name. -->
+                                <DropdownMenuContent align="center" :side-offset="surfaceMenuOffset" :collision-padding="16" :reference="surfaceTrigger?.$el" class="text-body p-1.5">
                                     <!-- C1-KF-10 — the showing surface is marked by the
                                          producer's own radio item (its leading dot,
                                          `aria-checked`), the affordance the Scene
@@ -609,6 +627,16 @@ watch(isSelectOpen, (open) => {
 
                         <!-- Header items slot (@mbabb chip) -->
                         <slot name="items" />
+                        <!-- The theme: the trailing zone's last seat, glass's own
+                             sun-to-moon toggle at the dock's control cell. Its
+                             name is the state it sets and stays put; `aria-pressed`
+                             says whether it is on. -->
+                        <Tooltip>
+                            <TooltipTrigger as-child>
+                                <DarkModeToggle size="dock" aria-label="Dark mode" data-dock-theme />
+                            </TooltipTrigger>
+                            <TooltipContent>Dark mode</TooltipContent>
+                        </Tooltip>
 
                         <!-- X.KF.W13U.d · OA-33 (COHESION §0bi) — the trailing APP zone
                              is ONE control. W13T.k3 (R-k-1) had seated Share ·
@@ -653,16 +681,19 @@ watch(isSelectOpen, (open) => {
                      TD-39's rider: the Button is copied, the name split is NOT —
                      one logical command, one stable name ("Scene", the expanded
                      trigger's own), never suffixed with transient chrome state. -->
+                <!-- The face is the dock's own control cell (DockControl, the
+                     transport's folded seat), not a glass Button: the Button's
+                     coarse-scale box (54 px) widened the fold to a 70x60 oval,
+                     where the cell keeps it the circle the producer draws. -->
                 <template #collapsed>
-                    <Button
-                        emphasis="quiet"
-                        size="sm"
-                        icon-only
-                        aria-label="Scene"
-                        @focus="onCollapsedFocus"
-                    >
-                        <component :is="currentIcon" :live="scenePlaying" class="dock-glyph" aria-hidden="true" />
-                    </Button>
+                    <Tooltip>
+                        <TooltipTrigger as-child>
+                            <DockControl aria-label="Scene" @focus="onCollapsedFocus">
+                                <component :is="currentIcon" :live="scenePlaying" class="dock-glyph" aria-hidden="true" />
+                            </DockControl>
+                        </TooltipTrigger>
+                        <TooltipContent>Scene</TooltipContent>
+                    </Tooltip>
                 </template>
             </GlassDock>
         </div>

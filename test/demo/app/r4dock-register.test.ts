@@ -9,6 +9,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest
 import { defineComponent, nextTick } from "vue";
 import { mount, type VueWrapper } from "@vue/test-utils";
 import { GlassDock } from "@mkbabb/glass-ui/dock";
+import { TooltipProvider } from "@mkbabb/glass-ui/tooltip";
 import MbabbMenu from "@app/dock/menu/MbabbMenu.vue";
 
 const saved = (globalThis as { ResizeObserver?: unknown }).ResizeObserver;
@@ -46,8 +47,10 @@ async function press(el: Element): Promise<void> {
 describe("X.KF.W13X.r4dock — UIA-KF-230 · one register in the dock row", () => {
     it("(1) the @mbabb trigger is a dock label; the identifier register stays in the menu", async () => {
         const Host = defineComponent({
-            components: { GlassDock, MbabbMenu },
-            template: `<GlassDock collapse="open"><MbabbMenu :on-scene-restore="() => {}" /></GlassDock>`,
+            components: { GlassDock, MbabbMenu, TooltipProvider },
+            // Under a TooltipProvider, as the app mounts the dock (the menu's
+            // seat says its name in a tooltip).
+            template: `<TooltipProvider><GlassDock collapse="open"><MbabbMenu :on-scene-restore="() => {}" /></GlassDock></TooltipProvider>`,
         });
         wrapper = mount(Host, { attachTo: document.body });
         const trigger = wrapper.find('[aria-label="@mbabb menu"]').element as HTMLElement;

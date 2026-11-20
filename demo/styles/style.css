@@ -250,6 +250,9 @@
        physics parameters and the duration fill share the ball's hue in both
        themes. One binding at the root, flat; no per-instance override. */
     --slider-range-bg: var(--color-progress);
+    /* The thumb wears the fill's colour, so the fill's end reads as the
+       handle; glass's documented thumb token, nothing painted inside it. */
+    --slider-thumb-bg: var(--slider-range-bg);
     --color-slider-track: color-mix(
         in srgb,
         var(--foreground) 35%,

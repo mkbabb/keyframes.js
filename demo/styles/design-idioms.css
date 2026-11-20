@@ -412,7 +412,20 @@
 /* .code-token — inline-code for in-prose API names (camelCase, case-preserving mono). */
 .code-token {
     font-family: var(--font-mono);
-    font-size: var(--type-caption);
+    font-size: max(0.8125rem, var(--type-caption));
+}
+
+/* §type-floor — the site's own words, at the study's floors (2.6): a word
+   that is read (a name, a value, a label) is 14 px or more at any width; a
+   true caption (an axis tick, a subscript, a lane's offset) 13 px. glass's
+   caption step bottoms at 12 px on a phone, so the site's captions and
+   names carry a floor over the step they read; glass's own type is glass's.
+   Unlayered: they win over the size a type utility sets, nothing else. */
+.kf-read {
+    font-size: max(0.875rem, var(--type-small));
+}
+.kf-caption {
+    font-size: max(0.8125rem, var(--type-caption));
 }
 
 /* §LABEL-subgrid — the UNIFORM label-column idiom. A panel applies
@@ -511,6 +524,19 @@
     animation: enter var(--duration-fast) var(--ease-out);
     --tw-enter-opacity: 0;
     --tw-enter-translate-x: 0.5rem;
+}
+
+/* A surface panel keeps its tab stop (it is the pane's scroll region) but not
+   the browser's square outline: on keyboard focus it shows the house ring,
+   inset, at the card's radius; a pointer or a script focus shows nothing. */
+[data-surface-panel]:focus {
+    outline: none;
+}
+[data-surface-panel]:focus-visible {
+    outline: var(--focus-ring-width, 2px) solid
+        color-mix(in srgb, var(--focus-ring-color) 45%, transparent);
+    outline-offset: calc(-1 * var(--focus-ring-width, 2px));
+    border-radius: var(--radius-card);
 }
 
 /* @keyframes enter — the surface-panel slide-in keyframe (opacity fade + 0.5rem

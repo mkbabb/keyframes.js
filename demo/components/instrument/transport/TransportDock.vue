@@ -33,7 +33,10 @@
              pointer-events-auto child), so the band outside it never
              swallows a press meant for the stage beneath. -->
         <div class="pointer-events-auto dock-vt-group">
-            <GlassDock ref="dockRef" collapse="closed" :fit-content="true">
+            <!-- An upright phone's transport is the page's one bottom dock: it
+                 never folds (Play, the scene's choices and Controls stay in
+                 view), and its Controls seat opens the sheet. -->
+            <GlassDock ref="dockRef" :collapse="phoneDock ? false : 'closed'" :fit-content="true">
                 <!-- Expanded state: full controls.
                      T.C1 — THE TRANSPORT RECUT (rail-core | section | nav on glass-ui
                      DockSeparator). PLAY LEADS as rail-core, drawn FIRST from the
@@ -97,13 +100,27 @@
                 </template>
 
                 <div class="transport-row flex items-center">
+                    <!-- An upright phone's dock carries the playhead: the one
+                         scrub on the page, beside Play (the pane's own time row
+                         is not drawn there). -->
+                    <TransportScrub
+                        v-if="phoneDock && getScrubT && scrubTo"
+                        :get-t="getScrubT"
+                        :scrub="scrubTo"
+                        :is-playing="isPlaying"
+                        @scrub-start="emit('scrubStart')"
+                        @scrub-end="emit('scrubEnd')"
+                    />
                     <!-- section (contextual): the animation select. Rendered ONLY when
                          channelZone is INHABITED (≥2 channels — kind "select"). One or
                          zero channels ⇒ zone ABSENT: NO node and NO flanking separator
                          (T.B5-RENDER — the single-animation static NAME span is DELETED;
                          a lone animation is the scene identity, transported without a
                          dead 1-item dropdown or a demoted label). -->
-                    <template v-if="channelZoneKind === 'select'">
+                    <!-- On an upright phone with a controls sheet, the channel
+                         select and Reset are rows of the opened sheet: a fifth
+                         seat would take the scrub under 150 px. -->
+                    <template v-if="channelZoneKind === 'select' && !sheetHoldsExtras">
                         <DockSeparator />
                         <!-- X.KF.W13X.transport — the channel Select, bare on the dock:
                              (UIA-KF-257) no Tooltip and no wrapper div — the trigger
@@ -181,18 +198,39 @@
                          (CLUTTER lens). The channel list stays there: the pick is
                          carried into the scene Play opens (carryHomePick), which
                          is what the start screen's copy asks for. -->
-                    <template v-if="!startScreen">
+                    <template v-if="!startScreen && !sheetHoldsExtras">
                     <DockSeparator />
                     <Tooltip>
                         <TooltipTrigger as-child>
                             <DockControl shape="icon" aria-label="Reset animation" @click="() => { resetIconSpin(); emit('reset', false); }">
                                 <span ref="resetIconEl" class="inline-flex">
-                                    <RotateCcw class="icon-lg" />
+                                    <SkipBack class="icon-lg" />
                                 </span>
                             </DockControl>
                         </TooltipTrigger>
                         <TooltipContent>Reset animation</TooltipContent>
                     </Tooltip>
+                    </template>
+
+                    <!-- The phone's Controls seat: it opens and closes the
+                         controls sheet (on a desk the pane is a rail, opened
+                         from the top dock). -->
+                    <template v-if="phoneDock && controlsSeat">
+                        <DockSeparator />
+                        <Tooltip>
+                            <TooltipTrigger as-child>
+                                <DockControl
+                                    shape="icon"
+                                    aria-label="Controls"
+                                    :aria-expanded="storedControls.isControlsPanelOpen === true"
+                                    data-controls-seat
+                                    @click="emit('toggleControls')"
+                                >
+                                    <SlidersHorizontal class="icon-lg" />
+                                </DockControl>
+                            </TooltipTrigger>
+                            <TooltipContent>Controls</TooltipContent>
+                        </Tooltip>
                     </template>
                 </div>
 
@@ -208,7 +246,9 @@ import {
     List,
     Pause,
     Play,
+    SlidersHorizontal,
 } from "@lucide/vue";
+import { useMediaQuery } from "@vueuse/core";
 
 import { DockControl, DockSeparator } from "@mkbabb/glass-ui/dock";
 import { DockTrigger } from "@mkbabb/glass-ui/dock-trigger";
@@ -225,7 +265,7 @@ import {
 } from "@mkbabb/glass-ui";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@mkbabb/glass-ui/tooltip";
 
-import { RotateCcw } from "@lucide/vue";
+import { SkipBack } from "@lucide/vue";
 
 import { GlassDock } from "@mkbabb/glass-ui/dock";
 import { DOCK_POPUP_GAP } from "@composables/dockEdge";
@@ -233,6 +273,7 @@ import { usePlayActuation } from "./composables/usePlayActuation";
 import { useMenubarMeasure } from "./composables/useMenubarMeasure";
 import { useIconSpin } from "./composables/useIconSpin";
 import { PLAY_FILL } from "./playFill";
+import TransportScrub from "./TransportScrub.vue";
 import type { StoredAnimationGroupControlOptions } from "@state";
 
 const dockRef = useTemplateRef<InstanceType<typeof GlassDock>>("dockRef");
@@ -265,7 +306,16 @@ const {
     onPlayBlur,
 } = usePlayActuation(actuatePlay);
 
-const { storedControls, isPlaying, animationNames, startScreen = false, contained = false } = defineProps<{
+const {
+    storedControls,
+    isPlaying,
+    animationNames,
+    startScreen = false,
+    contained = false,
+    controlsSeat = false,
+    getScrubT,
+    scrubTo,
+} = defineProps<{
     storedControls: StoredAnimationGroupControlOptions;
     isPlaying: boolean;
     animationNames: string[];
@@ -273,7 +323,21 @@ const { storedControls, isPlaying, animationNames, startScreen = false, containe
     startScreen?: boolean;
     /** In its host's flow (an embed slice's foot), not fixed to the viewport. */
     contained?: boolean;
+    /** The scene has a controls pane: on an upright phone the dock offers the
+     *  seat that opens it. */
+    controlsSeat?: boolean;
+    /** The selected channel's playhead in [0, 1], and the seat for it: the
+     *  upright phone's dock scrub reads and writes through these. */
+    getScrubT?: () => number;
+    scrubTo?: (fraction: number) => void;
 }>();
+
+/** An upright phone (under the desk's 1024 px, over a landscape phone's
+ *  500 px height): the transport is the one bottom dock and never folds. */
+const uprightPhone = useMediaQuery("(max-width: 1023px) and (min-height: 501px)");
+const phoneDock = computed(() => !contained && uprightPhone.value);
+/** The opened sheet holds the channel select and Reset on an upright phone. */
+const sheetHoldsExtras = computed(() => phoneDock.value && controlsSeat);
 
 if (!contained) useMenubarMeasure(menubarHostEl);
 
@@ -281,6 +345,9 @@ const emit = defineEmits<{
     (e: "togglePlay"): void;
     (e: "reset", all: boolean): void;
     (e: "selectAnimation", name: string): void;
+    (e: "toggleControls"): void;
+    (e: "scrubStart"): void;
+    (e: "scrubEnd"): void;
 }>();
 
 // T.C1 / T.B5-RENDER — the channel zone: `>1 channels ⇒ select`, else ABSENT
@@ -378,6 +445,15 @@ defineExpose({ resetIconSpin });
 .transport-contained {
     position: relative;
     z-index: 1;
+}
+
+/* An upright phone: the plate's group lays the dock out as a flex item, so no
+   line box leaves a strip under the plate (it stood 6 px over the group's
+   foot) and the plate itself sits 12 px above the screen's foot. */
+@media (max-width: 1023px) and (min-height: 501px) {
+    .dock-vt-group {
+        display: flex;
+    }
 }
 
 .menubar-safe-pb {

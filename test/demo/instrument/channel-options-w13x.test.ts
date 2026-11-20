@@ -24,6 +24,7 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { defineComponent, h, markRaw, nextTick } from "vue";
 import { mount } from "@vue/test-utils";
+import { TooltipProvider } from "@mkbabb/glass-ui/tooltip";
 import { CSSKeyframesAnimation } from "../../../src/animation/engine";
 import { AnimationGroup } from "../../../src/animation/group";
 import { warmKfEngine } from "../../../demo/kf-engine";
@@ -171,9 +172,16 @@ function makeChannel(timingFunction: TimingFunctionNames = "ease-in-out") {
     return { a, group, stored };
 }
 
+// The app mounts every surface under glass's TooltipProvider (the pane's
+// glyph buttons carry tooltips); the host forwards the card's props.
+const CardHost = defineComponent({
+    props: ["animation", "layerConfig", "blendAvailable"],
+    setup: (props) => () => h(TooltipProvider, null, () => h(ChannelOptions, props)),
+});
+
 function mountCard(targets: 1 | 2, timingFunction?: TimingFunctionNames) {
     const { a, group, stored } = makeChannel(timingFunction);
-    const wrapper = mount(ChannelOptions, {
+    const wrapper = mount(CardHost, {
         props: {
             animation: a,
             layerConfig: group.getLayerConfig("rotate"),
@@ -219,6 +227,8 @@ describe("X.KF.W13X.controls — one drill-in owner, one sub-pane header (A2-KE-
                 [...el.querySelectorAll("*")].map((e) => e.tagName).slice(0, 3);
             expect(dh.element.querySelector("button")?.getAttribute("aria-label")).toBe("Back from cubic-bézier to controls");
             expect(dh.element.firstElementChild?.tagName).toBe("BUTTON");
+            // Back is the left chevron; the left arrow means Play in reverse.
+            expect(dh.element.querySelector("button svg")?.classList.contains("lucide-chevron-left")).toBe(true);
             const dt = dh.get("[data-subpane-title]");
             expect(dt.text()).toBe("cubic-bézier");
             expect(dt.classes()).toContain("text-subheading");
@@ -230,6 +240,7 @@ describe("X.KF.W13X.controls — one drill-in owner, one sub-pane header (A2-KE-
             const layer = wrapper.get(`[id="${layerEntry(wrapper).attributes("aria-controls")}"]`);
             const lh = layer.get("[data-subpane-header]");
             expect(lh.element.firstElementChild?.tagName).toBe("BUTTON");
+            expect(lh.element.querySelector("button svg")?.classList.contains("lucide-chevron-left")).toBe(true);
             expect(lh.get("[data-subpane-title]").text()).toBe("Layer");
             expect(lh.get("[data-subpane-title]").classes()).toContain("text-subheading");
             expect(shape(lh.element)).toEqual(shape(dh.element));
@@ -391,16 +402,24 @@ describe("X.KF.W13X.controls — the options form and the layer pane (UIA-KF-166
         }
     });
 
-    it("(10) UIA-KF-082 · 270 — on a multi-target group the pane carries no caption (restraint), and z-index is disabled with blend and enabled", async () => {
+    it("(10) UIA-KF-082 · 270 — on a multi-target group, where nothing of the layer can change, the card offers no Layer row", async () => {
+        // Blend, z-index and the enabled switch are all inert without a single
+        // target: a row that opened a wholly disabled pane said nothing.
         const { wrapper } = mountCard(2);
         try {
-            await layerEntry(wrapper).trigger("click");
             await settle();
-            const pane = wrapper.get(`[id="${layerEntry(wrapper).attributes("aria-controls")}"]`);
-            expect(pane.find("[data-subpane-caption]").exists()).toBe(false);
-            expect(pane.get('[data-stub="NumberField"]').attributes()).toHaveProperty("data-disabled");
+            expect(wrapper.findAll("button").filter((b) => /^\s*layer\b/.test(b.text()))).toHaveLength(0);
+            expect(wrapper.text()).not.toMatch(/\blayer\b/);
         } finally {
             wrapper.unmount();
+        }
+        // A single target keeps the row, naming its blend.
+        const one = mountCard(1);
+        try {
+            await settle();
+            expect(layerEntry(one.wrapper).text()).toMatch(/layer\s*replace/);
+        } finally {
+            one.wrapper.unmount();
         }
     });
 
@@ -452,6 +471,41 @@ describe("X.KF.W13X.controls — the keyframes reveal (KFA-118)", () => {
             el.remove();
         }
     });
+
+    it("(12b) a reveal before any press or key on the page (a link, a restore) takes no focus", async () => {
+        const { effectScope, ref } = await import("vue");
+        const { useKeyframesPaneReveal } = await import(
+            "@components/instrument/pane/channel-controls/composables/useKeyframesPaneReveal"
+        );
+        const el = document.createElement("div");
+        el.tabIndex = 0;
+        document.body.appendChild(el);
+        const calls: unknown[] = [];
+        el.focus = (o?: FocusOptions) => {
+            calls.push(o);
+        };
+        const had = Object.getOwnPropertyDescriptor(navigator, "userActivation");
+        Object.defineProperty(navigator, "userActivation", {
+            configurable: true,
+            value: { hasBeenActive: false, isActive: false },
+        });
+        const storedControls = getStoredAnimationGroupControlOptions("w13x-reveal-cold");
+        storedControls.selectedControl = "controls";
+        const scope = effectScope();
+        scope.run(() =>
+            useKeyframesPaneReveal({ storedControls, keyframesPaneEl: ref(el), keyframesWarmed: ref(false) }),
+        );
+        try {
+            storedControls.selectedControl = "keyframes";
+            await settle();
+            expect(calls).toEqual([]);
+        } finally {
+            scope.stop();
+            el.remove();
+            if (had) Object.defineProperty(navigator, "userActivation", had);
+            else delete (navigator as { userActivation?: unknown }).userActivation;
+        }
+    });
 });
 
 // X.KF.W13X.esc1 (ESC-mobile-1 · A2-KE-L1-10 · KFA-156 · UIA-KF-104) — the pane
@@ -465,7 +519,7 @@ describe("X.KF.W13X.esc1 — per-channel state survives a swap (store-held)", ()
         await settle();
         expect(layerEntry(wrapper).attributes("aria-expanded")).toBe("true");
         wrapper.unmount();
-        const again = mount(ChannelOptions, {
+        const again = mount(CardHost, {
             props: { animation: a, layerConfig: group.getLayerConfig("rotate"), blendAvailable: true },
             attachTo: document.body,
         });
@@ -603,6 +657,44 @@ describe("OD19-K3 — the direction and fill-mode selects lead with their value'
             for (const i of items) expect(i.querySelectorAll("svg")).toHaveLength(1);
         } finally {
             wrapper.unmount();
+        }
+    });
+});
+
+describe("the upright phone's one-layer sheet", () => {
+    /** The viewport the media queries read, as a phone or a desk. */
+    const at = (w: number, h: number) => (query: string) => {
+        let ok = true;
+        for (const [, kind, axis, px] of query.matchAll(/\((max|min)-(width|height): (\d+)px\)/g)) {
+            const v = axis === "height" ? h : w;
+            ok &&= kind === "max" ? v <= Number(px) : v >= Number(px);
+        }
+        return { matches: ok, media: query, addEventListener: () => {}, removeEventListener: () => {}, addListener: () => {}, removeListener: () => {}, onchange: null, dispatchEvent: () => false };
+    };
+
+    it("(18) on an upright phone the Controls surface draws no title row (the sheet's first row names the channel); a desk keeps it", async () => {
+        const saved = Object.getOwnPropertyDescriptor(window, "matchMedia");
+        try {
+            Object.defineProperty(window, "matchMedia", { configurable: true, value: at(390, 844) });
+            const phone = mountCard(1);
+            try {
+                await settle();
+                expect(phone.wrapper.find("[data-slot=configurator-layer-trigger]").exists()).toBe(false);
+                expect(phone.wrapper.text()).toMatch(/duration/);
+            } finally {
+                phone.wrapper.unmount();
+            }
+            Object.defineProperty(window, "matchMedia", { configurable: true, value: at(1440, 900) });
+            const desk = mountCard(1);
+            try {
+                await settle();
+                expect(desk.wrapper.find("[data-slot=configurator-layer-trigger]").exists()).toBe(true);
+            } finally {
+                desk.wrapper.unmount();
+            }
+        } finally {
+            if (saved) Object.defineProperty(window, "matchMedia", saved);
+            else delete (window as { matchMedia?: unknown }).matchMedia;
         }
     });
 });

@@ -128,10 +128,13 @@
    not the viewport: its projected footprint (the √3 space diagonal × the
    stage perspective's ~1.15 magnification, plus a margin) fits min(V) / 2.2,
    capped at the desktop rung. The former min(50vh, 50vw) sized it off a
-   viewport the resting sheet half-covered. */
+   viewport the resting sheet half-covered.
+   The inline term gives back the page gutter the stage cell pads its sides
+   with: the die's footprint may reach into the gutter, so on a phone it is
+   bounded by the screen's width, not the padded column's. */
 @media (max-width: 1023px) {
     .cube {
-        --side-size: min(18rem, calc(min(100cqi, 100cqb) / 2.2));
+        --side-size: min(18rem, calc(min(100cqi + 2 * var(--page-gutter, 0px), 100cqb) / 2.2));
     }
 }
 

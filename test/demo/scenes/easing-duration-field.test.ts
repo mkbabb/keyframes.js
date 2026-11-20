@@ -48,3 +48,51 @@ describe("UIA-KF-303 — the duration field carries no inert prop", () => {
         host.remove();
     }, 30_000);
 });
+
+describe("the upright phone's sheet holds the curve section without a title row", () => {
+    /** The viewport the media queries read. */
+    const at = (w: number, h: number) => (query: string) => {
+        let ok = true;
+        for (const [, kind, axis, px] of query.matchAll(/\((max|min)-(width|height): (\d+)px\)/g)) {
+            const v = axis === "height" ? h : w;
+            ok &&= kind === "max" ? v <= Number(px) : v >= Number(px);
+        }
+        return { matches: ok, media: query, addEventListener: () => {}, removeEventListener: () => {}, addListener: () => {}, removeListener: () => {}, onchange: null, dispatchEvent: () => false };
+    };
+    const mountAt = async (w: number, h: number) => {
+        Object.defineProperty(window, "matchMedia", { configurable: true, value: at(w, h) });
+        const demo = {
+            currentEasingName: ref("ease-in"),
+            bezierControlPoints: ref<[number, number, number, number]>([0.42, 0, 1, 1]),
+            stepOptions: ref({ steps: 4, jumpTerm: "jump-end" as const }),
+            duration: ref(1500),
+            isBezierEditable: computed(() => true),
+            isSteps: computed(() => false),
+            selectEasing: () => {},
+            updateBezierPoints: () => {},
+        };
+        const host = document.createElement("div");
+        document.body.appendChild(host);
+        const app = createApp(EasingSidebar, { demo });
+        app.mount(host);
+        await nextTick();
+        return { host, done: () => { app.unmount(); host.remove(); } };
+    };
+
+    it("at 390x844 no title row; at 1440x900 the titled section stays; both keep the duration field", async () => {
+        const saved = Object.getOwnPropertyDescriptor(window, "matchMedia");
+        try {
+            const phone = await mountAt(390, 844);
+            expect(phone.host.querySelector("[data-slot=configurator-layer-trigger]")).toBeNull();
+            expect(phone.host.querySelectorAll(".labeled-field")).toHaveLength(1);
+            phone.done();
+            const desk = await mountAt(1440, 900);
+            expect(desk.host.querySelector("[data-slot=configurator-layer-trigger]")?.textContent).toMatch(/Easing/);
+            expect(desk.host.querySelectorAll(".labeled-field")).toHaveLength(1);
+            desk.done();
+        } finally {
+            if (saved) Object.defineProperty(window, "matchMedia", saved);
+            else delete (window as { matchMedia?: unknown }).matchMedia;
+        }
+    }, 30_000);
+});

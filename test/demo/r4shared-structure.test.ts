@@ -117,6 +117,7 @@ describe("limb (a) — the pane is instrument/pane; transport/ keeps the dock an
             "AnimationControlsGroup.css",
             "AnimationControlsGroup.vue",
             "TransportDock.vue",
+            "TransportScrub.vue",
             "composables",
             "injectionKeys.ts",
             "playFill.ts",
