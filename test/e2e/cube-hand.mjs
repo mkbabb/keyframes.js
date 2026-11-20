@@ -21,7 +21,11 @@ export const installRecorder = (frame) =>
         if (window.__hand) return;
         const H = (window.__hand = { on: false, f: [], m: [], ev: [] });
         const el = () => document.querySelector(".graph > div");
-        const mo = new MutationObserver(() => H.on && H.m.push({ t: performance.now(), tf: el()?.style.transform ?? "" }));
+        // Each write is kept with the frame it was made in (the frame whose
+        // rAF last began): a frame's main-thread work can run past the next
+        // frame's own start time, so a write's clock alone may name the
+        // wrong frame.
+        const mo = new MutationObserver(() => H.on && H.m.push({ t: performance.now(), i: Math.max(0, H.f.length - 1), tf: el()?.style.transform ?? "" }));
         for (const type of ["pointerdown", "pointermove", "pointerup", "pointercancel"])
             addEventListener(type, (e) => H.on && H.ev.push({ type, t: e.timeStamp, d: performance.now(), x: e.clientX, y: e.clientY, id: e.pointerId }), {
                 capture: true,
@@ -60,8 +64,7 @@ export const installRecorder = (frame) =>
             let j = 0;
             let tf = H.tf0;
             for (let i = 0; i < H.f.length; i++) {
-                const until = i + 1 < H.f.length ? H.f[i + 1].t : Infinity;
-                while (j < H.m.length && H.m[j].t < until) tf = H.m[j++].tf;
+                while (j < H.m.length && H.m[j].i <= i) tf = H.m[j++].tf;
                 H.f[i].tf = tf;
             }
             return { f: H.f, ev: H.ev, m: H.m };
@@ -126,23 +129,50 @@ export const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 export const HOST_SLICE = "skin=daraksha&scheme=light";
 
 /**
+ * A hand keeps its own clock, as a digitiser does: each step leaves at its
+ * place on an absolute schedule (the waits summed from the start) and carries
+ * that time as its timestamp, whatever a send costs. A send is not awaited
+ * before the next leaves (one session keeps them in order), so a slow round
+ * trip neither stretches the cadence nor drifts the schedule.
+ */
+const onSchedule = async (steps, send) => {
+    const t0 = performance.now() + 20;
+    const wall0 = Date.now() + 20;
+    const pending = [];
+    let at = 0;
+    for (const s of steps) {
+        const wait = t0 + at - performance.now();
+        if (wait > 1.5) await sleep(wait - 1);
+        while (performance.now() < t0 + at) {}
+        pending.push(send(s, (wall0 + at) / 1000));
+        at += s.wait ?? 0;
+    }
+    await Promise.all(pending);
+    // The last step's own wait, as before.
+    const rest = t0 + at - performance.now();
+    if (rest > 0) await sleep(rest);
+};
+
+/**
  * Dispatch a hand: `steps` = [{ type, pts: [{ u: {x, y}, id }], wait }], each
  * point in R units about the die's centre, as Chromium touches at page px
  * (`offset` = the frame's place in the page).
  */
 export async function replay(cdp, offset, geom, steps) {
-    for (const s of steps) {
-        const touchPoints = s.pts.map((p) => ({
-            x: offset.x + geom.c.x + p.u.x * geom.R,
-            y: offset.y + geom.c.y + p.u.y * geom.R,
-            id: p.id,
-            radiusX: 4,
-            radiusY: 4,
-            force: 1,
-        }));
-        await cdp.send("Input.dispatchTouchEvent", { type: s.type, touchPoints });
-        if (s.wait) await sleep(s.wait);
-    }
+    await onSchedule(steps, (s, timestamp) =>
+        cdp.send("Input.dispatchTouchEvent", {
+            type: s.type,
+            touchPoints: s.pts.map((p) => ({
+                x: offset.x + geom.c.x + p.u.x * geom.R,
+                y: offset.y + geom.c.y + p.u.y * geom.R,
+                id: p.id,
+                radiusX: 4,
+                radiusY: 4,
+                force: 1,
+            })),
+            timestamp,
+        }),
+    );
 }
 
 /** One finger from u0 to u1 in n moves `every` ms apart; released moving, or after a hold. */
@@ -228,20 +258,17 @@ export const incrementsOf = (P) => P.map((p, i) => (i === 0 ? [0, 0, 0] : rotvec
  * (CDP Input.dispatchMouseEvent) at their own pace.
  */
 export async function mouseReplay(cdp, offset, geom, steps) {
-    for (const s of steps) {
-        const x = offset.x + geom.c.x + s.u.x * geom.R;
-        const y = offset.y + geom.c.y + s.u.y * geom.R;
-        const type = s.type === "down" ? "mousePressed" : s.type === "up" ? "mouseReleased" : "mouseMoved";
-        await cdp.send("Input.dispatchMouseEvent", {
-            type,
-            x,
-            y,
+    await onSchedule(steps, (s, timestamp) =>
+        cdp.send("Input.dispatchMouseEvent", {
+            type: s.type === "down" ? "mousePressed" : s.type === "up" ? "mouseReleased" : "mouseMoved",
+            x: offset.x + geom.c.x + s.u.x * geom.R,
+            y: offset.y + geom.c.y + s.u.y * geom.R,
             button: "left",
             buttons: s.type === "up" ? 0 : 1,
             clickCount: s.type === "move" ? 0 : 1,
-        });
-        if (s.wait) await sleep(s.wait);
-    }
+            timestamp,
+        }),
+    );
 }
 
 /** A mouse drag from u0 to u1 in n moves `every` ms apart; released moving, or after a hold. */
@@ -274,8 +301,7 @@ export function framesOf(raw) {
     const down = raw.ev.find((e) => e.type === "pointerdown");
     const up = [...raw.ev].reverse().find((e) => e.type === "pointerup");
     const frames = P.map((p, i) => {
-        const until = i + 1 < raw.f.length ? raw.f[i + 1].t : Infinity;
-        const writes = raw.m.filter((m) => m.t >= raw.f[i].t && m.t < until);
+        const writes = raw.m.filter((m) => m.i === i);
         const wt = writes.length ? writes[writes.length - 1].t : null;
         const at = wt ?? raw.f[i].t;
         const newest = [...moves].reverse().find((e) => e.d <= at) ?? null;
