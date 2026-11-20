@@ -47,13 +47,20 @@ const thumbs = (page) =>
                 const k = track.getBoundingClientRect();
                 if (t.width === 0 || k.height === 0) return null;
                 const cs = getComputedStyle(thumb);
-                const range = s.querySelector(".slider-range");
+                // The fill's colour as the slider resolves it: glass paints the
+                // range through its liquid tint (an alpha over the colour), so the
+                // colour is read off the fill token itself.
+                const probe = document.createElement("span");
+                probe.style.backgroundColor = "var(--slider-range-bg)";
+                s.appendChild(probe);
+                const fill = getComputedStyle(probe).backgroundColor;
+                probe.remove();
                 return {
                     image: cs.backgroundImage,
                     thumb: t.height,
                     track: k.height,
                     thumbBg: cs.backgroundColor,
-                    rangeBg: range ? getComputedStyle(range).backgroundColor : null,
+                    fill,
                 };
             })
             .filter(Boolean),
@@ -61,7 +68,8 @@ const thumbs = (page) =>
 
 for (const cell of [
     { name: "desk 1440", use: { viewport: { width: 1440, height: 900 } } },
-    { name: "phone 390", use: { viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, hasTouch: true, isMobile: true } },
+    // The phone cell is dark: the fill is quieter there, and the thumb follows it.
+    { name: "phone 390", use: { viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, hasTouch: true, isMobile: true, colorScheme: "dark" } },
 ]) {
     test.describe(cell.name, () => {
         test.use(cell.use);
@@ -76,7 +84,8 @@ for (const cell of [
                     expect(t.image).toBe("none");
                     expect(Math.abs(t.thumb - t.track)).toBeLessThan(0.75);
                     // The thumb wears the fill's colour: the fill's end is the handle.
-                    if (t.rangeBg) expect(t.thumbBg).toBe(t.rangeBg);
+                    expect(t.fill).not.toBe("rgba(0, 0, 0, 0)");
+                    expect(t.thumbBg).toBe(t.fill);
                 }
             });
         }
@@ -85,13 +94,13 @@ for (const cell of [
 
 test.describe("phone 390: the scrub's touch band", () => {
     test.use({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, hasTouch: true, isMobile: true });
+    // On an upright phone the scrub is the bottom dock's (the pane draws none).
     test("the time scrub answers a finger over a 44 px band", async ({ page }) => {
-        await page.goto(at("/cube?sheet=1"));
-        await page.waitForSelector('[aria-label="Scrub animation timeline"]', { state: "attached", timeout: 20_000 });
+        const scrub = '[data-dock-tether="bottom"] [role="slider"][aria-label="Time"]';
+        await page.goto(at("/cube"));
+        await page.waitForSelector(scrub, { state: "attached", timeout: 20_000 });
         await page.waitForTimeout(800);
-        const band = await page.$eval('[aria-label="Scrub animation timeline"]', (el) =>
-            el.closest(".glass-slider")?.getBoundingClientRect().height ?? 0,
-        );
+        const band = await page.$eval(scrub, (el) => el.closest(".glass-slider")?.getBoundingClientRect().height ?? 0);
         expect(band).toBeGreaterThanOrEqual(44);
     });
 });

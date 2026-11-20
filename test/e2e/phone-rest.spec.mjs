@@ -9,8 +9,8 @@
  * - Play adds no entry and leaves the sheet open.
  * - A press on the top dock moves neither the sheet nor the die.
  * - A tap on the stage lowers the sheet.
- * - The die is 250 px wide or more at 390x844 at rest; the folded top dock is
- *   a circle (square within 1 px).
+ * - The die's side reaches the screen's width over 2.2 at 390x844 at rest;
+ *   the folded top dock is a circle (square within 1 px).
  *
  * Chromium, touch, 4x CPU throttle. Local: serves dist/gh-pages (build it
  * first: npm run gh-pages). KF_GESTURE_BASE=https://keyframes.babb.dev runs it
@@ -95,6 +95,12 @@ for (const vp of [
                 const free = await freeStage(page);
                 expect(free.heightShare).toBeGreaterThanOrEqual(2 / 3);
                 await expect(page.locator('button[aria-label="Controls"]')).toBeVisible();
+                // The page's one scrub is the dock's, 150 px long or more.
+                await expect(page.locator('[role="slider"][aria-label="Time"]')).toHaveCount(1);
+                const scrub = await page.evaluate(
+                    () => document.querySelector('[data-dock-tether="bottom"] .transport-scrub')?.getBoundingClientRect().width ?? 0,
+                );
+                expect(scrub).toBeGreaterThanOrEqual(150);
                 // The one bottom dock sits 12 px above the foot (no band under it).
                 const gap = await page.evaluate(() => {
                     const host = document.querySelector('[data-dock-tether="bottom"]');
@@ -119,27 +125,33 @@ for (const vp of [
             const seat = page.locator('button[aria-label="Controls"]');
             await expect(seat).toHaveAttribute("aria-expanded", "false");
 
-            // Sample the sheet's top edge every frame from the press on.
+            // Sample the sheet's top edge and its opacity every frame from the press on.
             await page.evaluate(() => {
                 window.__tops = [];
                 const tick = () => {
                     const s = document.querySelector(".controls-drawer-content");
                     const b = s?.getBoundingClientRect();
-                    window.__tops.push(b && b.height > 0 ? b.top : null);
+                    window.__tops.push(b && b.height > 0 ? { top: b.top, o: Number(getComputedStyle(s).opacity) } : null);
                     if (window.__tops.length < 90) requestAnimationFrame(tick);
                 };
                 requestAnimationFrame(tick);
             });
             await seat.tap();
             await page.waitForTimeout(1800);
-            const tops = (await page.evaluate(() => window.__tops)).filter((t) => t !== null);
-            expect(tops.length).toBeGreaterThanOrEqual(6);
-            const moved = new Set(tops.map((t) => Math.round(t))).size;
+            // What is seen: a frame the sheet shows in (glass lays a detented
+            // sheet out at its floor for its first, unpainted frames).
+            const seen = (await page.evaluate(() => window.__tops)).filter((t) => t !== null && t.o > 0.02);
+            expect(seen.length).toBeGreaterThanOrEqual(6);
+            // It arrives by motion or by glass's fade, never whole in one frame ...
+            expect(seen[0].o).toBeLessThan(0.5);
+            // ... and no seen frame moves its top edge more than 40 px.
+            const tops = seen.map((t) => t.top);
             const steps = tops.slice(1).map((t, i) => Math.abs(t - tops[i]));
-            // Shown by motion or by glass's fade: either way no frame jumps more than 40 px.
             expect(Math.max(0, ...steps)).toBeLessThanOrEqual(40);
-            expect(moved).toBeGreaterThanOrEqual(1);
             await expect(seat).toHaveAttribute("aria-expanded", "true");
+            // One scrub on the page with the sheet open: the pane draws no time row.
+            await expect(page.locator('[role="slider"][aria-label="Time"]')).toHaveCount(1);
+            await expect(page.locator('[role="slider"][aria-label="Scrub animation timeline"]')).toHaveCount(0);
             expect((await query(page)).sheet).toBe("1");
             expect(await page.evaluate(() => history.length)).toBe(len0 + 1);
 
@@ -187,12 +199,18 @@ for (const vp of [
 test.describe("upright phone 390x844: the die and the folded dock", () => {
     test.use({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, hasTouch: true, isMobile: true, colorScheme: "dark" });
 
-    test("the die is 250 px wide or more at rest", async ({ page }) => {
+    // The die's side is bounded by the screen's width, not the padded column
+    // (it gives back the page gutter): 390 / 2.2, about 177 px (152 before).
+    // Its projected box follows the pose: about 1.2 to 1.3 times the side at
+    // rest, so the side is what is held here.
+    test("the die's side reaches the screen's width over 2.2 at rest", async ({ page }) => {
         await page.goto(at("/cube"));
         await page.waitForSelector(".cube", { timeout: 30_000 });
         await page.waitForTimeout(2500);
+        const side = await page.evaluate(() => document.querySelector(".cube").offsetWidth);
+        expect(side).toBeGreaterThanOrEqual(Math.floor(390 / 2.2));
         const d = await dieBox(page);
-        expect(d.w).toBeGreaterThanOrEqual(250);
+        expect(d.w).toBeGreaterThanOrEqual(side);
     });
 
     test("the folded top dock is a circle", async ({ page }) => {

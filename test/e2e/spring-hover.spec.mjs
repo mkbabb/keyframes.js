@@ -83,7 +83,8 @@ for (const vp of [
         const context = await browser.newContext({ viewport: { width: vp.width, height: vp.height }, colorScheme: "dark" });
         try {
             const page = await context.newPage();
-            await page.goto(springUrl(), { waitUntil: "load" });
+            // A phone opens with the controls closed: the link opens them.
+            await page.goto(springUrl() + (vp.width < 600 ? "?sheet=1" : ""), { waitUntil: "load" });
             await page.locator(".spring-heatmap-section").first().waitFor({ timeout: 15_000 });
             await page.waitForTimeout(1500);
             if (vp.width < 600) await raiseSheet(page);
