@@ -13,11 +13,16 @@ import { flag, oneOf, useUrlState, type UrlKey } from "./urlState";
  *
  *   anim   the selected channel (default: the scene's first)       push
  *   pane   the controls surface (default: the scene's own)          push
- *   sheet  0 = the controls pane / phone sheet closed               push
- *   ball   0 = the ball preview hidden                              push
- *   tl     1 = the timeline expanded                                push
+ *   sheet  0 = the controls pane / phone sheet closed               replace
+ *   ball   0 = the ball preview hidden                              replace
+ *   tl     1 = the timeline expanded                                replace
  *   play   1 / 0 = playing / paused, where it differs from the
  *          scene's entry state (the cube plays, the rest wait)      replace
+ *
+ * A pick of what is shown (a channel, a surface) is a push; the chrome's own
+ * posture (the pane open or lowered, the ball, the timeline) is a replace, so a
+ * tap on the die that lowers the phone sheet adds no entry and Back leaves the
+ * view instead of raising the sheet again.
  *
  * Bound to the RESOLVED scene (the one the chrome shows), and only while it
  * is the route's scene and has reported ready, so a swap never writes one
@@ -65,7 +70,7 @@ export function useSceneUrlState(opts: {
             },
             fallback: () => true,
             ...flag,
-            history: "push",
+            history: "replace",
         } satisfies UrlKey<boolean>,
         {
             key: "ball",
@@ -75,7 +80,7 @@ export function useSceneUrlState(opts: {
             },
             fallback: () => true,
             ...flag,
-            history: "push",
+            history: "replace",
         } satisfies UrlKey<boolean>,
         {
             key: "tl",
@@ -85,7 +90,7 @@ export function useSceneUrlState(opts: {
             },
             fallback: () => false,
             ...flag,
-            history: "push",
+            history: "replace",
         } satisfies UrlKey<boolean>,
         {
             key: "play",

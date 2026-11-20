@@ -186,3 +186,32 @@ test("a scene's keys never travel into the next scene", async ({ page }) => {
     await rest(page, 1500);
     expect(await query(page)).toMatchObject({ path: "/cube", skin: "daraksha", z: "1.2" });
 });
+
+test.describe("on a phone", () => {
+    test.use({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, hasTouch: true, isMobile: true });
+
+    test("a tap that lowers the sheet adds no entry: Back leaves the view", async ({ page }) => {
+        await page.goto(at("/"));
+        await rest(page, 1200);
+        // Into the cube as a visitor goes: one discrete move, one entry.
+        await page.evaluate(() => (location.hash = "#/cube"));
+        await page.waitForFunction(() => /rotate3d/.test(document.querySelector(".graph > div")?.style.transform ?? ""), null, { timeout: 20_000 });
+        await rest(page, 1500);
+        const len0 = await page.evaluate(() => history.length);
+
+        // A tap on the die lowers the sheet: the view's state, written in place.
+        const g = await page.evaluate(() => {
+            const r = document.querySelector(".graph").getBoundingClientRect();
+            return { x: r.x + r.width / 2, y: r.y + r.height / 2 };
+        });
+        await page.touchscreen.tap(g.x + 60, g.y);
+        await rest(page);
+        expect(await query(page)).toMatchObject({ path: "/cube", sheet: "0" });
+        expect(await page.evaluate(() => history.length)).toBe(len0);
+
+        // Back leaves the cube; it does not raise the sheet again.
+        await page.goBack();
+        await rest(page);
+        expect((await query(page)).path).toBe("/");
+    });
+});

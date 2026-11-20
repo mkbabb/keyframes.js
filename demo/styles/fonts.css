@@ -1,0 +1,7 @@
+/* The OFL woff2 corpus (Fira Code mono + the sans face) is DELIBERATELY
+   excluded from the glass-ui `styles` index (loaded once, self-contained base64
+   @font-face, no external request). The app MUST import it or --font-mono:
+   "Fira Code" silently renders the SF Mono/Menlo fallback. This is the
+   AUTHORITATIVE Fira Code payload. The app's entry imports it (main.ts); the
+   embed slice takes glass's faces as files instead (embed.css). */
+@import "@mkbabb/glass-ui/styles/fonts";

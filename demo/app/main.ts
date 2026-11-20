@@ -16,6 +16,9 @@ import { router } from "./scene/router";
 // EditorShell.vue also imports these; Vite dedupes the shared modules, so
 // dev and prod resolve identically.
 import "@styles/style.css";
+// The app's inlined font corpus (fonts.css): here, not in style.css, so the
+// embed slice (a die and glyphs, no text) does not carry it.
+import "@styles/fonts.css";
 // L.W8 S1 ED-3 DOGFOOD INVERSION — the demo consumes the PUBLISHED kf barrel; the
 // HEAVY surface (CSSKeyframesAnimation / AnimationGroup / presets / …) rides the
 // barrel's `loadAnimationEngine()` dynamic boundary. The scene-machine reconcile
@@ -58,6 +61,17 @@ const fontsDecoded = Promise.race([
 
 void Promise.all([warmKfEngine().catch(() => undefined), fontsDecoded]).finally(
     () => {
+        // LAST-TEN KF-31 — the app arrives by a short fade over the first
+        // paint's ground (the critical sheet's `#app[data-arriving]`), never
+        // whole in one frame; the mark goes when the fade ends, so the host
+        // makes no stacking context at rest.
+        const host = document.getElementById("app");
+        host?.setAttribute("data-arriving", "");
+        host?.addEventListener("animationend", function arrived(e) {
+            if (e.target !== host) return;
+            host.removeAttribute("data-arriving");
+            host.removeEventListener("animationend", arrived);
+        });
         app.mount("#app");
     },
 );
