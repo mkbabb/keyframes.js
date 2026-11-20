@@ -102,9 +102,9 @@
                 <div class="transport-row flex items-center">
                     <!-- An upright phone's dock carries the playhead: the one
                          scrub on the page, beside Play (the pane's own time row
-                         is not drawn there). -->
+                         is not drawn there). Home keeps Play alone. -->
                     <TransportScrub
-                        v-if="phoneDock && getScrubT && scrubTo"
+                        v-if="phoneDock && !startScreen && getScrubT && scrubTo"
                         :get-t="getScrubT"
                         :scrub="scrubTo"
                         :is-playing="isPlaying"
@@ -119,8 +119,10 @@
                          dead 1-item dropdown or a demoted label). -->
                     <!-- On an upright phone with a controls sheet, the channel
                          select and Reset are rows of the opened sheet: a fifth
-                         seat would take the scrub under 150 px. -->
-                    <template v-if="channelZoneKind === 'select' && !sheetHoldsExtras">
+                         seat would take the scrub under 150 px. An upright
+                         phone's Home keeps Play alone (the dock never folds
+                         there, so nothing would hide the select). -->
+                    <template v-if="channelZoneKind === 'select' && !sheetHoldsExtras && !phoneHome">
                         <DockSeparator />
                         <!-- X.KF.W13X.transport — the channel Select, bare on the dock:
                              (UIA-KF-257) no Tooltip and no wrapper div — the trigger
@@ -338,6 +340,8 @@ const uprightPhone = useMediaQuery("(max-width: 1023px) and (min-height: 501px)"
 const phoneDock = computed(() => !contained && uprightPhone.value);
 /** The opened sheet holds the channel select and Reset on an upright phone. */
 const sheetHoldsExtras = computed(() => phoneDock.value && controlsSeat);
+/** Home on an upright phone: the dock holds Play alone. */
+const phoneHome = computed(() => phoneDock.value && startScreen);
 
 if (!contained) useMenubarMeasure(menubarHostEl);
 

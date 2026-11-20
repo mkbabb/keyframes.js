@@ -133,7 +133,13 @@ afterAll(() => {
 let playhead = 0.25;
 const scrubbed: number[] = [];
 
-function mountAt(w: number, h0: number, controlsSeat: boolean, onToggle: () => void = () => {}) {
+function mountAt(
+    w: number,
+    h0: number,
+    controlsSeat: boolean,
+    onToggle: () => void = () => {},
+    startScreen = false,
+) {
     viewport = { w, h: h0 };
     return mount(
         defineComponent({
@@ -145,6 +151,7 @@ function mountAt(w: number, h0: number, controlsSeat: boolean, onToggle: () => v
                             isPlaying: false,
                             animationNames: ["alpha", "beta"],
                             controlsSeat,
+                            startScreen,
                             getScrubT: () => playhead,
                             scrubTo: (f: number) => scrubbed.push(f),
                             onToggleControls: onToggle,
@@ -198,6 +205,29 @@ describe("the phone's one bottom dock", () => {
         expect(seat(w)).toBeNull();
         expect(timeSliders()).toHaveLength(1);
         expect(w.element.querySelector('button[aria-label="Reset animation"]')).not.toBeNull();
+        w.unmount();
+    });
+
+    it("Home on an upright phone: the dock holds exactly one control, Play", () => {
+        // Home has no controls pane, so it gets no Controls seat; and with no
+        // scene to scrub or channel to pick, the dock holds Play alone.
+        const w = mountAt(390, 844, false, () => {}, true);
+        const controls = w.element.querySelectorAll(
+            'button, [role="slider"], [role="combobox"], select, input',
+        );
+        expect(controls).toHaveLength(1);
+        expect(controls[0]!.getAttribute("aria-label")).toBe("Play animation");
+        expect(timeSliders()).toHaveLength(0);
+        expect(w.element.querySelector('[aria-label="Channel to edit"]')).toBeNull();
+        expect(w.element.querySelectorAll('[role="separator"]')).toHaveLength(0);
+        w.unmount();
+    });
+
+    it("Home on a desk keeps its channel list beside Play (the pick carries into the scene)", () => {
+        const w = mountAt(1440, 900, false, () => {}, true);
+        expect(w.element.querySelector('[aria-label="Channel to edit"]')).not.toBeNull();
+        expect(timeSliders()).toHaveLength(0);
+        expect(w.element.querySelector('button[aria-label="Reset animation"]')).toBeNull();
         w.unmount();
     });
 
