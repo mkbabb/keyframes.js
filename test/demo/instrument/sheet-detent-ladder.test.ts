@@ -76,8 +76,16 @@ Object.defineProperty(window, "matchMedia", {
     }),
 });
 
-const { default: ControlsPaneWrapper } =
+const { default: ControlsPaneWrapperBare } =
     await import("@components/instrument/pane/ControlsPaneWrapper.vue");
+const { TooltipProvider } = await import("@mkbabb/glass-ui/tooltip");
+/** The wrapper under a TooltipProvider, as the app mounts it (the phone
+ *  sheet's first row carries tooltips). */
+const ControlsPaneWrapper = defineComponent({
+    inheritAttrs: false,
+    setup: (_p, { attrs }) => () =>
+        h(TooltipProvider, null, { default: () => h(ControlsPaneWrapperBare as any, attrs) }),
+});
 
 const mounted: { unmount: () => void; el: HTMLElement }[] = [];
 afterEach(() => {
@@ -221,5 +229,67 @@ describe("the mobile sheet's detent ladder", () => {
         const style = rec.attrs.style as Record<string, string>;
         expect(style.top).toBe("var(--stage-top-inset)");
         expect(style.bottom).toBe("var(--stage-bottom-inset)");
+    });
+
+    /** Mount with two channels and count what the sheet's first row offers. */
+    async function mountTwoChannels(w: number, ht: number) {
+        viewport = { w, h: ht };
+        const storedControls = reactive({
+            selectedAnimation: "a",
+            selectedControl: "controls",
+            isControlsPanelOpen: true,
+            isTimelineExpanded: false,
+        });
+        const calls = { reset: 0, picked: [] as string[] };
+        const el = document.createElement("div");
+        document.body.appendChild(el);
+        const app = createApp(
+            defineComponent({
+                setup: () => () =>
+                    h(ControlsPaneWrapper as any, {
+                        animationGroup: {
+                            animations: {
+                                a: { animation: { id: "a" }, layer: undefined },
+                                b: { animation: { id: "b" }, layer: undefined },
+                            },
+                            singleTarget: true,
+                        },
+                        blendAvailable: true,
+                        storedControls,
+                        stageMode: "subject",
+                        isPlaying: false,
+                        onSetControlsPanelOpen: (v: boolean) => {
+                            storedControls.isControlsPanelOpen = v;
+                        },
+                        onReset: () => calls.reset++,
+                        onSelectAnimation: (name: string) => calls.picked.push(name),
+                    }),
+            }),
+        );
+        app.mount(el);
+        mounted.push({ unmount: () => app.unmount(), el });
+        await nextTick();
+        storedControls.isControlsPanelOpen = true;
+        await nextTick();
+        return calls;
+    }
+
+    it("an upright phone's opened sheet leads with Reset and the channel select (the dock leaves them out at rest)", async () => {
+        const calls = await mountTwoChannels(390, 844);
+        const sheet = document.querySelector('[data-stub="SheetContent"]')!;
+        const reset = sheet.querySelector<HTMLButtonElement>('button[aria-label="Reset animation"]');
+        expect(reset).not.toBeNull();
+        expect(sheet.querySelector('[aria-label="Channel to edit"]')).not.toBeNull();
+        // Reset is the sheet's first control.
+        expect(sheet.querySelector("button")).toBe(reset);
+        reset!.click();
+        expect(calls.reset).toBe(1);
+    });
+
+    it("a landscape phone's rail adds no such row: its transport keeps Reset and the channel select", async () => {
+        await mountTwoChannels(844, 390);
+        const sheet = document.querySelector('[data-stub="SheetContent"]')!;
+        expect(sheet.querySelector('button[aria-label="Reset animation"]')).toBeNull();
+        expect(sheet.querySelector('[aria-label="Channel to edit"]')).toBeNull();
     });
 });

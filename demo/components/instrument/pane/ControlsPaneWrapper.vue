@@ -261,6 +261,37 @@
             <!-- reka DialogContent wants a labelling title; keep it off-screen
                  (the visible facet panels carry their own headings). -->
             <DialogTitle class="sr-only">Animation controls</DialogTitle>
+            <!-- An upright phone: the opened sheet's first row holds what the
+                 dock leaves out at rest, so its scrub keeps its length: Reset
+                 (to the start) and, where the scene has two or more channels,
+                 the channel the controls edit. A landscape phone's transport
+                 keeps both. -->
+            <div v-if="!isShortLayout" class="sheet-head-row">
+                <Tooltip>
+                    <TooltipTrigger as-child>
+                        <Button emphasis="quiet" icon-only aria-label="Reset animation" @click="emit('reset')">
+                            <SkipBack class="sheet-head-glyph" aria-hidden="true" />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Reset animation</TooltipContent>
+                </Tooltip>
+                <Select
+                    v-if="channelNames.length > 1"
+                    :model-value="storedControls.selectedAnimation ?? ''"
+                    @update:model-value="(key) => emit('selectAnimation', String(key))"
+                >
+                    <SelectTrigger aria-label="Channel to edit" class="min-w-0 flex-1">
+                        <SelectValue class="min-w-0 flex-1 text-start" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectGroup>
+                            <SelectItem v-for="name in channelNames" :key="name" :value="name">
+                                {{ name }}
+                            </SelectItem>
+                        </SelectGroup>
+                    </SelectContent>
+                </Select>
+            </div>
             <ReusePaneBody />
         </SheetContent>
     </Dialog>
@@ -301,6 +332,17 @@ import { Card } from "@mkbabb/glass-ui/card";
 import { Dialog, DialogTitle } from "@mkbabb/glass-ui/dialog";
 import { FadingScroll } from "@mkbabb/glass-ui/fading-scroll";
 import { SheetContent } from "@mkbabb/glass-ui/sheet";
+import { Button } from "@mkbabb/glass-ui/button";
+import {
+    Select,
+    SelectContent,
+    SelectGroup,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@mkbabb/glass-ui/select";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@mkbabb/glass-ui/tooltip";
+import { SkipBack } from "@lucide/vue";
 import { createReusableTemplate, useMediaQuery } from "@vueuse/core";
 import {
     type ComponentPublicInstance,
@@ -375,7 +417,16 @@ const emit = defineEmits<{
     (e: "setControlsPanelOpen", open: boolean): void;
     // KF-M1 — the sheet's settled reserve on the stage (useStageReserve).
     (e: "stageReserve", reserve: StageReserve): void;
+    // The upright phone sheet's first row: Reset and the channel select (the
+    // dock leaves them out at rest).
+    (e: "reset"): void;
+    (e: "selectAnimation", name: string): void;
 }>();
+
+/** The channels the sheet's select offers: the scene's, else the group's. */
+const channelNames = computed(
+    () => props.channels?.map((c) => c.name) ?? Object.keys(props.animationGroup.animations),
+);
 
 // ── T.B1-β STAGE 1 — the host axis ───────────────────────────────────────────
 interface ControlHost {
