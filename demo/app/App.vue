@@ -18,6 +18,7 @@
          one config, no shadowing. -->
     <TooltipProvider :delay-duration="100" :skip-delay-duration="0">
     <ChromeDock
+        ref="chromeDockRef"
         :current-scene-id="resolvedScene.id"
         :scenes="scenes"
         :home-scene="homeScene"
@@ -61,7 +62,10 @@
         </template>
 
         <template #start-screen>
-            <EditorStartScreen hint="or drag M. cubert &#x1F642;&#x200D;&#x2194;&#xFE0F;" />
+            <EditorStartScreen
+                hint="or drag M. cubert &#x1F642;&#x200D;&#x2194;&#xFE0F;"
+                @pick-scene="chromeDockRef?.openSceneList()"
+            />
         </template>
 
         <template #tabs-content>
@@ -243,6 +247,7 @@ const sceneRef = shallowRef<SceneExposedApi | null>(null);
 // The scene-swap subject: the host the View Transition morphs and the focus
 // target routed to on `transition.finished` (the a11y MANDATORY).
 const sceneHostEl = useTemplateRef<HTMLElement>("sceneHostEl");
+const chromeDockRef = useTemplateRef<InstanceType<typeof ChromeDock>>("chromeDockRef");
 
 // Start with an empty AnimationGroup. The active scene's real group is bound
 // once the scene exposes it (after mount). markRaw groups are NEVER held in the

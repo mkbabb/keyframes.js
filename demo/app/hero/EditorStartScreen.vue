@@ -67,9 +67,14 @@
              identity motion, kept: static under prefers-reduced-motion, and
              parked at their own roots (AnimatedText, TypingDots) while the page
              is hidden or the title is offscreen. -->
+        <!-- The headline says "Select an animation", so a press on it opens
+             the Scene list it names (the dock's), and the headline stays: a
+             pick from that list, or a drag on the die, engages the stage. -->
         <h1 class="hero-display text-display-mega">
-            <AnimatedText :text="hero.title" />
-            <span class="hero-dots"><TypingDots /></span>
+            <button type="button" class="hero-press kf-focus-ring" aria-haspopup="listbox" @click="emit('pickScene')">
+                <AnimatedText :text="hero.title" />
+                <span class="hero-dots"><TypingDots /></span>
+            </button>
         </h1>
         <!-- T.D11 (OD-4) — the deck joins the poster's own voice: Instrument
              Serif TRUE italic 400. KF-EST-2 — the ital@1 face is a SEPARATE
@@ -147,6 +152,10 @@ defineProps<{
     hint?: string;
 }>();
 
+const emit = defineEmits<{
+    (e: "pickScene"): void;
+}>();
+
 // X.KF.W13U.x — the hero title is DECLARED here, once: the template renders it
 // and the usability observation's (2c) reads this same declaration as its
 // oracle (the per-char split must equal ITS glyph count, never the rendered
@@ -155,6 +164,14 @@ const hero = { title: "Select an animation" } as const;
 </script>
 
 <style scoped>
+/* The headline's press: the band is ink (pointer-events none), the words are
+   the one live target. Text-like: no plate, no shift on hover. */
+.hero-press {
+    pointer-events: auto;
+    cursor: pointer;
+    text-align: inherit;
+    border-radius: var(--radius-card);
+}
 /* ── The φ-band seat (T.D9 / lane 01 F1 / the P-HERO blessed reference) ────────
    Derived ENTIRELY from the work-area chain: top-offset (the φ 0.382 slack
    split the docks + work-area card already ride) + a φ share of the work-area

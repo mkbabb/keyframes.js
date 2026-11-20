@@ -416,6 +416,16 @@ watch(isSelectOpen, (open) => {
     if (open) dockRef.value?.keepOpen();
     else dockRef.value?.release();
 });
+
+/** Open the Scene list from outside the dock (Home's headline names it): the
+ *  dock unfolds to the face that holds the trigger, then the list opens. */
+async function openSceneList(): Promise<void> {
+    dockRef.value?.expand();
+    await nextTick();
+    sceneSelectOpen.value = true;
+}
+
+defineExpose({ openSceneList });
 </script>
 
 <template>
