@@ -157,3 +157,36 @@ test("the caption cross-fades on an opacity ease (no cut)", async ({ browser }) 
         await context.close();
     }
 });
+
+test("a mouse press on a spring term opens its explanation within 100 ms (the hover wait is for a passing hover)", async ({ browser }) => {
+    const context = await browser.newContext({ viewport: { width: 1440, height: 900 }, colorScheme: "dark" });
+    try {
+        const page = await context.newPage();
+        await page.goto(springUrl(), { waitUntil: "load" });
+        const term = page.locator(".param-term").first();
+        await term.waitFor({ timeout: 15_000 });
+        await page.waitForTimeout(1200);
+        const b = await term.boundingBox();
+        await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2);
+        const t0 = await page.evaluate(() => performance.now());
+        await page.mouse.down();
+        const shown = await page.evaluate(
+            () =>
+                new Promise((resolve) => {
+                    const start = performance.now();
+                    const tick = () => {
+                        const el = document.querySelector('[data-slot="popover-content"], [role="group"][data-state="open"], [data-state="open"][data-side]');
+                        if (el && el.getBoundingClientRect().width > 0) resolve(performance.now());
+                        else if (performance.now() - start > 1000) resolve(null);
+                        else requestAnimationFrame(tick);
+                    };
+                    tick();
+                }),
+        );
+        await page.mouse.up();
+        expect(shown).not.toBeNull();
+        expect(shown - t0).toBeLessThan(100);
+    } finally {
+        await context.close();
+    }
+});
