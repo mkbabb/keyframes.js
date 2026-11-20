@@ -216,7 +216,9 @@
 
                     <!-- The phone's Controls seat: it opens and closes the
                          controls sheet (on a desk the pane is a rail, opened
-                         from the top dock). -->
+                         from the top dock). It wears the sheet's own glyph, a
+                         panel at the foot: the sliders glyph is the Controls
+                         surface's, which the top dock's surfaces seat shows. -->
                     <template v-if="phoneDock && controlsSeat">
                         <DockSeparator />
                         <Tooltip>
@@ -228,7 +230,7 @@
                                     data-controls-seat
                                     @click="emit('toggleControls')"
                                 >
-                                    <SlidersHorizontal class="icon-lg" />
+                                    <PanelBottom class="icon-lg" />
                                 </DockControl>
                             </TooltipTrigger>
                             <TooltipContent>Controls</TooltipContent>
@@ -246,9 +248,9 @@ import { computed, ref, useTemplateRef, watch } from "vue";
 
 import {
     List,
+    PanelBottom,
     Pause,
     Play,
-    SlidersHorizontal,
 } from "@lucide/vue";
 import { useMediaQuery } from "@vueuse/core";
 
