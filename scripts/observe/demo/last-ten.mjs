@@ -4,7 +4,8 @@
  * (owner-1112 LAST-TEN/keyframes/FINDINGS.md), each as a falsifiable clause
  * over the built demo (dist/gh-pages), headless Chromium:
  *
- *   KF-04  Keyboard into the Layer sub-pane and back (Enter, Enter) and a
+ *   KF-04  Keyboard into the Layer sub-pane (on the Amiga, where a layer can
+ *          change) and back (Enter, Enter) and a
  *          scroll-into-view of its Back mid-drill (what Playwright's own click,
  *          a focus without preventScroll or an AT does) move no ancestor of the
  *          pane: every ancestor's scrollTop / scrollLeft stays 0.
@@ -66,10 +67,13 @@ await withPage(
     { label: "last-ten", context: { viewport: { width: 1440, height: 900 }, colorScheme: "dark" } },
     async (page, { url: base }) => {
         // ── KF-04 ────────────────────────────────────────────────────────
-        await page.goto(`${base}/#/cube`, { waitUntil: "load" });
-        await navToScene(page, "cube", "controls");
+        // The Layer row is offered only where a layer can change: a
+        // single-target channel (the Amiga's Spin). Its row names the layer's
+        // op after the word.
+        await page.goto(`${base}/#/amiga`, { waitUntil: "load" });
+        await navToScene(page, "amiga", "controls");
         await page.waitForTimeout(1500);
-        const layer = page.locator("[data-slot=card] button", { hasText: /^\s*layer\s*$/ }).first();
+        const layer = page.locator("[data-slot=card] button", { hasText: /^\s*layer/ }).first();
         // In by keyboard (focus lands on Back), out by keyboard mid-arrival.
         await layer.focus();
         await page.keyboard.press("Enter");
@@ -89,6 +93,9 @@ await withPage(
         check(s.length === 0, `KF-04 scroll-into-view of Back mid-drill moves nothing (${s.join(" | ") || "no ancestor scrolled"})`);
         await page.locator('[aria-label="Back from Layer to controls"]').first().click();
         await page.waitForTimeout(600);
+        // The rows below run on the Cube.
+        await navToScene(page, "cube", "controls");
+        await page.waitForTimeout(1500);
 
         // ── KF-05 / KF-28 ────────────────────────────────────────────────
         await page.keyboard.press("Escape");
