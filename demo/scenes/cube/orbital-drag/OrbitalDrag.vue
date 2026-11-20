@@ -11,18 +11,16 @@
 // SERVED MODEL: claude-opus-5-5
 import { registerShortcut } from "@mkbabb/glass-ui/keyboard";
 import { useEventListener } from "@vueuse/core";
-import { computed, onMounted, onUnmounted, shallowRef, useTemplateRef, watch } from "vue";
+import { computed, onMounted, onUnmounted, useTemplateRef, watch } from "vue";
 import { attitudeQuat } from "../graphAttitude";
 import {
     quatCanonical,
-    quatConjugate,
     quatDot,
     quatFromAxisAngle,
     quatMultiply,
     quatSlerp,
     quatToAxisAngle,
     panInPlane,
-    rotateVec,
 } from "./arcball";
 import type { Quat, Vec3 } from "./arcball";
 import type { TransformBounds, TransformState } from "./transform";
@@ -52,9 +50,13 @@ import {
  *    it and the die's centre lands exactly t (the former 1.43×, D-13).
  *  · The Euler triple is a READOUT (Y·X·Z, continuous, quaternionEuler.ts).
  *  · Gesture moves write the state; ONE frame loop (`tick`) flushes the
- *    wheel, advances the coast or the spring home, and commits once: one model
- *    write, one emit, one render tick per frame, transform only. Nothing else
- *    in the orbit asks for a frame.
+ *    followers, shows the hand, advances the coast or the spring home, and
+ *    writes ONE thing per frame: the container's `style.transform`, straight
+ *    from the state (no model write, no emit, no render). The model (the
+ *    readout, the attitude, the pan and the zoom), its emits and the render
+ *    tick are written once, when the die comes to rest. A consumer that needs
+ *    the pose per frame (the slice's paper) takes the `frame` event. Nothing
+ *    else in the orbit asks for a frame.
  */
 const props = withDefaults(
     defineProps<{
@@ -74,6 +76,8 @@ const props = withDefaults(
 );
 
 const emit = defineEmits<{
+    /** Every frame the pose changes, and at rest: the pan (px) and the zoom. */
+    (e: "frame", pose: { t: { x: number; y: number }; s: number }): void;
     (e: "rotate", state: TransformState["rotate"]): void;
     (e: "translate", state: TransformState["translate"]): void;
     (e: "scale", scale: TransformState["scale"]): void;
@@ -92,7 +96,6 @@ if (Object.keys(model.value).length === 0) {
 const containerRef = useTemplateRef<HTMLElement>("containerRef");
 const bounds = props.bounds ?? defaultTransformBounds;
 const G: Quat = attitudeQuat();
-const Ginv: Quat = quatConjugate(G);
 
 const seedQuaternion = (): Quat => {
     const stored = model.value.quaternion;
@@ -107,25 +110,30 @@ const state: OrbitState = {
     s: model.value.scale.x,
 };
 
-// ── The render ──────────────────────────────────────────────────────
-// The version tick is the render's ONE dependency for the attitude (bumped
-// once per commit), replacing the `void rotate.x/y/z` read of the readout.
-const version = shallowRef(0);
-
-const containerStyle = computed(() => {
-    if (!props.applyTransformToContainer) return {};
-    void version.value;
-    const { translate, scale: s } = model.value;
-    const tl = panInPlane(G, [translate.x, translate.y, translate.z]);
+// ── The render: one transform write, straight from the state ────────
+// The container's static style is the template's; its transform is written
+// here, once per frame (K4), so a frame restyles one element and Vue renders
+// nothing. The pan renders as G⁻¹·t, the attitude as rotate3d, the zoom as
+// scale3d.
+const containerStyle = computed(() =>
+    props.applyTransformToContainer ? { transformStyle: "preserve-3d" as const, willChange: "transform" as const } : {},
+);
+let shownTransform = "";
+const writeTransform = () => {
+    const el = containerRef.value;
+    if (!props.applyTransformToContainer || !el) return;
+    const tl = panInPlane(G, [state.t.x, state.t.y, model.value.translate.z]);
     const { axis, angle } = quatToAxisAngle(state.q);
-    return {
-        transformStyle: "preserve-3d" as const,
-        willChange: "transform" as const,
-        transform: `translate3d(${tl[0]}px, ${tl[1]}px, ${tl[2]}px) rotate3d(${axis[0]}, ${axis[1]}, ${axis[2]}, ${angle * (180 / Math.PI)}deg) scale3d(${s.x}, ${s.y}, ${s.z})`,
-    };
-});
+    const tf = `translate3d(${tl[0]}px, ${tl[1]}px, ${tl[2]}px) rotate3d(${axis[0]}, ${axis[1]}, ${axis[2]}, ${angle * (180 / Math.PI)}deg) scale3d(${state.s}, ${state.s}, ${state.s})`;
+    if (tf === shownTransform) return;
+    shownTransform = tf;
+    el.style.transform = tf;
+    emit("frame", { t: { x: state.t.x, y: state.t.y }, s: state.s });
+};
 
-// ── The commit: one model write, one emit, one tick per frame ───────
+// ── The commit at rest: the model, its emits, the render tick ───────
+/** The model trails the state while the die moves; true once it is behind. */
+let stale = false;
 const writeModel = (fold = false) => {
     const m = model.value;
     const readout = quaternionToEulerDegrees(state.q, m.rotate);
@@ -144,27 +152,33 @@ const writeModel = (fold = false) => {
         emit("scale", { ...m.scale });
     }
     emit("rotate", { ...m.rotate });
-    version.value++;
+    stale = false;
+    writeTransform();
 };
 
 // ── THE frame loop: one requestAnimationFrame for the whole orbit ────
 // The wheel's follower, the coast, the spring home and the gesture's commit
 // all run here, once a frame; the loop stops itself when nothing is live.
 let frameHandle = 0;
-/** The state changed since the last commit. */
+/** The state changed since the last frame. */
 let dirty = false;
 const tick = (now: number) => {
     frameHandle = 0;
     const wheel = gesture.flushWheel(now);
     const owed = wheel === "owed";
-    const ahead = gesture.unwindPrediction(now);
+    // The hand at the frame's own instant (K2): resampled, never ahead of
+    // where a touch's predicted path allows, a mouse never ahead at all.
+    const hand = gesture.handAt(now);
     const coasting = inertia.advance(now);
     const homing = stepHome(now);
-    if (dirty || coasting || homing || wheel !== "idle" || ahead === "unwound") {
+    if (dirty || coasting || homing || wheel !== "idle" || hand !== "idle") {
         dirty = false;
-        writeModel();
+        stale = true;
+        writeTransform();
     }
-    if (coasting || homing || owed || ahead === "ahead") requestFrame();
+    if (coasting || homing || owed || hand === "settling") requestFrame();
+    // At rest the model catches up, once.
+    else if (stale) writeModel();
 };
 const requestFrame = () => {
     if (!frameHandle) frameHandle = requestAnimationFrame(tick);
@@ -173,9 +187,12 @@ const requestCommit = () => {
     dirty = true;
     requestFrame();
 };
+/** Show the state now (a release lands its pose before the coast); the
+ *  model follows at rest. */
 const commitNow = () => {
     dirty = false;
-    writeModel();
+    stale = true;
+    writeTransform();
 };
 
 // ── The frame the reader anchors on ─────────────────────────────────
@@ -237,11 +254,9 @@ const gesture = useOrbitalGesture({
     },
     onGestureEnd: (release) => {
         commitNow();
-        if (!inertia.start(release)) writeModel(true);
+        // K3: the coast is clocked at the release's own time.
+        if (!inertia.start(release, release.time)) writeModel(true);
     },
-    // A wheel notch glides out on the coast's own decay, conjugated into Q's
-    // frame (G is fixed, so turning the axis by G⁻¹ is the conjugation).
-    onGlide: (w) => void inertia.glide(rotateVec(Ginv, w)),
     // A wheel stream's end settles: a pan or zoom past a bound springs back,
     // and with nothing left moving the readout folds.
     onSettle: (at) => {
@@ -316,12 +331,12 @@ const goTo = (to: OrbitPose) => {
 };
 const goHome = () => goTo(LOAD_POSE);
 
-// ── The keyboard: the arrows turn the die on the same decay ─────────
+// ── The keyboard: the arrows turn the die on the notch's follower ───
 // With the stage focused, an arrow turns the die 15° (Shift: 45°) about the
 // screen's vertical (← →) or horizontal (↑ ↓), the near face moving with the
-// arrow, glided out on the coast's own closed form (a held key's repeats
-// stack into one glide); Home returns it. Under reduced motion the glide is
-// shortened, never cut.
+// arrow, followed as a wheel notch is (a held key's repeats add to one
+// target); Home returns it. Under reduced motion the follower is quicker,
+// never cut.
 const ARROW_STEP_RAD = (15 * Math.PI) / 180;
 const ARROW_TURN: Record<string, Vec3> = {
     ArrowLeft: [0, -1, 0],
@@ -342,7 +357,7 @@ const onKeydown = (event: KeyboardEvent) => {
     event.stopPropagation();
     home = null;
     const a = ARROW_STEP_RAD * (event.shiftKey ? 3 : 1);
-    inertia.glide(rotateVec(Ginv, [dir[0] * a, dir[1] * a, dir[2] * a]));
+    gesture.nudge([dir[0] * a, dir[1] * a, dir[2] * a], event.timeStamp);
 };
 
 // ── The axis latch — KF-AX-1 ≡ OD-3/OD-4/OD-5/OD-6/OD-25/OD-31 ──────
@@ -375,6 +390,7 @@ useEventListener(document, "visibilitychange", () => {
 });
 
 onMounted(() => {
+    writeTransform();
     // The surface may arrive after the container (a parent's root ref).
     const surface = computed(() => props.surface ?? containerRef.value);
     useEventListener(surface, "wheel", (event) => gesture.handleWheel(event as WheelEvent), {
@@ -428,7 +444,7 @@ watch(
         inertia.stop();
         state.q = quatCanonical(q);
         model.value.quaternion = [state.q[0], state.q[1], state.q[2], state.q[3]];
-        version.value++;
+        writeTransform();
     },
 );
 
@@ -439,7 +455,7 @@ watch(
         if (!q || Math.abs(quatDot(q, state.q)) >= 1 - 1e-12) return;
         inertia.stop();
         state.q = quatCanonical(q);
-        version.value++;
+        writeTransform();
     },
 );
 
@@ -453,7 +469,7 @@ watch(
             return;
         state.t = { x, y };
         state.s = s;
-        version.value++;
+        writeTransform();
     },
 );
 

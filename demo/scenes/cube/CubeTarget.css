@@ -290,3 +290,89 @@
 .cube-stage:focus-visible {
     outline: none;
 }
+
+/* THE DIE (`faces="pips"`, and the pair, dice/DicePair.vue). A die's body is
+   rounder than the cube's tiles: each face takes a corner of 10 % of the
+   side, so the die reads as a die is drawn, rounded tiles meeting at the
+   edges. */
+.cube[data-faces="pips"] .cube-side {
+    border-radius: calc(var(--side-size) * 0.1);
+}
+
+/* The core: a cube inset 4 % inside the faces, flat in the seam ink. Where
+   the rounded faces meet, and at each corner, the eye meets the core, so the
+   seam reads as the die's own hairline in both themes, never the ground. Six
+   planes, no shading. */
+.die-core {
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    inline-size: var(--side-size);
+    block-size: var(--side-size);
+    pointer-events: none;
+}
+.die-core-plane {
+    position: absolute;
+    inset: 4%;
+    background: var(--die-seam);
+    backface-visibility: hidden;
+    --core-offset: calc(var(--side-size) * 0.46);
+
+    &.front {
+        transform: translateZ(var(--core-offset));
+    }
+    &.back {
+        transform: rotateY(180deg) translateZ(var(--core-offset));
+    }
+    &.top {
+        transform: rotateX(90deg) translateZ(var(--core-offset));
+    }
+    &.bottom {
+        transform: rotateX(-90deg) translateZ(var(--core-offset));
+    }
+    &.left {
+        transform: rotateY(-90deg) translateZ(var(--core-offset));
+    }
+    &.right {
+        transform: rotateY(90deg) translateZ(var(--core-offset));
+    }
+}
+
+/* THE DIE'S SIX VALUES: the one home of a value's colour, its ink and the
+   seam, read by the single die (inside .cube-bob) and by the pair
+   (.dice-stage). By default a value takes the face token of the face it
+   shows at rest, so the crayon die keeps its colours by number: 1 the top's,
+   2 the front's, 3 the right's, 4 the left's, 5 the back's, 6 the bottom's.
+   In the warm skin the pair, outside .cube-bob, is given the same six by
+   value: 1 gulabi, 2 efflorescence, 3 haldi, 4 zari, 5 tulsi, 6 sheesham,
+   each with its ink, and the seam in jamun. */
+:global(:is(.cube-bob, .dice-stage)) {
+    --die-1: var(--face-5);
+    --die-2: var(--face-1);
+    --die-3: var(--face-2);
+    --die-4: var(--face-4);
+    --die-5: var(--face-3);
+    --die-6: var(--face-6);
+    --die-1-ink: var(--face-5-ink, currentColor);
+    --die-2-ink: var(--face-1-ink, currentColor);
+    --die-3-ink: var(--face-2-ink, currentColor);
+    --die-4-ink: var(--face-4-ink, currentColor);
+    --die-5-ink: var(--face-3-ink, currentColor);
+    --die-6-ink: var(--face-6-ink, currentColor);
+    --die-seam: color-mix(in oklab, var(--foreground) 80%, var(--background));
+}
+:global(:is(.cube-bob, .dice-stage)[data-cube-skin="daraksha"]) {
+    --die-1: oklch(90% 0.055 18);
+    --die-2: oklch(73% 0.185 2);
+    --die-3: oklch(82% 0.145 76);
+    --die-4: oklch(72% 0.12 88);
+    --die-5: oklch(72% 0.055 145);
+    --die-6: oklch(55% 0.085 56);
+    --die-1-ink: oklch(39% 0.1 356);
+    --die-2-ink: oklch(39% 0.1 356);
+    --die-3-ink: oklch(39% 0.1 356);
+    --die-4-ink: oklch(39% 0.1 356);
+    --die-5-ink: oklch(43% 0.085 152);
+    --die-6-ink: oklch(90% 0.055 18);
+    --die-seam: oklch(39% 0.1 356);
+}

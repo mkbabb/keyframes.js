@@ -28,6 +28,7 @@ import {
     MAX_ZOOM_COAST_RATE,
     POSE_FRICTION,
 } from "../../../demo/scenes/cube/orbital-drag/composables/inertiaDecay";
+import { shown } from "./orbit-shown";
 
 const G = attitudeQuat();
 const CENTRE = { x: 200, y: 300 };
@@ -94,7 +95,8 @@ async function mountOrbit() {
 /** The on-screen rotation the orbit authored since identity (G·Q·G⁻¹). */
 const screenRotation = (q: Quat) => quatToAxisAngle(quatMultiply(quatMultiply(G, q), quatConjugate(G)));
 
-/** Two fingers from (a0, b0) to (a, b) in `steps`, then released. */
+/** Two fingers from (a0, b0) to (a, b) in `steps`, then released: moving
+ *  (a throw, `true`), after a 100 ms hold (placed, `"held"`), or not at all. */
 async function twoFinger(
     el: HTMLElement,
     a0: [number, number],
@@ -102,7 +104,7 @@ async function twoFinger(
     a: [number, number],
     b: [number, number],
     steps = 20,
-    release = true,
+    release: boolean | "held" = true,
 ) {
     let t = 0;
     el.dispatchEvent(ptr("pointerdown", 1, a0[0], a0[1], t));
@@ -116,25 +118,26 @@ async function twoFinger(
     }
     await flush();
     if (release) {
-        document.dispatchEvent(ptr("pointerup", 1, a[0], a[1], t + 2));
-        document.dispatchEvent(ptr("pointerup", 2, b[0], b[1], t + 2));
+        const up = release === "held" ? t + 100 : t + 2;
+        document.dispatchEvent(ptr("pointerup", 1, a[0], a[1], up));
+        document.dispatchEvent(ptr("pointerup", 2, b[0], b[1], up));
         await flush();
     }
 }
 
 describe("G2.3 — the mounted orbit: one channel per hand motion", () => {
     it("(a) a spread 80 → 160 px about a fixed centroid zooms 2× and does nothing else", async () => {
-        const { w, model, el } = await mountOrbit();
-        await twoFinger(el, [160, 300], [240, 300], [120, 300], [280, 300]);
-        expect(Math.abs(model.value.scale.x - 2)).toBeLessThan(0.01);
-        expect(screenRotation(model.value.quaternion!).angle).toBeLessThan(1e-12);
-        expect(Math.abs(model.value.translate.x)).toBeLessThan(1);
-        expect(Math.abs(model.value.translate.y)).toBeLessThan(1);
+        const { w, el } = await mountOrbit();
+        await twoFinger(el, [160, 300], [240, 300], [120, 300], [280, 300], 20, "held");
+        expect(Math.abs(shown(el).scale.x - 2)).toBeLessThan(0.01);
+        expect(screenRotation(shown(el).quaternion).angle).toBeLessThan(1e-12);
+        expect(Math.abs(shown(el).translate.x)).toBeLessThan(1);
+        expect(Math.abs(shown(el).translate.y)).toBeLessThan(1);
         w.unmount();
     });
 
     it("(b) a 90° twist at constant distance rolls 90° ± 0.5° and keeps the scale", async () => {
-        const { w, model, el } = await mountOrbit();
+        const { w, el } = await mountOrbit();
         // Rotate the pair clockwise about the centroid in 20 steps.
         let t = 0;
         el.dispatchEvent(ptr("pointerdown", 1, 140, 300, t));
@@ -146,10 +149,10 @@ describe("G2.3 — the mounted orbit: one channel per hand motion", () => {
             document.dispatchEvent(ptr("pointermove", 2, 200 + 60 * Math.cos(a), 300 + 60 * Math.sin(a), t));
         }
         await flush();
-        const r = screenRotation(model.value.quaternion!);
+        const r = screenRotation(shown(el).quaternion);
         expect(Math.abs((r.angle * 180) / Math.PI - 90)).toBeLessThan(0.5);
         expect(r.axis[2]).toBeCloseTo(1, 9);
-        expect(Math.abs(model.value.scale.x - 1)).toBeLessThan(0.005);
+        expect(Math.abs(shown(el).scale.x - 1)).toBeLessThan(0.005);
         document.dispatchEvent(ptr("pointerup", 1, 200, 240, t + 2));
         document.dispatchEvent(ptr("pointerup", 2, 200, 360, t + 2));
         w.unmount();
@@ -157,22 +160,22 @@ describe("G2.3 — the mounted orbit: one channel per hand motion", () => {
 
     // 80 px stays inside the bound (the whole die on the stage: the centre's bottom bound is 545 − ½·160·2 = 385).
     it("(c) a two-finger 80 px drag pans 80 ± 1 px, no zoom, no roll", async () => {
-        const { w, model, el } = await mountOrbit();
-        await twoFinger(el, [170, 300], [230, 300], [170, 380], [230, 380]);
-        expect(Math.abs(model.value.translate.y - 80)).toBeLessThan(1);
-        expect(Math.abs(model.value.translate.x)).toBeLessThan(1e-9);
-        expect(model.value.scale.x).toBe(1);
-        expect(screenRotation(model.value.quaternion!).angle).toBeLessThan(1e-12);
+        const { w, el } = await mountOrbit();
+        await twoFinger(el, [170, 300], [230, 300], [170, 380], [230, 380], 20, "held");
+        expect(Math.abs(shown(el).translate.y - 80)).toBeLessThan(1);
+        expect(Math.abs(shown(el).translate.x)).toBeLessThan(1e-9);
+        expect(shown(el).scale.x).toBe(1);
+        expect(screenRotation(shown(el).quaternion).angle).toBeLessThan(1e-12);
         w.unmount();
     });
 
     it("(f) the bound holds the projected centre: at rest the die's whole silhouette is inside the stage", async () => {
-        const { w, model, el } = await mountOrbit();
+        const { w, el } = await mountOrbit();
         await twoFinger(el, [170, 300], [230, 300], [170, 900], [230, 900]);
         await flush(120);
         // The die's extent at the scale it rests at (the release may carry a zoom).
-        const D = 160 * model.value.scale.x * SILHOUETTE;
-        expect(CENTRE.y + model.value.translate.y).toBeLessThanOrEqual(STAGE.bottom - 0.5 * D + 1e-9);
+        const D = 160 * shown(el).scale.x * SILHOUETTE;
+        expect(CENTRE.y + shown(el).translate.y).toBeLessThanOrEqual(STAGE.bottom - 0.5 * D + 1e-9);
         w.unmount();
     });
 
@@ -205,7 +208,7 @@ describe("OA-17 — pan and pinch coast on release", () => {
     /** A two-finger pan down at `v` px/s for 24 px (8 ms a move), released
      *  2 ms after its last move; then the coast at `hz` for 1.2 s. */
     const panCoast = async (v: number, hz = 60) => {
-        const { w, model, el } = await mountOrbit();
+        const { w, el } = await mountOrbit();
         const step = (v * 8) / 1000;
         // 24 px of pan and its coast stay inside the bound (the whole die inside the stage).
         const n = Math.round(24 / step);
@@ -221,16 +224,16 @@ describe("OA-17 — pan and pinch coast on release", () => {
         await flush();
         document.dispatchEvent(ptr("pointerup", 1, 170, 200 + step * n, t + 2));
         document.dispatchEvent(ptr("pointerup", 2, 230, 200 + step * n, t + 2));
-        const atRelease = model.value.translate.y;
+        const atRelease = shown(el).translate.y;
         let last = atRelease;
         let restMs = 0;
         const frames = Math.round(1.2 * hz);
         for (let i = 1; i <= frames; i++) {
             await flushAt(hz, 1);
-            if (model.value.translate.y !== last) restMs = (i * 1000) / hz;
-            last = model.value.translate.y;
+            if (shown(el).translate.y !== last) restMs = (i * 1000) / hz;
+            last = shown(el).translate.y;
         }
-        const out = { coast: model.value.translate.y - atRelease, restMs, tx: model.value.translate.x, s: model.value.scale.x };
+        const out = { coast: shown(el).translate.y - atRelease, restMs, tx: shown(el).translate.x, s: shown(el).scale.x };
         w.unmount();
         return out;
     };
@@ -254,15 +257,15 @@ describe("OA-17 — pan and pinch coast on release", () => {
     });
 
     it("a pinch released while spreading coasts its zoom on the same decay", async () => {
-        const { w, model, el } = await mountOrbit();
+        const { w, el } = await mountOrbit();
         // Spread 80 → 120 px about a fixed centroid in 160 ms (its coast stays
         // inside the scale range).
         await twoFinger(el, [160, 300], [240, 300], [140, 300], [260, 300], 20, false);
         document.dispatchEvent(ptr("pointerup", 1, 140, 300, 162));
         document.dispatchEvent(ptr("pointerup", 2, 260, 300, 162));
-        const s0 = model.value.scale.x;
+        const s0 = shown(el).scale.x;
         await flush(80);
-        const coastLn = Math.log(model.value.scale.x / s0);
+        const coastLn = Math.log(shown(el).scale.x / s0);
         expect(coastLn).toBeGreaterThan(0);
         // The release reads the last 80 ms of the spread, 100 → 120 px (least
         // squares; uniform in px, so ln d is nearly linear there); the coast is
@@ -274,10 +277,10 @@ describe("OA-17 — pan and pinch coast on release", () => {
     });
 
     it("the pan coast stops at the stage bound", async () => {
-        const { w, model, el } = await mountOrbit();
+        const { w, el } = await mountOrbit();
         await twoFinger(el, [170, 300], [230, 300], [170, 540], [230, 540], 20);
         await flush(60);
-        expect(CENTRE.y + model.value.translate.y).toBeLessThanOrEqual(STAGE.bottom + 1e-9);
+        expect(CENTRE.y + shown(el).translate.y).toBeLessThanOrEqual(STAGE.bottom + 1e-9);
         w.unmount();
     });
 
@@ -288,13 +291,13 @@ describe("OA-17 — pan and pinch coast on release", () => {
     });
 
     it("a new grab stops the coast where it stands", async () => {
-        const { w, model, el } = await mountOrbit();
+        const { w, el } = await mountOrbit();
         await twoFinger(el, [170, 200], [230, 200], [170, 296], [230, 296], 20);
         await flush(3);
-        const held = model.value.translate.y;
+        const held = shown(el).translate.y;
         el.dispatchEvent(ptr("pointerdown", 3, 400, 400, 1000, "mouse"));
         await flush(20);
-        expect(model.value.translate.y).toBe(held);
+        expect(shown(el).translate.y).toBe(held);
         document.dispatchEvent(ptr("pointerup", 3, 400, 400, 1300, "mouse"));
         w.unmount();
     });
@@ -333,17 +336,18 @@ describe("G2.4 — ONE multitouch source (D-14)", () => {
     });
 
     it("desktop Safari's trackpad (no finger down): s = s₀·scale", async () => {
-        const { w, model, el } = await mountOrbit();
+        const { w, el } = await mountOrbit();
         el.dispatchEvent(gestureEvent("gesturestart", 1, 0));
         window.dispatchEvent(gestureEvent("gesturechange", 1.5, 0));
-        await flush();
-        expect(Math.abs(model.value.scale.x - 1.5)).toBeLessThan(1e-6);
+        // The gesture sets the zoom's target; its follower lands it.
+        await flush(40);
+        expect(Math.abs(shown(el).scale.x - 1.5)).toBeLessThan(1e-6);
         window.dispatchEvent(gestureEvent("gestureend", 1.5, 0));
         w.unmount();
     });
 
     it("Safari's pinch and twist in one gesture: s ×1.5 anchored at the cursor, 30° about the view axis", async () => {
-        const { w, model, el } = await mountOrbit();
+        const { w, el } = await mountOrbit();
         // An anchor whose ×1.5 keeps the die's centre inside the bound (bounds.ts:
         // at ×1.5 the centre's y bound is [323, 329] on this stage), so the band never acts.
         const at = { x: CENTRE.x - 20, y: CENTRE.y - 52 };
@@ -355,13 +359,15 @@ describe("G2.4 — ONE multitouch source (D-14)", () => {
         };
         el.dispatchEvent(g("gesturestart", 1, 0));
         window.dispatchEvent(g("gesturechange", 1.5, 30));
-        await flush();
-        const k = model.value.scale.x;
+        await flush(40);
+        const k = shown(el).scale.x;
         expect(k).toBeCloseTo(1.5, 9);
-        const c = { x: CENTRE.x + model.value.translate.x, y: CENTRE.y + model.value.translate.y };
-        expect(Math.abs(c.x + k * (at.x - CENTRE.x) - at.x)).toBeLessThan(1e-6);
-        expect(Math.abs(c.y + k * (at.y - CENTRE.y) - at.y)).toBeLessThan(1e-6);
-        const r = screenRotation(model.value.quaternion!);
+        const c = { x: CENTRE.x + shown(el).translate.x, y: CENTRE.y + shown(el).translate.y };
+        // Within half a pixel: the follower's way to ×1.5 crosses the x band
+        // (the bound flips as the die outgrows the stage), as a wheel pinch does.
+        expect(Math.abs(c.x + k * (at.x - CENTRE.x) - at.x)).toBeLessThan(0.5);
+        expect(Math.abs(c.y + k * (at.y - CENTRE.y) - at.y)).toBeLessThan(0.5);
+        const r = screenRotation(shown(el).quaternion);
         expect((r.angle * 180) / Math.PI).toBeCloseTo(30, 6);
         expect(Math.abs(r.axis[2])).toBeCloseTo(1, 9);
         window.dispatchEvent(g("gestureend", 1.5, 30));
@@ -369,42 +375,42 @@ describe("G2.4 — ONE multitouch source (D-14)", () => {
     });
 
     it("a host's relayed gesture does the same; its own gesture* takes precedence over a relay", async () => {
-        const { w, model, el } = await mountOrbit();
+        const { w, el } = await mountOrbit();
         const orbit = w.vm as unknown as { relayGesture: (p: string, s: number, r: number, at: { x: number; y: number }) => void };
         // An anchor whose ×1.5 keeps the die's centre inside the bound (bounds.ts), so the band never acts.
         const at = { x: CENTRE.x - 20, y: CENTRE.y - 34 };
         orbit.relayGesture("start", 1, 0, at);
         orbit.relayGesture("change", 1.5, 30, at);
-        await flush();
-        const k = model.value.scale.x;
+        await flush(40);
+        const k = shown(el).scale.x;
         expect(k).toBeCloseTo(1.5, 9);
-        const c = { x: CENTRE.x + model.value.translate.x, y: CENTRE.y + model.value.translate.y };
-        expect(Math.abs(c.x + k * (at.x - CENTRE.x) - at.x)).toBeLessThan(1e-6);
+        const c = { x: CENTRE.x + shown(el).translate.x, y: CENTRE.y + shown(el).translate.y };
+        expect(Math.abs(c.x + k * (at.x - CENTRE.x) - at.x)).toBeLessThan(0.5);
         orbit.relayGesture("end", 1.5, 30, at);
-        await flush(5);
+        await flush(40);
         // While its own gesture runs, a relay writes nothing.
         el.dispatchEvent(gestureEvent("gesturestart", 1, 0));
-        const before = model.value.scale.x;
+        const before = shown(el).scale.x;
         orbit.relayGesture("start", 1, 0, at);
         orbit.relayGesture("change", 2, 0, at);
         await flush();
-        expect(model.value.scale.x).toBe(before);
+        expect(shown(el).scale.x).toBe(before);
         window.dispatchEvent(gestureEvent("gestureend", 1, 0));
         w.unmount();
     });
 
     it("home: Reset eases the orbit to its load pose on the settle spring (no cut)", async () => {
-        const { w, model, el } = await mountOrbit();
+        const { w, el } = await mountOrbit();
         await twoFinger(el, [160, 300], [240, 300], [120, 330], [280, 330], 10);
         await flush(120);
         const orbit = w.vm as unknown as { home: () => void };
-        const s0 = model.value.scale.x;
+        const s0 = shown(el).scale.x;
         expect(s0).toBeGreaterThan(1.5);
         orbit.home();
         const ss: number[] = [];
         for (let i = 0; i < 90; i++) {
             await flush();
-            ss.push(model.value.scale.x);
+            ss.push(shown(el).scale.x);
         }
         const travel = s0 - 1;
         const steps = ss.map((v, i) => Math.abs(v - (i ? ss[i - 1]! : s0)));
@@ -412,19 +418,19 @@ describe("G2.4 — ONE multitouch source (D-14)", () => {
         expect(steps[0]! / travel).toBeLessThan(0.04);
         expect(ss.filter((v, i) => v !== (i ? ss[i - 1] : s0)).length).toBeGreaterThanOrEqual(6);
         expect(ss.at(-1)).toBe(1);
-        expect(model.value.translate.x).toBe(0);
-        expect(screenRotation(model.value.quaternion!).angle).toBeLessThan(1e-9);
+        expect(shown(el).translate.x).toBe(0);
+        expect(screenRotation(shown(el).quaternion).angle).toBeLessThan(1e-9);
         w.unmount();
     });
 
     it("2 → 1 re-anchors the arcball at the remaining finger (no jump)", async () => {
-        const { w, model, el } = await mountOrbit();
+        const { w, el } = await mountOrbit();
         await twoFinger(el, [160, 300], [240, 300], [150, 300], [250, 300], 6, false);
-        const q = [...model.value.quaternion!];
+        const q = [...shown(el).quaternion];
         document.dispatchEvent(ptr("pointerup", 2, 250, 300, 100));
         document.dispatchEvent(ptr("pointermove", 1, 150, 300, 108));
         await flush();
-        const d = quatMultiply(model.value.quaternion!, quatConjugate(q as Quat));
+        const d = quatMultiply(shown(el).quaternion, quatConjugate(q as Quat));
         expect(quatToAxisAngle(d).angle).toBeLessThan(1e-9);
         document.dispatchEvent(ptr("pointerup", 1, 150, 300, 300));
         w.unmount();

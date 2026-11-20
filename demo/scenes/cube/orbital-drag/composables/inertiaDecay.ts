@@ -53,15 +53,6 @@ export const MAX_PAN_COAST_RATE = 4000;
 /** The zoom coast's starting rate cap (ln s per second): at most e^(6/6) ≈ 2.7×. */
 export const MAX_ZOOM_COAST_RATE = 6;
 
-/** Reduced motion shortens a settle, never cuts it (owner's motion law,
- *  2026-11-12): a wheel notch's or an arrow key's glide runs at this multiple
- *  of k. */
-export const REDUCED_MOTION_SETTLE_SPEEDUP = 4;
-
-/** A wheel notch's or an arrow key's glide (a known total, landed exactly)
- *  drains on this friction (1/s): a step settles in about half a second. */
-export const GLIDE_FRICTION = 9;
-
 /** A pan or zoom coast stops once its rate has bled to 1% of its start. */
 export const COAST_REST_FRACTION = 0.01;
 
