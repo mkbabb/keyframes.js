@@ -158,8 +158,8 @@ const onSchedule = async (steps, send) => {
  * point in R units about the die's centre, as Chromium touches at page px
  * (`offset` = the frame's place in the page).
  */
-export async function replay(cdp, offset, geom, steps) {
-    await onSchedule(steps, (s, timestamp) =>
+export async function replay(cdp, offset, geom, steps, { onClock = true } = {}) {
+    const send = (s, timestamp) =>
         cdp.send("Input.dispatchTouchEvent", {
             type: s.type,
             touchPoints: s.pts.map((p) => ({
@@ -170,9 +170,15 @@ export async function replay(cdp, offset, geom, steps) {
                 radiusY: 4,
                 force: 1,
             })),
-            timestamp,
-        }),
-    );
+            ...(timestamp === undefined ? {} : { timestamp }),
+        });
+    if (onClock) return onSchedule(steps, send);
+    // Each step sent once the last has landed, then its wait: the cadence is
+    // the browser's (no two steps ever arrive in one frame).
+    for (const s of steps) {
+        await send(s);
+        if (s.wait) await sleep(s.wait);
+    }
 }
 
 /** One finger from u0 to u1 in n moves `every` ms apart; released moving, or after a hold. */

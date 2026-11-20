@@ -228,10 +228,10 @@ const cell = async (page, url = embedUrl()) => {
     const cdp = await page.context().newCDPSession(page);
     return { page, geom, cdp, offset: { x: 0, y: 0 } };
 };
-const record = async (c, steps, settleMs = 1200) => {
+const record = async (c, steps, settleMs = 1200, opts = {}) => {
     await c.page.evaluate(() => window.__hand.start());
     await sleep(40);
-    await replay(c.cdp, c.offset, c.geom, steps);
+    await replay(c.cdp, c.offset, c.geom, steps, opts);
     await sleep(settleMs);
     return c.page.evaluate(() => window.__hand.stop());
 };
@@ -353,7 +353,10 @@ test.describe("touch: Apple-like", () => {
         for (let i = 1; i <= 10; i++) steps.push({ type: "touchMove", pts: [B(0.38 - 0.03 * i, 0.4)], wait: 8 });
         steps.push({ type: "touchMove", pts: [B(0.08, 0.4)], wait: 160 });
         steps.push({ type: "touchEnd", pts: [] });
-        const raw = await record(c, steps, 500);
+        // Each step lands before the next leaves: a hand change is judged
+        // against its neighbours, and a CDP delivery bunching two steps into
+        // one frame would be a jump of the harness's, not the die's.
+        const raw = await record(c, steps, 500, { onClock: false });
         expect(raw.ev.some((e) => e.type === "pointercancel")).toBe(false);
         const P = raw.f.map((x) => parsePose(x.tf));
         const d = [];
@@ -837,8 +840,12 @@ test.describe("the hand at the frame", () => {
                     const iUp = frames.findIndex((f) => f.time >= up.d);
                     expect(iUp).toBeGreaterThan(3);
                     const axis = unit3(sum3(frames.slice(iUp - 4, iUp - 1).map((f) => f.inc)));
-                    // The last drag frame, the release, and the coast's first frames.
-                    const around = frames.slice(iUp - 1, iUp + 6).map((f) => ({ along: dot3(f.inc, axis), mag: Math.hypot(...f.inc) }));
+                    // From the last drag frame on: the release and the coast's
+                    // first frames, each frame's turn from the one before. (The
+                    // last drag frame's own turn is the drag's cadence: a CDP
+                    // delivery may bunch two moves into one frame and none into
+                    // the frame before.)
+                    const around = frames.slice(iUp, iUp + 6).map((f) => ({ along: dot3(f.inc, axis), mag: Math.hypot(...f.inc) }));
                     const back = Math.min(...around.map((a) => a.along));
                     const still = around.filter((a) => a.mag < 1e-5).length;
                     test.info().annotations.push({
@@ -906,13 +913,13 @@ test.describe("the hand at the frame", () => {
 // it came (ripple 0.33-0.40, 3-9 stalls); a 60 Hz stream rippled ±23 %.
 import { STREAMS, incrementsOf, lagOf, posesOf, smoothness, wheelStream } from "./cube-hand.mjs";
 
-/** Today's ripple and lag (ms) per stream: the live site read by these very
- *  gates (KF_GESTURE_BASE=https://keyframes.babb.dev), the slice unframed
- *  and the demo held, as here. The note's table framed the slice in its host
- *  and let the demo play, which moves each by a frame. */
+/** Today's ripple and lag (ms) per stream: the median of four readings of
+ *  the live site by these very gates (KF_GESTURE_BASE=https://keyframes.babb.dev),
+ *  the slice unframed and the demo held, as here. The note's table framed the
+ *  slice in its host and let the demo play, which moves each by a frame. */
 const TODAY = {
-    slice: { trackpad120: [0.123, 36], trackpad90diag: [0.148, 39], trackpad60: [0.21, 34], trackpadSlow: [0.122, 37] },
-    demo: { trackpad120: [0.093, 31], trackpad90diag: [0.133, 32], trackpad60: [0.187, 31], trackpadSlow: [0.125, 29] },
+    slice: { trackpad120: [0.11, 37.5], trackpad90diag: [0.15, 38.5], trackpad60: [0.203, 37.5], trackpadSlow: [0.137, 37.5] },
+    demo: { trackpad120: [0.095, 29], trackpad90diag: [0.146, 30], trackpad60: [0.195, 30.5], trackpadSlow: [0.131, 30] },
 };
 /** The lag is read in whole milliseconds. */
 const LAG_STEP_MS = 1;
