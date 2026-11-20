@@ -167,3 +167,219 @@ test.describe("die", () => {
             });
         }
 });
+
+// ── The pair ─────────────────────────────────────────────────────────────
+// Two dice on a table (dice=2): a tap throws both and they come to rest with
+// their values said; a carried die stays under the hand and is thrown at
+// its speed; reduced motion relabels the dice where they lie; and no frame
+// of a throw is over its budget.
+
+/** In the slice: every frame's time and both dice's table poses (matrix3d:
+ *  the centre in table px), and whether both dice's bodies are shown. */
+const installPairRecorder = (page) =>
+    page.evaluate(() => {
+        const R = { on: false, f: [] };
+        window.__pair = R;
+        const loop = (t) => {
+            if (!R.on) return;
+            const dice = [...document.querySelectorAll(".dice-stage .die")];
+            R.f.push({
+                t,
+                tf: dice.map((d) => d.style.transform),
+                bodies: dice.every((d) => getComputedStyle(d).visibility === "visible" && [...d.querySelectorAll(".die-face")].every((f) => getComputedStyle(f).opacity === "1")),
+            });
+            requestAnimationFrame(loop);
+        };
+        R.start = () => {
+            R.f = [];
+            R.on = true;
+            requestAnimationFrame(loop);
+        };
+        R.stop = () => {
+            R.on = false;
+            return R.f.map(({ t, tf, bodies }) => ({ t, tf, bodies }));
+        };
+    });
+
+/** The centre (table px) of a matrix3d. */
+const centreOf = (tf) => {
+    const m = /matrix3d\(([^)]+)\)/.exec(tf ?? "");
+    if (!m) return null;
+    const v = m[1].split(",").map(Number);
+    return [v[12], v[13], v[14]];
+};
+
+/** In the page: a table point to the viewport (the camera's own projection). */
+const projector = (page) =>
+    page.evaluate(() => {
+        const stage = document.querySelector(".dice-stage").getBoundingClientRect();
+        const P = parseFloat(getComputedStyle(document.querySelector(".dice-camera")).perspective);
+        return { cx: stage.left + stage.width / 2, cy: stage.top + stage.height / 2, P, w: stage.width, h: stage.height };
+    });
+const TILT = (38 * Math.PI) / 180;
+const toScreen = (pr, p) => {
+    const Y = p[1] * Math.cos(TILT) - p[2] * Math.sin(TILT);
+    const Z = p[1] * Math.sin(TILT) + p[2] * Math.cos(TILT);
+    const k = pr.P / (pr.P - Z);
+    return { x: pr.cx + p[0] * k, y: pr.cy + Y * k };
+};
+
+/** The pair at rest on its table (the entrance done). */
+const pairReady = async (page) => {
+    await page.waitForFunction(() => document.querySelectorAll(".dice-stage .die").length === 2 && /matrix3d/.test(document.querySelector(".dice-stage .die").style.transform), null, { timeout: 20_000 });
+    await sleep(1800);
+    await installPairRecorder(page);
+};
+
+/** A point on the table clear of both dice (for a tap). */
+const clearOfDice = async (page) => {
+    const pr = await projector(page);
+    const cs = await page.evaluate(() => [...document.querySelectorAll(".dice-stage .die")].map((d) => d.style.transform));
+    const dice = cs.map(centreOf).map((p) => toScreen(pr, p));
+    let best = null;
+    for (const fx of [-0.3, 0, 0.3])
+        for (const fy of [-0.25, 0.25, 0.4]) {
+            const q = { x: pr.cx + fx * pr.w, y: pr.cy + fy * pr.h };
+            const d = Math.min(...dice.map((c) => Math.hypot(c.x - q.x, c.y - q.y)));
+            if (!best || d > best.d) best = { ...q, d };
+        }
+    return best;
+};
+
+const stillAtEnd = (frames, n = 10) => {
+    const tail = frames.slice(-n);
+    return tail.every((f) => f.tf.join() === tail[0].tf.join());
+};
+
+test.describe("pair", () => {
+    test.setTimeout(120_000);
+    const desk = { viewport: { width: 900, height: 900 } };
+
+    test("a tap throws both dice; both come to rest and the slice says their values", async () => {
+        const ctx = await browser.newContext(desk);
+        try {
+            const page = await ctx.newPage();
+            await page.goto(hostSlice("dice=2&faces=pips&transport=host"));
+            await pairReady(page);
+            const tap = await clearOfDice(page);
+            await page.evaluate(() => window.__pair.start());
+            const before = (await page.evaluate(() => window.__pair.f.at(-1)?.tf)) ?? [];
+            await page.mouse.click(tap.x, tap.y);
+            await sleep(3200);
+            const frames = await page.evaluate(() => window.__pair.stop());
+            // Both dice left where they lay, and both are still at the end.
+            const moved = [0, 1].map((i) => frames.some((f) => f.tf[i] !== frames[0].tf[i]));
+            expect(moved).toEqual([true, true]);
+            expect(stillAtEnd(frames)).toBe(true);
+            expect(before.length === 0 || frames.at(-1).tf.join() !== before.join()).toBe(true);
+            const said = await page.locator(".dice-stage [aria-live]").textContent();
+            expect(said).toMatch(/^[1-6] and [1-6]$/);
+        } finally {
+            await ctx.close();
+        }
+    });
+
+    test("a carried die stays under the hand (within 12 px), and a moving release throws it at the hand's speed (0.8-1.25)", async () => {
+        const ctx = await browser.newContext(desk);
+        try {
+            const page = await ctx.newPage();
+            await page.goto(hostSlice("dice=2&faces=pips&transport=host"));
+            await pairReady(page);
+            const pr = await projector(page);
+            const tf = await page.evaluate(() => document.querySelector(".dice-stage .die").style.transform);
+            const at = toScreen(pr, centreOf(tf));
+            await page.mouse.move(at.x, at.y);
+            await page.mouse.down();
+            // Lift, then a steady carry to the right at 240 px/s.
+            await sleep(400);
+            await page.evaluate(() => window.__pair.start());
+            const hand = [];
+            let x = at.x;
+            for (let k = 0; k < 40; k++) {
+                x += 4;
+                await page.mouse.move(x, at.y);
+                hand.push({ t: await page.evaluate(() => performance.now()), x, y: at.y });
+                await sleep(16);
+            }
+            await page.mouse.up();
+            await sleep(500);
+            const frames = await page.evaluate(() => window.__pair.stop());
+            // The carry's steady half: the die's centre, projected, against
+            // the hand's last position before that frame.
+            const tUp = hand.at(-1).t;
+            const steady = frames.filter((f) => f.t > hand[15].t && f.t < tUp - 16);
+            const gaps = steady.map((f) => {
+                const c = toScreen(pr, centreOf(f.tf[0]));
+                const h = [...hand].reverse().find((s) => s.t <= f.t) ?? hand[0];
+                return Math.hypot(c.x - h.x, c.y - h.y);
+            });
+            test.info().annotations.push({ type: "carry", description: `max gap ${Math.max(...gaps).toFixed(1)} px over ${gaps.length} frames` });
+            expect(gaps.length).toBeGreaterThan(10);
+            expect(Math.max(...gaps)).toBeLessThanOrEqual(12);
+            // The die's speed on the table just before and just after the release.
+            const speed = (fs) => {
+                const a = centreOf(fs[0].tf[0]);
+                const b = centreOf(fs.at(-1).tf[0]);
+                return Math.hypot(b[0] - a[0], b[1] - a[1]) / ((fs.at(-1).t - fs[0].t) / 1000);
+            };
+            const pre = frames.filter((f) => f.t > tUp - 120 && f.t <= tUp);
+            const post = frames.filter((f) => f.t > tUp + 20 && f.t < tUp + 100);
+            const ratio = speed(post) / speed(pre);
+            test.info().annotations.push({ type: "release", description: `carry ${ratio.toFixed(2)}` });
+            expect(ratio).toBeGreaterThanOrEqual(0.8);
+            expect(ratio).toBeLessThanOrEqual(1.25);
+        } finally {
+            await ctx.close();
+        }
+    });
+
+    test("reduced motion: a throw relabels the dice where they lie; no die transform changes and every frame shows both bodies", async () => {
+        const ctx = await browser.newContext({ ...desk, reducedMotion: "reduce" });
+        try {
+            const page = await ctx.newPage();
+            await page.goto(hostSlice("dice=2&faces=pips&transport=host"));
+            await pairReady(page);
+            const tap = await clearOfDice(page);
+            const pipsBefore = await page.evaluate(() => [...document.querySelectorAll(".dice-stage .die")].map((d) => d.querySelectorAll(".die-pip").length));
+            await page.evaluate(() => window.__pair.start());
+            await page.mouse.click(tap.x, tap.y);
+            await sleep(900);
+            const frames = await page.evaluate(() => window.__pair.stop());
+            expect(frames.length).toBeGreaterThan(20);
+            expect(new Set(frames.map((f) => f.tf.join())).size).toBe(1);
+            expect(frames.every((f) => f.bodies)).toBe(true);
+            const said = await page.locator(".dice-stage [aria-live]").textContent();
+            expect(said).toMatch(/^[1-6] and [1-6]$/);
+            // Still a true die each: 21 pips.
+            expect(pipsBefore).toEqual([21, 21]);
+            expect(await page.evaluate(() => [...document.querySelectorAll(".dice-stage .die")].map((d) => d.querySelectorAll(".die-pip").length))).toEqual([21, 21]);
+        } finally {
+            await ctx.close();
+        }
+    });
+
+    for (const [cellName, opts, budget] of [
+        ["desk", desk, 17],
+        ["390 at 4× CPU", { viewport: { width: 390, height: 844 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true }, 34],
+    ])
+        test(`frames (${cellName}): no frame of a throw over ${budget} ms`, async () => {
+            const ctx = await browser.newContext(opts);
+            try {
+                const page = await ctx.newPage();
+                await page.goto(hostSlice("dice=2&faces=pips&transport=host&stage=fill"));
+                await pairReady(page);
+                const cdp = await ctx.newCDPSession(page);
+                if (budget > 17) await cdp.send("Emulation.setCPUThrottlingRate", { rate: 4 });
+                await page.evaluate(() => window.__pair.start());
+                await page.keyboard.press("Space");
+                await sleep(2600);
+                const frames = await page.evaluate(() => window.__pair.stop());
+                const iv = frames.slice(1).map((f, i) => f.t - frames[i].t);
+                test.info().annotations.push({ type: "frames", description: `${iv.length} frames, longest ${Math.max(...iv).toFixed(1)} ms` });
+                expect(iv.length).toBeGreaterThan(60);
+                expect(Math.max(...iv)).toBeLessThanOrEqual(budget);
+            } finally {
+                await ctx.close();
+            }
+        });
+});

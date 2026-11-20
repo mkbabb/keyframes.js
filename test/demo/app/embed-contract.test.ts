@@ -142,6 +142,7 @@ describe("route", () => {
             transport: "own",
             stage: "square",
             faces: "numerals",
+            dice: 1,
         });
     });
     it("reads transport=host: the host draws the cube's transport", () => {
@@ -156,6 +157,10 @@ describe("route", () => {
         expect(parseSliceRoute("#/cube?faces=pips").faces).toBe("pips");
         expect(parseSliceRoute("#/cube?faces=dots").faces).toBe("numerals");
     });
+    it("reads dice=2: the pair in place of the one die", () => {
+        expect(parseSliceRoute("#/cube?dice=2").dice).toBe(2);
+        expect(parseSliceRoute("#/cube?dice=3").dice).toBe(1);
+    });
     it("falls back to the crayon die and the platform scheme", () => {
         expect(parseSliceRoute("#/cube?skin=velvet&scheme=sepia")).toEqual({
             slice: "cube",
@@ -164,6 +169,7 @@ describe("route", () => {
             transport: "own",
             stage: "square",
             faces: "numerals",
+            dice: 1,
         });
         expect(parseSliceRoute("#/square").slice).toBeNull();
     });

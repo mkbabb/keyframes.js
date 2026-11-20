@@ -11,6 +11,7 @@
                 :host-transport="route.transport === 'host'"
                 :fill="route.stage === 'fill'"
                 :faces="route.faces"
+                :dice="route.dice"
                 @transport="(playing) => bridge.post({ type: 'transport', playing })"
             />
         </main>
