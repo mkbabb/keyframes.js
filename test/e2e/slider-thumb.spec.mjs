@@ -47,7 +47,14 @@ const thumbs = (page) =>
                 const k = track.getBoundingClientRect();
                 if (t.width === 0 || k.height === 0) return null;
                 const cs = getComputedStyle(thumb);
-                return { image: cs.backgroundImage, thumb: t.height, track: k.height };
+                const range = s.querySelector(".slider-range");
+                return {
+                    image: cs.backgroundImage,
+                    thumb: t.height,
+                    track: k.height,
+                    thumbBg: cs.backgroundColor,
+                    rangeBg: range ? getComputedStyle(range).backgroundColor : null,
+                };
             })
             .filter(Boolean),
     );
@@ -68,8 +75,23 @@ for (const cell of [
                 for (const t of all) {
                     expect(t.image).toBe("none");
                     expect(Math.abs(t.thumb - t.track)).toBeLessThan(0.75);
+                    // The thumb wears the fill's colour: the fill's end is the handle.
+                    if (t.rangeBg) expect(t.thumbBg).toBe(t.rangeBg);
                 }
             });
         }
     });
 }
+
+test.describe("phone 390: the scrub's touch band", () => {
+    test.use({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, hasTouch: true, isMobile: true });
+    test("the time scrub answers a finger over a 44 px band", async ({ page }) => {
+        await page.goto(at("/cube?sheet=1"));
+        await page.waitForSelector('[aria-label="Scrub animation timeline"]', { state: "attached", timeout: 20_000 });
+        await page.waitForTimeout(800);
+        const band = await page.$eval('[aria-label="Scrub animation timeline"]', (el) =>
+            el.closest(".glass-slider")?.getBoundingClientRect().height ?? 0,
+        );
+        expect(band).toBeGreaterThanOrEqual(44);
+    });
+});

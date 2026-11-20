@@ -12,6 +12,11 @@
    --mask-fade); every appearance magnitude (graph ink, the pane idle opacity) is
    design-idioms.css's. */
 :root {
+    /* On a coarse pointer glass scales every control by --ui-coarse-scale
+       (1.5 by default), which is where the phone's padded fields and seats
+       came from. 1.25 is glass's documented theming value for a site; the
+       44 px floor is held separately by glass's --control-floor. */
+    --ui-coarse-scale: 1.25;
     /* ── The three DRY layout tokens formerly homed in design-idioms.css ──
        --rail-width is the DERIVED rail track (@property below) — 25rem/33svi/32rem,
        the single width authority for the lg [rail] track AND the pane.

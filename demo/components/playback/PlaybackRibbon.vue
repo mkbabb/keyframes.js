@@ -57,8 +57,10 @@
                                  the hand from press to release and follows the model
                                  again from where the hand left it, so the rail no
                                  longer seats itself from the gesture. -->
+                            <!-- The scrub takes glass's larger touch band
+                                 (coarse pointers only; the look is unchanged). -->
                             <Slider
-                                class="py-2"
+                                class="py-2 [--slider-touch-target:2.75rem]"
                                 variant="scrubber"
                                 aria-label="Scrub animation timeline"
                                 :value-text="() => timeReadout"
