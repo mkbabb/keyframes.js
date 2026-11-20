@@ -210,6 +210,18 @@ test.describe("on a phone", () => {
         expect(free.heightShare).toBeGreaterThanOrEqual(0.49);
     });
 
+    test("a link that opens the Keyframes surface lights no ring on its panel", async ({ page }) => {
+        await openLink(page, "/cube?pane=keyframes&sheet=1");
+        await page.waitForSelector('[data-surface-panel][aria-label="Keyframes"]', { timeout: 20_000 });
+        await rest(page, 1500);
+        const ring = await page.$eval('[data-surface-panel][aria-label="Keyframes"]', (el) => {
+            const cs = getComputedStyle(el);
+            return { style: cs.outlineStyle, width: cs.outlineWidth, shadow: cs.boxShadow };
+        });
+        expect(ring.style === "none" || ring.width === "0px").toBe(true);
+        expect(ring.shadow).toBe("none");
+    });
+
     test("a tap that lowers the sheet adds no entry: Back leaves the view", async ({ page }) => {
         await page.goto(at("/"));
         await rest(page, 1200);

@@ -80,6 +80,10 @@ export function useKeyframesPaneReveal(
             // a closed rail, this runs while the track is still ~0 px wide inside
             // the overflow-hidden pane, and a plain focus() scrolled the pane
             // 240 px sideways (the content slid in from the left, cut off).
+            // A reveal no person asked for (a link or a restore, before any
+            // press or key on the page) takes no focus: it would light the
+            // panel's ring on a cold load.
+            if (navigator.userActivation?.hasBeenActive === false) return;
             node?.focus?.({ preventScroll: true });
         });
     });

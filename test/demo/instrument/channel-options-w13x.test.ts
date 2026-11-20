@@ -471,6 +471,41 @@ describe("X.KF.W13X.controls — the keyframes reveal (KFA-118)", () => {
             el.remove();
         }
     });
+
+    it("(12b) a reveal before any press or key on the page (a link, a restore) takes no focus", async () => {
+        const { effectScope, ref } = await import("vue");
+        const { useKeyframesPaneReveal } = await import(
+            "@components/instrument/pane/channel-controls/composables/useKeyframesPaneReveal"
+        );
+        const el = document.createElement("div");
+        el.tabIndex = 0;
+        document.body.appendChild(el);
+        const calls: unknown[] = [];
+        el.focus = (o?: FocusOptions) => {
+            calls.push(o);
+        };
+        const had = Object.getOwnPropertyDescriptor(navigator, "userActivation");
+        Object.defineProperty(navigator, "userActivation", {
+            configurable: true,
+            value: { hasBeenActive: false, isActive: false },
+        });
+        const storedControls = getStoredAnimationGroupControlOptions("w13x-reveal-cold");
+        storedControls.selectedControl = "controls";
+        const scope = effectScope();
+        scope.run(() =>
+            useKeyframesPaneReveal({ storedControls, keyframesPaneEl: ref(el), keyframesWarmed: ref(false) }),
+        );
+        try {
+            storedControls.selectedControl = "keyframes";
+            await settle();
+            expect(calls).toEqual([]);
+        } finally {
+            scope.stop();
+            el.remove();
+            if (had) Object.defineProperty(navigator, "userActivation", had);
+            else delete (navigator as { userActivation?: unknown }).userActivation;
+        }
+    });
 });
 
 // X.KF.W13X.esc1 (ESC-mobile-1 · A2-KE-L1-10 · KFA-156 · UIA-KF-104) — the pane
