@@ -26,6 +26,13 @@ import type { StageReserve } from "../../transport/transportSource";
  *    answers it on the compositor (a translate and a scale on its glide
  *    wrapper), never in layout.
  *
+ * An upright phone's sheet has no resting peek: it is closed at rest. There
+ * the stage is LAID OUT for the band above the opened sheet (its OPEN size is
+ * the reserve at OPEN and at FULL, 0 when closed), never scaled into it: a
+ * compositor fit of a stage laid out for the whole screen read its text at
+ * half size. The stage cell carries the change on a transform
+ * (useStageSlide).
+ *
  * The rung sizes are the sheet's own geometry — the detent fraction of the
  * viewport, floored by glass's computed min-block-size and capped by the
  * consumer's max-block-size — read off the sheet element once per rung commit
@@ -80,7 +87,15 @@ export function useStageReserve(params: StageReserveParams) {
         const s = side.value;
         // A rung of 0 is no resting sheet (an upright phone's sheet is closed
         // at rest): the stage reserves nothing for it.
-        const peekSize = peek.value > 0 ? sheetRungSize(el, s, peek.value) : 0;
+        if (peek.value <= 0) {
+            const openSize = rung.value === "peek" ? 0 : sheetRungSize(el, s, open.value);
+            return write(
+                s === "bottom"
+                    ? { block: openSize, inline: 0, liftBlock: 0, liftInline: 0 }
+                    : { block: 0, inline: openSize, liftBlock: 0, liftInline: 0 },
+            );
+        }
+        const peekSize = sheetRungSize(el, s, peek.value);
         const lift = rung.value === "open" ? Math.max(0, sheetRungSize(el, s, open.value) - peekSize) : 0;
         write(
             s === "bottom"

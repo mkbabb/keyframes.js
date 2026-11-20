@@ -216,7 +216,10 @@
    it and fits the region above (`--stage-sheet-fit`), so it is never buried and
    never re-laid-out. It rides the sheet's own spring token, and stands still
    under reduced motion. Desktop sets none of the tokens: translate 0, scale 1,
-   and no transform property at all (the rule is phone-scoped). */
+   and no transform property at all (the rule is phone-scoped). An upright
+   phone's sheet has no resting reserve: the stage is laid out for the band
+   above the opened sheet (no lift, no fit), and the glide only carries it
+   there from where it stood (useStageSlide). */
 @media (max-width: 1023px) {
     .stage-glide {
         translate: calc(-0.5 * var(--stage-sheet-lift-inline, 0px))
@@ -228,6 +231,8 @@
     }
 }
 @media (max-width: 1023px) and (prefers-reduced-motion: reduce) {
+    /* Under reduced motion the glide stands still; where the stage is laid
+       out anew for the opened sheet it fades in there (useStageSlide). */
     .stage-glide {
         transition: none;
     }
@@ -244,7 +249,7 @@
 }
 @media (min-width: 1024px) and (prefers-reduced-motion: reduce) {
     .stage-cell {
-        transition: opacity var(--duration-fast) var(--ease-out);
+        transition: none;
     }
 }
 

@@ -88,7 +88,7 @@
                  the sheet and fits the region above it, on the compositor
                  (translate + scale, AnimationControlsGroup.css), so the cell's
                  layout rect never moves (J.WZ). Inert on desktop. -->
-            <div class="stage-glide h-full w-full">
+            <div ref="stageGlideEl" class="stage-glide h-full w-full">
                 <slot name="animation-content"></slot>
             </div>
         </div>
@@ -338,13 +338,23 @@ const onToggleControls = (): void => {
 // per rung commit, the same at every rung), and the glide answers the lift with
 // a translate and a fit scale (compositor). The fit is the share of V's block
 // (or, beside a side sheet, inline) extent left above the opened sheet, read
-// off the cell's own content box after the reserve lands. Desktop and home
-// publish nothing: every token resolves to 0 and the fit to 1.
+// off the cell's own content box after the reserve lands. An upright phone's
+// sheet has no peek: its reserve is the opened sheet itself, in layout, with
+// no lift, so the stage is laid out for the band above it and its text keeps
+// its size. Desktop and home publish nothing: every token resolves to 0 and
+// the fit to 1.
 const stageCellEl = useTemplateRef<HTMLElement>("stageCellEl");
-// LAST-TEN KF-18 — on the desktop the cell slides to its new place on a
-// transform when the pane opens or closes (useStageSlide).
-useStageSlide(() => stageCellEl.value, () => storedControls.value.isControlsPanelOpen);
+const stageGlideEl = useTemplateRef<HTMLElement>("stageGlideEl");
 const stageReserve = shallowRef<StageReserve>(NO_STAGE_RESERVE);
+// LAST-TEN KF-18 — on the desktop the cell slides to its new place on a
+// transform when the pane opens or closes; on an upright phone the glide
+// does when the stage is laid out for the opened sheet (useStageSlide).
+useStageSlide(
+    () => stageCellEl.value,
+    () => storedControls.value.isControlsPanelOpen,
+    () => stageGlideEl.value,
+    () => `${stageReserve.value.block}|${stageReserve.value.inline}`,
+);
 const stageFit = shallowRef(1);
 const onStageReserve = (r: StageReserve) => {
     stageReserve.value = r;
