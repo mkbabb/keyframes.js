@@ -415,7 +415,7 @@
     font-size: max(0.8125rem, var(--type-caption));
 }
 
-/* §type-floor — the site's own words, at the study's floors (2.6): a word
+/* §type-floor — the site's own words, at their floors: a word
    that is read (a name, a value, a label) is 14 px or more at any width; a
    true caption (an axis tick, a subscript, a lane's offset) 13 px. glass's
    caption step bottoms at 12 px on a phone, so the site's captions and

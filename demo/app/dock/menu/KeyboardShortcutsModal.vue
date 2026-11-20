@@ -273,7 +273,7 @@
                                             class="text-muted-foreground text-small"
                                             >{{ comboJoiner }}</span
                                         >
-                                        <kbd class="kbd" aria-hidden="true">{{ capOf(part) }}</kbd>
+                                        <kbd class="kbd kf-caption" aria-hidden="true">{{ capOf(part) }}</kbd>
                                     </template>
                                     <!-- KSM R-17 — the Delete row UNDER-REPORTED its
                                          own binding. The producer's dispatcher matches
@@ -297,7 +297,7 @@
                                             class="text-muted-foreground text-small"
                                             >or</span
                                         >
-                                        <kbd class="kbd" aria-hidden="true">{{
+                                        <kbd class="kbd kf-caption" aria-hidden="true">{{
                                             aliasFor(shortcut.raw)
                                         }}</kbd>
                                     </template>
