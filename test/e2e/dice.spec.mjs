@@ -10,6 +10,7 @@
  */
 import { test, expect, chromium } from "@playwright/test";
 import fs from "node:fs";
+import http from "node:http";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { PNG } from "pngjs";
@@ -69,7 +70,9 @@ const dieReady = (page) =>
 /**
  * Ground pixels inside the die: on the pure ground, the ground pixels no path
  * of ground pixels joins to the shot's edge (the die's silhouette encloses
- * them). Tolerance 30 a channel: only ground, not a face's anti-aliased edge.
+ * them). A path may step diagonally: a face seen edge-on draws as a dotted
+ * hairline, which closes nothing. Tolerance 30 a channel: only ground, not a
+ * face's anti-aliased edge.
  */
 const enclosedGround = (png) => {
     const { width: w, height: h, data } = PNG.sync.read(png);
@@ -87,10 +90,11 @@ const enclosedGround = (png) => {
         if (seen[i] || !ground[i]) continue;
         seen[i] = 1;
         const x = i % w;
-        if (x > 0) stack.push(i - 1);
-        if (x < w - 1) stack.push(i + 1);
-        if (i >= w) stack.push(i - w);
-        if (i < w * (h - 1)) stack.push(i + w);
+        const y = (i - x) / w;
+        for (let dy = -1; dy <= 1; dy++)
+            for (let dx = -1; dx <= 1; dx++) {
+                if ((dx || dy) && x + dx >= 0 && x + dx < w && y + dy >= 0 && y + dy < h) stack.push(i + dy * w + dx);
+            }
     }
     let n = 0;
     let at = null;
@@ -139,7 +143,7 @@ test.describe("die", () => {
                     const shoot = async (label) => {
                         const shot = await page.screenshot({ clip });
                         const { n, at } = enclosedGround(shot);
-                        if (n > 0) await test.info().attach(`${skin}-${scheme}-${label}.png`, { body: shot, contentType: "image/png" });
+                        if (n > 0) fs.writeFileSync(test.info().outputPath(`${skin}-${scheme}-${label}.png`), shot);
                         return { label, n, at };
                     };
                     const results = [await shoot("rest")];
@@ -175,11 +179,19 @@ test.describe("die", () => {
 // of a throw is over its budget.
 
 /** In the slice: every frame's time and both dice's table poses (matrix3d:
- *  the centre in table px), and whether both dice's bodies are shown. */
+ *  the centre in table px), whether both dice's bodies are shown, and the
+ *  hand (every pointer sample the page is given, by its own time). */
 const installPairRecorder = (page) =>
     page.evaluate(() => {
-        const R = { on: false, f: [] };
+        const R = { on: false, f: [], hand: [] };
         window.__pair = R;
+        const onPointer = (e) => {
+            if (!R.on) return;
+            const evs = e.type === "pointermove" && typeof e.getCoalescedEvents === "function" ? e.getCoalescedEvents() : [];
+            for (const m of evs.length ? evs : [e]) R.hand.push({ t: m.timeStamp, x: m.clientX, y: m.clientY, type: e.type });
+        };
+        addEventListener("pointermove", onPointer, true);
+        addEventListener("pointerup", onPointer, true);
         const loop = (t) => {
             if (!R.on) return;
             const dice = [...document.querySelectorAll(".dice-stage .die")];
@@ -192,6 +204,7 @@ const installPairRecorder = (page) =>
         };
         R.start = () => {
             R.f = [];
+            R.hand = [];
             R.on = true;
             requestAnimationFrame(loop);
         };
@@ -222,6 +235,15 @@ const toScreen = (pr, p) => {
     const Z = p[1] * Math.sin(TILT) + p[2] * Math.cos(TILT);
     const k = pr.P / (pr.P - Z);
     return { x: pr.cx + p[0] * k, y: pr.cy + Y * k };
+};
+/** Its inverse at a height `z` above the table: a viewport point to the table. */
+const toTable = (pr, sx, sy, z) => {
+    const u = sy - pr.cy;
+    const c = Math.cos(TILT);
+    const sn = Math.sin(TILT);
+    const y = (u * pr.P - u * z * c + z * pr.P * sn) / (pr.P * c + u * sn);
+    const k = pr.P / (pr.P - (y * sn + z * c));
+    return [(sx - pr.cx) / k, y, z];
 };
 
 /** The pair at rest on its table (the entrance done). */
@@ -290,42 +312,51 @@ test.describe("pair", () => {
             const at = toScreen(pr, centreOf(tf));
             await page.mouse.move(at.x, at.y);
             await page.mouse.down();
-            // Lift, then a steady carry to the right at 240 px/s.
+            // Lift, then a steady carry of 108 px up the table at about
+            // 200 px/s. The pair lies side by side, so the carry and the throw
+            // stay clear of the other die (the carry height clears the table,
+            // not a die); and up, because a die lifted under the pointer meets
+            // the higher plane nearer the viewer, close to the near wall.
             await sleep(400);
             await page.evaluate(() => window.__pair.start());
-            const hand = [];
-            let x = at.x;
-            for (let k = 0; k < 40; k++) {
-                x += 4;
-                await page.mouse.move(x, at.y);
-                hand.push({ t: await page.evaluate(() => performance.now()), x, y: at.y });
+            let y = at.y;
+            for (let k = 0; k < 18; k++) {
+                y -= 6;
+                await page.mouse.move(at.x, y);
                 await sleep(16);
             }
             await page.mouse.up();
             await sleep(500);
             const frames = await page.evaluate(() => window.__pair.stop());
+            // The hand as the page was given it, by its own clock.
+            const given = await page.evaluate(() => window.__pair.hand);
+            const up = given.find((h) => h.type === "pointerup").t;
+            const moves = given.filter((h) => h.type === "pointermove" && h.t <= up);
             // The carry's steady half: the die's centre, projected, against
-            // the hand's last position before that frame.
-            const tUp = hand.at(-1).t;
-            const steady = frames.filter((f) => f.t > hand[15].t && f.t < tUp - 16);
+            // the hand's newest position at that frame.
+            const steady = frames.filter((f) => f.t > moves[Math.floor(moves.length / 2)].t && f.t < up);
             const gaps = steady.map((f) => {
                 const c = toScreen(pr, centreOf(f.tf[0]));
-                const h = [...hand].reverse().find((s) => s.t <= f.t) ?? hand[0];
+                const h = [...moves].reverse().find((m) => m.t <= f.t) ?? moves[0];
                 return Math.hypot(c.x - h.x, c.y - h.y);
             });
             test.info().annotations.push({ type: "carry", description: `max gap ${Math.max(...gaps).toFixed(1)} px over ${gaps.length} frames` });
             expect(gaps.length).toBeGreaterThan(10);
             expect(Math.max(...gaps)).toBeLessThanOrEqual(12);
-            // The die's speed on the table just before and just after the release.
-            const speed = (fs) => {
-                const a = centreOf(fs[0].tf[0]);
-                const b = centreOf(fs.at(-1).tf[0]);
-                return Math.hypot(b[0] - a[0], b[1] - a[1]) / ((fs.at(-1).t - fs[0].t) / 1000);
-            };
-            const pre = frames.filter((f) => f.t > tUp - 120 && f.t <= tUp);
-            const post = frames.filter((f) => f.t > tUp + 20 && f.t < tUp + 100);
-            const ratio = speed(post) / speed(pre);
-            test.info().annotations.push({ type: "release", description: `carry ${ratio.toFixed(2)}` });
+            // The carry: the die's speed on the table just after the release
+            // against the hand's over its last 90 ms (its last two samples at
+            // least), at the height it carried.
+            const z = centreOf(steady.at(-1).tf[0])[2];
+            const recent = moves.filter((m) => m.t >= moves.at(-1).t - 90);
+            const last = recent.length >= 2 ? recent : moves.slice(-2);
+            const [a, b] = [last[0], last.at(-1)].map((m) => toTable(pr, m.x, m.y, z));
+            const handSpeed = Math.hypot(b[0] - a[0], b[1] - a[1]) / ((last.at(-1).t - last[0].t) / 1000);
+            const post = frames.filter((f) => f.t > up + 20 && f.t < up + 100);
+            const p0 = centreOf(post[0].tf[0]);
+            const p1 = centreOf(post.at(-1).tf[0]);
+            const thrown = Math.hypot(p1[0] - p0[0], p1[1] - p0[1]) / ((post.at(-1).t - post[0].t) / 1000);
+            const ratio = thrown / handSpeed;
+            test.info().annotations.push({ type: "release", description: `carry ${ratio.toFixed(2)} (hand ${handSpeed.toFixed(0)}, thrown ${thrown.toFixed(0)} table px/s)` });
             expect(ratio).toBeGreaterThanOrEqual(0.8);
             expect(ratio).toBeLessThanOrEqual(1.25);
         } finally {
@@ -385,28 +416,32 @@ test.describe("pair", () => {
 });
 
 // ── The embed: a host frames the slice and speaks babb-embed v1 ─────────
-// The host is a loopback page of the test's own (the slice accepts a loopback
-// host when it is served from loopback): it frames the slice, records what
-// the slice posts and posts set-dice and throw to it.
+// The host is a loopback page of the test's own, served over the network (a
+// page answered by a route has no address, so Chrome counts it as public and
+// blocks its loopback frame): it frames the slice, records what the slice
+// posts and posts set-dice and throw to it. The slice accepts a loopback host
+// when it is served from loopback.
 const framedHost = async (page, query) => {
     const slice = new URL(sliceUrl(query));
-    const hostUrl = `http://localhost:${slice.port}/__host.html`;
-    await page.route(hostUrl, (route) =>
-        route.fulfill({
-            contentType: "text/html",
-            body: `<!doctype html><meta charset="utf-8"><style>html,body{margin:0}iframe{border:0;width:600px;height:600px}</style>
+    const html = `<!doctype html><meta charset="utf-8"><style>html,body{margin:0}iframe{border:0;width:600px;height:600px}</style>
 <iframe id="f" src="${slice.href}"></iframe>
 <script>
   window.got = [];
   addEventListener("message", (e) => { if (e.data && e.data.ns === "babb-embed") got.push(e.data); });
   window.send = (m) => document.getElementById("f").contentWindow.postMessage({ ns: "babb-embed", v: 1, ...m }, "${slice.origin}");
-</script>`,
-        }),
-    );
-    await page.goto(hostUrl);
-    await page.waitForFunction(() => window.got.some((m) => m.type === "ready"), null, { timeout: 20_000 });
+</script>`;
+    const host = http.createServer((_, res) => res.writeHead(200, { "content-type": "text/html" }).end(html));
+    await new Promise((r) => host.listen(0, "127.0.0.1", r));
+    const close = () => new Promise((r) => host.close(r));
+    try {
+        await page.goto(`http://localhost:${host.address().port}/`);
+        await page.waitForFunction(() => window.got.some((m) => m.type === "ready"), null, { timeout: 20_000 });
+    } catch (e) {
+        await close();
+        throw e;
+    }
     const frame = page.frames().find((f) => f.url().startsWith(slice.origin + slice.pathname));
-    return frame;
+    return { frame, close };
 };
 
 test.describe("embed", () => {
@@ -415,9 +450,11 @@ test.describe("embed", () => {
 
     test("ready lists the dice; set-dice swaps one die and the pair with no reload; throw rolls and the slice posts the values it says", async () => {
         const ctx = await browser.newContext({ viewport: { width: 700, height: 700 } });
+        let closeHost = async () => {};
         try {
             const page = await ctx.newPage();
-            const frame = await framedHost(page, `${HOST_SLICE}&faces=pips&transport=host`);
+            const { frame, close } = await framedHost(page, `${HOST_SLICE}&faces=pips&transport=host`);
+            closeHost = close;
             const ready = await page.evaluate(() => window.got.find((m) => m.type === "ready"));
             expect(ready.features).toEqual(["pips", "dice"]);
             const origin = await frame.evaluate(() => performance.timeOrigin);
@@ -445,14 +482,17 @@ test.describe("embed", () => {
             expect(await frame.evaluate(() => performance.timeOrigin)).toBe(origin);
         } finally {
             await ctx.close();
+            await closeHost();
         }
     });
 
     test("under reduced motion the swap is one fade, and still no reload", async () => {
         const ctx = await browser.newContext({ viewport: { width: 700, height: 700 }, reducedMotion: "reduce" });
+        let closeHost = async () => {};
         try {
             const page = await ctx.newPage();
-            const frame = await framedHost(page, `${HOST_SLICE}&faces=pips&transport=host`);
+            const { frame, close } = await framedHost(page, `${HOST_SLICE}&faces=pips&transport=host`);
+            closeHost = close;
             const origin = await frame.evaluate(() => performance.timeOrigin);
             await page.evaluate(() => window.send({ type: "set-dice", count: 2 }));
             await frame.waitForFunction(() => document.querySelectorAll(".dice-stage .die").length === 2, null, { timeout: 10_000 });
@@ -462,6 +502,7 @@ test.describe("embed", () => {
             expect(await frame.evaluate(() => performance.timeOrigin)).toBe(origin);
         } finally {
             await ctx.close();
+            await closeHost();
         }
     });
 });
