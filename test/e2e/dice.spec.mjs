@@ -474,7 +474,9 @@ test.describe("embed", () => {
             // 1 → 2: the pair takes the stage; the one die is gone from it.
             await page.evaluate(() => window.send({ type: "set-dice", count: 2 }));
             await frame.waitForFunction(() => document.querySelectorAll(".dice-stage .die").length === 2, null, { timeout: 10_000 });
-            await frame.waitForFunction(() => getComputedStyle(document.querySelector(".cube-stage")).display === "none", null, { timeout: 5_000 });
+            await frame.waitForFunction(() => getComputedStyle(document.querySelector(".cube-stage")).visibility === "hidden", null, { timeout: 5_000 });
+            // The one die stays laid out under the pair (unseen), so the way back measures it at its size.
+            expect(await frame.evaluate(() => document.querySelector(".cube-stage").offsetWidth)).toBeGreaterThan(0);
             await sleep(1500);
             // The host's throw: both come to rest, and rolled matches what is said.
             await page.evaluate(() => (window.got = []));
@@ -489,7 +491,7 @@ test.describe("embed", () => {
             // 2 → 1: the die returns to its orbit, the pair leaves.
             await page.evaluate(() => window.send({ type: "set-dice", count: 1 }));
             await frame.waitForFunction(() => document.querySelectorAll(".dice-stage").length === 0, null, { timeout: 10_000 });
-            expect(await frame.evaluate(() => getComputedStyle(document.querySelector(".cube-stage")).display)).not.toBe("none");
+            expect(await frame.evaluate(() => getComputedStyle(document.querySelector(".cube-stage")).visibility)).toBe("visible");
             expect(await frame.locator(".cube .die-pip").count()).toBe(21);
             // No reload throughout.
             expect(await frame.evaluate(() => performance.timeOrigin)).toBe(origin);
@@ -510,7 +512,7 @@ test.describe("embed", () => {
             // Each frame: the shown opacity of the one die's stage and of the pair's.
             await frame.evaluate(() => {
                 const R = (window.__op = []);
-                const shown = (el) => (!el || getComputedStyle(el).display === "none" ? 0 : Number(getComputedStyle(el).opacity));
+                const shown = (el) => (!el || getComputedStyle(el).display === "none" || getComputedStyle(el).visibility === "hidden" ? 0 : Number(getComputedStyle(el).opacity));
                 const loop = () => {
                     R.push([shown(document.querySelector(".cube-stage")), shown(document.querySelector(".dice-stage"))]);
                     if (R.length < 3000) requestAnimationFrame(loop);
@@ -528,7 +530,7 @@ test.describe("embed", () => {
                 blank: op.filter(([a, b]) => a + b < 0.9).length,
                 between: op.filter(([a, b]) => [a, b].some((o) => o > 0.05 && o < 0.95)).length,
             });
-            const to2 = fades(await swap(2, () => document.querySelectorAll(".dice-stage .die").length === 2 && getComputedStyle(document.querySelector(".cube-stage")).display === "none"));
+            const to2 = fades(await swap(2, () => document.querySelectorAll(".dice-stage .die").length === 2 && getComputedStyle(document.querySelector(".cube-stage")).visibility === "hidden"));
             const to1 = fades(await swap(1, () => document.querySelectorAll(".dice-stage").length === 0));
             console.log(`reduced swap: 1 to 2 ${JSON.stringify(to2)}, 2 to 1 ${JSON.stringify(to1)}`);
             for (const f of [to2, to1]) {
