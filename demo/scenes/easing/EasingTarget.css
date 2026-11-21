@@ -88,19 +88,17 @@
    indent), sized to the plate's content measure (the container's `cqi`) less
    the Copy's box and gap (~3rem), over 37 Fira Code advances of 0.6em (the
    longest two-sign quad, `cubic-bezier(0.68, -0.55, 0.27, 1.55)`). */
+/* Read text floors at 14 px: on a narrow plate the literal keeps that size
+   and breaks at its comma-spaces (balanced, hanging under the call, its Copy
+   trailing the last line) rather than shrinking to hold one line. */
 @media (max-width: 1023px) {
     .easing-target {
         container-type: inline-size;
     }
-    .specimen-literal {
-        white-space: nowrap;
-        padding-inline-start: 0;
-        text-indent: 0;
-    }
     .literal-text {
-        font-size: min(
-            var(--type-small),
-            (100cqi - 3rem) / 22.2
+        font-size: max(
+            0.875rem,
+            min(var(--type-small), (100cqi - 3rem) / 22.2)
         );
     }
 }

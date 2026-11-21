@@ -169,4 +169,11 @@ describe("X.KF.W13X.r4transport — the transport dock", () => {
         const scene = mountTransport().element as HTMLElement;
         expect(scene.querySelector('[aria-label="Reset animation"]')).not.toBeNull();
     });
+
+    it("(4) Reset wears the restart glyph (to the start), not the pane's reset-to-default arrow", () => {
+        const w = mountTransport();
+        const glyph = (w.element as HTMLElement).querySelector('[aria-label="Reset animation"] svg')!;
+        expect(glyph.classList.contains("lucide-skip-back")).toBe(true);
+        expect(glyph.classList.contains("lucide-rotate-ccw")).toBe(false);
+    });
 });

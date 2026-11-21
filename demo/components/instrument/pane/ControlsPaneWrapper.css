@@ -108,10 +108,10 @@
 
 /* ── Desktop: the [rail]-track collapse IS the open/close axis ──
    H.W3.S4 (WV-W3-HIGH-2): the [rail] track (AnimationControlsGroup) collapses
-   var(--rail-width) ↔ 0 and the stage reflows into the freed width; the pane is a
-   real grid column, not an overlay. The wrapper clips its fixed-width content as
-   the track shrinks (overflow:hidden), the content fades (opacity), and
-   pointer-events drop when closed so the collapsed rail captures nothing. */
+   var(--rail-width) ↔ 0 and the stage takes the freed width (it slides there on
+   a transform, KF-18); the pane is a real grid column, not an overlay. The
+   content fades (opacity), and pointer-events drop when closed so the
+   collapsed rail captures nothing. */
 @media (min-width: 1024px) {
     .controls-pane-wrapper {
         max-height: none;
@@ -256,6 +256,14 @@
     }
     .controls-pane-wrapper.controls-pane--closed {
         pointer-events: none;
+        /* LAST-TEN KF-18 — the [rail] track lands at 0 at once (the stage
+           slides on a transform). A closing pane keeps the rail's width, so
+           its own clip does not follow the track to 0 in one frame: it fades
+           where it stood, over the sliding stage, and is hidden once the fade
+           has run (no press, no focus reaches it). */
+        width: var(--rail-width);
+        visibility: hidden;
+        transition: visibility 0s linear var(--duration-fast);
     }
     .controls-pane--open .controls-pane {
         opacity: 1;
@@ -360,4 +368,19 @@
     from {
         opacity: 0;
     }
+}
+
+/* The upright phone sheet's first row: Reset and, with two or more channels,
+   the channel select, on the pane's one inline inset. The glyph takes half
+   its seat, as the site's other glyphs do. */
+.sheet-head-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding-inline: var(--configurator-pad-inline);
+    padding-block-end: 0.5rem;
+}
+.sheet-head-glyph {
+    width: calc(var(--control-h-md) / 2);
+    height: calc(var(--control-h-md) / 2);
 }

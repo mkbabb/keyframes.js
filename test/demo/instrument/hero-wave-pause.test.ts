@@ -28,7 +28,12 @@ describe("KF.DS.r1 — the hero renders no visible pause control", () => {
         const w = mount(EditorStartScreen, { props: { hint: "or drag M. cubert" } });
         const heading = w.get("h1");
         expect(w.find('button[aria-label="Pause the title animation"]').exists()).toBe(false);
-        expect(w.findAll("button").length).toBe(0);
+        // The one button is the headline itself, which opens the Scene list it
+        // names; nothing else on the start screen is a control.
+        const buttons = w.findAll("button");
+        expect(buttons.length).toBe(1);
+        expect(buttons[0]!.element.closest("h1")).toBe(heading.element);
+        expect(buttons[0]!.attributes("aria-haspopup")).toBe("listbox");
         expect(w.text()).not.toContain("Pause the title animation");
         expect(heading.element.style.getPropertyValue("--motion-weight")).toBe("");
         // the wave itself is still rendered (identity motion kept)

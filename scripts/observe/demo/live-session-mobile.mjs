@@ -16,10 +16,12 @@
  *
  * THE BATTERY (spec J.W4 §S1 — "the sheet, the dock, a scene switch, a drag
  * surface, the play affordance"):
- *   M1 — THE SHEET (on /amiga, the A-01 scene): OPEN at the expanded detent
- *        (the `--sheet-t` spring settle, NOT a fixed wait) → touch-SCROLL to
- *        below-fold content → touch-tap CLOSE → touch-tap RE-OPEN → the
- *        re-opened sheet scrolls AGAIN (the M2 re-open latch, certified on
+ *   M1 — THE SHEET (on /amiga, the A-01 scene): closed at REST (an upright
+ *        phone shows no sheet) → a touch tap on the transport dock's Controls
+ *        seat OPENs it (the `--detent-t` spring settle, NOT a fixed wait) → a
+ *        grip drag takes it to FULL → touch-SCROLL to below-fold content → a
+ *        grip drag down CLOSEs it (gone, not parked) → the seat RE-OPENs it →
+ *        the re-opened sheet scrolls AGAIN (the M2 re-open latch, certified on
  *        touch). PLUS the CH-3 RE-CERTIFICATION ORACLE (S7): with the sheet
  *        open ON 390×844, `sheet.bottom ≤ menubar.top` — the bottom menubar
  *        never paints over the sheet (the M1 occlusion class). HARD per P6
@@ -233,6 +235,10 @@ async function dragGlassHandle(page, dir, dyPx = 340) {
 // or above the seed.
 const SHEET_PEEK_T = 0.12;
 const SHEET_OPEN_T = 0.36;
+// An upright phone's ladder is OPEN and FULL only: the sheet is closed (absent)
+// at rest, opened by the transport dock's Controls seat, and FULL is the whole
+// band between the two docks.
+const SHEET_FULL_T = 1;
 const readGeometry = (page) =>
     page.evaluate(([peekT, openT]) => {
         const r = (el) => {
@@ -261,6 +267,7 @@ const readGeometry = (page) =>
         return {
             open: !!wrapper && t >= openT - 1e-3 && visFrac > 0.35,
             closed: !!wrapper && t >= peekT - 1e-3 && t < openT - 1e-3,
+            shown: !!wrapper && wrapper.getBoundingClientRect().height > 0,
             visFrac: Math.round(visFrac * 1000) / 1000,
             sheetT: wrapper
                 ? getComputedStyle(wrapper).getPropertyValue("--detent-t").trim()
@@ -271,6 +278,37 @@ const readGeometry = (page) =>
             vh,
         };
     }, [SHEET_PEEK_T, SHEET_OPEN_T]);
+
+/** Wait until the sheet stands at OPEN or above, then for its spring to settle. */
+async function waitForSheetOpen(page, { timeout = 6000 } = {}) {
+    await page
+        .waitForFunction(
+            (openT) => {
+                const el = document.querySelector('[data-slot="sheet-content"]');
+                if (!el) return false;
+                return parseFloat(getComputedStyle(el).getPropertyValue("--detent-t")) >= openT - 1e-3;
+            },
+            SHEET_OPEN_T,
+            { timeout },
+        )
+        .catch(() => {});
+    await waitForSheetRest(page);
+}
+
+/** Wait until no sheet is shown (closed after its fade), then read the geometry. */
+async function waitForSheetGone(page, { timeout = 6000 } = {}) {
+    await page
+        .waitForFunction(
+            () => {
+                const el = document.querySelector('[data-slot="sheet-content"]');
+                return !el || el.getBoundingClientRect().height === 0;
+            },
+            null,
+            { timeout },
+        )
+        .catch(() => {});
+    return readGeometry(page);
+}
 
 /** Report the Glass 5 Drawer/menubar consume edge without certifying it.
  * Glass 5 fixes the full-height Drawer to the viewport bottom above the
@@ -412,33 +450,52 @@ async function runBattery() {
                 budget.attach(page, "M1:amiga-sheet");
                 await page.goto(`${base}/#/amiga`, { waitUntil: "load" });
                 await navToScene(page, "amiga", "controls", { timeout: 12000 });
-                await page
-                    .waitForFunction(
-                        () =>
-                            !!document.querySelector('[data-slot="sheet-content"]') &&
-                            !!document.querySelector('[data-slot="sheet-detent-handle"]'),
-                        { timeout: 10000 },
-                    )
-                    .catch(() => {});
-                await waitForSheetRest(page);
+                // An upright phone rests with the controls closed: there is no
+                // sheet until the transport dock's Controls seat opens one.
+                const seat = page.locator('[data-dock-tether="bottom"] button[aria-label="Controls"]');
+                await seat.waitFor({ state: "visible", timeout: 10000 }).catch(() => {});
 
-                // 1. OPEN at the expanded detent. The Drawer is born at PEEK; a
-                // glass-handle DRAG up is the expand gesture (useDrawerSnap).
+                // 0. REST: closed, no sheet shown.
                 let geo = await readGeometry(page);
-                if (!geo.open && geo.handle) {
-                    await dragGlassHandle(page, -1, 360);
-                    await waitForSheetRest(page);
-                    geo = await readGeometry(page);
+                if (geo.shown) {
+                    fail(
+                        `M1 sheet REST: a sheet stands at rest (--detent-t=${geo.sheetT}, ` +
+                            `visible=${geo.visFrac}); a phone rests with the controls closed`,
+                    );
+                } else {
+                    ok("M1 sheet REST: closed at rest on 390×844 (no sheet shown; the Controls seat opens it)");
                 }
+
+                // 1. OPEN: a touch tap on the Controls seat raises the sheet to
+                // its OPEN rung (the spring settle, not a fixed wait).
+                await seat.tap({ timeout: 4000 }).catch(() => {});
+                await waitForSheetOpen(page);
+                geo = await readGeometry(page);
                 if (geo.open) {
                     ok(
-                        `M1 sheet OPEN: the Drawer reaches its expanded detent ` +
-                            `(--detent-t=${geo.sheetT}, spring-settled — not a fixed wait) on 390×844`,
+                        `M1 sheet OPEN: a tap on the Controls seat raises the sheet to its OPEN rung ` +
+                            `(--detent-t=${geo.sheetT}, spring-settled, not a fixed wait) on 390×844`,
                     );
                 } else {
                     fail(
-                        `M1 sheet OPEN: the Drawer did not reach its expanded detent ` +
-                            `(open=${geo.open}, --detent-t=${geo.sheetT}, visible=${geo.visFrac}) — the touch expand gesture is broken`,
+                        `M1 sheet OPEN: the Controls seat did not raise the sheet to its OPEN rung ` +
+                            `(open=${geo.open}, --detent-t=${geo.sheetT}, visible=${geo.visFrac}); the touch open is broken`,
+                    );
+                }
+
+                // 1b. FULL: the grip's touch drag up takes the sheet to FULL, the
+                // editing room (glass's detent drag, useSheetDetents).
+                if (geo.handle) {
+                    await dragGlassHandle(page, -1, 360);
+                    await waitForSheetRest(page);
+                }
+                geo = await readGeometry(page);
+                if (geo.open && parseFloat(geo.sheetT) >= SHEET_FULL_T - 1e-3) {
+                    ok(`M1 sheet FULL: a grip drag UP takes the sheet to FULL (--detent-t=${geo.sheetT})`);
+                } else {
+                    fail(
+                        `M1 sheet FULL: the grip drag did not take the sheet to FULL ` +
+                            `(open=${geo.open}, --detent-t=${geo.sheetT}, visible=${geo.visFrac}); the touch expand gesture is broken`,
                     );
                 }
 
@@ -491,35 +548,24 @@ async function runBattery() {
                     }
                 }
 
-                // 3. CLOSE → RE-OPEN via real glass-handle DRAGS (the M2 re-open
-                // latch, on touch). The expand drag lands on FULL (top 107); the
-                // collapse drag spans FULL → PEEK (438px measured), so 480 — a
-                // 360 drag from FULL lands one rung down, on OPEN.
-                await dragGlassHandle(page, 1, 480);
-                await waitForSheetRest(page);
-                const closedGeo = await readGeometry(page);
-                if (closedGeo.closed) {
-                    ok(`M1 sheet CLOSE: a drag DOWN collapses the Drawer to the peek detent (--detent-t=${closedGeo.sheetT})`);
+                // 3. CLOSE → RE-OPEN. A grip drag DOWN from FULL past the OPEN
+                // rung puts the sheet away (glass's release projects onto 0 and
+                // requests the close): it leaves by its fade and is gone, not
+                // parked. The Controls seat raises it again (the M2 re-open latch,
+                // on touch).
+                await dragGlassHandle(page, 1, Math.round(0.85 * MOBILE_CONTEXT.viewport.height));
+                const closedGeo = await waitForSheetGone(page);
+                if (!closedGeo.shown) {
+                    ok("M1 sheet CLOSE: a drag DOWN puts the sheet away (gone after its fade, not parked)");
                 } else {
                     fail(
-                        `M1 sheet CLOSE: the drag did not collapse the Drawer ` +
-                            `(closed=${closedGeo.closed}, --detent-t=${closedGeo.sheetT}, visible=${closedGeo.visFrac})`,
+                        `M1 sheet CLOSE: the drag did not put the sheet away ` +
+                            `(--detent-t=${closedGeo.sheetT}, visible=${closedGeo.visFrac})`,
                     );
                 }
-                // Record the same Glass consume edge at the peek detent.
-                observeMenubarOcclusion(closedGeo, "sheet CLOSED (peek)");
 
-                await dragGlassHandle(page, -1, 360);
-                await page
-                    .waitForFunction((openT) => {
-                        const el = document.querySelector('[data-slot="sheet-content"]');
-                        if (!el) return false;
-                        const t = parseFloat(getComputedStyle(el).getPropertyValue("--detent-t"));
-                        const r = el.getBoundingClientRect();
-                        return t >= openT - 1e-3 && window.innerHeight - r.top > 0.35 * window.innerHeight;
-                    }, SHEET_OPEN_T, { timeout: 6000 })
-                    .catch(() => {});
-                await waitForSheetRest(page);
+                await seat.tap({ timeout: 4000 }).catch(() => {});
+                await waitForSheetOpen(page);
                 // Reset the scroll latch state so the RE-OPEN swipe measures the
                 // re-opened sheet's own scrollability, not the first leg's offset.
                 await page.evaluate(() => {

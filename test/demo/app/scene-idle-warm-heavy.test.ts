@@ -25,6 +25,13 @@ vi.mock("../../../demo/scenes/easing/EasingScene.vue", stub("easing"));
 vi.mock("../../../demo/scenes/spring/SpringScene.vue", stub("spring"));
 vi.mock("../../../demo/scenes/sequence/SequenceScene.vue", stub("sequence"));
 vi.mock("../../../demo/app/hero/HeroAurora.vue", stub("home"));
+const { prepared } = vi.hoisted(() => ({ prepared: [] as string[] }));
+vi.mock("../../../demo/scenes/amiga/useAmigaThree", () => ({
+    prepareAmigaRoom: () => {
+        prepared.push("amiga");
+        return Promise.resolve();
+    },
+}));
 
 afterEach(() => vi.unstubAllGlobals());
 
@@ -37,5 +44,18 @@ describe("the idle scene warm", () => {
         expect([...loaded].sort()).toEqual(["easing", "home", "sequence", "spring", "square"]);
         await loadScene("amiga");
         expect(loaded.has("amiga")).toBe(true);
+    });
+});
+
+describe("the Scene list's warm (intent)", () => {
+    it("opening the list prepares the Amiga's room, not only its chunk; page idle still does not", async () => {
+        vi.stubGlobal("requestIdleCallback", (cb: () => void) => (cb(), 1));
+        const { warmScenesAtIdle, warmScene } = await import("../../../demo/app/scene/scenes");
+        prepared.splice(0);
+        warmScenesAtIdle();
+        await new Promise((r) => setTimeout(r, 0));
+        expect(prepared).toEqual([]);
+        warmScene("amiga");
+        await vi.waitFor(() => expect(prepared).toEqual(["amiga"]));
     });
 });

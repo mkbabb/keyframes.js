@@ -180,12 +180,26 @@
          the absent Boolean `modelValue` cast to `false` rendered the switch
          permanently OFF while the engine default is `enabled: true`, and
          the click listened for an event that was never fired. -->
-    <LabeledSwitch
+    <!-- The switch carries its own name: without one, reka's SwitchRoot reads
+         the label's innerText through a forced layout on every mount (63 to
+         129 ms in a scene change on a throttled phone). glass's LabeledSwitch
+         has no seam for it, so the row is glass's LabeledField + Switch, the
+         composition the weight row already uses; the label still names it. -->
+    <LabeledField
         label="enabled"
-        :model-value="layerConfig.enabled"
         :disabled="!blendAvailable"
-        @update:model-value="(v: boolean) => emit('update', { enabled: v })"
-    />
+        v-slot="{ controlId, labelledBy, describedBy }"
+    >
+        <Switch
+            :id="controlId"
+            aria-label="enabled"
+            :aria-labelledby="labelledBy"
+            :aria-describedby="describedBy"
+            :model-value="layerConfig.enabled"
+            :disabled="!blendAvailable"
+            @update:model-value="(v: boolean) => emit('update', { enabled: v })"
+        />
+    </LabeledField>
     <!-- LP-12 — the terminal `<Separator>` (a bare `role="separator"` with no
          accessible name, separating the last row from nothing) is deleted. -->
 </template>
@@ -193,7 +207,8 @@
 <script setup lang="ts">
 import { formatNumber } from "@utils/formatNumber";
 import type { AnimationLayerConfig } from "@mkbabb/keyframes.js";
-import { LabeledField, LabeledSwitch } from "@mkbabb/glass-ui/labeled-field";
+import { LabeledField } from "@mkbabb/glass-ui/labeled-field";
+import { Switch } from "@mkbabb/glass-ui/switch";
 import { Slider } from "@mkbabb/glass-ui/slider";
 import { COMPOSITE_OPERATOR_DESCRIPTIONS } from "@utils/reference-data/animationDescriptions";
 import {

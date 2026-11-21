@@ -18,6 +18,8 @@ export {
     type StoredAnimationGroupsControlOptions,
     useAnimationGroupsControlOptionsStore,
     getStoredAnimationGroupControlOptions,
+    controlsOpenAtRest,
+    markSheetPress,
 } from "./controlOptionsStore";
 
 export {

@@ -405,6 +405,45 @@ test.describe("touch: Apple-like", () => {
     });
 });
 
+// ── The dock's scrub in view while the die plays (a phone at 4x) ───────
+// On an upright phone the transport dock holds the scrub, so its read-back
+// runs on every playing frame. It is its own render boundary: a spin and a
+// pinch on the playing die drop no frame past 33 ms.
+test.describe("touch: the dock scrub playing, 4x", () => {
+    test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
+
+    test("a one-finger spin and a pinch on the playing die show no frame over 33 ms", async ({ page }) => {
+        await page.goto(demoUrl());
+        await page.waitForFunction(() => /rotate3d/.test(document.querySelector(".graph > div")?.style.transform ?? ""), null, { timeout: 20_000 });
+        await page.waitForTimeout(1800);
+        // The dock's scrub is in view and the scene is playing.
+        await expect(page.locator('[data-dock-tether="bottom"] [role="slider"][aria-label="Time"]')).toBeVisible();
+        await expect(page.locator('button[aria-label="Pause animation"]')).toHaveCount(1);
+        const cdp = await page.context().newCDPSession(page);
+        await cdp.send("Emulation.setCPUThrottlingRate", { rate: 4 });
+        await installRecorder(page.mainFrame());
+        const geom = await geometry(page.mainFrame());
+        const c = { page, geom, cdp, offset: { x: 0, y: 0 } };
+        const n = 24;
+        const pinch = [{ type: "touchStart", pts: [{ u: { x: -0.3, y: 0 }, id: 1 }, { u: { x: 0.3, y: 0 }, id: 2 }], wait: 16 }];
+        for (let i = 1; i <= n; i++) {
+            const r = 0.3 + (0.3 * i) / n;
+            pinch.push({ type: "touchMove", pts: [{ u: { x: -r, y: 0 }, id: 1 }, { u: { x: r, y: 0 }, id: 2 }], wait: 16 });
+        }
+        pinch.push({ type: "touchEnd", pts: [] });
+        const spin = stroke({ x: -0.45, y: 0.1 }, { x: 0.35, y: -0.15 }, 24, 16, 120);
+        const raw = await record(c, [...spin.slice(0, -1), { type: "touchEnd", pts: [], wait: 200 }, ...pinch], 300);
+        await cdp.send("Emulation.setCPUThrottlingRate", { rate: 1 });
+        const down = raw.ev.find((e) => e.type === "pointerdown");
+        const up = [...raw.ev].reverse().find((e) => e.type === "pointerup");
+        const inHand = raw.f.filter((f) => f.t >= down.d && f.t <= up.d + 34);
+        const gaps = inHand.slice(1).map((f, i) => f.t - inHand[i].t);
+        expect(gaps.length).toBeGreaterThan(20);
+        const long = gaps.filter((g) => g > 33.4);
+        expect(long, `frames over 33 ms: ${long.map((g) => g.toFixed(1)).join(", ")}`).toEqual([]);
+    });
+});
+
 test.describe("desktop: Apple-like", () => {
     test.use({ viewport: { width: 1440, height: 900 } });
 

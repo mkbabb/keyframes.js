@@ -44,11 +44,16 @@ describe("site headers", () => {
         expect(h["content-security-policy"]?.[0]).toMatch(/frame-ancestors https:\/\/daraksha\.babb\.dev/);
         expect(h["cache-control"]).toEqual(["public, max-age=0, must-revalidate, no-transform"]);
     });
-    it("an embed asset keeps the CSP family and is immutable, untransformed", () => {
+    it("an embed asset keeps the CSP family and is immutable", () => {
         const h = headersFor("/embed/assets/index-Rd9qyRKf.js");
         expect(h["content-security-policy"]).toHaveLength(1);
         expect(h["x-content-type-options"]).toEqual(["nosniff"]);
-        expect(h["cache-control"]).toEqual(["public, max-age=31536000, immutable, no-transform"]);
+        expect(h["cache-control"]).toEqual(["public, max-age=31536000, immutable"]);
+    });
+    it("only a document is marked no-transform: every hashed asset may be compressed at the edge", () => {
+        for (const p of ["/assets/index-rZwbIwtW.js", "/embed/assets/index-Rd9qyRKf.js", "/embed/assets/index-BI-HWUMs.css"]) {
+            expect(headersFor(p)["cache-control"]?.join(), p).not.toMatch(/no-transform/);
+        }
     });
     it("no path receives the same header from two rules", () => {
         for (const p of ["/", "/index.html", "/assets/a.js", "/embed/", "/embed/assets/a.css", "/favicon.svg"]) {

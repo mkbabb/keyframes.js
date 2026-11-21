@@ -13,6 +13,7 @@ import { useDocumentVisibility } from "@vueuse/core";
 import type { AnimationGroup } from "@mkbabb/keyframes.js";
 import { kfEngine } from "@kf-engine";
 import {
+    controlsOpenAtRest,
     getStoredAnimationGroupControlOptions,
     surfacesFor,
     useSceneMachine,
@@ -118,7 +119,7 @@ export function useSceneMachineShellBinding(opts: {
             // lag this synchronous bind). A panel-less scene (sequence → []) never
             // force-opens — the hollow ghost rail (XH-1) stays impossible.
             if (
-                window.innerWidth >= 1024 &&
+                controlsOpenAtRest() &&
                 surfacesFor(facility, controls.selectedAnimation ?? undefined)
                     .length > 0
             ) {

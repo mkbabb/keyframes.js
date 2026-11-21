@@ -373,7 +373,7 @@ const matrixCellValue = (index: number): number => {
    text, WCAG 1.4.3); the axis hues are the scene's identity colours, kept. */
 .matrix-axis-label {
     font-family: var(--font-mono);
-    font-size: var(--type-caption);
+    font-size: max(0.8125rem, var(--type-caption));
     line-height: 1.2;
     text-align: start;
     color: color-mix(in oklab, var(--color) 55%, var(--foreground));

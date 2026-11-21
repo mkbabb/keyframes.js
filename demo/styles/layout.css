@@ -12,6 +12,11 @@
    --mask-fade); every appearance magnitude (graph ink, the pane idle opacity) is
    design-idioms.css's. */
 :root {
+    /* On a coarse pointer glass scales every control by --ui-coarse-scale
+       (1.5 by default), which is where the phone's padded fields and seats
+       came from. 1.25 is glass's documented theming value for a site; the
+       44 px floor is held separately by glass's --control-floor. */
+    --ui-coarse-scale: 1.25;
     /* ── The three DRY layout tokens formerly homed in design-idioms.css ──
        --rail-width is the DERIVED rail track (@property below) — 25rem/33svi/32rem,
        the single width authority for the lg [rail] track AND the pane.
@@ -321,6 +326,17 @@
         --dock-top-band-reserve-stable: calc(
             var(--dock-top-anchor-stable) + var(--dock-band-reserve-stable)
         );
+    }
+}
+
+/* An upright phone: the transport is the page's one bottom dock, and it sits
+   12 px above the foot (its host's own padding, --dock-margin / 2 or the
+   home-indicator inset, below the anchor), not on the golden float the desk's
+   centred card uses: the 40-odd px band under the pill goes to the stage. The
+   stage's and the sheet's bottom insets read this anchor, so they follow. */
+@media (max-width: 1023px) and (min-height: 501px) {
+    :root {
+        --dock-bottom-anchor: calc(12px - var(--dock-margin) / 2);
     }
 }
 

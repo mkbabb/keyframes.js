@@ -22,6 +22,7 @@ import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { defineComponent, nextTick } from "vue";
 import { mount } from "@vue/test-utils";
 import { GlassDock } from "@mkbabb/glass-ui/dock";
+import { TooltipProvider } from "@mkbabb/glass-ui/tooltip";
 import MbabbMenu from "@app/dock/menu/MbabbMenu.vue";
 
 const savedResizeObserver = (globalThis as { ResizeObserver?: unknown }).ResizeObserver;
@@ -55,13 +56,15 @@ afterAll(() => {
 
 const Host = defineComponent({
     name: "MenuHost",
-    components: { GlassDock, MbabbMenu },
-    template: `<GlassDock collapse="open"><MbabbMenu :on-scene-restore="noop" /></GlassDock>`,
+    components: { GlassDock, MbabbMenu, TooltipProvider },
+    props: { skins: { type: Boolean, default: true } },
+    // The app mounts its dock under glass's TooltipProvider (the seats' tooltips).
+    template: `<TooltipProvider><GlassDock collapse="open"><MbabbMenu :on-scene-restore="noop" :skins="skins" /></GlassDock></TooltipProvider>`,
     setup: () => ({ noop: () => {} }),
 });
 
-function mountHost() {
-    const wrapper = mount(Host, { attachTo: document.body });
+function mountHost(props: { skins?: boolean } = {}) {
+    const wrapper = mount(Host, { attachTo: document.body, props });
     return { wrapper, dock: wrapper.findComponent(GlassDock), trigger: wrapper.find('[aria-label="@mbabb menu"]') };
 }
 
@@ -136,8 +139,8 @@ describe("UIA-KF-118 — closing the Clear-all confirm returns focus to the @mba
 
 describe("LAST-TEN KF-05 — closing the Keyboard-shortcuts dialog returns focus to the @mbabb trigger", () => {
     const shortcutsDialog = () =>
-        [...document.querySelectorAll<HTMLElement>("[role=dialog]")].find((d) =>
-            d.textContent?.includes("Grouped by area"),
+        [...document.querySelectorAll<HTMLElement>("[role=dialog]")].find(
+            (d) => document.getElementById(d.getAttribute("aria-labelledby") ?? "")?.textContent?.trim() === "Keyboard shortcuts",
         );
     it("(3b) Escape lands focus on the trigger, not <body>", async () => {
         const { wrapper, trigger } = mountHost();
@@ -187,32 +190,24 @@ describe("UIA-KF-060 — the destructive row reads the canon's red, the confirm 
     });
 });
 
-describe("A2-KE-L2-13 · UIA-KF-137 — the theme is a checkbox row, the ppmycota boolean's idiom", () => {
-    it("(6) the Dark mode row is a menuitemcheckbox and selecting the ROW flips the theme", async () => {
+describe("the theme is the dock's own seat, not a menu row", () => {
+    it("(6) the menu holds no theme row", async () => {
         const { wrapper, trigger } = mountHost();
         await activate(trigger.element);
-        const r = row("Dark mode")!;
-        expect(r.getAttribute("role")).toBe("menuitemcheckbox");
-        const before = document.documentElement.classList.contains("dark");
-        expect(r.getAttribute("aria-checked")).toBe(String(before));
-        await selectRow("Dark mode");
-        await vi.waitFor(() => expect(document.documentElement.classList.contains("dark")).toBe(!before));
-        // the menu stays open (the mark is the feedback), as on the ppmycota row
-        expect(menu()).toBeTruthy();
-        await vi.waitFor(() => expect(row("Dark mode")!.getAttribute("aria-checked")).toBe(String(!before)));
-        await selectRow("Dark mode");
-        await vi.waitFor(() => expect(document.documentElement.classList.contains("dark")).toBe(before));
+        expect(row("Dark mode")).toBeFalsy();
+        expect(menu()!.querySelector("[role=menuitemcheckbox]")).toBeNull();
         wrapper.unmount();
     });
 });
 
 describe("UIA-KF-138 — one subtitle, one identity row", () => {
-    it("(7) only Clear all keeps a second line; the identity is ONE item that opens the source", async () => {
+    it("(7) no row keeps a second line; the identity is ONE item that opens the source", async () => {
         const { wrapper, trigger } = mountHost();
         await activate(trigger.element);
         const rows = [...menu()!.querySelectorAll<HTMLElement>("[role^=menuitem]")];
-        const withSub = rows.filter((r) => r.querySelector("p")).map((r) => r.textContent?.trim().slice(0, 9));
-        expect(withSub).toEqual(["Clear all"]);
+        // Clear all's confirm says what it resets; its row needs no line saying it too.
+        expect(rows.filter((r) => r.querySelector("p"))).toHaveLength(0);
+        expect(menu()!.textContent).not.toContain("Reset every saved animation");
         const id = row("@mbabb")!;
         expect(id.textContent?.replace(/\s+/g, " ").trim()).toContain("@mbabb · GitHub");
         expect(id.querySelectorAll("a")).toHaveLength(0);
@@ -266,5 +261,56 @@ describe("UIA-KF-113 · A2-KE-X-12 — the menu keeps a viewport gutter", () => 
         expect(popper.length).toBeGreaterThan(0);
         expect(popper.map((c) => c.props("collisionPadding"))).toEqual(popper.map(() => 16));
         wrapper.unmount();
+    });
+});
+
+describe("the die's skins: a named group, on the scenes with a die", () => {
+    it("(10) the skins sit under their group's name, and the chosen one is marked in its own column", async () => {
+        const { wrapper, trigger } = mountHost();
+        await activate(trigger.element);
+        const group = menu()!.querySelector<HTMLElement>("[role=group]")!;
+        expect(group).toBeTruthy();
+        const label = document.getElementById(group.getAttribute("aria-labelledby") ?? "");
+        expect(label?.textContent?.trim()).toBe("Skin");
+        const radios = [...group.querySelectorAll<HTMLElement>("[role=menuitemradio]")];
+        expect(radios.map((r) => r.textContent?.trim())).toEqual(["Crayon", "ppmycota", "Daraksha"]);
+        const checked = radios.filter((r) => r.getAttribute("aria-checked") === "true");
+        expect(checked).toHaveLength(1);
+        // glass's start indicator keeps its own column: the row does not take
+        // the inline-start padding it stands in.
+        for (const r of radios) expect(r.className).not.toMatch(/(^|\s)(px|pl|ps)-/);
+        expect(checked[0]!.querySelector(".menu__indicator .menu__radio-dot")).toBeTruthy();
+        wrapper.unmount();
+    });
+
+    it("(11) a scene without a die offers no skins", async () => {
+        const { wrapper, trigger } = mountHost({ skins: false });
+        await activate(trigger.element);
+        expect(row("Crayon")).toBeFalsy();
+        expect(row("ppmycota")).toBeFalsy();
+        expect(menu()!.querySelector("[role=menuitemradio]")).toBeNull();
+        wrapper.unmount();
+    });
+
+    it("(12) a coarse pointer has no keyboard to list: no Keyboard shortcuts row", async () => {
+        const coarse = vi.spyOn(window, "matchMedia").mockImplementation(
+            (query: string) =>
+                ({
+                    matches: /pointer:\s*coarse/.test(query),
+                    media: query,
+                    onchange: null,
+                    addListener() {},
+                    removeListener() {},
+                    addEventListener() {},
+                    removeEventListener() {},
+                    dispatchEvent: () => false,
+                }) as unknown as MediaQueryList,
+        );
+        const { wrapper, trigger } = mountHost();
+        await activate(trigger.element);
+        expect(row("Share")).toBeTruthy();
+        expect(row("Keyboard shortcuts")).toBeFalsy();
+        wrapper.unmount();
+        coarse.mockRestore();
     });
 });

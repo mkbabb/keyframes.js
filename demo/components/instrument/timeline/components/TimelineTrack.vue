@@ -84,7 +84,7 @@
                  reservation still holds. The `toFixed(1)` micro-note ("1.0x"
                  beside a bar whose own guard says otherwise) is carried, not
                  cured here. -->
-            <span class="timeline-zoom-readout text-mono-caption text-muted-foreground shrink-0 tabular-nums">{{ formatNumber(zoomLevel, 1) }}x</span>
+            <span class="timeline-zoom-readout text-mono-caption kf-caption text-muted-foreground shrink-0 tabular-nums" data-type-role="caption">{{ formatNumber(zoomLevel, 1) }}x</span>
         </div>
         </div>
         </div>

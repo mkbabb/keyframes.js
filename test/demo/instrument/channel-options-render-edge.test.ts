@@ -370,8 +370,12 @@ describe("G-KFW12-2 — the ChannelOptions render edge", () => {
         // glass 8.0.0 removed LabeledSelect: the rows compose LabeledField +
         // the `./select` Select, so the select's names are read off Select.
         const sel = await import("@mkbabb/glass-ui/select");
+        // The layer row composes LabeledField + the `./switch` Switch (so the
+        // switch takes its own name), so the switch's names are read off Switch.
+        const swMod = await import("@mkbabb/glass-ui/switch");
+        expect(mod.LabeledField).toBeDefined();
         const selectProps = declaredPropNames(sel.Select);
-        const switchProps = declaredPropNames(mod.LabeledSwitch);
+        const switchProps = declaredPropNames(swMod.Switch);
         // The names the wave binds to…
         expect(selectProps).toContain("open");
         expect(switchProps).toContain("modelValue");
@@ -381,7 +385,7 @@ describe("G-KFW12-2 — the ChannelOptions render edge", () => {
         expect(selectProps).not.toContain("descriptions");
         expect(switchProps).not.toContain("checked");
         const selectEmits = (sel.Select as { emits: string[] }).emits;
-        const switchEmits = (mod.LabeledSwitch as { emits: string[] }).emits;
+        const switchEmits = (swMod.Switch as { emits: string[] }).emits;
         expect(selectEmits).toContain("update:open");
         expect(switchEmits).toContain("update:modelValue");
         expect(switchEmits).not.toContain("update:checked");
@@ -397,6 +401,8 @@ describe("G-KFW12-2 — the ChannelOptions render edge", () => {
             await settle();
 
             const sw = wrapper.get("button[role=switch]");
+            // The switch carries its own name, so reka never reads its label.
+            expect(sw.attributes("aria-label")).toBe("enabled");
             // The engine default is `enabled: true`; the frontier's absent
             // Boolean `modelValue` rendered this OFF.
             expect(group.getLayerConfig("rotate")?.enabled).toBe(true);
@@ -744,6 +750,32 @@ describe("X.KF.W13V.c · OA-47 (§0bz) — one control-row idiom in the options 
             expect(group.children.length).toBe(2);
         } finally {
             wrapper.unmount();
+        }
+    });
+});
+
+describe("the layer switch reads no label text on mount", () => {
+    it("mounting the layer pane reads no element's innerText", async () => {
+        let reads = 0;
+        const had = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "innerText");
+        Object.defineProperty(HTMLElement.prototype, "innerText", {
+            configurable: true,
+            get() {
+                reads++;
+                return this.textContent;
+            },
+        });
+        const { wrapper } = mountPane();
+        try {
+            await settle();
+            await wrapper.get("button[aria-expanded]").trigger("click");
+            await settle();
+            expect(wrapper.find("button[role=switch]").exists()).toBe(true);
+            expect(reads).toBe(0);
+        } finally {
+            wrapper.unmount();
+            if (had) Object.defineProperty(HTMLElement.prototype, "innerText", had);
+            else delete (HTMLElement.prototype as { innerText?: unknown }).innerText;
         }
     });
 });

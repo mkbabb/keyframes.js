@@ -203,9 +203,17 @@
     <Dialog
         v-if="isMobileLayout && showSheet"
         :modal="false"
-        :open="true"
+        :open="sheetMounted"
         @update:open="(open: boolean) => { if (!open) emit('setControlsPanelOpen', false); }"
     >
+        <!-- An upright phone's sheet truly closes: it is there only while the
+             controls are open (the transport dock's Controls seat opens it),
+             so the stage holds the screen at rest. It arrives and leaves by a
+             fade on the site's own clock (`fadeSheet`, `sheetLeaving`): on
+             its way out the plate fades where it stands, and glass closes the
+             dialog only once it is at opacity 0, so glass's drop to its chrome
+             floor and its removal are never seen. A short landscape phone
+             keeps the side rail, always shown. -->
         <!-- KF-SKEL-9 — the `controls-drawer--stage-*` emission is DELETED (the
              decision is the emitter's, taken whole in `AnimationControlsGroup`;
              the rationale, including why ADOPT is barred, lives at that site so
@@ -245,15 +253,49 @@
             scroll
             class="controls-drawer-content"
             :data-rung="rung"
+            :data-leaving="sheetLeaving ? '' : undefined"
             :style="sheetStyle"
             @click.capture="onParkedHeaderPress"
             @open-auto-focus.prevent
+            @close-auto-focus="onSheetCloseAutoFocus"
+            @interact-outside="onSheetOutside"
             @focusin="onSheetFocusIn"
             @focusout="onSheetFocusOut"
         >
             <!-- reka DialogContent wants a labelling title; keep it off-screen
                  (the visible facet panels carry their own headings). -->
             <DialogTitle class="sr-only">Animation controls</DialogTitle>
+            <!-- An upright phone: the opened sheet's first row holds what the
+                 dock leaves out at rest, so its scrub keeps its length: Reset
+                 (to the start) and, where the scene has two or more channels,
+                 the channel the controls edit. A landscape phone's transport
+                 keeps both. -->
+            <div v-if="!isShortLayout" class="sheet-head-row">
+                <Tooltip>
+                    <TooltipTrigger as-child>
+                        <Button emphasis="quiet" icon-only aria-label="Reset animation" @click="emit('reset')">
+                            <SkipBack class="sheet-head-glyph" aria-hidden="true" />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Reset animation</TooltipContent>
+                </Tooltip>
+                <Select
+                    v-if="channelNames.length > 1"
+                    :model-value="storedControls.selectedAnimation ?? ''"
+                    @update:model-value="(key) => emit('selectAnimation', String(key))"
+                >
+                    <SelectTrigger aria-label="Channel to edit" class="min-w-0 flex-1">
+                        <SelectValue class="min-w-0 flex-1 text-start" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectGroup>
+                            <SelectItem v-for="name in channelNames" :key="name" :value="name">
+                                {{ name }}
+                            </SelectItem>
+                        </SelectGroup>
+                    </SelectContent>
+                </Select>
+            </div>
             <ReusePaneBody />
         </SheetContent>
     </Dialog>
@@ -294,7 +336,18 @@ import { Card } from "@mkbabb/glass-ui/card";
 import { Dialog, DialogTitle } from "@mkbabb/glass-ui/dialog";
 import { FadingScroll } from "@mkbabb/glass-ui/fading-scroll";
 import { SheetContent } from "@mkbabb/glass-ui/sheet";
-import { createReusableTemplate, useMediaQuery } from "@vueuse/core";
+import { Button } from "@mkbabb/glass-ui/button";
+import {
+    Select,
+    SelectContent,
+    SelectGroup,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@mkbabb/glass-ui/select";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@mkbabb/glass-ui/tooltip";
+import { SkipBack } from "@lucide/vue";
+import { createReusableTemplate, useEventListener, useMediaQuery } from "@vueuse/core";
 import {
     type ComponentPublicInstance,
     computed,
@@ -312,7 +365,7 @@ import ChannelControls from "./channel-controls/ChannelControls.vue";
 import RibbonBar from "./RibbonBar.vue";
 import SequenceTimeline from "../timeline/SequenceTimeline.vue";
 import { useControlsLayout } from "./composables/useControlsLayout";
-import { rowBoundaryPeek, useStageReserve } from "./composables/useStageReserve";
+import { useStageReserve } from "./composables/useStageReserve";
 import type { SheetRung } from "./composables/useStageReserve";
 import { FOLD_EDGES_KEY, useFoldLanding } from "./composables/useFoldLanding";
 // The sheet's bottom lift above the menubar is the `bottom` style set on
@@ -368,7 +421,16 @@ const emit = defineEmits<{
     (e: "setControlsPanelOpen", open: boolean): void;
     // KF-M1 — the sheet's settled reserve on the stage (useStageReserve).
     (e: "stageReserve", reserve: StageReserve): void;
+    // The upright phone sheet's first row: Reset and the channel select (the
+    // dock leaves them out at rest).
+    (e: "reset"): void;
+    (e: "selectAnimation", name: string): void;
 }>();
+
+/** The channels the sheet's select offers: the scene's, else the group's. */
+const channelNames = computed(
+    () => props.channels?.map((c) => c.name) ?? Object.keys(props.animationGroup.animations),
+);
 
 // ── T.B1-β STAGE 1 — the host axis ───────────────────────────────────────────
 interface ControlHost {
@@ -582,14 +644,27 @@ if (isMobileLayout.value) {
 // FULL 0.6 is the editing room.
 const isShortLayout = useMediaQuery("(max-width: 1023px) and (max-height: 500px)");
 const sheetSide = computed(() => (isShortLayout.value ? "right" : "bottom"));
-// D-28 — the portrait PEEK lands on a row boundary, measured once per scene
-// mount (useStageReserve's `rowBoundaryPeek`); 0.12 is its seed before the
-// sheet has laid out (glass's floor holds it at header height meanwhile).
-const measuredPeek = shallowRef<number | null>(null);
-const PEEK_SNAP = computed(() => (isShortLayout.value ? 0.36 : (measuredPeek.value ?? 0.12)));
+// An upright phone has no resting peek: the sheet is closed (absent) or at
+// OPEN or FULL. PEEK is the landscape rail's rest only; 0 says "none".
+const PEEK_SNAP = computed(() => (isShortLayout.value ? 0.36 : 0));
 const OPEN_SNAP = computed(() => (isShortLayout.value ? 0.46 : 0.36));
 const FULL_SNAP = computed(() => (isShortLayout.value ? 0.6 : 1));
-const snapPoints = computed(() => [PEEK_SNAP.value, OPEN_SNAP.value, FULL_SNAP.value]);
+const snapPoints = computed(() =>
+    isShortLayout.value
+        ? [PEEK_SNAP.value, OPEN_SNAP.value, FULL_SNAP.value]
+        : [OPEN_SNAP.value, FULL_SNAP.value],
+);
+/** The sheet's dialog is open: always as the landscape rail, and on an
+ *  upright phone while the controls are open and while the plate fades out. */
+const sheetMounted = computed(
+    () => isShortLayout.value || props.storedControls.isControlsPanelOpen || sheetFading.value,
+);
+/** An upright phone's plate holds opacity 0: on its way out (fading, then
+ *  closed by glass at opacity 0) and until its arrival's fade begins. */
+const sheetLeaving = computed(
+    () => !isShortLayout.value && (!props.storedControls.isControlsPanelOpen || sheetArriving.value),
+);
+
 // The band the sheet lives in: above the transport, below the top dock. The
 // bottom sheet's FULL rung is capped at it; the side sheet spans it.
 const fullBand = "calc(100dvh - var(--stage-top-inset) - var(--stage-bottom-inset))";
@@ -604,15 +679,109 @@ const sheetStyle = computed(() =>
 // knows open/closed only). A drag, fling or grip key lands on the NEAREST rung;
 // a null or a flick onto 0 reads as peek.
 const atFull = shallowRef(false);
+// An upright phone's sheet arrives and leaves by a fade on the site's own
+// clock. On its way out, the dialog stays open at the rung it stood on while
+// the plate fades; once the fade has run, glass closes it, unseen. (glass's own
+// exit fade ended, with no fill, before its spring exit did, so the plate
+// showed again at the chrome floor and was then removed in one frame.) The
+// fade is a Web Animation: glass's reduced-motion rule zeroes every CSS
+// transition, and reduced motion asks for a short fade, never a cut.
+const reducedMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
+const SHEET_IN_MS = 200;
+const SHEET_OUT_MS = 180;
+const SHEET_REDUCED_MS = 140;
+const sheetFading = shallowRef(false);
+// A plate that mounts arrives once its first frame is painted (that frame
+// mounts the pane and can run long), so its whole fade is seen.
+const sheetArriving = shallowRef(false);
+let sheetFade: Animation | null = null;
+/** The plate's opacity as it reads now (null when there is no plate). */
+const sheetOpacity = (): number | null => {
+    const el = sheetEl();
+    return el ? Number(getComputedStyle(el).opacity) : null;
+};
+/** Fade the plate from `from` to `to`; null when there is no plate. */
+const fadeSheet = (from: number, to: 0 | 1): Animation | null => {
+    const el = sheetEl();
+    if (!el || typeof el.animate !== "function") return null;
+    sheetFade?.cancel();
+    const fallback = to === 1 ? "ease-out" : "ease-in";
+    const token = getComputedStyle(el).getPropertyValue(`--${fallback}`).trim();
+    const timing = (easing: string): KeyframeAnimationOptions => ({
+        duration: reducedMotion.value ? SHEET_REDUCED_MS : to === 1 ? SHEET_IN_MS : SHEET_OUT_MS,
+        easing,
+        fill: "forwards",
+    });
+    const frames = [{ opacity: from }, { opacity: to }];
+    let fade: Animation;
+    try {
+        fade = el.animate(frames, timing(token || fallback));
+    } catch {
+        // An easing this engine cannot read (a `linear()` token on an older one).
+        fade = el.animate(frames, timing(fallback));
+    }
+    sheetFade = fade;
+    return fade;
+};
+const endFade = (): void => {
+    // glass returns focus to the opener when the dialog closes on a focus
+    // inside it; after a touch it is let go instead (`onSheetCloseAutoFocus`).
+    const held = document.activeElement;
+    if (touchInput && held instanceof HTMLElement && sheetEl()?.contains(held)) held.blur();
+    sheetFading.value = false;
+    atFull.value = false;
+    restPort();
+};
 watch(
     () => props.storedControls.isControlsPanelOpen,
-    (open) => {
+    (open, was) => {
+        const upright = isMobileLayout.value && !isShortLayout.value;
+        // Read before the plate's state is written (a running fade's value).
+        const shown = upright ? sheetOpacity() : null;
+        sheetArriving.value = false;
+        if (!open && was && upright) {
+            sheetFading.value = true;
+            void nextTick(() => {
+                const fade = fadeSheet(shown ?? 1, 0);
+                if (!fade) return endFade();
+                // One frame at 0 is painted before glass closes the dialog.
+                fade.finished.then(() => {
+                    if (sheetFade === fade) requestAnimationFrame(() => sheetFade === fade && endFade());
+                }, () => {});
+            });
+            return;
+        }
+        sheetFading.value = false;
         if (!open) atFull.value = false;
+        if (!open || !upright) return;
+        const arrive = (from: number): void => {
+            sheetArriving.value = false;
+            const fade = fadeSheet(from, 1);
+            fade?.finished.then(() => {
+                if (sheetFade !== fade) return;
+                fade.cancel();
+                sheetFade = null;
+            }, () => {});
+        };
+        // A plate still shown (on its way out) turns back from where it is.
+        if (shown !== null) {
+            void nextTick(() => arrive(shown));
+            return;
+        }
+        sheetArriving.value = true;
+        void nextTick(() =>
+            requestAnimationFrame(() =>
+                requestAnimationFrame(() => {
+                    if (sheetArriving.value) arrive(0);
+                }),
+            ),
+        );
     },
 );
+onBeforeUnmount(() => sheetFade?.cancel());
 const activeSnap = computed<number | null>({
     get: () =>
-        !props.storedControls.isControlsPanelOpen
+        !props.storedControls.isControlsPanelOpen && !sheetFading.value
             ? PEEK_SNAP.value
             : atFull.value
               ? FULL_SNAP.value
@@ -622,10 +791,55 @@ const activeSnap = computed<number | null>({
         const nearest = snapPoints.value.reduce((a, c) =>
             Math.abs(c - t) < Math.abs(a - t) ? c : a,
         );
-        atFull.value = nearest === FULL_SNAP.value;
-        emit("setControlsPanelOpen", nearest !== PEEK_SNAP.value);
+        // A flick onto 0 (or a null) closes an upright sheet; the landscape
+        // rail parks at its PEEK as before. A close keeps the rung the plate
+        // stood on while it fades (the close resets it).
+        const closes = isShortLayout.value ? nearest === PEEK_SNAP.value : v === null || t <= 0;
+        if (!closes) atFull.value = nearest === FULL_SNAP.value;
+        emit("setControlsPanelOpen", !closes);
     },
 });
+
+// A press on either dock (or a list one opened) never closes the sheet: the
+// Controls seat is one of them, and a press that closed the sheet on its way
+// down would reopen it on its click. A press on the stage still lowers it.
+const KEEPS_SHEET = "[data-dock-tether], [data-reka-popper-content-wrapper], [role=listbox], [role=menu]";
+// A touch's outside press is judged at its click, after the pointerup: by then
+// a press on Play has swapped its glyph, so the pressed node is out of the
+// document and can no longer say where it was. Each press is read where it
+// lands, while its target is still in place.
+const keptPresses = new WeakSet<Event>();
+// Whether the last input was a touch: a sheet put away by touch returns no
+// focus to the seat that opened it (on a touch screen that focus only raises
+// the seat's tooltip, which then stood for a second); a key still does.
+let touchInput = false;
+useEventListener(
+    () => (isMobileLayout.value ? document : null),
+    "pointerdown",
+    (e: PointerEvent) => {
+        touchInput = e.pointerType === "touch" || e.pointerType === "pen";
+        if (e.target instanceof Element && e.target.closest(KEEPS_SHEET)) keptPresses.add(e);
+    },
+    { capture: true, passive: true },
+);
+useEventListener(
+    () => (isMobileLayout.value ? document : null),
+    "keydown",
+    () => {
+        touchInput = false;
+    },
+    { capture: true, passive: true },
+);
+const onSheetCloseAutoFocus = (e: Event): void => {
+    if (touchInput) e.preventDefault();
+};
+const onSheetOutside = (e: Event): void => {
+    const original = (e as CustomEvent<{ originalEvent?: Event }>).detail?.originalEvent;
+    const target = original?.target ?? e.target;
+    if ((original && keptPresses.has(original)) || (target instanceof Element && target.closest(KEEPS_SHEET))) {
+        e.preventDefault();
+    }
+};
 
 // X-DS r9 pass 7 (KF-C7-01) — A PARKED PEEK'S TITLE ROW RAISES THE SHEET.
 // The peek shows one row of the pane: the surface's ConfiguratorLayer header
@@ -648,24 +862,13 @@ const sheetEl = () => document.querySelector<HTMLElement>(".controls-drawer-cont
 const rung = computed<SheetRung>(() =>
     !props.storedControls.isControlsPanelOpen ? "peek" : atFull.value ? "full" : "open",
 );
-// A row is a whole control line: the first layer's header, then each field.
-const PEEK_ROWS = '[data-slot="configurator-layer-trigger"], [data-slot="labeled-field"], .param-row';
-const measurePeek = () => {
-    if (!isMobileLayout.value || isShortLayout.value) return;
-    const t = rowBoundaryPeek(sheetEl(), PEEK_ROWS);
-    if (t !== null && t < OPEN_SNAP.value) measuredPeek.value = t;
-};
-watch(
-    () => [isMobileLayout.value && showSheet.value, props.storedControls.selectedAnimation] as const,
-    ([on]) => {
-        if (on) void nextTick(() => requestAnimationFrame(measurePeek));
-    },
-    { immediate: true, flush: "post" },
-);
 useStageReserve({
     active: computed(() => isMobileLayout.value && showSheet.value),
     side: sheetSide,
-    rung,
+    // The stage makes room as the plate starts to show, not at the press:
+    // while the plate waits for its first painted frame, the stage keeps its
+    // rest layout.
+    rung: computed(() => (sheetArriving.value ? "peek" : rung.value)),
     peek: PEEK_SNAP,
     open: OPEN_SNAP,
     sheetEl,
@@ -741,10 +944,21 @@ const onSheetFocusOut = (e: FocusEvent) => {
 watch(
     () => props.storedControls.isControlsPanelOpen,
     (open) => {
-        if (!open && isMobileLayout.value) void nextTick(restPort);
+        // A fading sheet rests its port once it is out of sight (`endFade`).
+        if (!open && isMobileLayout.value && !sheetFading.value) void nextTick(restPort);
     },
 );
 
 </script>
 
 <style scoped src="./ControlsPaneWrapper.css"></style>
+
+<style>
+/* The upright phone sheet (portalled, so unscoped): on its way out it holds
+   opacity 0 until glass removes it, and takes no press (the fade itself is the
+   wrapper's Web Animation). */
+.controls-drawer-content[data-side="bottom"][data-leaving] {
+    opacity: 0;
+    pointer-events: none;
+}
+</style>

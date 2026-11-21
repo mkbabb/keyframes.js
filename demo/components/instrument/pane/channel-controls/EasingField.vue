@@ -95,18 +95,23 @@
              (`--scale-press`, uniform), the same press the trigger beside it
              wears. Relayed to glass (a uniform press option on Button); when
              glass ships it this returns to `<Button>`. -->
-        <button
-            type="button"
-            class="button tap-squish focus-ring absolute inset-y-0 end-1 my-auto"
-            data-slot="button"
-            data-emphasis="quiet"
-            data-size="sm"
-            data-icon-only
-            aria-label="Edit easing curve"
-            @click.stop="(e: MouseEvent) => emit('edit', e.currentTarget as HTMLElement)"
-        >
-            <Pencil class="icon-sm" />
-        </button>
+        <Tooltip>
+            <TooltipTrigger as-child>
+                <button
+                    type="button"
+                    class="button tap-squish focus-ring absolute inset-y-0 end-1 my-auto"
+                    data-slot="button"
+                    data-emphasis="quiet"
+                    data-size="sm"
+                    data-icon-only
+                    aria-label="Edit easing curve"
+                    @click.stop="(e: MouseEvent) => emit('edit', e.currentTarget as HTMLElement)"
+                >
+                    <Pencil class="size-[calc(var(--control-h-md)*0.44)]" />
+                </button>
+            </TooltipTrigger>
+            <TooltipContent>Edit easing curve</TooltipContent>
+        </Tooltip>
         </div>
     </div>
 </template>
@@ -118,6 +123,7 @@ import { easeInOutCubic } from "@mkbabb/value.js/easing";
 import { Separator } from "@mkbabb/glass-ui";
 import { Label } from "@mkbabb/glass-ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@mkbabb/glass-ui/popover";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@mkbabb/glass-ui/tooltip";
 import { ChevronDown, Pencil } from "@lucide/vue";
 import { onScopeDispose, ref, useId, useTemplateRef, watch } from "vue";
 import { useMediaQuery } from "@vueuse/core";

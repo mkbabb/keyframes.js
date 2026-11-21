@@ -33,8 +33,14 @@ export interface UrlKey<T> {
     encode: (value: T) => string;
     /** `undefined` for a value the scene cannot take (the key is ignored). */
     decode: (raw: string) => T | undefined;
-    /** `push` for a discrete pick, `replace` for a continuous value. */
-    history: "push" | "replace";
+    /** `push` for a discrete pick, `replace` for a continuous value; a
+     *  function decides per write (a state a press opened pushes, the same
+     *  state changed as a side effect replaces). */
+    history: "push" | "replace" | (() => "push" | "replace");
+    /** When the state puts back the value this key's own push wrote, and that
+     *  entry is still the current one, go Back to the entry before instead of
+     *  writing over it (closing what a press opened, as Back would). */
+    backOnUndo?: boolean;
 }
 
 /** How long a continuous value rests before the URL takes it. */
@@ -149,10 +155,17 @@ export function useUrlState(
         if (Object.keys(refused).length) stage(refused, "replace");
     };
 
+    /** The entry a `backOnUndo` key's push made: its key, and the address it
+     *  landed at. Back is taken only while that address is still the one
+     *  shown (nothing pushed or replaced since). */
+    let undoable: { key: string; at: string } | null = null;
+    let undoableOwed: string | null = null;
+
     /** state → URL, for every key whose live value differs from the URL's. */
     const writeToUrl = () => {
         let push = false;
         const patch: Record<string, string | undefined> = {};
+        const pushedKeys: string[] = [];
         for (const k of keys) {
             const w = want(k);
             const raw = route.query[k.key];
@@ -164,9 +177,31 @@ export function useUrlState(
                 continue;
             }
             patch[k.key] = w;
-            if (k.history === "push") push = true;
+            const history = typeof k.history === "function" ? k.history() : k.history;
+            if (history === "push") {
+                push = true;
+                pushedKeys.push(k.key);
+            }
         }
-        if (Object.keys(patch).length) stage(patch, push ? "push" : "replace");
+        const keysChanged = Object.keys(patch);
+        // Undoing what a press pushed: Back, when nothing else changed and the
+        // pushed entry is still the one shown.
+        if (
+            undoable &&
+            keysChanged.length === 1 &&
+            keysChanged[0] === undoable.key &&
+            !pushedKeys.length &&
+            undoable.at === route.fullPath
+        ) {
+            undoable = null;
+            pending.delete(keysChanged[0]!);
+            router?.back();
+            return;
+        }
+        const own = keys.find((k) => k.backOnUndo && pushedKeys.includes(k.key) && patch[k.key] !== undefined);
+        undoableOwed = own ? own.key : null;
+        if (!own && keysChanged.some((key) => key === undoable?.key)) undoable = null;
+        if (keysChanged.length) stage(patch, push ? "push" : "replace");
     };
 
     let bound = false;
@@ -197,6 +232,13 @@ export function useUrlState(
     const stopRoute = watch(
         () => keys.map((k) => route.query[k.key]),
         () => {
+            // The push a `backOnUndo` key owed has landed: remember its entry.
+            if (undoableOwed && typeof route.query[undoableOwed] === "string") {
+                undoable = { key: undoableOwed, at: route.fullPath };
+                undoableOwed = null;
+            } else if (undoable && typeof route.query[undoable.key] !== "string") {
+                undoable = null;
+            }
             if (bound && active()) applyFromUrl();
         },
     );

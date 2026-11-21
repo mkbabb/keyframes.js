@@ -44,7 +44,7 @@
             :aria-label="`Back from ${title} to controls`"
             @click="emit('back')"
         >
-            <ArrowLeft class="icon-sm" />
+            <ChevronLeft class="icon-sm" />
         </Button>
         <div class="flex min-w-0 flex-wrap items-baseline gap-x-2">
             <h3 data-subpane-title class="text-subheading flex min-h-(--control-h-sm) items-center">
@@ -65,7 +65,7 @@
 
 <script setup lang="ts">
 import { Button } from "@mkbabb/glass-ui";
-import { ArrowLeft } from "@lucide/vue";
+import { ChevronLeft } from "@lucide/vue";
 import { useTemplateRef } from "vue";
 
 defineProps<{ title: string }>();
