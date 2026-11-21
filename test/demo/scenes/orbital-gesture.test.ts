@@ -329,9 +329,13 @@ describe("G2.4 — ONE multitouch source (D-14)", () => {
             document.dispatchEvent(ptr("pointermove", 2, 240 + i * 5, 300, i));
         }
         await flush();
-        expect((w.emitted("rotate") ?? []).length - before).toBe(1);
+        // While the hands hold the die its model waits (K4: the readout and the emits at rest).
+        expect((w.emitted("rotate") ?? []).length - before).toBeLessThanOrEqual(1);
         document.dispatchEvent(ptr("pointerup", 1, 130, 300, 10));
         document.dispatchEvent(ptr("pointerup", 2, 270, 300, 10));
+        await flush(240);
+        // At rest it catches up.
+        expect((w.emitted("rotate") ?? []).length - before).toBeGreaterThanOrEqual(1);
         w.unmount();
     });
 

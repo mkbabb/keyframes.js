@@ -177,9 +177,19 @@ const tick = (now: number) => {
         writeTransform();
     }
     if (coasting || homing || owed || hand === "settling") requestFrame();
-    // At rest the model catches up, once.
-    else if (stale) writeModel();
+    // At rest the model catches up, once: never while a hand or a wheel stream
+    // still holds the die (the loop idles between a 60 Hz hand's samples and a
+    // stream's events, and each commit is the readout, every emit and whatever
+    // listens to them, in the frame of the next sample). Looked at again once
+    // the hold may have ended.
+    else if (stale) {
+        const wait = gesture.holding(now);
+        clearTimeout(restTimer);
+        if (wait > 0) restTimer = setTimeout(requestFrame, wait);
+        else writeModel();
+    }
 };
+let restTimer: ReturnType<typeof setTimeout> | undefined;
 const requestFrame = () => {
     if (!frameHandle) frameHandle = requestAnimationFrame(tick);
 };
@@ -412,6 +422,7 @@ onUnmounted(() => {
     inertia.stop();
     fade?.cancel();
     if (frameHandle) cancelAnimationFrame(frameHandle);
+    clearTimeout(restTimer);
 });
 
 // kf-CubeTarget #1 — THE CAPTURE SURFACE, published (a consumer recognising its

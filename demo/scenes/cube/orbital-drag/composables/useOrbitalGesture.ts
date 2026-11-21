@@ -152,6 +152,12 @@ export const RESAMPLE_BACK_MS = 4;
  *  the hand stops, and on 120 Hz frames that return is a 2° step back against
  *  the drag. Every pointer holds its newest sample. */
 export const LEAD_FRAMES = 0;
+/** A touch or a pen is shown one of its own sample intervals further back
+ *  (its median of the last three, at most this, ms): a 60 Hz digitiser under
+ *  120 Hz frames would leave every other frame past the newest sample, held
+ *  there, and the hand would step. One sample back, every frame falls between
+ *  two real samples and moves; a mouse keeps its 4 ms. */
+export const TOUCH_BACK_MAX_MS = 20;
 /** A lead returns (through its follower) once the hand has sent nothing for
  *  this many of its own sample intervals, or frames, whichever is longer. */
 const STOP_INTERVALS = 1.5;
@@ -676,7 +682,13 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
      *  · once the hand has stopped, that lead returns on its follower (no step).
      * Returns the point and whether the lead is still returning.
      */
-    const handPoint = (h: Hand, now: number, tStar: number): { x: number; y: number; settling: boolean } => {
+    /** A hand's sample interval: the median of its last three (ms), at most TOUCH_BACK_MAX_MS. */
+    const sampleGap = (tr: HandSample[]): number => {
+        const gaps = tr.slice(-4).map((p, i, a) => (i ? p.t - a[i - 1]!.t : NaN)).filter((g) => g > 0).sort((x, y) => x - y);
+        return gaps.length ? Math.min(TOUCH_BACK_MAX_MS, gaps[gaps.length >> 1]!) : 0;
+    };
+
+    const handPoint = (h: Hand, now: number, tStar: number, back = false): { x: number; y: number; settling: boolean } => {
         const tr = h.trail;
         const newest = tr[tr.length - 1];
         const prev = tr[tr.length - 2];
@@ -684,12 +696,18 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
         if (h.seenAge === null) h.seenAge = now - newest.t;
         const interval = prev ? newest.t - prev.t : frameMs;
         const stopped = now - newest.t - h.seenAge > STOP_INTERVALS * Math.max(frameMs, interval);
-        if (tStar < newest.t && prev && tStar >= prev.t && newest.t > prev.t) {
-            const k = (tStar - prev.t) / (newest.t - prev.t);
+        if (tStar < newest.t && prev && newest.t > prev.t && (back || tStar >= prev.t)) {
+            // Between the two real samples on either side of t* (one sample back, any kept pair; the oldest kept,
+            // before them all).
+            let i = tr.length - 2;
+            while (i > 0 && tr[i]!.t > tStar) i--;
+            const a = tr[i]!;
+            const b = tr[i + 1]!;
+            const k = b.t > a.t ? Math.min(1, Math.max(0, (tStar - a.t) / (b.t - a.t))) : 1;
             const L = h.lead;
             L.x[0] = L.x[1] = L.T[0] = L.T[1] = L.v[0] = L.v[1] = 0;
             h.shownT = tStar;
-            return { x: prev.x + (newest.x - prev.x) * k, y: prev.y + (newest.y - prev.y) * k, settling: true };
+            return { x: a.x + (b.x - a.x) * k, y: a.y + (b.y - a.y) * k, settling: true };
         }
         const L = h.lead;
         if (!stopped) {
@@ -746,7 +764,10 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
         for (const id of ids) {
             const h = pointers.get(id);
             if (!h) continue;
-            const at = handPoint(h, now, tStar);
+            // A touch one sample back (a frame's instant is never before its newest sample's; a clock that says
+            // otherwise, as a test's may, keeps the plain instant).
+            const back = h.predicts && tStar >= (h.trail[h.trail.length - 1]?.t ?? Infinity) - 12 ? sampleGap(h.trail) : 0;
+            const at = handPoint(h, now, back ? Math.max(h.shownT, tStar - back) : tStar, back > 0);
             settling ||= at.settling;
             real.push([h, h.x, h.y]);
             if (h.x !== at.x || h.y !== at.y) same = false;
@@ -916,6 +937,9 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
     let streamAt = -Infinity;
     let streamFirst = 0;
     const resting = () => followerIdle(turnF) && followerIdle(zoomF) && followerIdle(panF);
+    /** How long (ms) the die is still held by a hand or a wheel stream at `now`
+     *  (0 once neither holds it): its model is committed only after that. */
+    const holding = (now: number): number => (pointers.size > 0 ? 120 : Math.max(0, WHEEL_STREAM_GAP_MS - (now - streamAt)));
 
     /** The notch stiffness, quicker under reduced motion. */
     const notchOmega = () => NOTCH_OMEGA * ((reducedMotion?.() ?? false) ? REDUCED_NOTCH_SPEEDUP : 1);
@@ -1165,6 +1189,7 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
         onTouchStart,
         handleWheel,
         flushWheel,
+        holding,
         dropOwed,
         nudge,
         handAt,
