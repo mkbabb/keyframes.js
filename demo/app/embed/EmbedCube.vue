@@ -33,9 +33,8 @@
                 </div>
             </div>
             <CubeTarget
-                v-show="oneShown"
                 ref="cubeTargetRef"
-                :class="{ 'embed-cube-veiled': oneVeiled }"
+                :class="{ 'embed-cube-veiled': oneVeiled, 'embed-cube-off': !oneShown }"
                 :is-playing="playing"
                 :skin="skin"
                 :faces="faces ?? 'numerals'"
@@ -199,6 +198,15 @@ const crossFade = async (toPair: boolean) => {
     return () => runs.forEach((a) => a?.cancel());
 };
 
+/** The one die shown at its own place, under the pair, as the pair fades off it. */
+const handOver = async () => {
+    const pair = (pairRef.value as { $el?: Element } | null)?.$el;
+    const run = pair && typeof pair.animate === "function" ? pair.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 160, easing: "ease-in-out", fill: "forwards" }) : null;
+    oneShown.value = true;
+    await run?.finished.catch(() => undefined);
+    return () => run?.cancel();
+};
+
 const setDice = async (n: 1 | 2) => {
     if (swapping) {
         wanted = n;
@@ -238,10 +246,16 @@ const setDice = async (n: 1 | 2) => {
             drop();
         } else {
             await pairRef.value?.leave(singleDie());
-            oneShown.value = true;
-            await nextTick();
+            // The pair's first die now stands where the slice's own die is
+            // drawn, at its size: the slice's die is shown under it and the pair
+            // fades off it (160 ms, on the flat stage box, never on a 3D die), so
+            // nothing appears or vanishes in one frame and the die never reads
+            // through.
+            const drop = await handOver();
             pairShown.value = false;
             pairVeiled.value = false;
+            await nextTick();
+            drop();
         }
     }
     swapping = false;
@@ -384,6 +398,11 @@ defineExpose({ setPlaying, reset, relayGesture, transportLook, setDice, throwPai
    (crossFade); the side waiting to come in is veiled. */
 .embed-cube-veiled {
     opacity: 0;
+}
+/* The one die while the pair shows: still laid out (its size and pose are
+   the hand-over's measure), never seen or reached. */
+.embed-cube-off {
+    visibility: hidden;
 }
 
 /* THE SHEET: the paper and the coordinate frame on one layer, three stages
