@@ -17,6 +17,8 @@
  *   the folded top dock is a circle (square within 1 px).
  * - Opened, the controls (the sheet and the dock band under it) take less
  *   than half the height at 390x844, 375x667 and 390x664, on every scene.
+ * - A shut sheet on the Keyframes surface fetches no editor chunk; the
+ *   Controls press does.
  *
  * Chromium, touch, 4x CPU throttle. Local: serves dist/gh-pages (build it
  * first: npm run gh-pages). KF_GESTURE_BASE=https://keyframes.babb.dev runs it
@@ -375,6 +377,28 @@ for (const vp of [
         }
     });
 }
+
+// A shut sheet loads nothing of the editor: with the Keyframes surface named
+// (a link, or the remembered pick), the code editor's chunk is fetched only
+// once the Controls press shows the pane, never at rest.
+test.describe("upright phone 390x844: a shut sheet loads no editor", () => {
+    test.use({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, hasTouch: true, isMobile: true, colorScheme: "dark" });
+
+    test("/cube on the Keyframes surface: no editor chunk at rest; the press fetches it", async ({ page }) => {
+        const editor = [];
+        page.on("request", (r) => {
+            if (/vendor-monaco/.test(r.url())) editor.push(r.url());
+        });
+        await page.goto(at("/cube?pane=keyframes"));
+        await page.waitForSelector(".cube", { timeout: 30_000 });
+        await page.waitForTimeout(4000);
+        expect(await sheetTop(page)).toBeNull();
+        expect(editor).toHaveLength(0);
+        await page.locator('button[aria-label="Controls"]').tap();
+        await page.waitForTimeout(3000);
+        expect(editor.length).toBeGreaterThan(0);
+    });
+});
 
 test.describe("desk 1440: the site's own motions read as done within the band", () => {
     test.use({ viewport: { width: 1440, height: 900 } });
