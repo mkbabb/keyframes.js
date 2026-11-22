@@ -15,6 +15,8 @@
  *   motion it arrives and leaves by a short fade, never a cut.
  * - The die's side reaches the screen's width over 2.2 at 390x844 at rest;
  *   the folded top dock is a circle (square within 1 px).
+ * - Opened, the controls (the sheet and the dock band under it) take less
+ *   than half the height at 390x844, 375x667 and 390x664, on every scene.
  *
  * Chromium, touch, 4x CPU throttle. Local: serves dist/gh-pages (build it
  * first: npm run gh-pages). KF_GESTURE_BASE=https://keyframes.babb.dev runs it
@@ -332,6 +334,33 @@ test.describe("upright phone 390x844: the opened sheet", () => {
         });
     }
 });
+
+// The controls never take half of an upright phone, open or shut: the opened
+// sheet and the dock band under it end at the screen's foot, so the sheet's top
+// edge stands at half the height or lower. 390x664 is a 390-wide phone in
+// Safari with its bars shown; 375x667 the smallest phone in use.
+for (const vp of [
+    { w: 390, h: 844 },
+    { w: 375, h: 667 },
+    { w: 390, h: 664 },
+]) {
+    test.describe(`upright phone ${vp.w}x${vp.h}: the opened sheet leaves the stage the larger part`, () => {
+        test.use({ viewport: { width: vp.w, height: vp.h }, deviceScaleFactor: 2, hasTouch: true, isMobile: true, colorScheme: "dark" });
+
+        for (const scene of ["/cube", "/easing", "/sequence", "/spring"]) {
+            test(`${scene}: the controls take less than half the height`, async ({ page }) => {
+                await page.goto(at(scene));
+                await page.waitForSelector(".scene-host", { timeout: 30_000 });
+                await page.waitForTimeout(2000);
+                await page.locator('button[aria-label="Controls"]').tap();
+                await page.waitForTimeout(1500);
+                const top = await sheetTop(page);
+                expect(top).not.toBeNull();
+                expect(vp.h - top).toBeLessThanOrEqual(vp.h / 2);
+            });
+        }
+    });
+}
 
 test.describe("desk 1440: the site's own motions read as done within the band", () => {
     test.use({ viewport: { width: 1440, height: 900 } });
