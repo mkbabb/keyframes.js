@@ -136,40 +136,6 @@ export function useStageReserve(params: StageReserveParams) {
  * `[data-rung="peek"]`), so the row foot IS the clip edge and the term is gone.
  */
 export const rowBoundaryPeek = (el: HTMLElement | null, rowSelector: string): number | null => {
-    const at = rowFeet(el, rowSelector);
-    if (!at) return null;
-    const foot = at.feet.find((f) => f >= at.floor - 0.5);
-    if (foot === undefined) return null;
-    return foot / innerHeight;
-};
-
-/**
- * K25 — the upright phone's OPEN rung on a WHOLE-ROW boundary. A fixed 0.36
- * cut whatever row crossed it: the easing plot (324 px from 585 to 909 at 390,
- * against a sheet that ended at 766) showed its lower handle out of view. OPEN
- * is now the first row foot (seen through the port, as the PEEK's is) at or
- * past the `base` fraction, so the row the base would have cut is taken whole,
- * the plot counting as one row; never past `cap` (the stage keeps the rest),
- * and `base` itself when no foot lies between them. Measured on the open sheet:
- * rows sit at fixed offsets from its top edge whatever its size. Returns the
- * detent fraction, or null when the sheet has not laid out yet.
- */
-export const rowBoundaryOpen = (
-    el: HTMLElement | null,
-    rowSelector: string,
-    base: number,
-    cap: number,
-): number | null => {
-    const at = rowFeet(el, rowSelector);
-    if (!at) return null;
-    const from = Math.max(at.floor, base * innerHeight);
-    const foot = at.feet.find((f) => f >= from - 0.5);
-    if (foot === undefined || foot > cap * innerHeight + 0.5) return base;
-    return foot / innerHeight;
-};
-
-/** Each row's foot as the sheet's size that shows it whole (px, ascending), and glass's floor. */
-const rowFeet = (el: HTMLElement | null, rowSelector: string): { feet: number[]; floor: number } | null => {
     if (!el) return null;
     const box = el.getBoundingClientRect();
     if (box.height === 0) return null;
@@ -198,5 +164,7 @@ const rowFeet = (el: HTMLElement | null, rowSelector: string): { feet: number[];
     const feet = rows
         .map((r) => r.getBoundingClientRect().bottom - box.top + reserve)
         .sort((a, b) => a - b);
-    return { feet, floor };
+    const foot = feet.find((f) => f >= floor - 0.5);
+    if (foot === undefined) return null;
+    return foot / innerHeight;
 };

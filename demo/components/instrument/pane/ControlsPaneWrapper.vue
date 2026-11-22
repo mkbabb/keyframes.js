@@ -371,7 +371,7 @@ import SheetResetButton from "./SheetResetButton.vue";
 import { SHEET_RESET_KEY, provideSheetReset } from "./composables/useSheetReset";
 import SequenceTimeline from "../timeline/SequenceTimeline.vue";
 import { useControlsLayout } from "./composables/useControlsLayout";
-import { rowBoundaryOpen, useStageReserve } from "./composables/useStageReserve";
+import { useStageReserve } from "./composables/useStageReserve";
 import type { SheetRung } from "./composables/useStageReserve";
 import { FOLD_EDGES_KEY, useFoldLanding } from "./composables/useFoldLanding";
 // The sheet's bottom lift above the menubar is the `bottom` style set on
@@ -653,30 +653,7 @@ const sheetSide = computed(() => (isShortLayout.value ? "right" : "bottom"));
 // An upright phone has no resting peek: the sheet is closed (absent) or at
 // OPEN or FULL. PEEK is the landscape rail's rest only; 0 says "none".
 const PEEK_SNAP = computed(() => (isShortLayout.value ? 0.36 : 0));
-// K25 — an upright phone's OPEN is measured on the open sheet: the first whole
-// row foot at or past 0.36 of the height (the easing plot counts as one row),
-// never past 0.6 (rowBoundaryOpen). 0.36 until it has been measured.
-const OPEN_BASE = 0.36;
-const OPEN_CAP = 0.6;
-const OPEN_ROWS =
-    '.sheet-head-row, .sheet-lead-row, [data-slot="configurator-layer-trigger"], [data-slot="labeled-field"], .param-row, [data-slot="easing-handles"]';
-const measuredOpen = shallowRef<number | null>(null);
-const OPEN_SNAP = computed(() => (isShortLayout.value ? 0.46 : (measuredOpen.value ?? OPEN_BASE)));
-/** Read the OPEN rung off the open sheet's rows (upright phone only). */
-const measureOpen = (): void => {
-    if (!isMobileLayout.value || isShortLayout.value || !props.storedControls.isControlsPanelOpen) return;
-    const t = rowBoundaryOpen(sheetEl(), OPEN_ROWS, OPEN_BASE, OPEN_CAP);
-    if (t !== null && t !== measuredOpen.value) measuredOpen.value = t;
-};
-/** Re-read it a frame after the surface changes under an open sheet, or the viewport does. */
-const remeasureOpen = (): void => {
-    void nextTick(() => requestAnimationFrame(measureOpen));
-};
-watch(() => [props.storedControls.selectedAnimation, props.storedControls.selectedControl], remeasureOpen);
-useEventListener(window, "resize", () => {
-    measuredOpen.value = null;
-    remeasureOpen();
-}, { passive: true });
+const OPEN_SNAP = computed(() => (isShortLayout.value ? 0.46 : 0.36));
 const FULL_SNAP = computed(() => (isShortLayout.value ? 0.6 : 1));
 const snapPoints = computed(() =>
     isShortLayout.value
@@ -799,14 +776,11 @@ watch(
         }
         sheetArriving.value = true;
         void nextTick(() =>
-            requestAnimationFrame(() => {
-                // The plate is laid out (still unseen): its OPEN takes whole
-                // rows before the fade begins; glass's spring carries the size.
-                measureOpen();
+            requestAnimationFrame(() =>
                 requestAnimationFrame(() => {
                     if (sheetArriving.value) arrive(0);
-                });
-            }),
+                }),
+            ),
         );
     },
 );
