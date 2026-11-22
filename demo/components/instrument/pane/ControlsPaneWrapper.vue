@@ -296,9 +296,21 @@
                     </SelectContent>
                 </Select>
             </div>
-            <ReusePaneBody />
+            <!-- An upright phone's pane is not born with the sheet: it is
+                 mounted at idle after the page's first paint (or at the first
+                 Controls press, whichever comes first), parked unseen, and
+                 carried into this slot when the sheet opens and back to its
+                 park when it closes (the Teleport below), so a press never
+                 waits on the pane's mount. `display: contents`: the pane is the
+                 sheet region's body row, as if it stood here itself. -->
+            <div v-if="!isShortLayout" ref="paneSlot" class="sheet-pane-slot"></div>
+            <ReusePaneBody v-else />
         </SheetContent>
     </Dialog>
+    <div v-if="uprightPhone && paneWarm" ref="panePark" class="sheet-pane-park" hidden></div>
+    <Teleport v-if="paneHome" :to="paneHome">
+        <ReusePaneBody />
+    </Teleport>
 
     <!-- ── DESKTOP (≥ 1024px): the naked rail column ──────────────────────────
          T.B4 (OD-5, VERDICT #7): the surrounding pane is GONE — the rail is a
@@ -856,6 +868,64 @@ const onSheetOutside = (e: Event): void => {
 // so its headers keep their own toggle. (The sheet's position is glass's:
 // since 10.1.1 (G-1) `SheetContent` carries the `fixed` utility, curing the
 // SHEET-POSITION row held on O-87/O-88; nothing here overrides it.)
+// ── P2f — the upright phone's pane, mounted at idle and parked ──────────
+// The first Controls press used to mount the whole pane inside its own frame
+// (a 140 to 190 ms task on a 4x phone before the sheet's first frame). On an
+// upright phone the pane is now mounted once the page has painted and gone
+// idle (never inside a scene change), or at the first press if that comes
+// sooner; it waits in a hidden park and is carried (not remounted) into the
+// sheet's slot while the sheet shows, and back when it has gone. The landscape
+// rail and the desktop column keep the pane where they always had it.
+const uprightPhone = computed(() => isMobileLayout.value && !isShortLayout.value && showSheet.value);
+const paneWarm = shallowRef(false);
+const paneSlot = useTemplateRef<HTMLElement>("paneSlot");
+const panePark = useTemplateRef<HTMLElement>("panePark");
+/** Where the pane stands: the open sheet's slot, else its park; none until warm. */
+const paneHome = computed<HTMLElement | null>(() =>
+    uprightPhone.value && paneWarm.value ? (paneSlot.value ?? panePark.value ?? null) : null,
+);
+let idleHandle: number | ReturnType<typeof setTimeout> | null = null;
+let idleFrame = 0;
+const cancelIdle = () => {
+    if (idleFrame) cancelAnimationFrame(idleFrame);
+    idleFrame = 0;
+    if (idleHandle === null) return;
+    if (typeof cancelIdleCallback === "function" && typeof idleHandle === "number") cancelIdleCallback(idleHandle);
+    else clearTimeout(idleHandle);
+    idleHandle = null;
+};
+/** Warm the pane once the page is idle, and not while a scene change runs. */
+const warmAtIdle = () => {
+    cancelIdle();
+    const later = (cb: () => void) =>
+        typeof requestIdleCallback === "function" ? requestIdleCallback(cb, { timeout: 2000 }) : setTimeout(cb, 600);
+    idleHandle = later(() => {
+        idleHandle = null;
+        if (paneWarm.value || !uprightPhone.value) return;
+        if (swapRunning()) return warmAtIdle();
+        paneWarm.value = true;
+    });
+};
+onMounted(() => {
+    // After the first paint: a frame callback, then the next idle period.
+    idleFrame = requestAnimationFrame(() => {
+        idleFrame = 0;
+        if (uprightPhone.value) warmAtIdle();
+    });
+});
+watch(uprightPhone, (upright) => {
+    if (upright && !paneWarm.value && !idleFrame && idleHandle === null) warmAtIdle();
+});
+// A press before the idle came mounts the pane with the sheet, as before.
+watch(
+    () => props.storedControls.isControlsPanelOpen,
+    (open) => {
+        if (open && uprightPhone.value) paneWarm.value = true;
+    },
+    { immediate: true },
+);
+onBeforeUnmount(cancelIdle);
+
 // ── KF-M1 — the visible-stage reserve (D-2 · D-3 · D-28) ──────────────
 // The sheet is portalled to <body>, so it is found by its own class.
 const sheetEl = () => document.querySelector<HTMLElement>(".controls-drawer-content");
@@ -954,6 +1024,11 @@ watch(
 <style scoped src="./ControlsPaneWrapper.css"></style>
 
 <style>
+/* The upright phone's pane slot (portalled with the sheet, so unscoped): no box
+   of its own; the pane carried into it is the sheet region's body row. */
+.sheet-pane-slot {
+    display: contents;
+}
 /* The upright phone sheet (portalled, so unscoped): on its way out it holds
    opacity 0 until glass removes it, and takes no press (the fade itself is the
    wrapper's Web Animation). */
