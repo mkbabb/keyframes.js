@@ -133,7 +133,8 @@ describe("the upright phone's lead row comes first in the DOM, as it is seen", (
             defineComponent({
                 setup() {
                     provide(SHEET_RESET_KEY, provideSheetReset(ref(inRow), () => {}).api);
-                    return () => h(TooltipProvider, null, { default: () => h(EasingSidebar, { demo }) });
+                    // The facet reads only these fields of the demo context (as the cases above).
+                    return () => h(TooltipProvider, null, { default: () => h(EasingSidebar as any, { demo }) });
                 },
             }),
         );
