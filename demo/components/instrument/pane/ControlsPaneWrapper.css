@@ -376,16 +376,12 @@
 }
 
 /* The upright phone sheet's first row: Reset and, with two or more channels,
-   the channel select, on the pane's one inline inset. The glyph takes half
-   its seat, as the site's other glyphs do. */
+   the channel select, on the pane's one inline inset. (Reset's glyph size is
+   SheetResetButton's own.) */
 .sheet-head-row {
     display: flex;
     align-items: center;
     gap: 0.5rem;
     padding-inline: var(--configurator-pad-inline);
     padding-block-end: 0.5rem;
-}
-.sheet-head-glyph {
-    width: calc(var(--control-h-md) / 2);
-    height: calc(var(--control-h-md) / 2);
 }

@@ -332,6 +332,20 @@ test.describe("upright phone 390x844: the opened sheet", () => {
             expect(row).not.toBeNull();
             expect(row.others).toBeGreaterThan(0);
         });
+
+        // Reset's glyph takes half its seat, as the site's other glyphs do,
+        // wherever the sheet seats it (glass's own Button glyph is smaller).
+        test(`${scene}: Reset's glyph takes half its seat`, async ({ page }) => {
+            await openSheet(page, scene);
+            const size = await page.evaluate(() => {
+                const reset = document.querySelector('.controls-drawer-content button[aria-label="Reset animation"]');
+                const glyph = reset?.querySelector("svg");
+                if (!reset || !glyph) return null;
+                return { seat: reset.getBoundingClientRect().height, glyph: glyph.getBoundingClientRect().width };
+            });
+            expect(size).not.toBeNull();
+            expect(Math.abs(size.glyph - size.seat / 2)).toBeLessThanOrEqual(1);
+        });
     }
 });
 

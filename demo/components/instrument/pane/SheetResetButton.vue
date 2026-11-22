@@ -18,3 +18,13 @@ import { SkipBack } from "@lucide/vue";
 
 defineEmits<{ (e: "reset"): void }>();
 </script>
+
+<style scoped>
+/* The glyph takes half its seat, as the site's other glyphs do (glass's own
+   Button glyph, `--ui-glyph`, is smaller). Scoped here: the glyph is this
+   component's, so a rule in the pane's scoped sheet does not reach it. */
+.sheet-head-glyph {
+    width: calc(var(--control-h-md) / 2);
+    height: calc(var(--control-h-md) / 2);
+}
+</style>
