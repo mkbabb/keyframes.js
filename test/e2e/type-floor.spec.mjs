@@ -113,3 +113,26 @@ for (const cell of [
         }
     });
 }
+
+// P2d: on an upright phone the sheet's section titles stand one rung down the
+// type scale (glass's subheading, about 20 px), not at the page heading's 26 px.
+test.describe("phone 390, the controls open: section titles a rung down", () => {
+    test.use({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, hasTouch: true, isMobile: true });
+    for (const scene of ["/sequence", "/spring"]) {
+        test(`${scene}: the sheet's section title is 20 px or so, under the 26 px heading`, async ({ page }) => {
+            await page.goto(at(scene + "?sheet=1"));
+            await page.waitForSelector(".controls-drawer-content .configurator-section-label", { timeout: 20_000 });
+            await page.waitForTimeout(1200);
+            const sizes = await page.evaluate(() =>
+                [...document.querySelectorAll(".controls-drawer-content .configurator-section-label")]
+                    .filter((e) => e.getBoundingClientRect().height > 0)
+                    .map((e) => parseFloat(getComputedStyle(e).fontSize)),
+            );
+            expect(sizes.length).toBeGreaterThan(0);
+            for (const s of sizes) {
+                expect(s).toBeGreaterThanOrEqual(16);
+                expect(s).toBeLessThanOrEqual(21);
+            }
+        });
+    }
+});

@@ -1024,6 +1024,14 @@ watch(
 <style scoped src="./ControlsPaneWrapper.css"></style>
 
 <style>
+/* P2d — on an upright phone a pane's section titles ("Stagger", "Physics")
+   stand one rung down the type scale, glass's subheading (about 20 px) in
+   place of its heading (about 26 px): the sheet is a short band under the
+   stage, and its title is a label for the rows under it, not a page heading.
+   Glass's own token, set on the sheet (theming, not a reshape). */
+.controls-drawer-content[data-side="bottom"] {
+    --configurator-section-size: var(--type-subheading);
+}
 /* The upright phone's pane slot (portalled with the sheet, so unscoped): no box
    of its own; the pane carried into it is the sheet region's body row. */
 .sheet-pane-slot {
