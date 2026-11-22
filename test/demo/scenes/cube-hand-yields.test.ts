@@ -46,6 +46,11 @@ const frames = async (n: number) => {
     }
 };
 
+const FRAME = 1000 / 60;
+/** The group's master clock: its first child's elapsed time (ms). */
+const clock = (group: { animations: Record<string, { animation: unknown }>; elapsedOf: (a: any) => number }) =>
+    group.elapsedOf(Object.values(group.animations)[0]!.animation);
+
 const el = (parent: HTMLElement, cls: string): HTMLElement => {
     const node = document.createElement("div");
     node.className = cls;
@@ -114,14 +119,110 @@ describe("the playing cube yields to a hand on the die", () => {
         await nextTick();
         expect(group.playing()).toBe(false);
         const spin = cubeEl.style.transform;
+        const at = clock(group);
         await frames(6);
         // Nothing of the scene's own loop ran while held: the die stands still.
         expect(group.playing()).toBe(false);
         expect(cubeEl.style.transform).toBe(spin);
+        expect(clock(group)).toBe(at);
 
         held.value = false;
         await nextTick();
+        // It plays on from the instant it stood at, and is playing once it has
+        // gathered its speed.
+        await frames(1);
+        expect(clock(group) - at).toBeGreaterThanOrEqual(0);
+        expect(clock(group) - at).toBeLessThan(FRAME / 4);
+        await frames(20);
         expect(group.playing()).toBe(true);
+        group.stop();
+        app.unmount();
+    });
+
+    // The motion law: nothing changes instantly. The die stood still under the
+    // hand; at the release its spin and bob gather speed over about 250 ms
+    // instead of jumping from still to full speed in one frame, and once at
+    // speed no frame holds or leaps.
+    it("at the release the die gathers its speed: no frame leaps from still to full speed, and none holds once moving", async () => {
+        const { app, held, group } = setup();
+        void group.play();
+        await frames(6);
+        held.value = true;
+        await nextTick();
+        await frames(4);
+        // What each frame paints: the clock at the group's paint.
+        let painted = clock(group);
+        const stop = group.onRender(() => {
+            painted = clock(group);
+        });
+        held.value = false;
+        await nextTick();
+        const steps: number[] = [];
+        let last = painted;
+        for (let i = 0; i < 30; i++) {
+            await frames(1);
+            steps.push(painted - last);
+            last = painted;
+        }
+        stop();
+        // From still: the first frames move the die by a sliver of a frame.
+        expect(steps[0]).toBeLessThan(FRAME / 4);
+        expect(steps[1]).toBeLessThan(FRAME / 4);
+        // It rises, never by a whole frame's worth at once, and never past speed.
+        for (let i = 1; i < steps.length; i++) {
+            expect(steps[i]! - steps[i - 1]!).toBeLessThan(FRAME / 3);
+            expect(steps[i]!).toBeLessThanOrEqual(FRAME + 0.5);
+        }
+        // Once moving, no frame holds.
+        const moving = steps.findIndex((s) => s > 0);
+        for (const s of steps.slice(moving)) expect(s).toBeGreaterThan(0);
+        // At speed by 300 ms, and playing.
+        for (const s of steps.slice(19)) expect(s).toBeCloseTo(FRAME, 0);
+        expect(group.playing()).toBe(true);
+        group.stop();
+        app.unmount();
+    });
+
+    it("a hand that takes the die again while it gathers speed stops it where it stands", async () => {
+        const { app, held, group } = setup();
+        void group.play();
+        await frames(6);
+        held.value = true;
+        await nextTick();
+        await frames(2);
+        held.value = false;
+        await nextTick();
+        await frames(6);
+        held.value = true;
+        await nextTick();
+        const at = clock(group);
+        await frames(10);
+        expect(clock(group)).toBe(at);
+        expect(group.playing()).toBe(false);
+        held.value = false;
+        await nextTick();
+        await frames(25);
+        expect(group.playing()).toBe(true);
+        group.stop();
+        app.unmount();
+    });
+
+    it("a Pause pressed while the die gathers speed is kept", async () => {
+        const { app, held, playing, group } = setup();
+        void group.play();
+        await frames(6);
+        held.value = true;
+        await nextTick();
+        held.value = false;
+        await nextTick();
+        await frames(4);
+        // The transport's Pause during the ease.
+        playing.value = false;
+        group.pause();
+        const at = clock(group);
+        await frames(25);
+        expect(group.playing()).toBe(false);
+        expect(clock(group)).toBe(at);
         group.stop();
         app.unmount();
     });

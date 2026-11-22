@@ -1,5 +1,5 @@
 import { useDocumentVisibility } from "@vueuse/core";
-import { watch } from "vue";
+import { onScopeDispose, watch } from "vue";
 
 /**
  * B-3 (CWV / battery): pause the active scene's rAF/WebGL loop while the tab is
@@ -36,25 +36,61 @@ import { watch } from "vue";
  *        time to decide whether to auto-pause).
  * @param pause stop the loop (idempotent).
  * @param resume restart the loop (idempotent).
+ * The way back may be eased (`easeIn`): nothing changes instantly, so a scene
+ * whose subject stood still under the hand can gather its speed again instead
+ * of jumping to it. `easeIn(done, keepGoing)` walks the paused loop back up to
+ * speed and calls `done` at the end (or as soon as `keepGoing()` fails: a
+ * Pause pressed meanwhile); the resume follows `done`, still only if the scene
+ * means to play. A hand or a hide that returns mid-way stops the walk where it
+ * stands, and the pause stays ours.
+ *
+ * @param wasRunning probe — true iff the loop is currently ticking (read at hide
+ *        time to decide whether to auto-pause).
+ * @param pause stop the loop (idempotent).
+ * @param resume restart the loop (idempotent).
  * @param hand `held`: true while a hand holds the scene's subject (default:
  *        never); `playing`: the scene's own play state, read before a resume
- *        (default: always).
+ *        (default: always); `easeIn`: the way back up to speed, returning its
+ *        cancel (default: none, the loop resumes at once).
  */
 export function useSceneVisibilityPause(
     wasRunning: () => boolean,
     pause: () => void,
     resume: () => void,
-    { held = () => false, playing = () => true }: { held?: () => boolean; playing?: () => boolean } = {},
+    {
+        held = () => false,
+        playing = () => true,
+        easeIn,
+    }: {
+        held?: () => boolean;
+        playing?: () => boolean;
+        easeIn?: (done: () => void, keepGoing: () => boolean) => () => void;
+    } = {},
 ): void {
     const visibility = useDocumentVisibility();
 
     // Tracks whether the pause was OURS — only then do we auto-resume.
     let autoPaused = false;
+    // The way back up to speed, while it runs (the loop is still paused).
+    let cancelEase: (() => void) | null = null;
+
+    const settle = () => {
+        cancelEase = null;
+        autoPaused = false;
+        if (playing()) resume();
+    };
 
     watch(
         () => visibility.value === "hidden" || held(),
         (yields) => {
             if (yields) {
+                // A reason returned while the loop eased back: it stops where
+                // it stands, still paused, and the pause is still ours.
+                if (cancelEase) {
+                    cancelEase();
+                    cancelEase = null;
+                    return;
+                }
                 // Only pause (and arm the auto-resume) if the loop was actually
                 // running — never claim a pause we didn't cause.
                 if (!autoPaused && wasRunning()) {
@@ -62,9 +98,15 @@ export function useSceneVisibilityPause(
                     pause();
                 }
             } else if (autoPaused) {
-                autoPaused = false;
-                if (playing()) resume();
+                if (!easeIn || !playing()) return settle();
+                let ended = false;
+                const cancel = easeIn(() => {
+                    ended = true;
+                    settle();
+                }, playing);
+                if (!ended) cancelEase = cancel;
             }
         },
     );
+    onScopeDispose(() => cancelEase?.());
 }

@@ -13,6 +13,9 @@ import {
 import { CUBE_ANIMATION_NAMES, cubeSpinKeyframes } from "./cubeMotion";
 import { GRAPH_ATTITUDE, graphAttitudeCss } from "./graphAttitude";
 
+/** The die's way back to speed when a hand lets it go (`easeBack`), in ms. */
+const EASE_BACK_MS = 250;
+
 /** The cube's per-channel paint targets (KF.W13U.w — one element per
  *  transform owner) plus the graph the attitude settle writes. */
 export interface CubeTargets {
@@ -195,6 +198,49 @@ export function useCubeDemo(
         }
     };
 
+    // The way back to speed after a yield: the die stood still under the hand,
+    // and the spin and the bob must not jump from still to full speed in one
+    // frame (the motion law: nothing changes instantly). Over EASE_BACK_MS the
+    // group's clock is walked from where it stopped at a rate that rises from
+    // 0 to 1 on a smoothstep (rate 3u² − 2u³, so the time covered is
+    // EASE_BACK_MS · (u³ − u⁴/2)), its children kept in phase by the group
+    // seek; at the end the rate is 1 and the group resumes from where the walk
+    // left it, so speed carries on without a step. The group stays paused
+    // throughout; a Pause pressed (`keepGoing`), a Reset, or anything that
+    // resumes it meanwhile ends the walk where it stands.
+    function easeBack(done: () => void, keepGoing: () => boolean): () => void {
+        const group = animationGroup.value;
+        const children = Object.values(group.animations).map((entry) => entry.animation);
+        const from = Math.max(0, ...children.map((child) => group.elapsedOf(child)));
+        const covered = (u: number) => EASE_BACK_MS * (u ** 3 - u ** 4 / 2);
+        let start: number | null = null;
+        let last = 0;
+        let cancelled = false;
+        let frame = requestAnimationFrame(function step(now: number) {
+            frame = 0;
+            if (cancelled) return;
+            if (!keepGoing() || !group.started || !group.paused) return done();
+            start ??= last = now;
+            const u = Math.min(1, (now - start) / EASE_BACK_MS);
+            group.seek(from + covered(u)).render();
+            if (u < 1) {
+                last = now;
+                frame = requestAnimationFrame(step);
+                return;
+            }
+            // At full speed. A resumed group's first frame shows the instant it
+            // was paused at, so seat that instant one frame on (at rate 1):
+            // the first resumed frame then moves on by a frame, never holds.
+            group.seek(from + covered(1) + (now - last));
+            done();
+        });
+        return () => {
+            cancelled = true;
+            if (frame) cancelAnimationFrame(frame);
+            frame = 0;
+        };
+    }
+
     // B-3: pause the cube's engine draw loop while the tab is hidden, and while
     // a hand holds the die (the die holds still under it; the page's frames
     // carry the hand alone). The group owns its rAF; `pause()` records each
@@ -205,7 +251,7 @@ export function useCubeDemo(
         () => animationGroup.value.playing(),
         () => animationGroup.value.pause(),
         () => animationGroup.value.resume(),
-        { held: () => held?.value ?? false, playing: () => playing?.value ?? true },
+        { held: () => held?.value ?? false, playing: () => playing?.value ?? true, easeIn: easeBack },
     );
 
     return {
