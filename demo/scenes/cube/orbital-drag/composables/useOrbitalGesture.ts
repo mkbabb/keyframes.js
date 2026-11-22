@@ -1,6 +1,6 @@
 // SERVED MODEL: claude-opus-5-5
 import { useEventListener } from "@vueuse/core";
-import { ref } from "vue";
+import { computed, onScopeDispose, ref } from "vue";
 import {
     angularVelocityFromSamples,
     applyScreenDelta,
@@ -317,6 +317,21 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
         shownT: t,
     });
     const isActive = ref(false);
+    /** A wheel stream the orbit takes is live: from its first event until
+     *  WHEEL_STREAM_GAP_MS after its last (a trackpad's two fingers on the die,
+     *  its momentum included, or a mouse wheel's notches). */
+    const wheeling = ref(false);
+    let wheelQuiet: ReturnType<typeof setTimeout> | undefined;
+    const wheelHeld = () => {
+        wheeling.value = true;
+        clearTimeout(wheelQuiet);
+        wheelQuiet = setTimeout(() => {
+            wheelQuiet = undefined;
+            wheeling.value = false;
+        }, WHEEL_STREAM_GAP_MS);
+    };
+    /** A hand holds the die: a pointer down on it, or a live wheel stream. */
+    const isHeld = computed(() => isActive.value || wheeling.value);
 
     const pressedKeys = ref<PressedKeys>({
         x: false,
@@ -1072,6 +1087,7 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
         const dy = wheelPx(event, event.deltaY);
         if (Math.abs(dx) < 1e-4 && Math.abs(dy) < 1e-4) return;
         if (pointers.size > 0) return;
+        wheelHeld();
         const major = Math.abs(dy) >= Math.abs(dx) ? dy : dx;
         if (event.timeStamp - streamAt > WHEEL_STREAM_GAP_MS) streamFirst = major;
         streamAt = event.timeStamp;
@@ -1213,9 +1229,11 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
     useEventListener(ownerDoc, "pointermove", onPointerMove);
     useEventListener(ownerDoc, "pointerup", onPointerUp);
     useEventListener(ownerDoc, "pointercancel", onPointerCancel);
+    onScopeDispose(() => clearTimeout(wheelQuiet));
 
     return {
         isActive,
+        isHeld,
         pressedKeys,
         pointers,
         onPointerDown,

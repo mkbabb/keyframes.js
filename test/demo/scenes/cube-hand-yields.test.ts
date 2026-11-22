@@ -154,3 +154,45 @@ describe("the playing cube yields to a hand on the die", () => {
         app.unmount();
     });
 });
+
+describe("a wheel stream on the die is a hand on it", () => {
+    it("emits hold true at the stream's first event and false once it has been quiet for 300 ms", async () => {
+        vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+        try {
+            const model = ref<TransformState>(structuredClone(defaultTransformState));
+            const w = mount(OrbitalDrag, {
+                props: {
+                    applyTransformToContainer: true,
+                    modelValue: model.value,
+                    "onUpdate:modelValue": (v: TransformState) => (model.value = v),
+                    frame: () => ({ centre: { x: 200, y: 300 }, side: 160, fit: 1, stage: null }),
+                },
+                attachTo: document.body,
+            });
+            await nextTick();
+            const surface = w.element as HTMLElement;
+            const wheel = (t: number) => {
+                const e = new WheelEvent("wheel", { deltaY: 8, clientX: 200, clientY: 300, cancelable: true, bubbles: true });
+                Object.defineProperty(e, "timeStamp", { value: t });
+                surface.dispatchEvent(e);
+            };
+            for (let i = 0; i < 6; i++) {
+                wheel(10 + 8 * i);
+                vi.advanceTimersByTime(8);
+            }
+            await nextTick();
+            expect(w.emitted("hold")).toEqual([[true]]);
+            // Still held 250 ms after the last event (its momentum may follow) ...
+            vi.advanceTimersByTime(250);
+            await nextTick();
+            expect(w.emitted("hold")).toEqual([[true]]);
+            // ... and let go once the stream has been quiet for 300 ms.
+            vi.advanceTimersByTime(60);
+            await nextTick();
+            expect(w.emitted("hold")).toEqual([[true], [false]]);
+            w.unmount();
+        } finally {
+            vi.useRealTimers();
+        }
+    });
+});

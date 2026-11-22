@@ -22,10 +22,11 @@ import { watch } from "vue";
  * forward jump on return.
  *
  * A hand on the subject is the second reason (`held`): while a finger or the
- * mouse holds the die, the scene's own loop yields, so the page's frames carry
- * the hand and nothing else (a playing scene repaints its transport every frame,
- * and on a phone its touches then reached the page about 15 ms later: 28.7 ms
- * against 13.2 ms paused). The die holds still under the hand and plays on from
+ * mouse holds the die, or a wheel stream turns it, the scene's own loop yields,
+ * so the page's frames carry the hand and nothing else (a playing scene
+ * repaints its transport every frame, and its input then reached the page later:
+ * a phone's touches 28.7 ms after their time against 13.2 ms paused, a desk's
+ * wheel about 20 ms against the embed's 12). The die holds still under the hand and plays on from
  * the same instant when it is let go. The same honesty holds: only a loop that
  * was running is paused, and only that pause is resumed, once neither reason
  * stands and the scene still means to play (a Pause pressed while the hand
