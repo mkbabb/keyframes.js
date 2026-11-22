@@ -299,6 +299,40 @@ test.describe("upright phone 390x844: the die and the folded dock", () => {
     });
 });
 
+test.describe("upright phone 390x844: the opened sheet", () => {
+    test.use({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, hasTouch: true, isMobile: true, colorScheme: "dark" });
+
+    const openSheet = async (page, scene) => {
+        await page.goto(at(scene));
+        await page.waitForSelector(".scene-host", { timeout: 30_000 });
+        await page.waitForTimeout(2000);
+        await page.locator('button[aria-label="Controls"]').tap();
+        await page.waitForTimeout(1500);
+    };
+
+    // P2d: Reset (to the start) never stands alone on a row: on one-channel
+    // scenes it heads the surface's own first row.
+    for (const scene of ["/easing", "/sequence", "/cube"]) {
+        test(`${scene}: Reset shares its row with another control`, async ({ page }) => {
+            await openSheet(page, scene);
+            const row = await page.evaluate(() => {
+                const sheet = document.querySelector(".controls-drawer-content");
+                const reset = sheet?.querySelector('button[aria-label="Reset animation"]');
+                if (!reset) return null;
+                const r = reset.getBoundingClientRect();
+                const mid = (r.top + r.bottom) / 2;
+                const others = [...sheet.querySelectorAll('button, [role="slider"], [role="combobox"], input')]
+                    .filter((e) => e !== reset && !e.closest('[data-slot="dialog-close"]') && e.getAttribute("data-slot") !== "dialog-close")
+                    .map((e) => e.getBoundingClientRect())
+                    .filter((b) => b.width > 0 && b.top <= mid && b.bottom >= mid);
+                return { others: others.length };
+            });
+            expect(row).not.toBeNull();
+            expect(row.others).toBeGreaterThan(0);
+        });
+    }
+});
+
 test.describe("desk 1440: the site's own motions read as done within the band", () => {
     test.use({ viewport: { width: 1440, height: 900 } });
 

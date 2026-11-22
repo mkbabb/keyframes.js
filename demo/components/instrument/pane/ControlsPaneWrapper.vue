@@ -269,16 +269,11 @@
                  dock leaves out at rest, so its scrub keeps its length: Reset
                  (to the start) and, where the scene has two or more channels,
                  the channel the controls edit. A landscape phone's transport
-                 keeps both. -->
-            <div v-if="!isShortLayout" class="sheet-head-row">
-                <Tooltip>
-                    <TooltipTrigger as-child>
-                        <Button emphasis="quiet" icon-only aria-label="Reset animation" @click="emit('reset')">
-                            <SkipBack class="sheet-head-glyph" aria-hidden="true" />
-                        </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Reset animation</TooltipContent>
-                </Tooltip>
+                 keeps both. With one channel the surface heading the sheet
+                 carries Reset in its own first row (useSheetReset.ts), and this
+                 row gives way: Reset alone never takes a row. -->
+            <div v-if="!isShortLayout && !resetCarried()" class="sheet-head-row">
+                <SheetResetButton @reset="emit('reset')" />
                 <Select
                     v-if="channelNames.length > 1"
                     :model-value="storedControls.selectedAnimation ?? ''"
@@ -348,7 +343,6 @@ import { Card } from "@mkbabb/glass-ui/card";
 import { Dialog, DialogTitle } from "@mkbabb/glass-ui/dialog";
 import { FadingScroll } from "@mkbabb/glass-ui/fading-scroll";
 import { SheetContent } from "@mkbabb/glass-ui/sheet";
-import { Button } from "@mkbabb/glass-ui/button";
 import {
     Select,
     SelectContent,
@@ -357,8 +351,6 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@mkbabb/glass-ui/select";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@mkbabb/glass-ui/tooltip";
-import { SkipBack } from "@lucide/vue";
 import { createReusableTemplate, useEventListener, useMediaQuery } from "@vueuse/core";
 import {
     type ComponentPublicInstance,
@@ -375,6 +367,8 @@ import {
 import type { StageReserve, TransportChannel } from "../transport/transportSource";
 import ChannelControls from "./channel-controls/ChannelControls.vue";
 import RibbonBar from "./RibbonBar.vue";
+import SheetResetButton from "./SheetResetButton.vue";
+import { SHEET_RESET_KEY, provideSheetReset } from "./composables/useSheetReset";
 import SequenceTimeline from "../timeline/SequenceTimeline.vue";
 import { useControlsLayout } from "./composables/useControlsLayout";
 import { useStageReserve } from "./composables/useStageReserve";
@@ -853,21 +847,13 @@ const onSheetOutside = (e: Event): void => {
     }
 };
 
-// X-DS r9 pass 7 (KF-C7-01) — A PARKED PEEK'S TITLE ROW RAISES THE SHEET.
-// The peek shows one row of the pane: the surface's ConfiguratorLayer header
-// (its title and the up-chevron). Live in a parked sheet, that header folded
-// the layer's body hidden under the peek's clip (403 -> 57 px at 390x844)
-// while the sheet stayed at PEEK, so the one obvious control in the peek did
-// nothing the user could see, and a second tap unfolded it again. While the
-// bottom sheet is parked, a press on a layer header (pointer or key: both
-// arrive as `click`) is taken here, in the capture phase before the layer's
-// own toggle, and raises the sheet to OPEN: the same open fact the drag and
-// the grip key write. The up-chevron then says what the press does. Once the
-// sheet is OPEN or FULL the header is the layer's own collapse again. The
-// side sheet (a short landscape phone) rests as the rail, its body in view,
-// so its headers keep their own toggle. (The sheet's position is glass's:
-// since 10.1.1 (G-1) `SheetContent` carries the `fixed` utility, curing the
-// SHEET-POSITION row held on O-87/O-88; nothing here overrides it.)
+// ── P2d — with one channel, Reset rides the heading surface's first row ──
+const { api: sheetResetSeat, carried: resetCarried } = provideSheetReset(
+    computed(() => isMobileLayout.value && !isShortLayout.value && channelNames.value.length < 2),
+    () => emit("reset"),
+);
+provide(SHEET_RESET_KEY, sheetResetSeat);
+
 // ── P2f — the upright phone's pane, mounted at idle and parked ──────────
 // The first Controls press used to mount the whole pane inside its own frame
 // (a 140 to 190 ms task on a 4x phone before the sheet's first frame). On an
@@ -945,6 +931,21 @@ useStageReserve({
     publish: (r) => emit("stageReserve", r),
 });
 
+// X-DS r9 pass 7 (KF-C7-01) — A PARKED PEEK'S TITLE ROW RAISES THE SHEET.
+// The peek shows one row of the pane: the surface's ConfiguratorLayer header
+// (its title and the up-chevron). Live in a parked sheet, that header folded
+// the layer's body hidden under the peek's clip (403 -> 57 px at 390x844)
+// while the sheet stayed at PEEK, so the one obvious control in the peek did
+// nothing the user could see, and a second tap unfolded it again. While the
+// bottom sheet is parked, a press on a layer header (pointer or key: both
+// arrive as `click`) is taken here, in the capture phase before the layer's
+// own toggle, and raises the sheet to OPEN: the same open fact the drag and
+// the grip key write. The up-chevron then says what the press does. Once the
+// sheet is OPEN or FULL the header is the layer's own collapse again. The
+// side sheet (a short landscape phone) rests as the rail, its body in view,
+// so its headers keep their own toggle. (The sheet's position is glass's:
+// since 10.1.1 (G-1) `SheetContent` carries the `fixed` utility, curing the
+// SHEET-POSITION row held on O-87/O-88; nothing here overrides it.)
 const onParkedHeaderPress = (e: MouseEvent) => {
     if (props.storedControls.isControlsPanelOpen || sheetSide.value !== "bottom") return;
     const sheet = e.currentTarget;

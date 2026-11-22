@@ -130,6 +130,7 @@ describe("limb (a) — the pane is instrument/pane; transport/ keeps the dock an
             "ControlsPaneWrapper.css",
             "ControlsPaneWrapper.vue",
             "RibbonBar.vue",
+            "SheetResetButton.vue",
             "channel-controls",
             "composables",
         ]);
@@ -137,6 +138,7 @@ describe("limb (a) — the pane is instrument/pane; transport/ keeps the dock an
             "useControlsLayout.ts",
             "useFoldLanding.ts",
             "usePaneHover.ts",
+            "useSheetReset.ts",
             "useStageReserve.ts",
         ]);
     });

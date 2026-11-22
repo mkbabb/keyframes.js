@@ -28,6 +28,10 @@
                  seat 20 px above the pane's edge instead of ~8 px. -->
             <ConfiguratorLayer class="rail-fill" label="Stagger" default-open body-class="flex grow flex-col gap-3 pb-5">
                 <template #actions>
+                    <!-- P2d — on an upright phone with this one channel, the
+                         sheet's Reset (to the start) heads this row, so it takes
+                         no row of its own (useSheetReset.ts). -->
+                    <SheetResetButton v-if="sheetReset.shown.value" @reset="sheetReset.reset()" />
                     <!-- X.KF.W13X.dh2 (UIA-KF-098) — THE REEL, homed off the
                          stage: a verb on the items, so it sits with their other
                          verb in this layer's header, in Reset's register (glass
@@ -78,7 +82,10 @@ import { Button, Separator } from "@mkbabb/glass-ui";
 import { ConfiguratorLayer } from "@mkbabb/glass-ui/configurator";
 import { RotateCcw } from "@lucide/vue";
 import SequenceLanes from "./components/SequenceLanes.vue";
+import SheetResetButton from "../pane/SheetResetButton.vue";
+import { useSheetReset } from "../pane/composables/useSheetReset";
 import type { SequenceTimelineSource } from "@composables/scene-facility/sequenceTimeline";
 
 const { source } = defineProps<{ source: SequenceTimelineSource }>();
+const sheetReset = useSheetReset();
 </script>
