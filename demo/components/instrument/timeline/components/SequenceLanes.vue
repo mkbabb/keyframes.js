@@ -14,8 +14,8 @@
         :style="{ '--seq-p': playhead / 100 }"
         labelled
         scrub-label="Scrub the sequence master clock"
-        :value="source.progress() * 100"
-        :value-text="`${Math.round(source.progress() * source.duration())} ms of ${source.duration()} ms`"
+        :value="progress * 100"
+        :value-text="`${Math.round(progress * source.duration())} ms of ${source.duration()} ms`"
         :step="SCRUB_KEY_STEP"
         :page-step="SCRUB_PAGE_STEP"
         :lanes="lanes"
@@ -91,6 +91,7 @@ import { computed, ref } from "vue";
 import { clamp } from "@mkbabb/value.js/math";
 import LaneTrack, { type LaneTrackBeginDrag, type LaneTrackTick } from "./LaneTrack.vue";
 import type { SequenceTimelineSource } from "@composables/scene-facility/sequenceTimeline";
+import { usePaneShown } from "../../pane/composables/usePaneShown";
 
 const props = defineProps<{ source: SequenceTimelineSource }>();
 // THE SOURCE GUARD (C·C-4, carried from the stage scrubber's provider guard):
@@ -137,8 +138,20 @@ const applyScrub = (percent: number) => {
 const dragAxis = ref<number | null>(null);
 const axis = computed(() => dragAxis.value ?? props.source.duration());
 
+/**
+ * The master clock's progress as the lanes draw it. P2f — while the pane is
+ * parked (an upright phone's sheet shut) the lanes hold the last playhead they
+ * drew and read no frame of a play: the clock's per-frame progress is not read,
+ * so nothing here renders until the pane is shown again, where it reads the
+ * clock afresh.
+ */
+const paneShown = usePaneShown();
+const progress = computed<number>((held) =>
+    paneShown.value || held === undefined ? props.source.progress() : held,
+);
+
 /** The playhead's place in the time column (%), on the drawn axis. */
-const playhead = computed(() => ((props.source.progress() * props.source.duration()) / axis.value) * 100);
+const playhead = computed(() => ((progress.value * props.source.duration()) / axis.value) * 100);
 
 /** The lanes, keyed for the track. */
 const lanes = computed(() => props.source.lanes().map((lane) => ({ key: lane.index, ...lane })));

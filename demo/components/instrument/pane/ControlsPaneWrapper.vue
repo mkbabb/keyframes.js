@@ -292,10 +292,10 @@
                 </Select>
             </div>
             <!-- An upright phone's pane is not born with the sheet: it is
-                 mounted at idle after the page's first paint (or at the first
-                 Controls press, whichever comes first), parked unseen, and
+                 mounted when the visitor reaches for the Controls seat (or by
+                 the press, when nothing came first), parked unseen, and
                  carried into this slot when the sheet opens and back to its
-                 park when it closes (the Teleport below), so a press never
+                 park when it closes (the Teleport below), so no later press
                  waits on the pane's mount. `display: contents`: the pane is the
                  sheet region's body row, as if it stood here itself. -->
             <div v-if="!isShortLayout" ref="paneSlot" class="sheet-pane-slot"></div>
@@ -369,6 +369,7 @@ import ChannelControls from "./channel-controls/ChannelControls.vue";
 import RibbonBar from "./RibbonBar.vue";
 import SheetResetButton from "./SheetResetButton.vue";
 import { SHEET_RESET_KEY, provideSheetReset } from "./composables/useSheetReset";
+import { PANE_SHOWN_KEY } from "./composables/usePaneShown";
 import SequenceTimeline from "../timeline/SequenceTimeline.vue";
 import { useControlsLayout } from "./composables/useControlsLayout";
 import { useStageReserve } from "./composables/useStageReserve";
@@ -854,13 +855,18 @@ const { api: sheetResetSeat, carried: resetCarried } = provideSheetReset(
 );
 provide(SHEET_RESET_KEY, sheetResetSeat);
 
-// ── P2f — the upright phone's pane, mounted at idle and parked ──────────
+// ── P2f — the upright phone's pane, mounted on intent and parked ────────
 // The first Controls press used to mount the whole pane inside its own frame
 // (a 140 to 190 ms task on a 4x phone before the sheet's first frame). On an
-// upright phone the pane is now mounted once the page has painted and gone
-// idle (never inside a scene change), or at the first press if that comes
-// sooner; it waits in a hidden park and is carried (not remounted) into the
-// sheet's slot while the sheet shows, and back when it has gone. The landscape
+// upright phone the pane is now mounted when the visitor reaches for the
+// Controls seat (its pointerenter, pointerdown or focus, about 100 ms ahead of
+// the click; AnimationControlsGroup relays it to `warmPane`), or by the press
+// itself when nothing came first. It is never mounted at idle: the pane is the
+// scene's own, so an idle mount would land after every load and every scene
+// change, for a pane nobody opened (the reason T.G9 dropped the editor's idle
+// warm). Once mounted it is carried (not remounted) into the sheet's slot
+// while the sheet shows, and back to a hidden park when it has gone; parked,
+// it reads nothing per frame (`paneShown`, usePaneShown.ts). The landscape
 // rail and the desktop column keep the pane where they always had it.
 const uprightPhone = computed(() => isMobileLayout.value && !isShortLayout.value && showSheet.value);
 const paneWarm = shallowRef(false);
@@ -870,47 +876,22 @@ const panePark = useTemplateRef<HTMLElement>("panePark");
 const paneHome = computed<HTMLElement | null>(() =>
     uprightPhone.value && paneWarm.value ? (paneSlot.value ?? panePark.value ?? null) : null,
 );
-let idleHandle: number | ReturnType<typeof setTimeout> | null = null;
-let idleFrame = 0;
-const cancelIdle = () => {
-    if (idleFrame) cancelAnimationFrame(idleFrame);
-    idleFrame = 0;
-    if (idleHandle === null) return;
-    if (typeof cancelIdleCallback === "function" && typeof idleHandle === "number") cancelIdleCallback(idleHandle);
-    else clearTimeout(idleHandle);
-    idleHandle = null;
+/** The visitor reaches for the Controls seat: mount the pane, unseen, ahead of the press. */
+const warmPane = (): void => {
+    if (uprightPhone.value) paneWarm.value = true;
 };
-/** Warm the pane once the page is idle, and not while a scene change runs. */
-const warmAtIdle = () => {
-    cancelIdle();
-    const later = (cb: () => void) =>
-        typeof requestIdleCallback === "function" ? requestIdleCallback(cb, { timeout: 2000 }) : setTimeout(cb, 600);
-    idleHandle = later(() => {
-        idleHandle = null;
-        if (paneWarm.value || !uprightPhone.value) return;
-        if (swapRunning()) return warmAtIdle();
-        paneWarm.value = true;
-    });
-};
-onMounted(() => {
-    // After the first paint: a frame callback, then the next idle period.
-    idleFrame = requestAnimationFrame(() => {
-        idleFrame = 0;
-        if (uprightPhone.value) warmAtIdle();
-    });
-});
-watch(uprightPhone, (upright) => {
-    if (upright && !paneWarm.value && !idleFrame && idleHandle === null) warmAtIdle();
-});
-// A press before the idle came mounts the pane with the sheet, as before.
+// A press that nothing came before mounts the pane with the sheet, as before.
 watch(
     () => props.storedControls.isControlsPanelOpen,
     (open) => {
-        if (open && uprightPhone.value) paneWarm.value = true;
+        if (open) warmPane();
     },
     { immediate: true },
 );
-onBeforeUnmount(cancelIdle);
+/** The pane can be seen: in the sheet's slot on an upright phone; elsewhere always. */
+const paneShown = computed(() => !uprightPhone.value || (paneHome.value !== null && paneHome.value === paneSlot.value));
+provide(PANE_SHOWN_KEY, paneShown);
+defineExpose({ warmPane });
 
 // ── KF-M1 — the visible-stage reserve (D-2 · D-3 · D-28) ──────────────
 // The sheet is portalled to <body>, so it is found by its own class.

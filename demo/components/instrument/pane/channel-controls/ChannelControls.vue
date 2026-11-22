@@ -181,6 +181,7 @@ import {
 import { useAnimationSync } from "./composables/useAnimationSync";
 import { usePlaybackToggle } from "./composables/usePlaybackToggle";
 import { useKeyframesPaneReveal } from "./composables/useKeyframesPaneReveal";
+import { usePaneShown } from "../composables/usePaneShown";
 import { useSelectedControlSurface } from "./composables/useSelectedControlSurface";
 import {
     useSceneMachine,
@@ -374,6 +375,9 @@ const renderTimeline = (): VNode | null => {
 // `isPlaying` guard is the group's), the user's reverse intent, the wake a
 // scrub owes the idled read-back, the rail's scale and the ball preview's eye.
 const ribbonSeat = inject(RIBBON_SEAT_KEY, null);
+// P2f — whether the pane holding this host can be seen (an upright phone's
+// pane waits unseen in a park while the sheet is shut).
+const paneShown = usePaneShown();
 const ribbonShown = computed(
     () => Boolean(active) && hasSurface("controls") && selectedControlSurface.value === "controls",
 );
@@ -395,8 +399,8 @@ const {
     toRef(() => isPlayingProp ?? false),
     // KF-URL (a) — the read-back has a reader only while the rail is on show
     // AND in view (the seat's `inView`): a rail scrolled out of sight is not
-    // re-rendered every frame of a play.
-    computed(() => ribbonShown.value && (ribbonSeat?.inView.value ?? true)),
+    // re-rendered every frame of a play. P2f — nor in a parked pane.
+    computed(() => ribbonShown.value && paneShown.value && (ribbonSeat?.inView.value ?? true)),
 );
 const { userReversed, toggleReverse } = usePlaybackToggle(() => animation);
 const ribbonBinding = (): PlaybackRibbonBinding => ({
@@ -447,6 +451,7 @@ const { keyframesActive, keyframesWarmed } = useKeyframesPaneReveal({
     keyframesPaneEl,
     // X.KF.W13X.esc1 (ESC-mobile-1) — the channel's warm flag lives in the store.
     keyframesWarmed: toRef(channelState, "keyframesWarmed"),
+    shown: paneShown,
 });
 // KFA-119 — the idle warm, or the first ask, fetches the timeline module.
 watch(

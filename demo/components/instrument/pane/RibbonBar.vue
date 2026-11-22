@@ -161,6 +161,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@mkbabb/glass-ui/toolti
 import type { StoredAnimationGroupControlOptions } from "@state";
 import PlaybackRibbon from "@components/playback/PlaybackRibbon.vue";
 import { CHANNEL_COMMANDS_KEY, RIBBON_SEAT_KEY } from "../transport/injectionKeys";
+import { usePaneShown } from "./composables/usePaneShown";
 
 // owner-1112 [42] — the verbs are glass DockControls in a GlassDock: the
 // producer owns their size, radius, hover plate and press; the active Apply
@@ -194,6 +195,7 @@ const ribbon = computed(() => {
 // The margin wakes the read-back a little before the rail scrolls in, so the
 // first frame it shows already holds the live playhead.
 const ribbonSlot = useTemplateRef<HTMLElement>("ribbonSlot");
+const paneShown = usePaneShown();
 if (ribbonSeat) {
     useIntersectionObserver(
         ribbonSlot,
@@ -205,6 +207,13 @@ if (ribbonSeat) {
     );
     watch(ribbonSlot, (el) => {
         if (!el) ribbonSeat.inView.value = true;
+    });
+    // P2f — a pane carried out of its park into the sheet: the observer's
+    // first report comes a frame after the move, so the rail counts as in view
+    // from the move on (the read-back reads at once, never one stale frame)
+    // until the observer says otherwise.
+    watch(paneShown, (shown) => {
+        if (shown) ribbonSeat.inView.value = true;
     });
 }
 

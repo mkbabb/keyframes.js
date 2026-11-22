@@ -10,6 +10,9 @@ interface UseKeyframesPaneRevealOptions {
      *  `getChannelControlsState(animation).keyframesWarmed`): a channel whose
      *  editor was warmed mounts warm again after a swap. */
     keyframesWarmed: Ref<boolean>;
+    /** P2f — whether the pane can be seen (usePaneShown): a parked pane mounts
+     *  no editor. Default: always. */
+    shown?: Readonly<Ref<boolean>>;
 }
 
 interface UseKeyframesPaneRevealReturn {
@@ -41,7 +44,7 @@ interface UseKeyframesPaneRevealReturn {
 export function useKeyframesPaneReveal(
     options: UseKeyframesPaneRevealOptions,
 ): UseKeyframesPaneRevealReturn {
-    const { storedControls, keyframesPaneEl, keyframesWarmed } = options;
+    const { storedControls, keyframesPaneEl, keyframesWarmed, shown } = options;
 
     const keyframesActive = computed(
         () => storedControls.selectedControl === "keyframes",
@@ -57,10 +60,13 @@ export function useKeyframesPaneReveal(
     // warm module cache. There is no idle warm: an idle callback fired within
     // the first seconds of every scene that has a Keyframes surface and fetched
     // and evaluated Monaco (~2.5 MB) and Prettier for a pane nobody opened.
+    // P2f — nor in a parked pane: an upright phone's pane mounted ahead of the
+    // Controls press, with the Keyframes surface remembered, mounts the editor
+    // when the sheet shows it, not while it waits unseen.
     watch(
-        keyframesActive,
-        (active) => {
-            if (active) keyframesWarmed.value = true;
+        [keyframesActive, () => shown?.value ?? true],
+        ([active, seen]) => {
+            if (active && seen) keyframesWarmed.value = true;
         },
         { immediate: true },
     );
