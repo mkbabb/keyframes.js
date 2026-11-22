@@ -17,6 +17,24 @@
         :style="seat.containerStyle"
     >
         <div class="panel-content p-0">
+            <!-- The duration param — X.KF.W13V.y (OA-51; DESIGN-NOTE N-2): the
+                 PARAM ROW idiom (`.param-row`, design-idioms.css) — label and
+                 live value on one line, the slider spanning the row beneath.
+                 Defined once; it stands in one of two places (below). -->
+            <DefineDurationRow v-slot="{ lead }">
+                <div class="param-row" :class="{ 'min-w-0 flex-1': lead }">
+                    <LabeledSlider
+                        :model-value="demo.duration.value"
+                        label="duration"
+                        :min="300"
+                        :max="5000"
+                        :step="100"
+                        :value-text="(v: number) => `${v} milliseconds`"
+                        @update:model-value="(v) => { demo.duration.value = v; }"
+                    />
+                    <output class="param-value" aria-hidden="true">{{ demo.duration.value }} ms</output>
+                </div>
+            </DefineDurationRow>
             <!-- X.KF.W13X.sq+dh (§0dz, addendum (e)) — the pane wears glass's
                  section anatomy (the ConfiguratorLayer the Spring and Sequence
                  panes wear): one labelled section holding the curve editor and
@@ -35,6 +53,18 @@
                         : { label: 'Easing', defaultOpen: true, bodyClass: 'flex flex-col' }
                 "
             >
+                <!-- P2d — on an upright phone with one channel the sheet's
+                     Reset (to the start) shares the duration row, and that row
+                     leads the facet: Reset and the duration, its rule, then the
+                     curve, in the order they are read, focused and spoken, so
+                     Reset never takes a row of its own (useSheetReset.ts). -->
+                <template v-if="sheetReset.shown.value">
+                    <div class="sheet-lead-row">
+                        <SheetResetButton @reset="sheetReset.reset()" />
+                        <ReuseDurationRow lead />
+                    </div>
+                    <Separator />
+                </template>
                 <!-- KF-ES-12 ≡ KF-TFP-1 — the picker sits in the shared
                      `useEasingPickerSeat` (demo/composables), the SAME
                      seat the transport's TimingFunctionPanel uses. A tile that
@@ -109,29 +139,11 @@
                     Edit as a custom curve
                 </Button>
 
-                <Separator :class="{ 'sheet-lead-rule': sheetReset.shown.value }" />
-                <!-- The duration param — X.KF.W13V.y (OA-51; DESIGN-NOTE N-2): the
-                     PARAM ROW idiom (`.param-row`, design-idioms.css) — label and
-                     live value on one line, the slider spanning the row beneath. -->
-                <!-- P2d — on an upright phone the sheet's Reset (to the start)
-                     shares this row, and the row leads the facet (duration, then
-                     its rule, then the curve), so Reset never takes a row of its
-                     own (useSheetReset.ts). Elsewhere the wrapper draws no box. -->
-                <div :class="sheetReset.shown.value ? 'sheet-lead-row' : 'contents'">
-                    <SheetResetButton v-if="sheetReset.shown.value" @reset="sheetReset.reset()" />
-                    <div class="param-row" :class="{ 'min-w-0 flex-1': sheetReset.shown.value }">
-                        <LabeledSlider
-                            :model-value="demo.duration.value"
-                            label="duration"
-                            :min="300"
-                            :max="5000"
-                            :step="100"
-                            :value-text="(v: number) => `${v} milliseconds`"
-                            @update:model-value="(v) => { demo.duration.value = v; }"
-                        />
-                        <output class="param-value" aria-hidden="true">{{ demo.duration.value }} ms</output>
-                    </div>
-                </div>
+                <!-- Elsewhere the duration closes the section, under its rule. -->
+                <template v-if="!sheetReset.shown.value">
+                    <Separator />
+                    <ReuseDurationRow :lead="false" />
+                </template>
             </component>
         </div>
     </div>
@@ -139,7 +151,7 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
-import { useMediaQuery } from "@vueuse/core";
+import { createReusableTemplate, useMediaQuery } from "@vueuse/core";
 import { Separator } from "@mkbabb/glass-ui";
 import { Button } from "@mkbabb/glass-ui/button";
 import { LabeledSlider } from "@mkbabb/glass-ui/labeled-field";
@@ -168,6 +180,8 @@ const uprightPhone = useMediaQuery("(max-width: 1023px) and (min-height: 501px)"
 const props = defineProps<{ demo: EasingDemoContext }>();
 const demo = props.demo;
 const sheetReset = useSheetReset();
+/** The duration row, drawn first on an upright phone's sheet, last elsewhere. */
+const [DefineDurationRow, ReuseDurationRow] = createReusableTemplate<{ lead: boolean }>();
 
 // ── Where the truth lives: the demo context (the scene's ONE authoring seam) ──
 // glass-ui's bezier catalogue is value.js `bezierPresets` (30 keys); the demo's
@@ -266,15 +280,11 @@ watch(
 
 <style scoped>
 /* P2d — the upright phone sheet's lead row: Reset and the duration on one row,
-   ahead of the curve, its rule between them. */
+   ahead of the curve (first in the DOM too), its rule under them. */
 .sheet-lead-row {
-    order: -2;
     display: flex;
     align-items: center;
     gap: 0.5rem;
-}
-.sheet-lead-rule {
-    order: -1;
 }
 /* X-DS pass 7 (KF-C7-02) — THE EDITOR FITS THE RAIL, on the Easing route too.
    The cube's sub-pane took the rail's named budget (`--rail-block`,
