@@ -90,3 +90,61 @@ describe("D-28 — the PEEK rests on a row foot seen through the port", () => {
         vi.unstubAllGlobals();
     });
 });
+
+/**
+ * K25 — the upright phone's OPEN rung takes whole rows: the easing plot is one.
+ *
+ * Measured on the judged build at 390x844: the sheet opened to 304 px (0.36)
+ * from y 462 to 766, and the easing plot stood 324 px tall from 585 to 909, so
+ * its lower handle was out of view. Here the open sheet's geometry, relative to
+ * its top edge: the grip header, the lead row, then the plot.
+ */
+describe("K25 — the OPEN rung lands on a whole row's foot, the plot taken whole", () => {
+    const OPEN_ROWS_K25 = [
+        { slot: "labeled-field", top: 58, bottom: 112 },
+        { slot: "easing-handles", top: 128, bottom: 452 },
+    ];
+    const buildOpen = (h: number) => {
+        const sheet = document.createElement("div");
+        const port = document.createElement("div");
+        port.className = "fading-scroll fading-scroll--y";
+        sheet.append(port);
+        for (const r of OPEN_ROWS_K25) {
+            const e = document.createElement("div");
+            e.dataset.slot = r.slot;
+            e.getBoundingClientRect = () => rect(r.top, r.bottom);
+            port.append(e);
+        }
+        sheet.getBoundingClientRect = () => rect(0, h);
+        port.getBoundingClientRect = () => rect(48, h - PORT_INSET);
+        const styles = new Map<Element, Record<string, string>>([
+            [sheet, { minBlockSize: "171px", paddingBlockEnd: `${SHEET_PAD_END}px`, overflowY: "visible" }],
+            [port, { overflowY: "auto", borderBottomWidth: "0px" }],
+        ]);
+        vi.spyOn(window, "getComputedStyle").mockImplementation((el: Element) => {
+            const s = styles.get(el) ?? { overflowY: "visible", borderBottomWidth: "0px" };
+            return { ...s, getPropertyValue: (k: string) => s[k] ?? "" } as unknown as CSSStyleDeclaration;
+        });
+        return sheet;
+    };
+    const SEL = '[data-slot="labeled-field"], [data-slot="easing-handles"]';
+
+    it("the plot's foot is inside the port's clip edge at OPEN", async () => {
+        vi.stubGlobal("innerHeight", IH);
+        const { rowBoundaryOpen } = await import("@components/instrument/pane/composables/useStageReserve");
+        const t = rowBoundaryOpen(buildOpen(0.36 * IH), SEL, 0.36, 0.6)!;
+        const edge = t * IH - PORT_INSET;
+        const plot = OPEN_ROWS_K25[1]!;
+        expect(plot.bottom).toBeLessThanOrEqual(edge + 0.5);
+        // ...and no more than the plot: the rest is the stage's.
+        expect(edge - plot.bottom).toBeLessThanOrEqual(0.5);
+        vi.unstubAllGlobals();
+    });
+
+    it("keeps 0.36 where no row foot lies between it and the cap", async () => {
+        vi.stubGlobal("innerHeight", IH);
+        const { rowBoundaryOpen } = await import("@components/instrument/pane/composables/useStageReserve");
+        expect(rowBoundaryOpen(buildOpen(0.36 * IH), SEL, 0.36, 0.5)).toBe(0.36);
+        vi.unstubAllGlobals();
+    });
+});

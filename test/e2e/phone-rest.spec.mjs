@@ -331,6 +331,30 @@ test.describe("upright phone 390x844: the opened sheet", () => {
             expect(row.others).toBeGreaterThan(0);
         });
     }
+
+    // K25: at OPEN the easing plot and both handles are inside the sheet's
+    // visible box (the port the sheet shows its rows through).
+    test("/easing: the plot and both handles are whole at OPEN", async ({ page }) => {
+        await openSheet(page, "/easing");
+        const fit = await page.evaluate(() => {
+            const sheet = document.querySelector(".controls-drawer-content");
+            const port = sheet?.querySelector(".controls-pane");
+            const plot = sheet?.querySelector('[data-slot="easing-handles"]');
+            if (!sheet || !port || !plot) return null;
+            const s = sheet.getBoundingClientRect();
+            const p = port.getBoundingClientRect();
+            const box = { top: Math.max(s.top, p.top), bottom: Math.min(s.bottom, p.bottom) };
+            const handles = [...plot.querySelectorAll('[role="slider"]')].map((h) => h.getBoundingClientRect());
+            const pb = plot.getBoundingClientRect();
+            return { box, plot: { top: pb.top, bottom: pb.bottom }, handles: handles.map((h) => ({ top: h.top, bottom: h.bottom })) };
+        });
+        expect(fit).not.toBeNull();
+        expect(fit.handles).toHaveLength(2);
+        for (const b of [fit.plot, ...fit.handles]) {
+            expect(b.top).toBeGreaterThanOrEqual(fit.box.top - 0.5);
+            expect(b.bottom).toBeLessThanOrEqual(fit.box.bottom + 0.5);
+        }
+    });
 });
 
 test.describe("desk 1440: the site's own motions read as done within the band", () => {
