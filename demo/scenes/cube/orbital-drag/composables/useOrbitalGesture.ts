@@ -158,6 +158,18 @@ export const LEAD_FRAMES = 0;
  *  there, and the hand would step. One sample back, every frame falls between
  *  two real samples and moves; a mouse keeps its 4 ms. */
 export const TOUCH_BACK_MAX_MS = 20;
+/** A touch or a pen's shown instant moves on at most this many times the
+ *  frame's own interval in one frame while its samples come at a digitiser's
+ *  pace (TOUCH_STREAM_MS apart or closer). A sample that reaches a busy page
+ *  late, after its frames held the die at the sample before, is caught up over
+ *  the next frames and never shown whole in one: under load a phone's touches
+ *  land about 22 ms apart and 13 to 19 ms late against 8.3 ms frames. A hand
+ *  whose samples are further apart is a slow hand moving in steps, and its
+ *  newest sample is reached as before (one sample back, at most 20 ms). */
+export const TOUCH_CATCH_UP = 2;
+/** The hand's events (every finger's, a joining or lifting finger's
+ *  included) come at least this often while it streams (ms). */
+export const TOUCH_STREAM_MS = 2 * TOUCH_BACK_MAX_MS;
 /** A lead returns (through its follower) once the hand has sent nothing for
  *  this many of its own sample intervals, or frames, whichever is longer. */
 const STOP_INTERVALS = 1.5;
@@ -281,6 +293,18 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
         shownT: number;
     };
     const pointers = new Map<number, Hand>();
+    /** The gesture's last few event times (every finger's), for its cadence. */
+    const stamps: number[] = [];
+    const stamp = (t: number) => {
+        if (stamps.length > 0 && stamps[stamps.length - 1]! >= t) return;
+        stamps.push(t);
+        if (stamps.length > 4) stamps.shift();
+    };
+    /** The gesture's event cadence: the median of its last three gaps (ms), Infinity with fewer than two events. */
+    const streamGap = (): number => {
+        const gaps = stamps.slice(1).map((t, i) => t - stamps[i]!).sort((x, y) => x - y);
+        return gaps.length ? gaps[gaps.length >> 1]! : Infinity;
+    };
     const newHand = (x: number, y: number, t: number, kind: string): Hand => ({
         x,
         y,
@@ -574,10 +598,12 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
         if (pointers.size === 0) {
             onGestureStart();
             dropOwed();
+            stamps.length = 0;
             // A middle (1) or right (2) mouse button pans, as Shift-drag does.
             buttonPan = event.pointerType === "mouse" && (event.button === 1 || event.button === 2);
         }
         pointers.set(event.pointerId, newHand(event.clientX, event.clientY, event.timeStamp, event.pointerType));
+        stamp(event.timeStamp);
         isActive.value = true;
         // The stage takes the keyboard on a mouse or pen press (the arrows turn
         // the die); preventDefault above withholds the browser's own focus.
@@ -654,6 +680,7 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
             if (tr.length > 0 && tr[tr.length - 1]!.t >= t) tr.pop();
             tr.push({ t, x: p.x, y: p.y });
             while (tr.length > 3 && t - tr[0]!.t > 100) tr.shift();
+            stamp(t);
             if (!applyMode(p)) return;
             pushSample(t);
         }
@@ -682,10 +709,10 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
      *  · once the hand has stopped, that lead returns on its follower (no step).
      * Returns the point and whether the lead is still returning.
      */
-    /** A hand's sample interval: the median of its last three (ms), at most TOUCH_BACK_MAX_MS. */
+    /** A hand's sample interval: the median of its last three (ms); 0 with fewer than two samples. */
     const sampleGap = (tr: HandSample[]): number => {
         const gaps = tr.slice(-4).map((p, i, a) => (i ? p.t - a[i - 1]!.t : NaN)).filter((g) => g > 0).sort((x, y) => x - y);
-        return gaps.length ? Math.min(TOUCH_BACK_MAX_MS, gaps[gaps.length >> 1]!) : 0;
+        return gaps.length ? gaps[gaps.length >> 1]! : 0;
     };
 
     const handPoint = (h: Hand, now: number, tStar: number, back = false): { x: number; y: number; settling: boolean } => {
@@ -755,6 +782,8 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
     const handAt = (now: number): "settling" | "shown" | "idle" => {
         if (pointers.size === 0 || !anchored()) return "idle";
         if (lastHandFrame >= 0 && now - lastHandFrame > 2 && now - lastHandFrame < 34) frameMs = now - lastHandFrame;
+        /** This frame's own interval (the hand's clock may move on at most TOUCH_CATCH_UP of it). */
+        const dt = lastHandFrame >= 0 && now > lastHandFrame ? now - lastHandFrame : frameMs;
         lastHandFrame = now;
         const tStar = now - RESAMPLE_BACK_MS;
         const ids = mode === "pair" ? pairIds : [[...pointers.keys()][0]!];
@@ -766,8 +795,12 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
             if (!h) continue;
             // A touch one sample back (a frame's instant is never before its newest sample's; a clock that says
             // otherwise, as a test's may, keeps the plain instant).
-            const back = h.predicts && tStar >= (h.trail[h.trail.length - 1]?.t ?? Infinity) - 12 ? sampleGap(h.trail) : 0;
-            const at = handPoint(h, now, back ? Math.max(h.shownT, tStar - back) : tStar, back > 0);
+            const gap = h.predicts && tStar >= (h.trail[h.trail.length - 1]?.t ?? Infinity) - 12 ? sampleGap(h.trail) : 0;
+            const back = Math.min(TOUCH_BACK_MAX_MS, gap);
+            // Never back; and in a stream, never more than TOUCH_CATCH_UP frames of the hand's time in one frame (a
+            // frame that held at the newest sample is caught up over the next frames once the next sample lands).
+            const reach = streamGap() <= TOUCH_STREAM_MS ? h.shownT + TOUCH_CATCH_UP * dt : Infinity;
+            const at = handPoint(h, now, back ? Math.max(h.shownT, Math.min(tStar - back, reach)) : tStar, back > 0);
             settling ||= at.settling;
             real.push([h, h.x, h.y]);
             if (h.x !== at.x || h.y !== at.y) same = false;
