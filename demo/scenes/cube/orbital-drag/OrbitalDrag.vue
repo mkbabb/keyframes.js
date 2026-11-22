@@ -83,6 +83,9 @@ const emit = defineEmits<{
     (e: "scale", scale: TransformState["scale"]): void;
     // P.W5.S3 — the X/Y/Z/modifier latch, whenever it changes.
     (e: "pressedKeys", keys: PressedKeys): void;
+    /** A hand took the die (true) or let it go (false): its first finger or
+     *  the mouse down, its last one up. */
+    (e: "hold", held: boolean): void;
 }>();
 
 const model = defineModel<TransformState>({
@@ -483,6 +486,9 @@ watch(
         writeTransform();
     },
 );
+
+// A hand on the die, for the scene that plays it (it yields while held).
+watch(gesture.isActive, (held) => emit("hold", held));
 
 // P.W5.S3 — surface the latch to the parent the moment it changes.
 watch(

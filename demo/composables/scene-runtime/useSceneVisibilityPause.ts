@@ -21,32 +21,49 @@ import { watch } from "vue";
  * continuous — the same path `restoreGroupPlaybackState` reuses), so there is no
  * forward jump on return.
  *
+ * A hand on the subject is the second reason (`held`): while a finger or the
+ * mouse holds the die, the scene's own loop yields, so the page's frames carry
+ * the hand and nothing else (a playing scene repaints its transport every frame,
+ * and on a phone its touches then reached the page about 15 ms later: 28.7 ms
+ * against 13.2 ms paused). The die holds still under the hand and plays on from
+ * the same instant when it is let go. The same honesty holds: only a loop that
+ * was running is paused, and only that pause is resumed, once neither reason
+ * stands and the scene still means to play (a Pause pressed while the hand
+ * held the die is kept).
+ *
  * @param wasRunning probe — true iff the loop is currently ticking (read at hide
  *        time to decide whether to auto-pause).
  * @param pause stop the loop (idempotent).
  * @param resume restart the loop (idempotent).
+ * @param hand `held`: true while a hand holds the scene's subject (default:
+ *        never); `playing`: the scene's own play state, read before a resume
+ *        (default: always).
  */
 export function useSceneVisibilityPause(
     wasRunning: () => boolean,
     pause: () => void,
     resume: () => void,
+    { held = () => false, playing = () => true }: { held?: () => boolean; playing?: () => boolean } = {},
 ): void {
     const visibility = useDocumentVisibility();
 
-    // Tracks whether the hide-time pause was OURS — only then do we auto-resume.
+    // Tracks whether the pause was OURS — only then do we auto-resume.
     let autoPaused = false;
 
-    watch(visibility, (state) => {
-        if (state === "hidden") {
-            // Only pause (and arm the auto-resume) if the loop was actually
-            // running — never claim a pause we didn't cause.
-            if (wasRunning()) {
-                autoPaused = true;
-                pause();
+    watch(
+        () => visibility.value === "hidden" || held(),
+        (yields) => {
+            if (yields) {
+                // Only pause (and arm the auto-resume) if the loop was actually
+                // running — never claim a pause we didn't cause.
+                if (!autoPaused && wasRunning()) {
+                    autoPaused = true;
+                    pause();
+                }
+            } else if (autoPaused) {
+                autoPaused = false;
+                if (playing()) resume();
             }
-        } else if (autoPaused) {
-            autoPaused = false;
-            resume();
-        }
-    });
+        },
+    );
 }
