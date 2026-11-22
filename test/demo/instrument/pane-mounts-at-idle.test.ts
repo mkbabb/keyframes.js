@@ -17,7 +17,7 @@
  * channel host is a stub that counts its mounts.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createApp, defineComponent, h, nextTick, onMounted, reactive } from "vue";
+import { createApp, defineComponent, h, nextTick, onMounted, onUnmounted, reactive } from "vue";
 
 vi.mock("@mkbabb/glass-ui/sheet", () => ({
     SheetContent: defineComponent({
@@ -35,12 +35,13 @@ vi.mock("@mkbabb/glass-ui/dialog", () => ({
     }),
     DialogTitle: defineComponent({ setup: (_p, { slots }) => () => h("h2", slots.default?.()) }),
 }));
-const hostMounts = { n: 0 };
+const hostMounts = { n: 0, gone: 0 };
 vi.mock("@components/instrument/pane/channel-controls/ChannelControls.vue", () => ({
     default: defineComponent({
         name: "ChannelControlsStub",
         setup: () => {
             onMounted(() => hostMounts.n++);
+            onUnmounted(() => hostMounts.gone++);
             return () => h("div", { "data-stub": "ChannelControls" });
         },
     }),
@@ -84,6 +85,7 @@ beforeEach(() => {
     frames = [];
     idles = [];
     hostMounts.n = 0;
+    hostMounts.gone = 0;
     vi.stubGlobal("requestAnimationFrame", (cb: FrameRequestCallback) => frames.push(cb));
     vi.stubGlobal("cancelAnimationFrame", () => {});
     vi.stubGlobal("requestIdleCallback", (cb: () => void) => idles.push(cb));
@@ -197,5 +199,26 @@ describe("P2f — an upright phone's pane is mounted at idle and carried into th
         await runIdle();
         expect(inSheet(host())).toBe(true);
         expect(document.querySelector(".sheet-pane-park")).toBeNull();
+    });
+
+    // The stage tap that puts the sheet away: on a 4x phone it cost 5 frames
+    // over 33 ms (largest 79) against production's 1, the dialog's close
+    // unmounting the whole pane in one task. The pane is parked instead.
+    it("a stage tap that puts the sheet away unmounts nothing of the pane, open after open", async () => {
+        const stored = await mountPhone();
+        await runFrames();
+        await runIdle();
+        for (let round = 0; round < 3; round++) {
+            stored.isControlsPanelOpen = true;
+            await nextTick();
+            await nextTick();
+            stored.isControlsPanelOpen = false;
+            for (let i = 0; i < 4; i++) {
+                await runFrames();
+                await nextTick();
+            }
+        }
+        expect(hostMounts.gone).toBe(0);
+        expect(hostMounts.n).toBe(1);
     });
 });
