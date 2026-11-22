@@ -36,8 +36,7 @@ test.afterAll(async () => {
     await server?.close();
 });
 
-const embedUrl = () =>
-    REMOTE ? `${base}/embed/#/cube?skin=daraksha&scheme=light` : `${base}/embed/index.html#/cube?skin=daraksha&scheme=light`;
+const embedUrl = () => (REMOTE ? `${base}/embed/#/cube?${HOST_SLICE}` : `${base}/embed/index.html#/cube?${HOST_SLICE}`);
 
 /** The orbit's pose off its container's transform: the pan (px), the
  *  attitude as a unit quaternion, the scale. */
@@ -208,7 +207,7 @@ test.describe("touch", () => {
 // ── Apple-like direct manipulation (owner 2026-11-15) ──────────────────
 // Real Chromium multi-touch (CDP Input.dispatchTouchEvent), read per frame
 // by a recorder in the die's document (cube-hand.mjs).
-import { SEQUENCE, geometry, installRecorder, owed, parsePose, readHand, replay, sleep, stroke, turn } from "./cube-hand.mjs";
+import { HOST_SLICE, SEQUENCE, geometry, installRecorder, owed, parsePose, readHand, replay, sleep, stroke, turn } from "./cube-hand.mjs";
 
 const demoUrl = () => (REMOTE ? `${base}/#/cube` : `${base}/index.html#/cube`);
 
@@ -229,10 +228,10 @@ const cell = async (page, url = embedUrl()) => {
     const cdp = await page.context().newCDPSession(page);
     return { page, geom, cdp, offset: { x: 0, y: 0 } };
 };
-const record = async (c, steps, settleMs = 1200) => {
+const record = async (c, steps, settleMs = 1200, opts = {}) => {
     await c.page.evaluate(() => window.__hand.start());
     await sleep(40);
-    await replay(c.cdp, c.offset, c.geom, steps);
+    await replay(c.cdp, c.offset, c.geom, steps, opts);
     await sleep(settleMs);
     return c.page.evaluate(() => window.__hand.stop());
 };
@@ -354,7 +353,10 @@ test.describe("touch: Apple-like", () => {
         for (let i = 1; i <= 10; i++) steps.push({ type: "touchMove", pts: [B(0.38 - 0.03 * i, 0.4)], wait: 8 });
         steps.push({ type: "touchMove", pts: [B(0.08, 0.4)], wait: 160 });
         steps.push({ type: "touchEnd", pts: [] });
-        const raw = await record(c, steps, 500);
+        // Each step lands before the next leaves: a hand change is judged
+        // against its neighbours, and a CDP delivery bunching two steps into
+        // one frame would be a jump of the harness's, not the die's.
+        const raw = await record(c, steps, 500, { onClock: false });
         expect(raw.ev.some((e) => e.type === "pointercancel")).toBe(false);
         const P = raw.f.map((x) => parsePose(x.tf));
         const d = [];
@@ -825,4 +827,333 @@ test.describe("touch: no stray face", () => {
             }
         });
     }
+});
+
+// ── The hand at the frame (smoothness: docs/notes/cube-smoothness.md) ─────
+// Every gate reads EVERY frame, on the GPU lane, on the slice and on the
+// demo, by touch (CDP multi-touch, 390×844) and by mouse (CDP mouse,
+// 1440×900). Born red: before the cure a throw ran up to 99 px ahead of the
+// finger and turned back 4-27° at release, its coast's first frame stood
+// still, and a stopped hand stepped back 0.3-3.4°.
+import { MOUSE_SEQUENCE, dot3, framesOf, mouseReplay, unit3 } from "./cube-hand.mjs";
+
+const DEG = Math.PI / 180;
+const HAND_CELLS = {
+    touch: { viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, hasTouch: true, isMobile: true },
+    mouse: { viewport: { width: 1440, height: 900 }, deviceScaleFactor: 2 },
+};
+
+/** Play one recorded hand by touch or by mouse, every frame recorded. */
+const recordBy = async (c, input, which, settleMs) => {
+    await c.page.evaluate(() => window.__hand.start());
+    await sleep(40);
+    if (input === "touch") await replay(c.cdp, c.offset, c.geom, SEQUENCE[which]);
+    else await mouseReplay(c.cdp, c.offset, c.geom, MOUSE_SEQUENCE[which]);
+    await sleep(settleMs);
+    return c.page.evaluate(() => window.__hand.stop());
+};
+const sum3 = (vs) => vs.reduce((s, v) => [s[0] + v[0], s[1] + v[1], s[2] + v[2]], [0, 0, 0]);
+
+test.describe("the hand at the frame", () => {
+    test.setTimeout(120_000);
+    let browser = null;
+    test.beforeAll(async () => {
+        browser = await chromium.launch({ args: GPU });
+    });
+    test.afterAll(async () => {
+        await browser?.close();
+    });
+    const open = async (where, input) => {
+        const ctx = await browser.newContext(HAND_CELLS[input]);
+        const page = await ctx.newPage();
+        const c = await cell(page, where === "slice" ? embedUrl() : demoUrl());
+        return { ctx, c };
+    };
+
+    for (const where of ["slice", "demo"])
+        for (const input of ["touch", "mouse"]) {
+            test(`${where} · ${input}: G1 a throw leaves from the pose shown, never turning back, never standing still`, async () => {
+                const { ctx, c } = await open(where, input);
+                try {
+                    const { frames, up } = framesOf(await recordBy(c, input, "flick", 700));
+                    const iUp = frames.findIndex((f) => f.time >= up.d);
+                    expect(iUp).toBeGreaterThan(3);
+                    const axis = unit3(sum3(frames.slice(iUp - 4, iUp - 1).map((f) => f.inc)));
+                    // From the last drag frame on: the release and the coast's
+                    // first frames, each frame's turn from the one before. (The
+                    // last drag frame's own turn is the drag's cadence: a CDP
+                    // delivery may bunch two moves into one frame and none into
+                    // the frame before.)
+                    const around = frames.slice(iUp, iUp + 6).map((f) => ({ along: dot3(f.inc, axis), mag: Math.hypot(...f.inc) }));
+                    const back = Math.min(...around.map((a) => a.along));
+                    const still = around.filter((a) => a.mag < 1e-5).length;
+                    test.info().annotations.push({
+                        type: "G1",
+                        description: `${where}/${input}: per-frame turn along the throw ${around.map((a) => (a.along / DEG).toFixed(2)).join(" ")}°`,
+                    });
+                    expect(back).toBeGreaterThan(-0.2 * DEG);
+                    expect(still).toBe(0);
+                } finally {
+                    await ctx.close();
+                }
+            });
+
+            test(`${where} · ${input}: G2 the die is never ahead of the hand (a touch by at most a frame), G3 a stopped hand never steps it back`, async () => {
+                const { ctx, c } = await open(where, input);
+                try {
+                    const { frames, down, lastMove, up, moves } = framesOf(await recordBy(c, input, "drag", 300));
+                    const q0 = frames[0].q;
+                    const R = c.geom.R;
+                    // The hand's own speed (px/ms): the median between real moves.
+                    const speeds = [];
+                    for (let i = 1; i < moves.length; i++) {
+                        const dt = moves[i].t - moves[i - 1].t;
+                        if (dt > 0) speeds.push(Math.hypot(moves[i].x - moves[i - 1].x, moves[i].y - moves[i - 1].y) / dt);
+                    }
+                    speeds.sort((a, b) => a - b);
+                    const speed = speeds[speeds.length >> 1] ?? 0;
+                    // G2: each frame of the steady drag (from the fourth move to the last).
+                    const steady = frames.filter((f) => f.wt !== null && f.newest && f.newest.d >= moves[3].d && f.newest.d <= lastMove.d && f.time < up.d);
+                    expect(steady.length).toBeGreaterThan(10);
+                    const leads = steady.map((f) => ((turn(q0, f.q) - owed(c.geom, down, f.newest)) * R) / 2);
+                    const allowed = steady.map((f) => (input === "touch" ? speed * (f.dt ?? 8.4) : 0) + 1);
+                    const over = leads.filter((l, i) => l > allowed[i]);
+                    // G3: once the hand has stopped (after its last move), the pose
+                    // never travels back along the drag.
+                    const iStop = frames.findIndex((f) => f.time >= lastMove.d);
+                    const iUp = frames.findIndex((f) => f.time >= up.d);
+                    const axis = unit3(sum3(frames.slice(1, iStop).map((f) => f.inc)));
+                    let cum = 0;
+                    let peak = -Infinity;
+                    let back = 0;
+                    for (let i = iStop; i < (iUp < 0 ? frames.length : iUp); i++) {
+                        cum += dot3(frames[i].inc, axis);
+                        peak = Math.max(peak, cum);
+                        back = Math.max(back, peak - cum);
+                    }
+                    test.info().annotations.push({
+                        type: "G2/G3",
+                        description: `${where}/${input}: lead max ${Math.max(...leads).toFixed(2)} px (allowed ${Math.max(...allowed).toFixed(2)}); back after the stop ${(back / DEG).toFixed(3)}°`,
+                    });
+                    expect(over, `frames ahead: ${over.map((l) => l.toFixed(1)).join(" ")} px`).toEqual([]);
+                    expect(back).toBeLessThanOrEqual(0.1 * DEG);
+                } finally {
+                    await ctx.close();
+                }
+            });
+        }
+});
+
+// ── Every stepped input on one critically damped follower ─────────────────
+// Mouse notches, Shift + scroll and trackpad streams shaped like macOS's,
+// each event stamped with its own digitiser-like time, on the GPU lane at
+// 1440×900, every frame read. Born red: a notch started at full speed,
+// stalled a frame and crept for about 0.53 s; Shift + scroll was applied as
+// it came (ripple 0.33-0.40, 3-9 stalls); a 60 Hz stream rippled ±23 %.
+import { STREAMS, incrementsOf, lagOf, posesOf, smoothness, wheelStream } from "./cube-hand.mjs";
+
+/** Today's ripple and lag (ms) per stream: the median of four readings of
+ *  the live site by these very gates (KF_GESTURE_BASE=https://keyframes.babb.dev),
+ *  the slice unframed and the demo held, as here. The note's table framed the
+ *  slice in its host and let the demo play, which moves each by a frame. */
+const TODAY = {
+    slice: { trackpad120: [0.11, 37.5], trackpad90diag: [0.15, 38.5], trackpad60: [0.203, 37.5], trackpadSlow: [0.137, 37.5] },
+    demo: { trackpad120: [0.095, 29], trackpad90diag: [0.146, 30], trackpad60: [0.195, 30.5], trackpadSlow: [0.131, 30] },
+};
+/** The lag is read in whole milliseconds. */
+const LAG_STEP_MS = 1;
+
+test.describe("the follower: notches, Shift + scroll, trackpad streams", () => {
+    test.setTimeout(120_000);
+    let browser = null;
+    test.beforeAll(async () => {
+        browser = await chromium.launch({ args: GPU });
+    });
+    test.afterAll(async () => {
+        await browser?.close();
+    });
+
+    /** Open a desk cell, put the pointer on the die, play one stream, every frame recorded. */
+    const play = async (where, name, settleMs = 900) => {
+        const ctx = await browser.newContext(HAND_CELLS.mouse);
+        try {
+            const page = await ctx.newPage();
+            const c = await cell(page, where === "slice" ? embedUrl() : demoUrl());
+            await c.cdp.send("Input.dispatchMouseEvent", { type: "mouseMoved", x: c.geom.c.x, y: c.geom.c.y, button: "none" });
+            await sleep(100);
+            await page.evaluate(() => window.__hand.start());
+            await sleep(40);
+            await wheelStream(c.cdp, c.geom.c, STREAMS[name]);
+            await sleep(settleMs);
+            const raw = await page.evaluate(() => window.__hand.stop());
+            return { raw, geom: c.geom };
+        } finally {
+            await ctx.close();
+        }
+    };
+
+    /** The turn per frame along the stream's own axis, with each frame's interval. */
+    const turnSeries = (raw) => {
+        const P = posesOf(raw);
+        const inc = incrementsOf(P).slice(1);
+        const axis = unit3(sum3(inc));
+        const along = inc.map((v) => dot3(v, axis));
+        const dts = P.slice(1).map((p, i) => p.time - P[i].time);
+        const times = P.slice(1).map((p) => p.time);
+        let acc = 0;
+        const cum = along.map((a) => (acc += a));
+        return { P, along, dts, times, cum, total: turn(P[0].q, P[P.length - 1].q) };
+    };
+    /** The moving stretch: the first frame that moves to the last. */
+    const moving = (series) => {
+        const peak = Math.max(...series.map(Math.abs));
+        const a = series.findIndex((x) => Math.abs(x) > 1e-3 * peak);
+        let b = series.length - 1;
+        while (b > a && Math.abs(series[b]) <= 1e-3 * peak) b--;
+        return [a, b + 1];
+    };
+
+    for (const where of ["slice", "demo"]) {
+        test(`${where}: G4 five mouse notches 70 ms apart start soft, never stall, and rest within 350 ms of the last`, async () => {
+            const { raw } = await play(where, "notches", 900);
+            const s = turnSeries(raw);
+            const wheels = raw.ev.filter((e) => e.type === "wheel");
+            expect(wheels.length).toBe(5);
+            const [a, b] = moving(s.along);
+            const live = s.along.slice(a, b);
+            const stillFrames = live.filter((x) => Math.abs(x) < 1e-5).length;
+            const largest = Math.max(...live);
+            // Rest: within 0.05° of where it ends.
+            const end = s.cum[s.cum.length - 1];
+            const iRest = s.cum.findIndex((c, i) => i >= a && s.cum.slice(i).every((x) => Math.abs(end - x) < 0.05 * DEG));
+            const restMs = s.times[iRest] - wheels[wheels.length - 1].d;
+            test.info().annotations.push({
+                type: "G4",
+                description: `${where}: first ${(live[0] / DEG).toFixed(2)}° of largest ${(largest / DEG).toFixed(2)}°; ${stillFrames} still; rest ${restMs.toFixed(0)} ms after the last notch`,
+            });
+            expect(stillFrames).toBe(0);
+            expect(live[0]).toBeLessThanOrEqual(0.4 * largest);
+            expect(restMs).toBeLessThanOrEqual(350);
+        });
+
+        test(`${where}: G5 Shift + scroll pans with no stalled frame and ripple at most 0.15`, async () => {
+            const { raw } = await play(where, "shiftPan", 900);
+            const P = raw.f.map((x) => {
+                const m = /translate3d\(([-\d.e]+)px,\s*([-\d.e]+)px,\s*([-\d.e]+)px/.exec(x.tf);
+                return { t: x.t, p: m ? [Number(m[1]), Number(m[2]), Number(m[3])] : [0, 0, 0] };
+            });
+            const wheels = raw.ev.filter((e) => e.type === "wheel");
+            const dts = P.slice(1).map((p, i) => p.t - P[i].t);
+            const step = P.slice(1).map((p, i) => Math.hypot(p.p[0] - P[i].p[0], p.p[1] - P[i].p[1], p.p[2] - P[i].p[2]));
+            // While the stream runs: from the first frame after its first event to its last.
+            const i0 = P.findIndex((p) => p.t > wheels[0].d);
+            const i1 = P.findIndex((p) => p.t > wheels[wheels.length - 1].d);
+            const during = step.slice(i0, i1 < 0 ? step.length : i1);
+            const sm = smoothness(during, dts.slice(i0, i1 < 0 ? dts.length : i1));
+            test.info().annotations.push({ type: "G5", description: `${where}: ripple ${sm.ripple.toFixed(3)}, ${sm.stalls} stalls over ${during.length} frames` });
+            expect(sm.stalls).toBe(0);
+            expect(sm.ripple).toBeLessThanOrEqual(0.15);
+        });
+
+        test(`${where}: G6 trackpad streams: 60 and 120 Hz ripple at most 0.15, the others below today's, every sum landing, lag no more than today's`, async () => {
+            const out = [];
+            for (const name of ["trackpad120", "trackpad90diag", "trackpad60", "trackpadSlow"]) {
+                const { raw, geom } = await play(where, name, 700);
+                const s = turnSeries(raw);
+                const wheels = raw.ev.filter((e) => e.type === "wheel");
+                const inputs = wheels.map((w) => ({ t: w.t, v: (2 * Math.hypot(w.dx, w.dy)) / geom.R }));
+                const want = inputs.reduce((x, w) => x + w.v, 0);
+                const [a, b] = moving(s.along);
+                const sm = smoothness(s.along.slice(a, b), s.dts.slice(a, b));
+                const lag = lagOf(s.times, s.cum, inputs);
+                // The sum of the frames' turns along the stream's axis: a stream
+                // may turn the die past 180°, where the angle between the first
+                // and last poses folds back.
+                out.push({ name, ripple: sm.ripple, lag, landed: Math.abs(Math.abs(s.cum[s.cum.length - 1]) - want) });
+            }
+            test.info().annotations.push({
+                type: "G6",
+                description: `${where}: ${out.map((o) => `${o.name} ripple ${o.ripple.toFixed(3)} lag ${o.lag} ms, off by ${(o.landed / DEG).toFixed(4)}°`).join("; ")}`,
+            });
+            for (const o of out) {
+                const [ripple, lag] = TODAY[where][o.name];
+                if (o.name === "trackpad120" || o.name === "trackpad60") expect(o.ripple, o.name).toBeLessThanOrEqual(0.15);
+                else expect(o.ripple, o.name).toBeLessThan(ripple);
+                expect(o.landed, o.name).toBeLessThan(1e-3);
+                expect(o.lag, o.name).toBeLessThanOrEqual(lag + LAG_STEP_MS);
+            }
+        });
+    }
+});
+
+// ── G7: frames (one write per frame) ─────────────────────────────────────
+// A throw and its coast, a trackpad stream (desk) and a two-finger pinch
+// (phone, the CPU throttled 4×), every frame kept: no frame over its budget,
+// and each frame's main-thread work (rAF to the end of its paint) no more
+// than the note measured before the cure (median 2.4 ms on the desk, 5.7 ms
+// at 4×).
+test.describe("G7 frames", () => {
+    test.setTimeout(120_000);
+    let browser = null;
+    test.beforeAll(async () => {
+        browser = await chromium.launch({ args: GPU });
+    });
+    test.afterAll(async () => {
+        await browser?.close();
+    });
+    const BUDGET = { mouse: { frame: 17, work: 2.4 }, touch: { frame: 34, work: 5.7 } };
+    const pinch = () => {
+        const n = 30;
+        const steps = [{ type: "touchStart", pts: [{ u: { x: -0.3, y: 0 }, id: 1 }, { u: { x: 0.3, y: 0 }, id: 2 }], wait: 8 }];
+        for (let i = 1; i <= n; i++) {
+            const r = 0.3 + (0.3 * i) / n;
+            steps.push({ type: "touchMove", pts: [{ u: { x: -r, y: 0.002 * i }, id: 1 }, { u: { x: r, y: 0.002 * i }, id: 2 }], wait: 8 });
+        }
+        steps.push({ type: "touchEnd", pts: [] });
+        return steps;
+    };
+    for (const where of ["slice", "demo"])
+        for (const input of ["mouse", "touch"]) {
+            test(`${where} · ${input === "mouse" ? "desk" : "phone at 4×"}: no frame over budget, main-thread work no more than before`, async () => {
+                const ctx = await browser.newContext(HAND_CELLS[input]);
+                try {
+                    const page = await ctx.newPage();
+                    const c = await cell(page, where === "slice" ? embedUrl() : demoUrl());
+                    if (input === "touch") await c.cdp.send("Emulation.setCPUThrottlingRate", { rate: 4 });
+                    const runs = [];
+                    runs.push(await recordBy(c, input, "flick", 1800));
+                    if (input === "mouse") {
+                        await c.cdp.send("Input.dispatchMouseEvent", { type: "mouseMoved", x: c.geom.c.x, y: c.geom.c.y, button: "none" });
+                        await page.evaluate(() => window.__hand.start());
+                        await sleep(40);
+                        await wheelStream(c.cdp, c.geom.c, STREAMS.trackpad120);
+                        await sleep(600);
+                        runs.push(await page.evaluate(() => window.__hand.stop()));
+                    } else {
+                        await page.evaluate(() => window.__hand.start());
+                        await sleep(40);
+                        await replay(c.cdp, c.offset, c.geom, pinch());
+                        await sleep(900);
+                        runs.push(await page.evaluate(() => window.__hand.stop()));
+                    }
+                    const intervals = [];
+                    const work = [];
+                    for (const raw of runs) {
+                        for (let i = 1; i < raw.f.length; i++) intervals.push(raw.f[i].t - raw.f[i - 1].t);
+                        for (const f of raw.f) if (f.done) work.push(f.done - f.t);
+                    }
+                    work.sort((a, b) => a - b);
+                    const median = work[work.length >> 1] ?? 0;
+                    test.info().annotations.push({
+                        type: "G7",
+                        description: `${where}/${input}: ${intervals.length} frames, longest ${Math.max(...intervals).toFixed(1)} ms; work median ${median.toFixed(2)} ms, max ${(work[work.length - 1] ?? 0).toFixed(2)} ms`,
+                    });
+                    expect(intervals.length).toBeGreaterThan(100);
+                    expect(Math.max(...intervals)).toBeLessThanOrEqual(BUDGET[input].frame);
+                    expect(median).toBeLessThanOrEqual(BUDGET[input].work);
+                } finally {
+                    await ctx.close();
+                }
+            });
+        }
 });

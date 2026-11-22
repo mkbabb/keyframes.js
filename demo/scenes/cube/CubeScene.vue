@@ -8,20 +8,26 @@
          the same layout.css tokens), so text and cube never share pixels.
          Desktop and the cube scene proper are byte-identical. -->
     <div
-        class="grid h-full w-full max-w-full items-center justify-items-center overflow-visible"
+        class="relative grid h-full w-full max-w-full items-center justify-items-center overflow-visible"
         :class="{ 'cube-stage--hero-recede': props.hideLoader }"
     >
+        <!-- `faces=pips` marks the die with pips; `dice=2` sets the pair on
+             the stage in its place (DicePair, loaded only then). The scene
+             takes both by URL. -->
         <CubeTarget
+            v-show="dice === 1"
             ref="cubeTargetRef"
             :is-playing="isPlaying"
             :skin="cubeSkin"
+            :faces="faces"
             v-model:transform="transformSliderValues"
         />
+        <DicePair v-if="dice === 2" :skin="cubeSkin" />
     </div>
 </template>
 
 <script setup lang="ts">
-import { computed, h, onBeforeUnmount, onMounted, ref, useTemplateRef } from "vue";
+import { computed, defineAsyncComponent, h, onBeforeUnmount, onMounted, ref, useTemplateRef } from "vue";
 
 const props = defineProps<{
     hideLoader?: boolean;
@@ -41,6 +47,8 @@ const props = defineProps<{
 
 import MatrixEditor from "./matrix-editor/MatrixEditor.vue";
 import CubeTarget from "./CubeTarget.vue";
+// The pair loads only when asked for (`dice=2`).
+const DicePair = defineAsyncComponent(() => import("./dice/DicePair.vue"));
 
 import { getStoredAnimationGroupControlOptions, useSceneMachine } from "@state";
 import type { CubeSkin } from "@state";
@@ -62,6 +70,10 @@ const storedControls = getStoredAnimationGroupControlOptions(superKey);
 // The cube's skin: one reader here (handed to CubeTarget and to the Hover
 // channel's sway), one writer (MbabbMenu's radio group). Absent = crayon.
 const cubeSkin = computed<CubeSkin>(() => storedControls.cubeSkin ?? "crayon");
+// The die's faces and one die or two: the URL's (the keys below), until the
+// scene has its own seats for them.
+const faces = ref<"numerals" | "pips">("numerals");
+const dice = ref<1 | 2>(1);
 
 // KFA-1 (X.KF.W13V.k; kf-CubeScene L-2/C-5 + kf-CubeTarget #34/#42) — ONE
 // PLAYING-STATE AUTHORITY. `isPlaying` had no writer and `isStarted` was written
@@ -103,6 +115,8 @@ const { animationGroup, setTargets } = useCubeDemo(
 //   z     the zoom (default 1)                                    replace
 //   pan   the pan in px, x,y (default 0,0)                        replace
 //   m     the Matrix editor's edited cells, cell:value,…          replace
+//   faces the die's marks: numerals or pips (default numerals)    push
+//   dice  one die or the pair: 1 or 2 (default 1)                 push
 // The orbit keys are written when the die rests (a drag or a coast is one
 // write, after it), and a link's or Back's pose is reached on Home's spring.
 const orbit = () => transformSliderValues.value;
@@ -203,6 +217,27 @@ useUrlState(
             },
             history: "replace",
         } satisfies UrlKey<number[]>,
+        {
+            key: "faces",
+            get: () => faces.value,
+            set: (v: "numerals" | "pips") => {
+                faces.value = v;
+            },
+            fallback: () => "numerals",
+            ...oneOf(() => ["numerals", "pips"] as const),
+            history: "push",
+        } satisfies UrlKey<"numerals" | "pips">,
+        {
+            key: "dice",
+            get: () => dice.value,
+            set: (v: 1 | 2) => {
+                dice.value = v;
+            },
+            fallback: () => 1,
+            encode: (v: 1 | 2) => String(v),
+            decode: (raw: string) => (raw === "1" ? 1 : raw === "2" ? 2 : undefined),
+            history: "push",
+        } satisfies UrlKey<1 | 2>,
     ],
     { scene: () => CUBE_SCENE_ID, ready: () => cubeTargetRef.value != null },
 );

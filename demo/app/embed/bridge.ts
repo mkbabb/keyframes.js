@@ -7,16 +7,23 @@
  * never a wildcard, and every message received is checked against the same
  * allow-list and against the parent window as its source.
  *
- *   slice → host   ready {slice, scheme, width, height, transport?} · size
- *                  {height} (≤ 1 per frame) · theme {scheme} (the
+ *   slice → host   ready {slice, scheme, width, height, transport?, features?}
+ *                  · size {height} (≤ 1 per frame) · theme {scheme} (the
  *                  acknowledgement) · color {css} · transport {playing} (the
- *                  cube's Play / Pause, on each change)
+ *                  cube's Play / Pause, on each change) · rolled {values} (the
+ *                  pair's two values, once they rest after a throw)
  *   host → slice   set-theme {scheme} · set-playing {playing} · reset {} (a host
  *                  that carries the cube's transport in its own chrome, framed
  *                  with `transport=host`; optional, additive within v1) ·
  *                  gesture {phase, scale, rotation, x, y} (a gesture* the
  *                  browser handed to the host over the frame, relayed in the
- *                  frame's own client px; additive within v1)
+ *                  frame's own client px; additive within v1) · set-dice
+ *                  {count: 1 | 2} (one die or the pair, swapped in place) ·
+ *                  throw {} (throw the pair)
+ *
+ * `ready.features` (additive within v1): what the slice can do beyond v1's
+ * first messages, so a host offers a seat only when the slice can answer it:
+ * "pips" (the `faces=pips` die) and "dice" (set-dice, throw and rolled).
  *
  * `ready.transport` (the cube, additive within v1): the look of the slice's
  * own Play seat, as CSS strings read from its computed style in the current
@@ -78,17 +85,25 @@ export type SliceMessage =
           width: number;
           height: number;
           transport?: TransportLook;
+          features?: readonly SliceFeature[];
       }
     | { type: "size"; height: number }
     | { type: "theme"; scheme: Scheme }
     | { type: "color"; css: string }
-    | { type: "transport"; playing: boolean };
+    | { type: "transport"; playing: boolean }
+    | { type: "rolled"; values: [number, number] };
+
+/** What a slice can do beyond v1's first messages (`ready.features`). */
+export type SliceFeature = "pips" | "dice";
+export const SLICE_FEATURES: readonly SliceFeature[] = ["pips", "dice"];
 
 export type HostMessage =
     | { type: "set-theme"; scheme: Scheme }
     | { type: "set-playing"; playing: boolean }
     | { type: "reset" }
-    | { type: "gesture"; phase: GesturePhase; scale: number; rotation: number; x: number; y: number };
+    | { type: "gesture"; phase: GesturePhase; scale: number; rotation: number; x: number; y: number }
+    | { type: "set-dice"; count: 1 | 2 }
+    | { type: "throw" };
 
 const finite = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v);
 
@@ -104,6 +119,8 @@ export function readHostMessage(data: unknown): HostMessage | null {
         return { type: "set-playing", playing: m.playing };
     }
     if (m.type === "reset") return { type: "reset" };
+    if (m.type === "set-dice" && (m.count === 1 || m.count === 2)) return { type: "set-dice", count: m.count };
+    if (m.type === "throw") return { type: "throw" };
     if (
         m.type === "gesture" &&
         (m.phase === "start" || m.phase === "change" || m.phase === "end") &&
@@ -128,6 +145,8 @@ export interface EmbedBridge {
     onSetPlaying(handler: (playing: boolean) => void): void;
     onReset(handler: () => void): void;
     onGesture(handler: (gesture: Extract<HostMessage, { type: "gesture" }>) => void): void;
+    onSetDice(handler: (count: 1 | 2) => void): void;
+    onThrow(handler: () => void): void;
     dispose(): void;
 }
 
@@ -137,6 +156,8 @@ export function createEmbedBridge(win: Window = window): EmbedBridge {
     const playingHandlers = new Set<(playing: boolean) => void>();
     const resetHandlers = new Set<() => void>();
     const gestureHandlers = new Set<(gesture: Extract<HostMessage, { type: "gesture" }>) => void>();
+    const diceHandlers = new Set<(count: 1 | 2) => void>();
+    const throwHandlers = new Set<() => void>();
     let observer: ResizeObserver | undefined;
     let frame = 0;
     let lastHeight = -1;
@@ -153,6 +174,8 @@ export function createEmbedBridge(win: Window = window): EmbedBridge {
         if (message?.type === "set-playing") for (const handler of playingHandlers) handler(message.playing);
         if (message?.type === "reset") for (const handler of resetHandlers) handler();
         if (message?.type === "gesture") for (const handler of gestureHandlers) handler(message);
+        if (message?.type === "set-dice") for (const handler of diceHandlers) handler(message.count);
+        if (message?.type === "throw") for (const handler of throwHandlers) handler();
     };
     win.addEventListener("message", onMessage);
 
@@ -186,6 +209,12 @@ export function createEmbedBridge(win: Window = window): EmbedBridge {
         onGesture(handler) {
             gestureHandlers.add(handler);
         },
+        onSetDice(handler) {
+            diceHandlers.add(handler);
+        },
+        onThrow(handler) {
+            throwHandlers.add(handler);
+        },
         dispose() {
             win.removeEventListener("message", onMessage);
             observer?.disconnect();
@@ -194,6 +223,8 @@ export function createEmbedBridge(win: Window = window): EmbedBridge {
             playingHandlers.clear();
             resetHandlers.clear();
             gestureHandlers.clear();
+            diceHandlers.clear();
+            throwHandlers.clear();
         },
     };
 }

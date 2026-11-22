@@ -35,6 +35,7 @@
                     :frame="orbitFrame"
                     :bounds="orbitBounds"
                     @pressed-keys="onPressedKeys"
+                    @frame="(pose) => emit('orbitFrame', pose)"
                 >
                     <div
                         ref="rollEl"
@@ -62,8 +63,24 @@
                                     ref="cubeEl"
                                     class="cube preserve-3d animation relative flex items-center justify-center justify-items-center"
                                     :class="{ 'cube--rolling': rolling }"
+                                    :data-faces="pips ? 'pips' : undefined"
                                     :style="CUBE_SPIN_VARS"
                                 >
+                                    <!-- The die's core (`faces="pips"`): a cube inset 4 % in
+                                         the seam ink, so where the rounded faces meet, the
+                                         seam reads as a die's hairline, never the ground. -->
+                                    <div
+                                        v-if="pips"
+                                        v-show="!unfurling"
+                                        class="die-core preserve-3d"
+                                        aria-hidden="true"
+                                    >
+                                        <div
+                                            v-for="side in cubeSides"
+                                            :key="side.class"
+                                            :class="['die-core-plane', side.class]"
+                                        ></div>
+                                    </div>
                                     <div
                                         v-for="(side, index) in cubeSides"
                                         :key="index"
@@ -86,10 +103,21 @@
                                              the orientation-coupled specular/veil are
                                              deleted; the one tonal step is FIXED per face
                                              (CubeTarget.css), never driven by rotation. -->
+                                        <!-- The dice faces (`faces="pips"`): each face its
+                                             value's pips (dice/pips.ts) in that value's
+                                             colour and ink. -->
+                                        <template v-if="pips">
+                                            <div
+                                                class="face-fill h-full w-full"
+                                                :style="{ '--face-crayon': side.dieColor, color: side.dieInk }"
+                                            >
+                                                <DiePips :value="side.value" />
+                                            </div>
+                                        </template>
                                         <!-- Crayon and Daraksha share the face template;
                                              a skin changes token values only
                                              (CubeTarget.css), never the faces. -->
-                                        <template v-if="skin !== 'ppmycota'">
+                                        <template v-else-if="skin !== 'ppmycota'">
                                             <div
                                                 :class="[
                                                     'face-fill h-full w-full font-bold',
@@ -143,6 +171,7 @@ import {
     onScopeDispose,
     reactive,
     ref,
+    shallowRef,
     useTemplateRef,
     watch,
 } from "vue";
@@ -158,6 +187,9 @@ import type { OrbitFrame, ScrollOwner } from "./orbital-drag/composables/useOrbi
 import type { Box } from "./orbital-drag/similarity";
 import type { OrbitPose, PressedKeys } from "./orbital-drag/types";
 import CubeAxisLines from "./CubeAxisLines.vue";
+import DiePips from "./dice/DiePips.vue";
+import { DIE_FACES, valueColor, valueInk } from "./dice/pips";
+import "./dice/dice.css";
 import { CUBE_SPIN_VARS } from "./cubeMotion";
 import {
     numberValue,
@@ -174,11 +206,22 @@ const props = withDefaults(
         scrollOwner?: ScrollOwner;
         /** No axis-lock lines (the embed slice); the face numerals stay. */
         bare?: boolean;
+        /** The faces' marks: numerals (the cube), or pips (a die). */
+        faces?: "numerals" | "pips";
     }>(),
-    { scrollOwner: "stage", bare: false },
+    { scrollOwner: "stage", bare: false, faces: "numerals" },
 );
 
+/** A die's faces: pips, a rounded body and its core (not under ppmycota,
+ *  whose faces are its logo). */
+const pips = computed(() => props.faces === "pips" && props.skin !== "ppmycota");
+
 const transform = defineModel<TransformState>("transform", { required: true });
+
+const emit = defineEmits<{
+    /** The orbit's pan (px) and zoom, every frame they change and at rest. */
+    (e: "orbitFrame", pose: { t: { x: number; y: number }; s: number }): void;
+}>();
 
 const cubeEl = useTemplateRef<HTMLElement>("cubeEl");
 const graphEl = useTemplateRef<HTMLElement>("graphEl");
@@ -302,7 +345,11 @@ const cubeSides = [
     { class: "left", content: "4", color: "var(--face-4)", ink: "var(--face-4-ink)" },
     { class: "top", content: "5", color: "var(--face-5)", ink: "var(--face-5-ink)" },
     { class: "bottom", content: "6", color: "var(--face-6)", ink: "var(--face-6-ink)" },
-];
+].map((side, i) => {
+    // The die's faces: the value each face carries, in that value's colour.
+    const value = DIE_FACES[i]!.value;
+    return { ...side, value, dieColor: valueColor(value), dieInk: valueInk(value) };
+});
 
 // ── THE DARAKSHA UNFURL ──────────────────────────────────────────────────────
 // Under the Daraksha skin the six faces open like marigold petals: each face's
@@ -324,8 +371,12 @@ const cubeSides = [
 const UNFURL_EACH_MS = 70;
 let unfurlGroup: AnimationGroup<Vars> | undefined;
 let unfurlFills: HTMLElement[] = [];
+/** The petals are opening: a die's core waits, so the die still flowers out
+ *  of empty space (its seam ink never shows as a closed body). */
+const unfurling = shallowRef(false);
 
 const releaseFills = () => {
+    unfurling.value = false;
     for (const fill of unfurlFills) {
         fill.style.removeProperty("transform");
         fill.style.removeProperty("opacity");
@@ -346,15 +397,16 @@ const prefersReducedMotion = () =>
 const playUnfurl = async () => {
     stopUnfurl();
     if (prefersReducedMotion()) return;
+    unfurling.value = true;
     // A skin swap from ppmycota mounts fresh face nodes on the next flush.
     await nextTick();
     const fills = Array.from(
         cubeEl.value?.querySelectorAll<HTMLElement>(".cube-side > .face-fill") ?? [],
     );
-    if (fills.length === 0) return;
+    if (fills.length === 0) return void (unfurling.value = false);
 
     const { presets, AnimationGroup } = await loadAnimationEngine();
-    if (props.skin !== "daraksha" || !fills.every((f) => f.isConnected)) return;
+    if (props.skin !== "daraksha" || !fills.every((f) => f.isConnected)) return void (unfurling.value = false);
 
     const delay = stagger(fills.length, { each: UNFURL_EACH_MS });
     const group = new AnimationGroup<Vars>(

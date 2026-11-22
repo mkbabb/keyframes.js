@@ -1,0 +1,27 @@
+/* The die's pips (DiePips.vue), shared by the cube's dice faces and the pair.
+   Unscoped on purpose: one sheet for one mark, read by both scenes. The
+   colours are not here: a value's colour and ink are the die's own tokens
+   (CubeTarget.css, "THE DIE'S SIX VALUES"). */
+
+/* The grid sits inside the face with a margin of 15 %, so the corner pips
+   clear the rounded corner as a die's do. */
+.die-pips {
+    position: absolute;
+    inset: 15%;
+    display: grid;
+    grid-template: repeat(3, 1fr) / repeat(3, 1fr);
+    place-items: center;
+    pointer-events: none;
+}
+
+/* A pip: a flat disc of the face's ink. The 1 is larger, as a die's ace is
+   cut. */
+.die-pip {
+    inline-size: 66%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: currentColor;
+}
+.die-pips[data-value="1"] .die-pip {
+    inline-size: 92%;
+}
