@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useDockTip } from "@composables/useDockTip";
 import { computed, inject, nextTick, ref, watch, useTemplateRef, type Component } from "vue";
 import { CONTROLS_PANE_HOVER_KEY } from "@components/instrument/transport/injectionKeys";
 import { useMediaQuery } from "@vueuse/core";
@@ -70,6 +71,9 @@ import {
 // token sits unused is TRUE and stays true; at this dock's orientation it is
 // unreachable, and a Select's own vocabulary is what a Select consumes.
 // Recorded, not silently dropped.
+
+/** The seats' tooltips open for a hovering pointer only, never on a tap (K-4). */
+const dockTip = useDockTip();
 
 // The popup mutex and re-expand watch keep this dock open while one of its own
 // popovers owns interaction.
@@ -495,7 +499,7 @@ defineExpose({ openSceneList });
                              not offered there (owner [110]: Home on Home is not
                              an option). -->
                         <template v-if="!isHome">
-                            <Tooltip>
+                            <Tooltip :disabled="!dockTip">
                                 <TooltipTrigger as-child>
                                     <DockControl shape="icon" aria-label="Home" data-dock-home @click="emit('switchScene', homeScene.id)">
                                         <component :is="homeScene.icon" class="dock-glyph" aria-hidden="true" />
@@ -576,7 +580,7 @@ defineExpose({ openSceneList });
                         <template v-if="showSurfaceItems">
                             <DockSeparator />
                             <DropdownMenu v-model:open="surfaceMenuOpen">
-                                <Tooltip>
+                                <Tooltip :disabled="!dockTip">
                                     <TooltipTrigger as-child>
                                         <DockTrigger
                                             ref="surfaceTrigger"
@@ -631,7 +635,7 @@ defineExpose({ openSceneList });
                              sun-to-moon toggle at the dock's control cell. Its
                              name is the state it sets and stays put; `aria-pressed`
                              says whether it is on. -->
-                        <Tooltip>
+                        <Tooltip :disabled="!dockTip">
                             <TooltipTrigger as-child>
                                 <DarkModeToggle size="dock" aria-label="Dark mode" data-dock-theme />
                             </TooltipTrigger>
@@ -686,7 +690,7 @@ defineExpose({ openSceneList });
                      coarse-scale box (54 px) widened the fold to a 70x60 oval,
                      where the cell keeps it the circle the producer draws. -->
                 <template #collapsed>
-                    <Tooltip>
+                    <Tooltip :disabled="!dockTip">
                         <TooltipTrigger as-child>
                             <DockControl aria-label="Scene" @focus="onCollapsedFocus">
                                 <component :is="currentIcon" :live="scenePlaying" class="dock-glyph" aria-hidden="true" />
@@ -701,21 +705,14 @@ defineExpose({ openSceneList });
 </template>
 
 <style scoped>
-/* KFA-77 (X.KF.W13X.scene) — the pill is its own View-Transition group, so a
-   scene swap morphs it from the old width to the new one and its label
-   cross-fades in place, instead of double-exposing inside the root fade at two
-   offsets. A fixed pill paints above the stage, so its group paints above the
-   `scene-subject` group too (KFA-26). One pill per state, so the name is unique. */
-/* X-DS pass 4 (KF-C4-03) — named only while a transition runs: a standing
-   name makes the group a backdrop root, and the dock plate inside it then
-   blurred nothing behind the dock (App.vue's `.scene-host` note). */
-:root:active-view-transition .dock-vt-group {
-    view-transition-name: chrome-dock;
-    /* LAST-TEN KF-24 — the pill's morph rides glass's list-item group, so it
-       runs on the route's lateral clock (App.vue `--vt-duration`), not the
-       UA's untokened 250 ms `ease`. */
-    view-transition-class: gl-list-item;
-}
+/* FORTY-SIXTH A (K-1) — the dock is NOT a View-Transition group. As its own
+   group (KFA-77) a page change painted two docks at once: the UA sizes the old
+   and new images by width, so the old dock was stretched to the new one's width
+   (1.4x at 1440, 317 to 445 px; 1.57x at 390), "@mbabb", the gear and the scene
+   seat each doubled while the two cross-faded. Out of the transition the dock
+   is in the page's new image from the swap's first frame: one dock, its seats
+   where they stand. A change of seats is a one-frame width change until glass's
+   seat glide (11.2.0, G3) lands; that glide is the cure, not a stretched image. */
 
 /* ChromeDock D-5 (co-id: the F4 row of the deleted header fork's record) — ONE
    glyph rung in the dock row, and it is the DOCK's own.

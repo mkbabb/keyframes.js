@@ -12,7 +12,7 @@
              beside the sans 'Home'/scene trigger, not a mono identifier. The
              identifier register stays where the menu names the account as an
              identifier (the "@mbabb · GitHub" row below). -->
-        <Tooltip>
+        <Tooltip :disabled="!dockTip">
             <TooltipTrigger as-child>
                 <DockTrigger ref="mbabbTrigger" for="dropdown" aria-label="@mbabb menu" class="dock-label">@mbabb</DockTrigger>
             </TooltipTrigger>
@@ -295,6 +295,7 @@
 </template>
 
 <script setup lang="ts">
+import { useDockTip } from "@composables/useDockTip";
 // ─────────────────────────────────────────────────────────────────────────────
 // MbabbMenu — the @mbabb dock dropdown (S.D1 · a23 F2 extraction from App.vue).
 //
@@ -330,6 +331,9 @@ defineProps<{
     /** A die is on the stage (the cube, and Home's backdrop): its skins are offered. */
     skins?: boolean;
 }>();
+
+/** The seats' tooltips open for a hovering pointer only, never on a tap (K-4). */
+const dockTip = useDockTip();
 
 // This menu's own open state. It stays a `defineModel` — glass-ui 7.0.0's
 // `DropdownMenu` declares `open`/`defaultOpen` as `{ type: Boolean, default:
