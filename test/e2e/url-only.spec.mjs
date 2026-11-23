@@ -7,6 +7,8 @@
  *   2. A scene link with no keys opens the scene at its defaults (its skin, its
  *      channels' options, its clock from rest).
  *   3. Only the theme (a viewer's preference) reaches browser storage.
+ *   5. The die's turn is spelled in whole degrees (FORTY-SIXTH F: "what is
+ *      the q?"), and only after a turn.
  *
  * Each test is a fresh browser context (fresh storage); a "later visit" is a
  * second page of the same context, which shares the first one's storage.
@@ -175,6 +177,56 @@ test("3. only the theme reaches storage", async ({ page }) => {
     const keys = await storageKeys(page);
     expect(keys.local.filter((k) => k !== "vueuse-color-scheme")).toEqual([]);
     expect(keys.session).toEqual([]);
+});
+
+/** The orbit's attitude off its container (rotate3d axis, angle) as a quaternion. */
+const orbitQuat = (page) =>
+    page.evaluate(() => {
+        const tf = document.querySelector(".graph > div")?.style.transform ?? "";
+        const r = /rotate3d\(([-\d.e]+),\s*([-\d.e]+),\s*([-\d.e]+),\s*([-\d.e]+)deg\)/.exec(tf)?.slice(1).map(Number) ?? [0, 0, 1, 0];
+        const n = Math.hypot(r[0], r[1], r[2]) || 1;
+        const h = (r[3] * Math.PI) / 360;
+        return [(r[0] / n) * Math.sin(h), (r[1] / n) * Math.sin(h), (r[2] / n) * Math.sin(h), Math.cos(h)];
+    });
+const turnDeg = (a, b) =>
+    (2 * Math.acos(Math.min(1, Math.abs(a[0] * b[0] + a[1] * b[1] + a[2] * b[2] + a[3] * b[3]))) * 180) / Math.PI;
+
+test("5. the die's turn is whole degrees, and only after a turn", async ({ page }) => {
+    await page.goto(at("/cube?play=0"));
+    await page.waitForFunction(() => /rotate3d/.test(document.querySelector(".graph > div")?.style.transform ?? ""), null, { timeout: 20_000 });
+    await rest(page, 1200);
+    expect(await query(page)).toEqual({ path: "/cube", play: "0" });
+
+    // A hand turns the die.
+    const box = await page.locator(".cube-stage .cube").first().boundingBox();
+    const x = box.x + box.width / 2;
+    const y = box.y + box.height / 2;
+    await page.mouse.move(x, y);
+    await page.mouse.down();
+    for (let i = 1; i <= 20; i++) {
+        await page.mouse.move(x + i * 8, y + i * 3);
+        await page.waitForTimeout(16);
+    }
+    await page.mouse.up();
+    await rest(page, 2500);
+    const turned = await query(page);
+    expect(turned.q).toBeUndefined();
+    expect(turned.turn).toMatch(/^-?\d+,-?\d+,-?\d+$/);
+
+    // Home (a double press on the die) removes it.
+    await page.mouse.dblclick(x, y);
+    await rest(page, 2500);
+    expect((await query(page)).turn).toBeUndefined();
+
+    // His link's attitude (q = -0.532, 0.433, -0.439, 0.58), spelled as a turn.
+    const his = [-0.532, 0.433, -0.439, 0.58];
+    const n = Math.hypot(...his);
+    await page.goto("about:blank");
+    await page.goto(at("/cube?turn=-14,87,-87&play=0"));
+    await page.waitForFunction(() => /rotate3d/.test(document.querySelector(".graph > div")?.style.transform ?? ""), null, { timeout: 20_000 });
+    await rest(page, 2500);
+    expect(turnDeg(await orbitQuat(page), his.map((v) => v / n))).toBeLessThan(1);
+    expect(await query(page)).toMatchObject({ path: "/cube", turn: "-14,87,-87" });
 });
 
 test.describe("on a phone", () => {
