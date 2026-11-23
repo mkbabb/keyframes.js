@@ -269,4 +269,21 @@ useEventListener(document, "visibilitychange", () => {
         display: none;
     }
 }
+
+/* FORTY-SIXTH E1 (J6) — the wash arrives by a fade. Its chunk resolves after
+   first paint, and the wash popped in whole in one frame (on a phone at 4x, in
+   the same frame as the die's snap). An animation from opacity 0 takes the
+   wash to its own resting value, whatever glass's ceiling writes inline. It is
+   a fade under reduced motion too. (An entrance of Aurora's own is glass's to
+   give every consumer; this is the site's slot.) The way out is App.vue's
+   (useBackdropLeave): the wash stays mounted through its fade. */
+.hero-aurora {
+    animation: hero-aurora-in 200ms var(--ease-out, ease-out) both;
+}
+
+@keyframes hero-aurora-in {
+    from {
+        opacity: 0;
+    }
+}
 </style>
