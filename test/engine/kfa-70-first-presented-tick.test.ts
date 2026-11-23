@@ -90,4 +90,51 @@ describe("KFA-70 — the clock starts at the first presented tick", () => {
         expect(opacity(el)).toBeCloseTo(FRAME / 1000, 6);
         group.stop();
     });
+
+    // FORTY-SIXTH E1 (J3) — a pause at the anchor tick (the shell holds a
+    // landing scene's loop at its first painted frame until the swap lands)
+    // spans no local time and is not an anchor stall. The paused span was
+    // read twice (the anchor's stall moved the clock on by it, and the
+    // resume moved it on again): the playhead ran negative by the whole
+    // pause, held still that long, then jumped back.
+    it("group: a pause at the anchor tick, resumed 600 ms later, plays on from the anchor", async () => {
+        const { a, el } = settle();
+        const other = settle();
+        const group = new AnimationGroup<any>(a, other.a);
+        group.singleTarget = false;
+        void group.play();
+        await Promise.resolve();
+        tick(1000); // the anchor tick
+        group.pause(); // held at the first painted frame
+        tick(1000 + FRAME);
+        group.resume(); // the swap landed
+        tick(1600);
+        tick(1600 + FRAME);
+        expect(a.t).toBeGreaterThan(0);
+        expect(a.t).toBeLessThanOrEqual(2 * FRAME + 1e-6);
+        tick(1600 + 2 * FRAME);
+        expect(opacity(el)).toBeGreaterThan(0);
+        expect(opacity(el)).toBeLessThanOrEqual((3 * FRAME) / 1000 + 1e-6);
+        group.stop();
+    });
+
+    it("group: a seek while held at the anchor is where the resumed loop plays on from", async () => {
+        const { a, el } = settle();
+        const other = settle();
+        const group = new AnimationGroup<any>(a, other.a);
+        group.singleTarget = false;
+        void group.play();
+        await Promise.resolve();
+        tick(1000);
+        group.pause();
+        group.seek(125).render();
+        group.resume();
+        tick(1600);
+        tick(1600 + FRAME);
+        // Never behind the seek, never far past it.
+        expect(a.t).toBeGreaterThanOrEqual(125);
+        expect(a.t).toBeLessThanOrEqual(125 + 2 * FRAME + 1e-6);
+        expect(opacity(el)).toBeGreaterThanOrEqual(0.125 - 1e-9);
+        group.stop();
+    });
 });

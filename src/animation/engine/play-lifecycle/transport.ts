@@ -33,6 +33,14 @@ import type { KeyframesAnimation } from "../animation";
 export function pause<V extends Vars>(anim: KeyframesAnimation<V>): void {
     if (anim._playback.started) {
         anim._playback.paused = true;
+        // A pause ends the fresh anchor's wait for its first presented frame
+        // (`presentAnchor`): the resume re-bases the clock to its own frame
+        // (the paused span is `advanceBody`'s to remove), so the paused span is
+        // never read as an anchor stall as well. Read twice, it ran the
+        // playhead negative by the whole pause: a group held at its anchor
+        // tick (a landing scene's first frame) stood still that long after its
+        // resume, then jumped back.
+        anim._playback.anchorTick = undefined;
     }
 }
 
