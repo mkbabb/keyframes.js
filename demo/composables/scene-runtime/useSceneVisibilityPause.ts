@@ -23,19 +23,16 @@ import { onScopeDispose, watch } from "vue";
  *
  * A hand on the subject is the second reason (`held`): while a finger or the
  * mouse holds the die, or a wheel stream turns it, the scene's own loop yields,
- * so the page's frames carry the hand and nothing else (a playing scene
- * repaints its transport every frame, and its input then reached the page later:
- * a phone's touches 28.7 ms after their time against 13.2 ms paused, a desk's
- * wheel about 20 ms against the embed's 12). The die holds still under the hand and plays on from
- * the same instant when it is let go. The same honesty holds: only a loop that
+ * so its draw no longer competes with the hand for the page's frames. On a
+ * phone at 4x CPU a touch was handled 30 to 34 ms after its time while the
+ * scene played, against 14 to 15 paused; with the yield, 13 to 18 (the other
+ * frame readers, the transport's among them, still ask for a frame each frame,
+ * so at full speed it stays near 23). The die holds still under the hand and
+ * plays on from the same instant when it is let go. The same honesty holds: only a loop that
  * was running is paused, and only that pause is resumed, once neither reason
  * stands and the scene still means to play (a Pause pressed while the hand
  * held the die is kept).
  *
- * @param wasRunning probe — true iff the loop is currently ticking (read at hide
- *        time to decide whether to auto-pause).
- * @param pause stop the loop (idempotent).
- * @param resume restart the loop (idempotent).
  * The way back may be eased (`easeIn`): nothing changes instantly, so a scene
  * whose subject stood still under the hand can gather its speed again instead
  * of jumping to it. `easeIn(done, keepGoing)` walks the paused loop back up to
