@@ -61,7 +61,7 @@
                 <template v-if="sheetReset.shown.value">
                     <div class="sheet-lead-row">
                         <SheetResetButton @reset="sheetReset.reset()" />
-                        <ReuseDurationRow lead />
+                        <ReuseDurationRow :lead="true" />
                     </div>
                     <Separator />
                 </template>

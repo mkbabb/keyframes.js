@@ -158,6 +158,12 @@ describe("the upright phone's lead row comes first in the DOM, as it is seen", (
             expect(before(reset, duration)).toBe(true);
             expect(before(duration, curve)).toBe(true);
             expect(phone.host.querySelectorAll(".labeled-field")).toHaveLength(1);
+            // The duration takes the rest of the lead row beside Reset: shrunk to
+            // its content, the slider stood 70 px long under its label and value
+            // drawn over one another (kf45's build at 390x844, before this test).
+            const row = phone.host.querySelector(".sheet-lead-row > .param-row");
+            expect(row?.classList.contains("flex-1")).toBe(true);
+            expect(row?.classList.contains("min-w-0")).toBe(true);
             phone.done();
 
             const desk = await mountWith(1440, 900, false);

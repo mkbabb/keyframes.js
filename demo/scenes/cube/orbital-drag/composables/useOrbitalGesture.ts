@@ -158,6 +158,17 @@ export const LEAD_FRAMES = 0;
  *  there, and the hand would step. One sample back, every frame falls between
  *  two real samples and moves; a mouse keeps its 4 ms. */
 export const TOUCH_BACK_MAX_MS = 20;
+/** In a stream, one sample back is counted from when a sample is seen, not
+ *  from its own time. While a touch's samples come at a digitiser's pace
+ *  (TOUCH_STREAM_MS apart or closer) and reach the page late (the median age
+ *  of the gesture's last four moves at the first frame that saw each, every
+ *  finger's, once two are seen), it is shown that much further back, less the RESAMPLE_BACK_MS
+ *  every hand is shown back, and at most this much more (ms). Counted from
+ *  their own time alone, on a page whose touches arrive about 23 ms late, a
+ *  frame's instant reached each sample just as it landed: the frame that saw
+ *  it showed the whole step and the frames until the next sample held the die.
+ *  A hand moving in sparser steps is shown as before. */
+export const TOUCH_LATE_MAX_MS = TOUCH_BACK_MAX_MS;
 /** A touch or a pen's shown instant moves on at most this many times the
  *  frame's own interval in one frame while its samples come at a digitiser's
  *  pace (TOUCH_STREAM_MS apart or closer). A sample that reaches a busy page
@@ -299,6 +310,15 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
         if (stamps.length > 0 && stamps[stamps.length - 1]! >= t) return;
         stamps.push(t);
         if (stamps.length > 4) stamps.shift();
+    };
+    /** The ages the gesture's last four moves had at the first frame that saw each (ms, every finger's). */
+    const seenAges: number[] = [];
+    /** How much later than its own time the stream is seen: their median (the lower of the middle two) less
+     *  RESAMPLE_BACK_MS (ms), 0 before two moves are seen. */
+    const lateness = (): number => {
+        if (seenAges.length < 2) return 0;
+        const a = [...seenAges].sort((x, y) => x - y);
+        return Math.min(TOUCH_LATE_MAX_MS, Math.max(0, a[(a.length - 1) >> 1]! - RESAMPLE_BACK_MS));
     };
     /** The gesture's event cadence: the median of its last three gaps (ms), Infinity with fewer than two events. */
     const streamGap = (): number => {
@@ -614,6 +634,7 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
             onGestureStart();
             dropOwed();
             stamps.length = 0;
+            seenAges.length = 0;
             // A middle (1) or right (2) mouse button pans, as Shift-drag does.
             buttonPan = event.pointerType === "mouse" && (event.button === 1 || event.button === 2);
         }
@@ -796,9 +817,11 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
      */
     const handAt = (now: number): "settling" | "shown" | "idle" => {
         if (pointers.size === 0 || !anchored()) return "idle";
+        // This frame's own interval (the hand's clock may move on at most TOUCH_CATCH_UP of it): the loop idles
+        // between a hand's samples, so the time since the hand was last shown may span frames that held it; one
+        // frame is at most the interval measured before them.
+        const dt = lastHandFrame >= 0 && now > lastHandFrame ? Math.min(now - lastHandFrame, frameMs) : frameMs;
         if (lastHandFrame >= 0 && now - lastHandFrame > 2 && now - lastHandFrame < 34) frameMs = now - lastHandFrame;
-        /** This frame's own interval (the hand's clock may move on at most TOUCH_CATCH_UP of it). */
-        const dt = lastHandFrame >= 0 && now > lastHandFrame ? now - lastHandFrame : frameMs;
         lastHandFrame = now;
         const tStar = now - RESAMPLE_BACK_MS;
         const ids = mode === "pair" ? pairIds : [[...pointers.keys()][0]!];
@@ -809,12 +832,22 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
             const h = pointers.get(id);
             if (!h) continue;
             // A touch one sample back (a frame's instant is never before its newest sample's; a clock that says
-            // otherwise, as a test's may, keeps the plain instant).
-            const gap = h.predicts && tStar >= (h.trail[h.trail.length - 1]?.t ?? Infinity) - 12 ? sampleGap(h.trail) : 0;
-            const back = Math.min(TOUCH_BACK_MAX_MS, gap);
+            // otherwise, as a test's may, keeps the plain instant), counted from when its samples are seen.
+            const newest = h.trail[h.trail.length - 1];
+            if (newest && h.seenAge === null) {
+                h.seenAge = now - newest.t;
+                // A move's age (a re-anchor's single kept sample is no move).
+                if (h.trail.length > 1) {
+                    seenAges.push(h.seenAge);
+                    if (seenAges.length > 4) seenAges.shift();
+                }
+            }
+            const gap = h.predicts && tStar >= (newest?.t ?? Infinity) - 12 ? sampleGap(h.trail) : 0;
+            const stream = streamGap() <= TOUCH_STREAM_MS;
+            const back = gap > 0 ? Math.min(TOUCH_BACK_MAX_MS, gap) + (stream ? lateness() : 0) : 0;
             // Never back; and in a stream, never more than TOUCH_CATCH_UP frames of the hand's time in one frame (a
             // frame that held at the newest sample is caught up over the next frames once the next sample lands).
-            const reach = streamGap() <= TOUCH_STREAM_MS ? h.shownT + TOUCH_CATCH_UP * dt : Infinity;
+            const reach = stream ? h.shownT + TOUCH_CATCH_UP * dt : Infinity;
             const at = handPoint(h, now, back ? Math.max(h.shownT, Math.min(tStar - back, reach)) : tStar, back > 0);
             settling ||= at.settling;
             real.push([h, h.x, h.y]);
