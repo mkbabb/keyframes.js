@@ -350,7 +350,8 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
             wheeling.value = false;
         }, WHEEL_STREAM_GAP_MS);
     };
-    /** A hand holds the die: a pointer down on it, or a live wheel stream. */
+    /** A hand is on the stage: a pointer down anywhere on the surface (on the
+     *  die or beside it: a tap or a click counts), or a live wheel stream over it. */
     const isHeld = computed(() => isActive.value || wheeling.value);
 
     const pressedKeys = ref<PressedKeys>({

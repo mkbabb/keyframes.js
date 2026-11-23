@@ -21,14 +21,21 @@ import { onScopeDispose, watch } from "vue";
  * continuous — the same path `restoreGroupPlaybackState` reuses), so there is no
  * forward jump on return.
  *
- * A hand on the subject is the second reason (`held`): while a finger or the
- * mouse holds the die, or a wheel stream turns it, the scene's own loop yields,
- * so its draw no longer competes with the hand for the page's frames. On a
- * phone at 4x CPU a touch was handled 30 to 34 ms after its time while the
- * scene played, against 14 to 15 paused; with the yield, 13 to 18 (the other
- * frame readers, the transport's among them, still ask for a frame each frame,
- * so at full speed it stays near 23). The die holds still under the hand and
- * plays on from the same instant when it is let go. The same honesty holds: only a loop that
+ * A hand on the stage is the second reason (`held`): from a press anywhere on
+ * the stage (the orbit's surface: on the die or beside it, a tap or a click
+ * included) to its release, and through a wheel stream over it until 300 ms
+ * after its last event, the scene's own loop yields, so its draw no longer adds
+ * to the page's frames. Measured back to back against the build without the
+ * yield, with the die held on a 390 phone, the main thread's work per frame
+ * falls from 12 to 27 ms to 3 to 6 at 4x CPU, and from 2 to 4 ms to about 1 at
+ * full speed (on the desk, from 3 to 5 to under 2). A touch is handled sooner
+ * only where that work made the frames slip: at 4x the build without the yield
+ * sometimes fell to 16 to 22 ms frames and handled a touch 31 to 44 ms after
+ * its time, against 16 to 19 here; at full speed, on the desk and in the other
+ * 4x runs, the two are within each other's spread. The other frame readers (the
+ * transport's among them) still ask for a frame each frame while it is held.
+ * The die holds still under the hand and plays on from the same instant when
+ * it is let go. The same honesty holds: only a loop that
  * was running is paused, and only that pause is resumed, once neither reason
  * stands and the scene still means to play (a Pause pressed while the hand
  * held the die is kept).

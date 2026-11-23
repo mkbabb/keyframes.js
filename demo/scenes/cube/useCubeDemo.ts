@@ -31,7 +31,8 @@ export function useCubeDemo(
     skin: Readonly<Ref<CubeSkin>>,
     /** `settle: false` (the embed slice, which holds still until Play): the
      *  graph lands on its opening attitude at once, as under reduced motion.
-     *  `held`: true while a hand holds the die (CubeTarget's `hold`), and
+     *  `held`: true while a hand is on the stage (CubeTarget's `hold`: a
+     *  press anywhere on it, or a wheel stream over it), and
      *  `playing`, the scene's own play state (a Pause pressed while the hand
      *  held the die is kept at its release). */
     {
@@ -242,11 +243,11 @@ export function useCubeDemo(
     }
 
     // B-3: pause the cube's engine draw loop while the tab is hidden, and while
-    // a hand holds the die (the die holds still under it; the page's frames
-    // carry the hand alone). The group owns its rAF; `pause()` records each
-    // child's `pausedTime` and `resume()` re-bases `startTime` so `effectiveT`
-    // stays continuous — no forward jump on return. Only resumes what it
-    // paused (a user-paused cube stays paused).
+    // a hand is on the stage (the die holds still under it; other frame readers
+    // still ask for frames, see useSceneVisibilityPause). The group owns its
+    // rAF; `pause()` records each child's `pausedTime` and `resume()` re-bases
+    // `startTime` so `effectiveT` stays continuous — no forward jump on return.
+    // Only resumes what it paused (a user-paused cube stays paused).
     useSceneVisibilityPause(
         () => animationGroup.value.playing(),
         () => animationGroup.value.pause(),

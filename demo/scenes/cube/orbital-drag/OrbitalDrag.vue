@@ -83,9 +83,10 @@ const emit = defineEmits<{
     (e: "scale", scale: TransformState["scale"]): void;
     // P.W5.S3 — the X/Y/Z/modifier latch, whenever it changes.
     (e: "pressedKeys", keys: PressedKeys): void;
-    /** A hand took the die (true) or let it go (false): its first finger or
-     *  the mouse down, its last one up; or a wheel stream on it, from its
-     *  first event until it has been quiet for 300 ms. */
+    /** A hand is on the stage (true) or has left it (false): its first finger
+     *  or the mouse down anywhere on the surface (the die or beside it, a tap
+     *  or a click included), its last one up; or a wheel stream over it, from
+     *  its first event until it has been quiet for 300 ms. */
     (e: "hold", held: boolean): void;
 }>();
 
