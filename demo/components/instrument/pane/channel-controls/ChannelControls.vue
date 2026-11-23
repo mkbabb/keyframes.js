@@ -206,7 +206,7 @@ const loadKeyframeTimeline = (): void => {
 };
 import { loadAnimationEngine } from "@mkbabb/keyframes.js";
 import ChannelOptions from "./ChannelOptions.vue";
-import { getChannelControlsState, getStoredAnimationGroupControlOptions } from "@state";
+import { getChannelControlsState, getStoredAnimationGroupControlOptions, getStoredAnimationOptions } from "@state";
 
 const { animation, isPlaying: isPlayingProp, layerConfig, active } = defineProps<{
     animation: KeyframesAnimation<any>;
@@ -388,6 +388,14 @@ watch(
     () => animation,
     (a) => {
         railDuration.value = a.options.duration;
+    },
+);
+// FORTY-SIXTH E2 — a duration the address sets (`o.<Channel>`, applied by the
+// engine's setter and then stored) rescales the rail as the form's commit does.
+watch(
+    () => getStoredAnimationOptions(animation).animationOptions.duration,
+    () => {
+        railDuration.value = animation.options.duration;
     },
 );
 const {

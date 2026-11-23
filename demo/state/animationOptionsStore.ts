@@ -121,6 +121,24 @@ export const useAnimationGroupsOptionsStore = createGlobalState(() =>
     ref<StoredAnimationGroupsOptions>({}),
 );
 
+/**
+ * Each channel's options as its author wrote them: the bucket's first seed,
+ * kept for the page's life (a reset re-seeds a bucket and never moves this).
+ * A channel's options key in the address (`o.<Channel>`) spells only what
+ * differs from these.
+ */
+const authoredSeeds = new Map<string, InputAnimationOptions>();
+const seedKey = (superKey: string, animationId: string) => `${superKey}\u0000${animationId}`;
+
+/** The options this channel's author wrote (its bucket's first seed). */
+export const getAuthoredAnimationOptions = (
+    animation: KeyframesAnimation<any>,
+): InputAnimationOptions => {
+    const stored = getStoredAnimationOptions(animation);
+    const key = seedKey(getAnimationSuperKey(undefined, animation), kfEngine().getAnimationId(animation));
+    return authoredSeeds.get(key) ?? stored.animationOptions;
+};
+
 export const getStoredAnimationOptions = (
     animationId: KeyframesAnimation<any> | string | undefined = undefined,
     // T.B9 — the ONE keyspace: the store keys by the registry `SceneId` (or an
@@ -163,6 +181,11 @@ export const getStoredAnimationOptions = (
                   ...structuredClone(defaultStoredAnimationOptions),
                   animationOptions: { ...defaultAnimationOptions, ...authored },
               };
+    }
+    const seed = seedKey(superKey, animationId);
+    if (!authoredSeeds.has(seed)) {
+        const bucket = (animationGroupsOptionsStore.value[superKey] as StoredAnimationGroupOptions)[animationId]!;
+        authoredSeeds.set(seed, { ...bucket.animationOptions });
     }
 
     return (

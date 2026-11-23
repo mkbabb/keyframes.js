@@ -7,6 +7,9 @@
  *   2. A scene link with no keys opens the scene at its defaults (its skin, its
  *      channels' options, its clock from rest).
  *   3. Only the theme (a viewer's preference) reaches browser storage.
+ *   4. A channel's options are in the address (`o.<Channel>`): a link that
+ *      sets them opens the channel with them, an edit writes them, and the
+ *      bare link opens the channel at its authored options again.
  *   5. The die's turn is spelled in whole degrees (FORTY-SIXTH F: "what is
  *      the q?"), and only after a turn.
  *
@@ -177,6 +180,62 @@ test("3. only the theme reaches storage", async ({ page }) => {
     const keys = await storageKeys(page);
     expect(keys.local.filter((k) => k !== "vueuse-color-scheme")).toEqual([]);
     expect(keys.session).toEqual([]);
+});
+
+/** The spin's speed about Y in turns per second, from 1.5 s of painted frames. */
+const spinRate = (page) =>
+    page.evaluate(
+        () =>
+            new Promise((done) => {
+                const read = () => Number(/rotateY\(([-\d.e]+)turn\)/.exec(document.querySelector(".cube-stage .cube")?.style.transform ?? "")?.[1] ?? NaN);
+                const rows = [];
+                const t0 = performance.now();
+                const f = (t) => {
+                    rows.push([t, read()]);
+                    if (t - t0 < 1500) requestAnimationFrame(f);
+                    else {
+                        // Sum the forward steps (a turn wraps from 1 to 0).
+                        let turns = 0;
+                        for (let i = 1; i < rows.length; i++) {
+                            let d = rows[i][1] - rows[i - 1][1];
+                            if (d < -0.5) d += 1;
+                            if (Number.isFinite(d)) turns += d;
+                        }
+                        done(turns / ((rows.at(-1)[0] - rows[0][0]) / 1000));
+                    }
+                };
+                requestAnimationFrame(f);
+            }),
+    );
+
+test("4. a channel's options are in the address", async ({ page }) => {
+    // A link that sets Rotations' duration: the field shows it, and the die
+    // turns once in 2 s (0.5 turn/s; at its authored 5 s, 0.2).
+    await page.goto(at("/cube?o.Rotations=d:2s"));
+    const duration = page.getByLabel("duration", { exact: true }).first();
+    await duration.waitFor({ timeout: 20_000 });
+    await rest(page, 1500);
+    expect(await duration.inputValue()).toBe("2s");
+    expect(await spinRate(page)).toBeCloseTo(0.5, 1);
+    expect(await query(page)).toMatchObject({ "o.Rotations": "d:2s" });
+
+    // An edit in the pane writes the address (a tuned value: it replaces).
+    const length = await page.evaluate(() => history.length);
+    await duration.fill("3s");
+    await duration.press("Enter");
+    await duration.blur();
+    await rest(page);
+    expect(await query(page)).toMatchObject({ "o.Rotations": "d:3s" });
+    expect(await page.evaluate(() => history.length)).toBe(length);
+
+    // The bare link opens Rotations at its authored options again.
+    await page.goto("about:blank");
+    await page.goto(at("/cube"));
+    await duration.waitFor({ timeout: 20_000 });
+    await rest(page, 1500);
+    expect(await duration.inputValue()).toBe("5s");
+    expect(await spinRate(page)).toBeCloseTo(0.2, 1);
+    expect((await query(page))["o.Rotations"]).toBeUndefined();
 });
 
 /** The orbit's attitude off its container (rotate3d axis, angle) as a quaternion. */

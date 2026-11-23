@@ -8,6 +8,7 @@ export {
     defaultStoredAnimationOptions,
     useAnimationGroupsOptionsStore,
     getStoredAnimationOptions,
+    getAuthoredAnimationOptions,
     createAnimationUUId,
 } from "./animationOptionsStore";
 
