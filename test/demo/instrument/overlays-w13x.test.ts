@@ -2,17 +2,16 @@
  * test/demo/instrument/overlays-w13x.test.ts — X.KF.W13X.overlays.
  *
  * The Share popover and the Keyboard shortcuts dialog, mounted for real:
- *  (1) UIA-KF-249 · a successful load clears the field (useShareState).
- *  (2) UIA-KF-142 · a refused load marks the field: `aria-invalid`, and an
- *      inline message the field names through `aria-describedby`; typing clears it.
- *  (3) UIA-KF-071 · the primary action is a named "Copy link" button; the load
- *      path is a labelled field of its own with a labelled Load button.
+ *  (1) FORTY-SIXTH E · the link Share copies is the address itself (the
+ *      address is the page): no `?state=` blob is added to it.
+ *  (2) FORTY-SIXTH E · the import path retired with the blob: no paste field,
+ *      no Load button.
+ *  (3) UIA-KF-071 · the primary action is a named "Copy link" button.
  *  (4) UIA-KF-224 · no native `title` tooltip inside the popover.
- *  (5) UIA-KF-248 · the popover opens with focus on the primary action, not on
- *      the paste field (whose focus ring was the heaviest stroke on the page).
- *  (6) UIA-KF-070 · a completed share action (copy, or a load) closes the
- *      surface through its host's open model (X.KF.W13X.esc2: the host's menu
- *      is already closed, so no `done` relay is left to emit).
+ *  (5) UIA-KF-248 · the popover opens with focus on the primary action.
+ *  (6) UIA-KF-070 · a completed copy closes the surface through its host's
+ *      open model (X.KF.W13X.esc2: the host's menu is already closed, so no
+ *      `done` relay is left to emit).
  *  (7) UIA-KF-140 · ESC-dock-1 (X.KF.W13X.esc2): the surface has no trigger of
  *      its own, so neither the 28x36 egg nor its recede fade can render.
  *  (8) UIA-KF-016 · the scroll port is the sr-only spans' containing block (`relative`).
@@ -34,7 +33,6 @@ const copySpy = vi.hoisted(() => vi.fn(async () => ({ ok: true as const })));
 vi.mock("@composables/copyWithToast", () => ({ copyWithToast: copySpy }));
 
 import { registerShortcut } from "@mkbabb/glass-ui/keyboard";
-import { encodeStateToHash, getAllState } from "@state";
 import { useShareState } from "@app/dock/menu/useShareState";
 import SharePopover from "@app/dock/menu/SharePopover.vue";
 import KeyboardShortcutsModal from "@app/dock/menu/KeyboardShortcutsModal.vue";
@@ -65,7 +63,6 @@ async function router() {
     return r;
 }
 
-const validHash = () => encodeStateToHash(getAllState("cube"));
 const pop = () => document.body.querySelector<HTMLElement>('[role="dialog"]');
 const field = () => pop()?.querySelector<HTMLInputElement>("input") ?? null;
 const buttons = () => [...(pop()?.querySelectorAll<HTMLButtonElement>("button") ?? [])];
@@ -82,43 +79,43 @@ async function openShare() {
             "onUpdate:open": (open: boolean) => wrapper!.setProps({ open }),
         },
     });
-    await vi.waitFor(() => expect(field()).not.toBeNull());
+    await vi.waitFor(() => expect(pop()).not.toBeNull());
     await nextTick();
     return wrapper;
 }
 
+/** The platform takes the clipboard write (jsdom has no async clipboard). */
+function clipboard() {
+    const writeText = vi.fn(async (_text: string) => {});
+    Object.defineProperty(navigator, "clipboard", { value: { writeText }, configurable: true });
+    onTestFinished(() => {
+        delete (navigator as { clipboard?: unknown }).clipboard;
+    });
+    return writeText;
+}
+
 describe("X.KF.W13X.overlays — Share", () => {
-    it("(1) UIA-KF-249 — a successful load clears the field", async () => {
+    it("(1) FORTY-SIXTH E — the link Share copies is the address, with no state blob", async () => {
+        const writeText = clipboard();
+        history.replaceState(null, "", "/#/cube?skin=daraksha&anim=Matrix");
         const r = await router();
         let api!: ReturnType<typeof useShareState>;
         wrapper = mount(defineComponent({ setup() { api = useShareState(); return () => h("div"); } }), { global: { plugins: [r] } });
-        api.loadHashInput.value = validHash();
-        expect(api.loadFromInput()).toBe(true);
-        expect(api.loadHashInput.value).toBe("");
+        expect(await api.shareState()).toBe(true);
+        expect(writeText).toHaveBeenCalledWith(location.href);
+        expect(writeText.mock.calls[0]?.[0]).toMatch(/#\/cube\?skin=daraksha&anim=Matrix$/);
+        expect(writeText.mock.calls[0]?.[0]).not.toMatch(/state=/);
     });
 
-    it("(2) UIA-KF-142 — a refused load marks the field and names the reason; typing clears it", async () => {
+    it("(2) FORTY-SIXTH E — the import path retired: no paste field, no Load", async () => {
         await openShare();
-        field()!.value = "@@not-base64@a";
-        field()!.dispatchEvent(new Event("input", { bubbles: true }));
-        field()!.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
-        await vi.waitFor(() => expect(field()!.getAttribute("aria-invalid")).toBe("true"));
-        const ids = (field()!.getAttribute("aria-describedby") ?? "").split(/\s+/).filter(Boolean);
-        const msg = ids.map((id) => document.getElementById(id)?.textContent?.trim()).join(" ");
-        expect(msg).toMatch(/shared state/i);
-        field()!.value = "@@not-base64@ab";
-        field()!.dispatchEvent(new Event("input", { bubbles: true }));
-        await vi.waitFor(() => expect(field()!.getAttribute("aria-invalid")).not.toBe("true"));
+        expect(field()).toBeNull();
+        expect(buttons().map((b) => b.textContent?.trim())).not.toContain("Load");
     });
 
-    it("(3) UIA-KF-071 — 'Copy link' is the named primary; the load path is named", async () => {
+    it("(3) UIA-KF-071 — 'Copy link' is the named primary", async () => {
         await openShare();
-        const names = buttons().map((b) => b.textContent?.trim());
-        expect(names[0]).toBe("Copy link");
-        expect(names).toContain("Load");
-        // Named for assistive tech; the placeholder and Load say it on screen.
-        expect(field()!.getAttribute("aria-label")).toBe("Load from link");
-        expect(pop()!.querySelector("label")).toBeNull();
+        expect(buttons().map((b) => b.textContent?.trim())).toEqual(["Copy link"]);
     });
 
     it("(4) UIA-KF-224 — no native title tooltip in the popover", async () => {
@@ -126,31 +123,19 @@ describe("X.KF.W13X.overlays — Share", () => {
         expect(pop()!.querySelectorAll("[title]").length).toBe(0);
     });
 
-    it("(5) UIA-KF-248 — the popover opens on its primary action, not on the paste field", async () => {
+    it("(5) UIA-KF-248 — the popover opens on its primary action", async () => {
         await openShare();
         await vi.waitFor(() => expect(document.activeElement?.textContent?.trim()).toBe("Copy link"));
     });
 
-    it("(6) UIA-KF-070 — a copy and a successful load each close the surface", async () => {
+    it("(6) UIA-KF-070 — a copy closes the surface", async () => {
         // X.KF.W13X.r4dock · UIA-KF-321 — a COMPLETED copy: the platform takes the
-        // write (jsdom has no async clipboard, and a refused write now keeps the
-        // surface open on the link, r4dock.test.ts (2)).
-        const writeText = vi.fn(async () => {});
-        Object.defineProperty(navigator, "clipboard", { value: { writeText }, configurable: true });
-        onTestFinished(() => {
-            delete (navigator as { clipboard?: unknown }).clipboard;
-        });
+        // write (a refused write keeps the surface open on the link, r4dock.test.ts (2)).
+        const writeText = clipboard();
         const w = await openShare();
         buttons().find((b) => b.textContent?.trim() === "Copy link")!.click();
         await vi.waitFor(() => expect(w.emitted("update:open")?.at(-1)).toEqual([false]));
         expect(writeText).toHaveBeenCalledTimes(1);
-        await vi.waitFor(() => expect(field()).toBeNull());
-        await w.setProps({ open: true });
-        await vi.waitFor(() => expect(field()).not.toBeNull());
-        field()!.value = validHash();
-        field()!.dispatchEvent(new Event("input", { bubbles: true }));
-        field()!.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
-        await vi.waitFor(() => expect(w.emitted("update:open")?.filter(([o]) => o === false).length).toBe(2));
     });
 
     it("(7) UIA-KF-140 · ESC-dock-1 — the surface renders no trigger of its own", async () => {

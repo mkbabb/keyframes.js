@@ -19,7 +19,7 @@
 //     cycle cannot re-fire). This kills the route storm at its FIXED POINT —
 //     NOT by debouncing harder.
 //
-// The dock Select model, ?anim=, and localStorage are READ-ONLY projections of
+// The dock Select model and ?anim= are READ-ONLY projections of
 // machine.activeScene; they can never write back into scene selection. This file
 // REPLACES useSceneRouter.ts + useSceneUrl.ts in ONE motion (no legacy beside).
 // ─────────────────────────────────────────────────────────────────────────────
@@ -31,12 +31,8 @@ import {
     NavigationFailureType,
     START_LOCATION,
 } from "vue-router";
-import {
-    useSceneMachine,
-    HOME_SCENE_ID,
-    gcAndMigrateSceneKeyspace,
-} from "@state";
-import { sceneMap, allScenes } from "./scenes";
+import { useSceneMachine, HOME_SCENE_ID } from "@state";
+import { sceneMap } from "./scenes";
 
 /** Map a vue-router route name to a known SceneId, falling back to home. */
 function routeToScene(name: unknown): string {
@@ -48,10 +44,8 @@ function routeToScene(name: unknown): string {
  * Wire the route ⇆ machine reconcile + the first-load seed. Returns nothing —
  * the machine is the single authority; consumers read `useSceneMachine()`.
  *
- * First-load precedence (MED-6): deep-link URL > ?state= (router.beforeEach
- * already redirected to the state's activeScene) > localStorage (the machine's
- * own persisted activeScene, consulted ONLY for bare #/) > the scene's URL keys (applied on
- * SCENE_READY, not here).
+ * First load: the URL, and only the URL (FORTY-SIXTH E). A bare address opens
+ * Home; the scene's URL keys apply once it binds.
  */
 export function useSceneMachineRouterBinding(opts: {
     /** Lazily read the VT-wrapped scene switcher (defined after this binding
@@ -61,19 +55,6 @@ export function useSceneMachineRouterBinding(opts: {
     const router = useRouter();
     const route = useRoute();
     const machine = useSceneMachine();
-
-    // ── boot migration: a stored dead-route activeScene lands on home (T.E1/T.E3) ──
-    // A returning user whose persisted activeScene names a PRUNED scene
-    // (compose/morph/motion-path, OD-1) is coerced to home BEFORE the first-load
-    // seed dispatches it — no boot onto a route that no longer exists.
-    machine.migrateActiveScene(allScenes.map((s) => s.id));
-
-    // ── boot GC + keyspace migration (T.B9): ONE sweep over ALL THREE per-scene
-    // tables (the machine's perScene snapshot + both option stores). Prunes
-    // orphaned pruned-scene buckets AND migrates any legacy PascalCase option
-    // bucket ("Cube") to the registry SceneId ("cube") — the collapse that ends
-    // the two-keyspace drift. ──
-    gcAndMigrateSceneKeyspace(allScenes.map((s) => s.id));
 
     // The echo guard's generation: the WRITER bumps it before a push so the
     // immediately-following afterEach (the echo of our own push) is recognised
@@ -132,31 +113,16 @@ export function useSceneMachineRouterBinding(opts: {
     // is one of the scene's URL keys (useSceneUrlState), read on bind and on
     // Back/Forward, and written when the pick changes.
 
-    // ── First-load seed (deep-link wins over localStorage — S5/MED-6) ──
-    // The reducer's initial status is `idle` with activeScene = the persisted
-    // (localStorage) scene. Seed from the URL: if the URL names a real scene,
-    // it WINS; only a bare #/ falls back to the persisted activeScene. The
-    // first-load precedence is: deep-link URL > ?state= (router.beforeEach
-    // already redirected) > localStorage (the persisted activeScene) > the scene's URL keys
-    // (applied LAST, scene-keyed, once the seed scene is known).
+    // ── First-load seed: the route's scene ──
+    // The address is the page (FORTY-SIXTH E): a bare #/ opens Home, whatever
+    // the last visit showed; a scene link opens that scene.
     //
     // OD19-ALL (load) — the seed runs IN SETUP when the initial navigation has
     // already resolved, which it has on every boot (`main.ts` mounts after the
     // engine chunk resolves, long after `app.use(router)`'s first navigation).
-    // Deferred to the `isReady()` microtask, App's first render drew the
-    // persisted scene (home on a first visit) for a deep link to #/<scene>: it
-    // fetched and evaluated the home-only Aurora chunk, mounted the start
-    // screen, and only then switched. Seeded here, the first render is the
-    // linked scene. A not-yet-resolved router (no boot path does this) keeps
-    // the microtask seat.
-    const seed = () => {
-        const urlScene = routeToScene(route.name);
-        if (urlScene !== HOME_SCENE_ID) {
-            machine.dispatch({ type: "NAVIGATE", to: urlScene });
-        } else {
-            machine.dispatch({ type: "NAVIGATE", to: machine.activeScene.value });
-        }
-    };
+    // Seeded here, the first render is the linked scene. A not-yet-resolved
+    // router (no boot path does this) keeps the microtask seat.
+    const seed = () => machine.dispatch({ type: "NAVIGATE", to: routeToScene(route.name) });
     if (router.currentRoute.value === START_LOCATION) void router.isReady().then(seed);
     else seed();
 }

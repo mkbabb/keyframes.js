@@ -66,7 +66,8 @@ describe("X.KF.W13X.r4dock — UIA-KF-321 · a refused copy offers the link on t
         await vi.waitFor(() => expect(linkField()).not.toBeNull());
         await vi.waitFor(() => expect(document.activeElement).toBe(linkField()));
         const field = linkField()!;
-        expect(field.value).toMatch(/^http:\/\/localhost(:\d+)?\/.*\?state=[^&]+/);
+        // FORTY-SIXTH E — the link is the address itself.
+        expect(field.value).toBe(location.href);
         expect([field.selectionStart, field.selectionEnd]).toEqual([0, field.value.length]);
         expect(wrapper.emitted("update:open")?.some(([o]) => o === false) ?? false).toBe(false);
         expect(toastSpy.mock.calls.map(([o]) => o.title ?? "").filter((t) => /address bar/i.test(t))).toEqual([]);

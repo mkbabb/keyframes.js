@@ -23,7 +23,6 @@ describe("KF-C3-15 — the stored bucket's defaults", () => {
         const controls = getStoredAnimationGroupControlOptions("cube");
         expect(controls.isControlsPanelOpen).toBe(true);
         expect(controls.isTimelineExpanded).toBe(false);
-        expect(controls.keyframeControls.selectedKeyframesControl).toBe("keyframes");
         expect(controls.selectedControl).toBe("timeline");
         expect(controls.selectedAnimation).toBeNull();
     });

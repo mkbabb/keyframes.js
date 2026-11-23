@@ -12,12 +12,6 @@ const storedOptions = (
 ): StoredAnimationGroupControlOptions => ({
     selectedControl: "controls",
     selectedAnimation: "",
-    keyframeControls: {
-        selectedKeyframesControl: "keyframes",
-        dialogOpen: false,
-        keyframes: "",
-        addKeyframes: "",
-    },
     isTimelineExpanded: false,
     isControlsPanelOpen: true,
     ...over,

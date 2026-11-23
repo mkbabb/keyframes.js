@@ -112,6 +112,10 @@ function stage(patch: Record<string, string | undefined>, history: "push" | "rep
 // opened elsewhere) is written first.
 if (typeof window !== "undefined") window.addEventListener("pagehide", flush);
 
+/** Write any value still resting now (Share copies the address: the link must
+ *  be the view on screen, not the view 160 ms ago). */
+export const flushUrlState = (): void => flush();
+
 /**
  * Bind `keys` to the route's query while `scene` is the route's scene (`null`:
  * whatever scene the route names). On bind the URL wins where it carries a

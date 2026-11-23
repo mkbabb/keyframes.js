@@ -3,8 +3,13 @@
 //
 // The reactive `createGlobalState` shell around the PURE reducer (`transition`,
 // in sceneMachine.ts). Co-located with the pure core it drives: the core is
-// unit-testable in isolation; THIS file wires it to Vue reactivity + persistence
-// + the adapter registry + the effects the reducer's purity forbids.
+// unit-testable in isolation; THIS file wires it to Vue reactivity + the
+// adapter registry + the effects the reducer's purity forbids.
+//
+// THE ADDRESS IS THE PAGE (owner, FORTY-SIXTH E). The context lives in memory
+// for this page's life only: a return to a scene within the page resumes it as
+// it was left (item 7), and a reload or a new tab starts from the URL. Nothing
+// of it is written to or read from browser storage.
 //
 // MUTATION BOUNDARY (MED-4): createGlobalState gives NO mutation boundary by
 // itself, so this exports ONLY `dispatch()` + READONLY refs (status, activeScene,
@@ -13,7 +18,7 @@
 // this one assigns them.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { createGlobalState, useStorage } from "@vueuse/core";
+import { createGlobalState } from "@vueuse/core";
 import {
     computed,
     readonly,
@@ -26,7 +31,6 @@ import {
     transition,
     HOME_SCENE_ID,
     type MachineState,
-    type PlaybackSnapshot,
     type SceneEvent,
     type SceneId,
     type ScenePlayback,
@@ -38,70 +42,13 @@ import {
     type ControlSurfaceTab,
 } from "./controlSurfaces";
 
-/** The localStorage key the machine context persists under (ST-6). Exported so
- *  `resetAllStores()` (storeUtils STORE_KEYS) wipes it in the same motion — the
- *  active-scene fact lives HERE now, not the deleted raw `keyframes-js-active-
- *  scene` key. Single-sourced so the key is never duplicated as a string. */
-export const SCENE_MACHINE_PERSIST_KEY = "keyframes-js-scene-machine";
-
-/** What persists across reloads — the active scene + the keyed snapshot map
- *  (ST-6). Plain JSON; the markRaw groups are NEVER persisted (MED-6). */
-interface PersistedContext {
-    activeScene: SceneId;
-    perScene: Record<SceneId, PlaybackSnapshot>;
-}
-
-/**
- * K.W0 S4-C — coerce a hydrated per-scene snapshot map to COLD-BOOT-PAUSED. Each
- * entry keeps its `started` flag + scrub state (`animations`/`progress`) so the
- * SCENE_READY restore re-seats the position faithfully, but `playing` is forced
- * false so NO scene auto-resumes its loop on a gestureless cold boot (K4-C). Pure
- * — returns a fresh map; the persisted store on disk is untouched (the next
- * single-writer dispatch re-persists from the live, session-true context).
- */
-function coerceColdBootPaused(
-    perScene: Record<SceneId, PlaybackSnapshot>,
-): Record<SceneId, PlaybackSnapshot> {
-    const out: Record<SceneId, PlaybackSnapshot> = {};
-    for (const [id, snap] of Object.entries(perScene)) {
-        out[id] = { ...snap, playing: false };
-    }
-    return out;
-}
-
 export const useSceneMachine = createGlobalState(() => {
-    // The persisted half of the context. @vueuse/useStorage = persistence
-    // (ST-6) — NOT the mutation discipline (MED-4); the discipline is the
-    // exported surface below.
-    const persisted = useStorage<PersistedContext>(SCENE_MACHINE_PERSIST_KEY, {
-        activeScene: HOME_SCENE_ID,
-        perScene: {},
-    });
-
-    // The live machine value. `status` is ephemeral (never persisted — a reload
-    // re-derives it from the snapshot on SCENE_READY). `context` mirrors the
-    // persisted store so a single writer keeps them in lockstep.
-    //
-    // K.W0 S4-C — THE COLD-BOOT-STARTS-PAUSED policy (the gesture-gated-playback
-    // policy, restore face). A COLD APP BOOT (the context hydrated from
-    // localStorage at startup, NO user gesture yet this session) must restore the
-    // scrub POSITION faithfully but start PAUSED — no scene auto-resumes its
-    // animation without a user gesture (K4-C: the amiga bounce auto-resumed on a
-    // gestureless cold reload because the hydrated `playing:true` flowed through
-    // the SCENE_READY restore → restoreGroupPlaybackState → group.resume()). We
-    // coerce the hydrated per-scene snapshot's `playing → false` ONCE here, at the
-    // hydration seam, keeping `started` + the `animations`/`progress` scrub state
-    // so the restore still re-seats the position (paused). A subsequent IN-SESSION
-    // scene switch is faithful (the live `captureActive` snapshot carries the
-    // session's true `playing`, not this hydrated value). This is the same
-    // gesture-gated-playback policy as S1: S1 makes a USER GESTURE start the
-    // engine; S4-C makes a GESTURELESS cold boot NOT auto-resume.
+    // The live machine value: Home, with no scene entered yet. `status` is
+    // derived per entry (SCENE_READY); `perScene` holds the snapshots of the
+    // scenes left in this page.
     const machine = shallowRef<MachineState>({
         status: "idle",
-        context: {
-            activeScene: persisted.value.activeScene,
-            perScene: coerceColdBootPaused(persisted.value.perScene ?? {}),
-        },
+        context: { activeScene: HOME_SCENE_ID, perScene: {} },
     });
 
     // The adapter registry — scenes register their ScenePlayback on mount,
@@ -142,7 +89,7 @@ export const useSceneMachine = createGlobalState(() => {
     // live adapter (it is side-effect-free), so the writer does the impure work:
     // it CAPTURES the leaving scene's live state into the context BEFORE running
     // the reducer (so the captured snapshot flows INTO the transition, not lost
-    // beside it), runs `transition`, persists, then drives the adapters AFTER.
+    // beside it), runs `transition`, then drives the adapters AFTER.
     function dispatch(event: SceneEvent): void {
         let prev = machine.value;
 
@@ -182,12 +129,6 @@ export const useSceneMachine = createGlobalState(() => {
         if (next === prev && next === machine.value) return;
 
         machine.value = next;
-
-        // ── persist the context half (status is ephemeral) ──
-        persisted.value = {
-            activeScene: next.context.activeScene,
-            perScene: next.context.perScene,
-        };
 
         // ── post-transition effects (drive the adapters into the new state) ──
         applyEffects(next, event, next !== prev);
@@ -229,8 +170,8 @@ export const useSceneMachine = createGlobalState(() => {
         switch (event.type) {
             case "SCENE_READY": {
                 // The ONE explicit restore point (S4) — targets are attached, so
-                // interpFrames can resolve computed units. Restore from the
-                // persisted snapshot through the CONTRACT.
+                // interpFrames can resolve computed units. Restore the snapshot
+                // this page captured when it left the scene, through the CONTRACT.
                 if (!adapter) return;
                 const snap = state.context.perScene[state.context.activeScene];
                 if (snap && (snap.started || snap.playing)) {
@@ -276,46 +217,6 @@ export const useSceneMachine = createGlobalState(() => {
             default:
                 break;
         }
-    }
-
-    // ── boot migration: a stored dead-route activeScene lands on home (T.E1/T.E3)
-    // ─────────────────────────────────────────────────────────────────────────
-    // A returning user whose persisted `activeScene` names a scene that no longer
-    // exists in the registry (a PRUNED scene — compose/morph/motion-path per OD-1)
-    // must NOT boot onto a dead route: the router writer would `router.push` a
-    // name with no route and the machine would rest on a phantom scene. Coerce the
-    // hydrated activeScene to HOME_SCENE_ID when it is not a live registry id
-    // BEFORE the first-load seed dispatches it. Called at boot from the router
-    // binding (which owns the valid-id set via `allScenes`), beside `gcOrphans`.
-    function migrateActiveScene(validSceneIds: Iterable<SceneId>): void {
-        const valid = new Set(validSceneIds);
-        const active = machine.value.context.activeScene;
-        if (valid.has(active)) return;
-        const context = { ...machine.value.context, activeScene: HOME_SCENE_ID };
-        machine.value = { status: machine.value.status, context };
-        persisted.value = {
-            activeScene: HOME_SCENE_ID,
-            perScene: context.perScene,
-        };
-    }
-
-    // ── boot GC: drop orphan scene snapshots (ST-7 / T.B9) ────────────────────
-    // Prunes `perScene` snapshot entries for scenes that no longer exist in the
-    // registry. The option stores are pruned+migrated in the SAME sweep by
-    // `gcAndMigrateSceneKeyspace` (index.ts) over the SAME valid-id set — the ONE
-    // keyspace: all three per-scene tables key by the registry SceneId.
-    function gcOrphans(validSceneIds: Iterable<SceneId>): void {
-        const valid = new Set(validSceneIds);
-        const perScene: Record<SceneId, PlaybackSnapshot> = {};
-        let pruned = false;
-        for (const [id, snap] of Object.entries(machine.value.context.perScene)) {
-            if (valid.has(id)) perScene[id] = snap;
-            else pruned = true;
-        }
-        if (!pruned) return;
-        const context = { ...machine.value.context, perScene };
-        machine.value = { status: machine.value.status, context };
-        persisted.value = { activeScene: context.activeScene, perScene };
     }
 
     return {
@@ -365,7 +266,5 @@ export const useSceneMachine = createGlobalState(() => {
         // The adapter registry.
         register,
         adapterFor,
-        gcOrphans,
-        migrateActiveScene,
     };
 });

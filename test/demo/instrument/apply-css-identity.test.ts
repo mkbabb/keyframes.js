@@ -296,12 +296,6 @@ describe("G-KFW12-5 — APPLY: one name, one lifetime", () => {
         const storedControls = reactive<StoredAnimationGroupControlOptions>({
             selectedControl: "keyframes",
             selectedAnimation: "",
-            keyframeControls: {
-                selectedKeyframesControl: "keyframes",
-                dialogOpen: false,
-                keyframes: "",
-                addKeyframes: "",
-            },
             isTimelineExpanded: false,
             isControlsPanelOpen: true,
         });

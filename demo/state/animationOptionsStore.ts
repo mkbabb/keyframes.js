@@ -1,15 +1,12 @@
 import { kfEngine } from "@kf-engine";
 import type { JumpPosition } from "@mkbabb/value.js/easing";
 import type { KeyframesAnimation, InputAnimationOptions } from "@mkbabb/keyframes.js";
-import { createGlobalState, useStorage } from "@vueuse/core";
-import {
-    checkAndResetExpiredStore,
-    gcAndMigrateStoreBuckets,
-    getAnimationSuperKey,
-} from "./storeUtils";
+import { createGlobalState } from "@vueuse/core";
+import { ref } from "vue";
+import { getAnimationSuperKey } from "./storeUtils";
 import type { SceneId } from "./sceneMachine";
 
-// Type-only Value 4 contract: persisted choices use canonical spellings.
+// Type-only Value 4 contract: stored choices use canonical spellings.
 const jumpTerms = [
     "jump-start",
     "jump-end",
@@ -19,8 +16,8 @@ const jumpTerms = [
 
 export type StoredAnimationOptions = {
     animationOptions: InputAnimationOptions;
-    // R.W6 C.3 — `animationState` removed: dead state from the pre-machine era
-    // (the machine replaced it at H.W1); never accessed outside this definition.
+    // The easing editor's two drafts (its steps and its bezier points), read
+    // and written by the timing-function panel.
     stepOptions: {
         steps: number;
         jumpTerm: (typeof jumpTerms)[number];
@@ -35,8 +32,7 @@ export type StoredAnimationGroupOptions = {
 };
 
 export type StoredAnimationGroupsOptions = {
-    _storeTimestamp?: number;
-    [name: string]: StoredAnimationGroupOptions | number | undefined;
+    [name: string]: StoredAnimationGroupOptions | undefined;
 };
 
 export const defaultAnimationOptions = {
@@ -115,21 +111,15 @@ const storedOptionsFrom = (
     return seeded;
 };
 
-export const useAnimationGroupsOptionsStore = createGlobalState(() => {
-    const store = useStorage<StoredAnimationGroupsOptions>(
-        "animation-groups-options-store",
-        { _storeTimestamp: Date.now() } as StoredAnimationGroupsOptions,
-    );
-    checkAndResetExpiredStore(store, { _storeTimestamp: Date.now() });
-    return store;
-});
-
-export const applySharedAnimationState = (patch: object): void => {
-    const entries = Object.entries(patch).filter(([key, value]) =>
-        key !== "_storeTimestamp" && typeof value === "object" && value !== null,
-    );
-    Object.assign(useAnimationGroupsOptionsStore().value, Object.fromEntries(entries));
-};
+/**
+ * Every channel's options (duration, delay, iterations, direction, fill, easing)
+ * for this page's life. Never written to browser storage: a channel's options
+ * travel in the address (`o.<Channel>`, useSceneUrlState), and a bare link
+ * opens every channel at its authored options (owner, FORTY-SIXTH E).
+ */
+export const useAnimationGroupsOptionsStore = createGlobalState(() =>
+    ref<StoredAnimationGroupsOptions>({}),
+);
 
 export const getStoredAnimationOptions = (
     animationId: KeyframesAnimation<any> | string | undefined = undefined,
@@ -187,17 +177,5 @@ export const createAnimationUUId = (
 
 /** Reset the store to defaults (used by resetAllStores). */
 export const _resetAnimationGroupsOptionsStore = () => {
-    const store = useAnimationGroupsOptionsStore();
-    store.value = {
-        _storeTimestamp: Date.now(),
-    } as StoredAnimationGroupsOptions;
-};
-
-/** T.B9 — migrate legacy PascalCase buckets to the registry `SceneId` keyspace
- *  and GC orphans. Called at boot beside the machine's `gcOrphans` over the SAME
- *  valid-id set (the one gc sweep spread across the three globalState modules). */
-export const _gcAndMigrateAnimationGroupsOptionsStore = (
-    validSceneIds: Iterable<SceneId>,
-) => {
-    gcAndMigrateStoreBuckets(useAnimationGroupsOptionsStore(), validSceneIds);
+    useAnimationGroupsOptionsStore().value = {};
 };

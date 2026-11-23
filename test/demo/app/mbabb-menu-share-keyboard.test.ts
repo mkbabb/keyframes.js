@@ -66,13 +66,10 @@ const Host = defineComponent({
     template: `
         <TooltipProvider>
             <GlassDock collapse="open">
-                <MbabbMenu :on-scene-restore="noop" />
+                <MbabbMenu />
             </GlassDock>
         </TooltipProvider>
     `,
-    setup() {
-        return { noop: () => {} };
-    },
 });
 
 const pointerInit = { bubbles: true, cancelable: true, button: 0 };
@@ -86,10 +83,8 @@ async function press(el: Element): Promise<void> {
 }
 
 /** Both overlays are portalled to `document.body` by reka. */
-// X.KF.W13X.overlays — the field is named by its LabeledField ("Load from
-// link"), and the popover opens on its primary action ("Copy link", UIA-KF-248).
-const shareField = () =>
-    document.body.querySelector('[role="dialog"] input[inputmode="url"]');
+// The popover opens on its primary action ("Copy link", UIA-KF-248).
+const sharePopover = () => document.body.querySelector('[role="dialog"]');
 const sharePrimary = () =>
     [...document.body.querySelectorAll<HTMLButtonElement>('[role="dialog"] button')].find(
         (b) => b.textContent?.trim() === "Copy link",
@@ -153,18 +148,20 @@ describe("KF.W13X.esc2 — Share is a plain menuitem that opens its own popover"
     it("(2) keyboard: Enter on the row copies the link, closes the menu, and opens the popover saying so, focus on its primary action", async () => {
         grantClipboard();
         const wrapper = await openMenu();
-        expect(shareField()).toBeNull();
+        expect(sharePopover()).toBeNull();
 
         const row = shareRow();
         row.focus();
         row.dispatchEvent(
             new window.KeyboardEvent("keydown", { key: "Enter", bubbles: true, cancelable: true }),
         );
-        await vi.waitFor(() => expect(shareField()).not.toBeNull());
+        await vi.waitFor(() => expect(sharePopover()).not.toBeNull());
         await vi.waitFor(() => expect(menuOpen()).toBe(false));
         // One press, one write: the popover opens on the act already done.
+        // FORTY-SIXTH E — the link is the address itself, with no state blob.
         await vi.waitFor(() => expect(writeText).toHaveBeenCalledTimes(1));
-        expect(writeText.mock.calls[0]![0]).toMatch(/\?state=[^&]+/);
+        expect(writeText.mock.calls[0]![0]).toBe(location.href);
+        expect(writeText.mock.calls[0]![0]).not.toMatch(/state=/);
         await vi.waitFor(() => expect(document.activeElement).toBe(copiedPrimary()));
         expect(copiedPrimary()!.querySelector("svg.lucide-check")).not.toBeNull();
         expect(sharePrimary()).toBeNull();
@@ -176,7 +173,7 @@ describe("KF.W13X.esc2 — Share is a plain menuitem that opens its own popover"
         grantClipboard();
         const wrapper = await openMenu();
         await press(shareRow());
-        await vi.waitFor(() => expect(shareField()).not.toBeNull());
+        await vi.waitFor(() => expect(sharePopover()).not.toBeNull());
         await vi.waitFor(() => expect(menuOpen()).toBe(false));
         await vi.waitFor(() => expect(writeText).toHaveBeenCalledTimes(1));
         await vi.waitFor(() => expect(copiedPrimary()).not.toBeNull());
@@ -184,7 +181,7 @@ describe("KF.W13X.esc2 — Share is a plain menuitem that opens its own popover"
         document.activeElement!.dispatchEvent(
             new window.KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true }),
         );
-        await vi.waitFor(() => expect(shareField()).toBeNull());
+        await vi.waitFor(() => expect(sharePopover()).toBeNull());
         await vi.waitFor(() => expect(document.activeElement).toBe(trigger()));
 
         wrapper.unmount();
@@ -195,20 +192,18 @@ describe("KF.W13X.esc2 — Share is a plain menuitem that opens its own popover"
         await press(shareRow());
         const linkField = () => document.body.querySelector<HTMLInputElement>('[role="dialog"] input[readonly]');
         await vi.waitFor(() => expect(linkField()).not.toBeNull());
-        expect(linkField()!.value).toMatch(/\?state=[^&]+/);
+        expect(linkField()!.value).toBe(location.href);
         await vi.waitFor(() => expect(document.activeElement).toBe(linkField()));
         wrapper.unmount();
     });
 
-    it("(5) the load field is named without a visible label: its placeholder and Load say it", async () => {
+    it("(5) FORTY-SIXTH E — the surface holds no paste field and no Load (a link opens in the address bar)", async () => {
         grantClipboard();
         const wrapper = await openMenu();
         await press(shareRow());
-        await vi.waitFor(() => expect(shareField()).not.toBeNull());
-        const field = shareField()!;
-        expect(field.getAttribute("aria-label")).toBe("Load from link");
-        expect(field.getAttribute("placeholder")).toBe("Paste a share link");
-        expect(document.body.querySelector('[role="dialog"] label')).toBeNull();
+        await vi.waitFor(() => expect(copiedPrimary()).not.toBeNull());
+        expect(document.body.querySelector('[role="dialog"] input')).toBeNull();
+        expect([...document.body.querySelectorAll('[role="dialog"] button')].map((b) => b.textContent?.trim())).not.toContain("Load");
         wrapper.unmount();
     });
 });

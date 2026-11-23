@@ -34,7 +34,7 @@
         @update-selected-control="onDockSelectControl"
     >
         <template #items>
-            <MbabbMenu :on-scene-restore="runSceneSwitch" :skins="resolvedScene.id === HOME_SCENE_ID || resolvedScene.id === CUBE_SCENE_ID" />
+            <MbabbMenu :skins="resolvedScene.id === HOME_SCENE_ID || resolvedScene.id === CUBE_SCENE_ID" />
         </template>
     </ChromeDock>
 
@@ -445,7 +445,7 @@ const {
 // Native View Transitions wrap the (synchronous) scene-id mutation; the no-VT
 // path falls through to the SpringProgress cross-dissolve unchanged, and focus
 // routes to the scene host on `finished` (a11y). Every scene-nav entry (the dock
-// @switch-scene, the SharePopover restore, a URL change) goes through this.
+// @switch-scene, a URL change) goes through this.
 const { runSceneSwitch, lastSwapBackend, onSceneContent } = useSceneTransition({
     mutate: switchScene,
     sceneHost: sceneHostEl,
