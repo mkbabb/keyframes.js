@@ -57,7 +57,7 @@ function hand(): Step[] {
  * own time, against frames every `frame` ms; return each frame's change (px).
  */
 /** A fresh reader on a 200 px die (R 200), with its state. */
-function reader() {
+function reader(onCommit: () => void = () => {}) {
     const container = document.createElement("div");
     document.body.append(container);
     const state: OrbitState = { q: [0, 0, 0, 1], t: { x: 0, y: 0 }, s: 1 };
@@ -70,7 +70,7 @@ function reader() {
             state,
             frame: () => ({ centre: { x: 0, y: 0 }, side: SIDE, fit: 1, stage: null }),
             scaleRange: [0.4, 3],
-            requestCommit: () => {},
+            requestCommit: onCommit,
             onGestureStart: () => {},
             onGestureEnd: () => {},
         }),
@@ -85,8 +85,15 @@ function reader() {
     };
 }
 
-function replay(gap: number, delays: number[], frame = FRAME): { d: number[]; stalls: number } {
-    const { gesture, state, dispose } = reader();
+/**
+ * `idles`: OrbitalDrag's own frame loop, which runs a frame only when a move
+ * asked for one or the last frame was still settling, and idles between a
+ * hand's samples otherwise (the hand is not shown in the frames it skips).
+ */
+function replay(gap: number, delays: number[], frame = FRAME, { idles = false } = {}): { d: number[]; stalls: number } {
+    let asked = false;
+    const { gesture, state, dispose } = reader(() => (asked = true));
+    let last: string = "idle";
     const steps = hand();
     const queue = steps.map((s, i) => ({ s, t: 100 + i * gap, d: 100 + i * gap + delays[i % delays.length]! }));
     const poses: Array<{ q: Quat; t: { x: number; y: number }; s: number }> = [];
@@ -100,7 +107,10 @@ function replay(gap: number, delays: number[], frame = FRAME): { d: number[]; st
                 else document.dispatchEvent(ev(s.type === "move" ? "pointermove" : "pointerup", p.id, p.x, p.y, t));
             }
         }
-        gesture.handAt(now);
+        if (!idles || asked || last === "settling") {
+            asked = false;
+            last = gesture.handAt(now);
+        }
         poses.push({ q: [...state.q] as Quat, t: { ...state.t }, s: state.s });
     }
     dispose();
@@ -124,6 +134,14 @@ const jumpsOf = (d: number[]) =>
         return v > 4 && v > 3 * Math.max(med, 1);
     });
 
+/** The share of the stream's frames (first moving frame to last) that move the die. */
+const movingShare = (d: number[]) => {
+    const first = d.findIndex((v) => v > 0.05);
+    const last = d.length - 1 - [...d].reverse().findIndex((v) => v > 0.05);
+    const span = d.slice(first, last + 1);
+    return span.filter((v) => v > 0.05).length / span.length;
+};
+
 describe("a touch on a busy page: late samples never jump the die", () => {
     it("samples 22 ms apart, delivered 13 to 19 ms late, 8.3 ms frames: no jump", () => {
         const { d } = replay(22, [13, 19, 14, 17, 13, 19, 15, 18, 16, 13]);
@@ -140,6 +158,27 @@ describe("a touch on a busy page: late samples never jump the die", () => {
         const { d, stalls } = replay(1000 / 60, [4]);
         expect(jumpsOf(d)).toEqual([]);
         expect(stalls).toBe(0);
+    });
+
+    // The browser's own cadence (cube-gestures, the spec's hand at 390x844,
+    // read per frame on production and on this branch): each step 25 to 33 ms
+    // after the last, seen 23 ms after its own time, and the frame loop idling
+    // whenever the hand had nothing new. Counted from the sample's own time, the
+    // frame that saw a step showed it whole and the next two held: one frame in
+    // three moved the die. Now every frame of the stream moves it but those of
+    // the hand's own pauses (a finger set down or lifted holds it for a step)
+    // and one at the first step, seen before the page's delay is known.
+    it("the frame loop idling between samples 25 ms apart, seen 23 ms late: no jump, and the frames move the die", () => {
+        const { d, stalls } = replay(25, [23, 24, 22, 23], FRAME, { idles: true });
+        expect(jumpsOf(d)).toEqual([]);
+        expect(stalls).toBeLessThanOrEqual(1);
+        expect(movingShare(d)).toBeGreaterThanOrEqual(0.85);
+    });
+
+    it("the frame loop idling between samples 32 ms apart, seen 23 ms late: no jump, and most frames move the die", () => {
+        const { d } = replay(32, [23, 24, 22, 23], FRAME, { idles: true });
+        expect(jumpsOf(d)).toEqual([]);
+        expect(movingShare(d)).toBeGreaterThanOrEqual(0.75);
     });
 
     // The browser spec's "one finger tracks 1:1": a hand moved in steps 50 ms
