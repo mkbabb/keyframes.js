@@ -71,7 +71,11 @@ export function walkGroupClock(
         if (!keepGoing() || !group.started || !group.paused) return shape === "rise" ? done() : undefined;
         if (start === null || start > now) start = last = now;
         const u = Math.min(1, (now - start) / ms);
-        group.seek(from + covered(u)).render();
+        // A rise past its end already runs at rate 1: the frame that ends it
+        // draws the time past the end too. Clamped to the end, that frame
+        // stood still (the last ramp frame sits within a frame of it).
+        const past = shape === "rise" ? Math.max(0, now - start - ms) : 0;
+        group.seek(from + covered(u) + past).render();
         if (u < 1) {
             last = now;
             frame = requestAnimationFrame(step);
@@ -81,7 +85,7 @@ export function walkGroupClock(
         // At full speed. A resumed group's first frame shows the instant it
         // was paused at, so seat that instant one frame on (at rate 1): the
         // first resumed frame then moves on by a frame, never holds.
-        group.seek(from + covered(1) + Math.max(0, now - last));
+        group.seek(from + covered(1) + past + Math.max(0, now - last));
         done();
     });
     return () => {
