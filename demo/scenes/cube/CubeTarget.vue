@@ -197,14 +197,14 @@ import { DIE_FACES, valueColor, valueInk } from "./dice/pips";
 import "./dice/dice.css";
 import { CUBE_SPIN_VARS } from "./cubeMotion";
 import { graphAttitudeCss } from "./graphAttitude";
-
-/** The stage's parked attitude, painted from the first render (J1). */
-const GRAPH_ATTITUDE_CSS = graphAttitudeCss();
 import {
     numberValue,
     transformCall,
     transformList,
 } from "./matrix-editor/transformMath";
+
+/** The stage's parked attitude, painted from the first render (J1). */
+const GRAPH_ATTITUDE_CSS = graphAttitudeCss();
 
 const props = withDefaults(
     defineProps<{

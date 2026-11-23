@@ -126,9 +126,10 @@ const FADE_MS = 200;
 const reducedMotion = () => window.matchMedia?.("(prefers-reduced-motion: reduce)").matches === true;
 const nextFrame = () => new Promise<void>((r) => requestAnimationFrame(() => r()));
 
-// Paused on load: the die rests at its opening attitude (no spin) until Play. `started` is the group's own (true from the first Play
-// until a Reset), so the Matrix channel's pre-start painter and the running
-// group never both write the pose (KFA-2).
+// Paused on load: the die rests at its opening attitude (no spin) until Play.
+// `started` is the group's own (true from the first Play until a Reset), so
+// the Matrix channel's pre-start painter and the running group never both
+// write the pose (KFA-2).
 const playing = ref(false);
 const started = ref(false);
 
