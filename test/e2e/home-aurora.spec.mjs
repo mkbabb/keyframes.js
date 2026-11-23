@@ -4,8 +4,8 @@
  *
  *   1. On a cold Home the wash fades in: it is never at full strength in the
  *      first frame it is painted, and it reaches its rest.
- *   2. Leaving Home (Play), the wash fades out over several frames, still
- *      drawn while it fades (its renderer is torn down only after); it is
+ *   2. Leaving Home (Play), the wash fades out, still drawn while it fades
+ *      (its renderer is torn down only after), over 200 ms or more; it is
  *      never gone in one frame.
  *
  * The wash's painted strength is read every frame from document start (the
@@ -75,7 +75,7 @@ test("1. a cold Home's wash fades in", async ({ page, context }) => {
     expect(between.length).toBeGreaterThanOrEqual(2);
 });
 
-test("2. leaving Home, the wash fades out over several frames", async ({ page, context }) => {
+test("2. leaving Home, the wash fades out while it still draws, never in one frame", async ({ page, context }) => {
     await context.addInitScript(LOG);
     await page.goto(at("/"));
     await page.waitForFunction(() => window.__aur.frames.filter((f) => f.o !== null).length > 60, null, { timeout: 30_000 });
@@ -91,9 +91,16 @@ test("2. leaving Home, the wash fades out over several frames", async ({ page, c
     const frames = await page.evaluate((t0) => window.__aur.frames.filter((f) => f.t >= t0), from);
     // The wash is gone at the end...
     expect(frames.at(-1).o).toBeNull();
-    // ...and on its way out it was painted part-way on at least two frames,
-    // its renderer still drawing on each.
+    // ...and on its way out it was painted part-way, its renderer still
+    // drawing, and it took its time: from the last frame at full strength to
+    // the first without it, 200 ms or more (its fade is 240 ms). Read as time,
+    // not as a count of frames: a loaded machine paints the swap's frames
+    // 50 to 80 ms apart.
     const between = frames.filter((f) => f.o !== null && f.o > 0.05 * rest && f.o < 0.9 * rest);
-    expect(between.length, `frames part-way out (rest ${rest})`).toBeGreaterThanOrEqual(2);
+    expect(between.length, `frames part-way out (rest ${rest})`).toBeGreaterThanOrEqual(1);
     expect(between.filter((f) => f.drawn === false), "frames fading a torn-down wash").toEqual([]);
+    const gone = frames.findIndex((f) => f.o === null);
+    const lastFull = frames.slice(0, gone).findLastIndex((f) => f.o >= 0.9 * rest);
+    expect(lastFull, "a frame at full strength before the leave").toBeGreaterThanOrEqual(0);
+    expect(frames[gone].t - frames[lastFull].t, "ms from full strength to gone").toBeGreaterThanOrEqual(200);
 });
