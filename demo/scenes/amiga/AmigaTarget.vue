@@ -93,6 +93,7 @@
             <Skeleton
                 v-if="roomBooting"
                 class="amiga-skeleton"
+                :style="{ width: `${silhouetteDiameter}px` }"
                 aria-hidden="true"
             />
         </Transition>
@@ -100,14 +101,14 @@
 </template>
 
 <script setup lang="ts">
-import { inject, onBeforeUnmount, onMounted, reactive, useId, useTemplateRef } from "vue";
-import { useIntersectionObserver, usePreferredReducedMotion } from "@vueuse/core";
+import { computed, inject, onBeforeUnmount, onMounted, reactive, useId, useTemplateRef } from "vue";
+import { useElementSize, useIntersectionObserver, usePreferredReducedMotion } from "@vueuse/core";
 import * as THREE from "three";
 // OD-U21 / SPEC-B3 §N3 (D7) — consume value.js's LIGHT lerp primitive.
 import { clamp, lerp } from "@mkbabb/value.js/math";
 
 import { Skeleton } from "@mkbabb/glass-ui";
-import { contactShadowScale, useAmigaThree } from "./useAmigaThree";
+import { contactShadowScale, framedBallDiameter, useAmigaThree } from "./useAmigaThree";
 import {
     createPoseContinuity,
     SPHERE_HOME,
@@ -144,6 +145,9 @@ declare global {
 
 const canvasEl = useTemplateRef<HTMLCanvasElement>("canvas");
 const sceneRootEl = useTemplateRef<HTMLElement>("sceneRoot");
+// FORTY-SIXTH E1 (J9) — the silhouette is the ball's drawn size on this stage.
+const { width: stageWidth, height: stageHeight } = useElementSize(sceneRootEl);
+const silhouetteDiameter = computed(() => Math.round(framedBallDiameter(stageWidth.value, stageHeight.value)));
 
 // R.W6-decomp — the Three.js room (renderer · scene · camera · OrbitControls ·
 // the boing-ball mesh · the grid-room · the managed render-on-demand present
@@ -637,8 +641,10 @@ onBeforeUnmount(() => {
 }
 
 /* KFA-76 — the ball's silhouette while the room builds: a round Skeleton at the
-   home seat (the camera frames the ball at the stage's centre), sized to the
-   ball's framed diameter band. It takes no pointer, so the stage stays live. */
+   home seat (the camera frames the ball at the stage's centre). FORTY-SIXTH E1
+   (J9): its width is the ball's drawn diameter on this stage (bound in the
+   template from the camera's framing), and it leaves by its fade while the
+   room fades in under it. It takes no pointer, so the stage stays live. */
 .amiga-boot-leave-active {
     transition: opacity var(--duration-normal, 240ms) var(--ease-standard, ease);
 }
@@ -649,7 +655,6 @@ onBeforeUnmount(() => {
     position: absolute;
     top: 50%;
     left: 50%;
-    width: min(32vmin, 18rem);
     aspect-ratio: 1;
     border-radius: 50%;
     translate: -50% -50%;
