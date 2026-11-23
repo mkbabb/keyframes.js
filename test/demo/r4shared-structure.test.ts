@@ -72,6 +72,7 @@ describe("limb (d) — shell/ is the instrument's host; the app's own chrome liv
             "HeroAurora.vue",
             "HomeMini.vue",
             "TypingDots.vue",
+            "useBackdropLeave.ts",
         ]);
         expect(names("demo/app/dock/menu")).toEqual([
             "KeyboardShortcutsModal.vue",
