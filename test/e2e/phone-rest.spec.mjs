@@ -325,7 +325,11 @@ test.describe("upright phone 390x844: the opened sheet", () => {
                 if (!reset) return null;
                 const r = reset.getBoundingClientRect();
                 const mid = (r.top + r.bottom) / 2;
-                const others = [...sheet.querySelectorAll('button, [role="slider"], [role="combobox"], input')]
+                // A control is a button, a slider, a select or a field; a
+                // labelled field (glass's LabeledSlider: its label over its bar,
+                // as easing's duration stands) counts whole, since its bar lies
+                // below the row's middle.
+                const others = [...sheet.querySelectorAll('button, [role="slider"], [role="combobox"], input, .labeled-field')]
                     .filter((e) => e !== reset && !e.closest('[data-slot="dialog-close"]') && e.getAttribute("data-slot") !== "dialog-close")
                     .map((e) => e.getBoundingClientRect())
                     .filter((b) => b.width > 0 && b.top <= mid && b.bottom >= mid);
