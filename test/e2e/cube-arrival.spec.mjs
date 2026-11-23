@@ -10,6 +10,8 @@
  *   6. The die is parked from its first frame: no identity frame, no sweep.
  *   8. The spin turns one way (his answer pending; the design's recommendation):
  *      over 12 s the Y speed never changes sign.
+ *   9. No other scene's chunk is evaluated while the cube spins: the idle warm
+ *      fetches the chunks (they arrive) and evaluates none of them.
  *
  * Cells: a desk (1440x900, 1x CPU) and a phone (390x844, touch, 4x CPU).
  *
@@ -132,6 +134,27 @@ for (const [cell, { use, cpu }] of Object.entries(CELLS)) {
             const forward = steps.filter((s) => s.d > 1e-6).length;
             const back = steps.filter((s) => s.d < -1e-6).length;
             expect(Math.min(forward, back), `forward ${forward}, back ${back}`).toBe(0);
+        });
+
+        test("9. no other scene's chunk is evaluated while the cube spins", async ({ page }) => {
+            await page.goto(at("/cube"));
+            await page.waitForFunction(() => window.__kf.frames.filter((f) => f.spin).length > 30, null, { timeout: 30_000 });
+            await page.waitForTimeout(5000);
+            const SCENE = /(Square|Easing|Spring|Sequence)Scene-[^/]*\.(js|css)/;
+            const got = await page.evaluate((src) => {
+                const re = new RegExp(src);
+                return {
+                    // Long frames whose scripts name another scene's module.
+                    loaf: window.__kf.loaf.flatMap((l) => l.scripts.map((x) => ({ ...x, s: Math.round(l.s) }))).filter((x) => re.test(x.src ?? "")),
+                    // A scene module's import applies its stylesheet.
+                    applied: [...document.querySelectorAll('link[rel="stylesheet"]')].map((l) => l.href).filter((h) => re.test(h)),
+                    // ...and the warm still fetched them, so a first switch waits on no network.
+                    fetched: performance.getEntriesByType("resource").map((e) => e.name).filter((n) => re.test(n)),
+                };
+            }, SCENE.source);
+            expect(got.loaf, "long frames running another scene's module").toEqual([]);
+            expect(got.applied, "another scene's stylesheet applied").toEqual([]);
+            expect(got.fetched.length, "scene chunks fetched at idle").toBeGreaterThan(3);
         });
     });
 }

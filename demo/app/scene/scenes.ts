@@ -108,15 +108,20 @@ export interface SceneDescriptor {
 const sceneLoaders = new Map<string, SceneLoader>();
 // The scenes the idle warm skips (see `warmScenesAtIdle`).
 const intentOnly = new Set<string>();
+// id → its chunk's name in the build (its module's file name), which the idle
+// warm reads the chunk's files by (`#kf-scene-chunks`).
+const sceneChunks = new Map<string, string>();
 
 /** Declare a route-lazy scene once: register its loader for hover-warmup AND
  *  wrap it in `defineAsyncComponent` for `<Suspense>` mount. One source of the
  *  import thunk — warm and mount can never drift onto different chunks.
  *  `idleWarm: false` marks a scene whose chunk carries a heavy vendor: it is
- *  fetched on intent (the Scene menu opening, the switch) and never at idle. */
-function lazyScene(id: string, loader: SceneLoader, { idleWarm = true } = {}): Component {
+ *  fetched on intent (the Scene menu opening, the switch) and never at idle.
+ *  `chunk`: the scene module's file name, which names its chunk in the build. */
+function lazyScene(id: string, loader: SceneLoader, { idleWarm = true, chunk }: { idleWarm?: boolean; chunk?: string } = {}): Component {
     sceneLoaders.set(id, loader);
     if (!idleWarm) intentOnly.add(id);
+    if (chunk) sceneChunks.set(id, chunk);
     return defineAsyncComponent(loader as () => Promise<Component>);
 }
 
@@ -166,20 +171,54 @@ export function warmScene(id: string): void {
 
 /**
  * KFA-76 (X.KF.W13X.scene) — warm the scene chunks once the page is idle after
- * first paint, so a first-visit switch evaluates no chunk on the swap tick. The
- * caller arms it after the first scene's content has painted (KF-RES-1,
+ * first paint, so a first-visit switch waits on no network. The caller arms it
+ * after the first scene's content has painted (KF-RES-1,
  * `useSceneTransition`'s `onSceneContent`), never at mount. A scene declared
- * `idleWarm: false` is skipped: the Amiga's chunk pulls three.js (~530 KB), and
- * evaluating it at idle on every visit cost every page that never opens it.
- * `requestIdleCallback` where the engine ships it (Safari does not), else one
- * macrotask after load; either way the warm never competes with first paint.
+ * `idleWarm: false` is skipped: the Amiga's chunk pulls three.js (~530 KB).
+ *
+ * FORTY-SIXTH E1 (J11) — the idle warm FETCHES and never evaluates. It used to
+ * `import()` every chunk, and an import evaluates its module: an idle callback
+ * has no deadline over a module's evaluation, so at 4x the hero's spin hitched
+ * 62 to 92 ms while the other scenes' chunks evaluated. The build writes each
+ * chunk's files into the page (`#kf-scene-chunks`, sceneChunkMapPlugin); the
+ * warm adds a `modulepreload` for each script and a `preload` for each
+ * stylesheet, so the module is fetched and parsed and waits in the module map.
+ * It is evaluated on intent (the Scene list opening, `warmScene`) or at the
+ * switch. Without the list (the dev server) nothing is warmed at idle.
  */
+const sceneChunkFiles = (): Record<string, string[]> => {
+    try {
+        return JSON.parse(document.getElementById("kf-scene-chunks")?.textContent ?? "{}");
+    } catch {
+        return {};
+    }
+};
+
 export function warmScenesAtIdle(): void {
-    const warmAll = () => {
-        for (const id of sceneLoaders.keys()) if (!intentOnly.has(id)) warmScene(id);
+    const fetchAll = () => {
+        const files = sceneChunkFiles();
+        const seen = new Set<string>();
+        for (const [id, chunk] of sceneChunks) {
+            if (intentOnly.has(id)) continue;
+            for (const file of files[chunk] ?? []) {
+                if (seen.has(file)) continue;
+                seen.add(file);
+                const href = new URL(file, document.baseURI).href;
+                if (document.querySelector(`link[href="${href}"]`)) continue;
+                const link = document.createElement("link");
+                if (file.endsWith(".css")) {
+                    link.rel = "preload";
+                    link.setAttribute("as", "style");
+                } else {
+                    link.rel = "modulepreload";
+                }
+                link.href = href;
+                document.head.appendChild(link);
+            }
+        }
     };
-    if ("requestIdleCallback" in window) requestIdleCallback(warmAll);
-    else setTimeout(warmAll, 0);
+    if ("requestIdleCallback" in window) requestIdleCallback(fetchAll);
+    else setTimeout(fetchAll, 0);
 }
 
 /**
@@ -215,7 +254,7 @@ export const homeScene: SceneDescriptor = {
  * the backdrop, never the bare page under a still-pending async slot. App.vue
  * mounts this component in EditorShell's `#backdrop` slot on home only.
  */
-export const HomeBackdrop = lazyScene(HOME_SCENE_ID, () => import("../hero/HeroAurora.vue"));
+export const HomeBackdrop = lazyScene(HOME_SCENE_ID, () => import("../hero/HeroAurora.vue"), { chunk: "HeroAurora" });
 
 export const scenes: SceneDescriptor[] = [
     {
@@ -244,7 +283,7 @@ export const scenes: SceneDescriptor[] = [
         superKey: SQUARE_SCENE_ID,
         stageMode: "subject",
         icon: SquareIcon,
-        component: lazyScene(SQUARE_SCENE_ID, () => import("../../scenes/square/SquareScene.vue")),
+        component: lazyScene(SQUARE_SCENE_ID, () => import("../../scenes/square/SquareScene.vue"), { chunk: "SquareScene" }),
     },
     {
         id: EASING_SCENE_ID,
@@ -252,7 +291,7 @@ export const scenes: SceneDescriptor[] = [
         superKey: EASING_SCENE_ID,
         stageMode: "editor",
         icon: EasingIcon,
-        component: lazyScene(EASING_SCENE_ID, () => import("../../scenes/easing/EasingScene.vue")),
+        component: lazyScene(EASING_SCENE_ID, () => import("../../scenes/easing/EasingScene.vue"), { chunk: "EasingScene" }),
     },
     {
         id: SPRING_SCENE_ID,
@@ -260,7 +299,7 @@ export const scenes: SceneDescriptor[] = [
         superKey: SPRING_SCENE_ID,
         stageMode: "storyboard",
         icon: SpringIcon,
-        component: lazyScene(SPRING_SCENE_ID, () => import("../../scenes/spring/SpringScene.vue")),
+        component: lazyScene(SPRING_SCENE_ID, () => import("../../scenes/spring/SpringScene.vue"), { chunk: "SpringScene" }),
     },
     {
         // The Sequence + stagger storyboard (F.W10.S3): N children positioned
@@ -275,6 +314,7 @@ export const scenes: SceneDescriptor[] = [
         component: lazyScene(
             SEQUENCE_SCENE_ID,
             () => import("../../scenes/sequence/SequenceScene.vue"),
+            { chunk: "SequenceScene" },
         ),
     },
     // The standalone @starting-style "Discrete" scene was MERGED into the Spring
