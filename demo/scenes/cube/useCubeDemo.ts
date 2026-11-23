@@ -6,7 +6,7 @@ import { getStoredAnimationOptions } from "@state";
 import { useSceneVisibilityPause } from "@composables/scene-runtime/useSceneVisibilityPause";
 import { CUBE_SCENE_ID } from "./cubeKeys";
 import type { Matrix3dCall } from "./matrix-editor/transformMath";
-import { CUBE_ANIMATION_NAMES, cubeSpinKeyframes } from "./cubeMotion";
+import { CUBE_ANIMATION_NAMES, CUBE_AUTHORED_OPTIONS, cubeSpinKeyframes } from "./cubeMotion";
 
 /** The die's way back to speed when a hand lets it go (`easeBack`), in ms. */
 const EASE_BACK_MS = 250;
@@ -71,6 +71,7 @@ export function useCubeDemo(
     const rotationAnimationOptions = getStoredAnimationOptions(
         CUBE_ANIMATION_NAMES.Rotations,
         CUBE_SCENE_ID,
+        CUBE_AUTHORED_OPTIONS[CUBE_ANIMATION_NAMES.Rotations],
     );
 
     const rotationAnim = shallowRef(

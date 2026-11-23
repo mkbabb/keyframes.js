@@ -126,6 +126,10 @@ export const getStoredAnimationOptions = (
     // T.B9 — the ONE keyspace: the store keys by the registry `SceneId` (or an
     // animation whose `.superKey` field IS the SceneId). No divergent PascalCase.
     superKey: KeyframesAnimation<any> | SceneId | undefined = undefined,
+    /** A channel requested by NAME before its animation exists (a scene that
+     *  builds its channels FROM the store) is seeded with the demo's defaults
+     *  and these, the options its author wrote for it. */
+    authored: Partial<InputAnimationOptions> = {},
 ): StoredAnimationOptions => {
     const liveAnimation = typeof animationId === "object" ? animationId : undefined;
     superKey = getAnimationSuperKey(superKey, animationId);
@@ -155,7 +159,10 @@ export const getStoredAnimationOptions = (
             ] as StoredAnimationGroupOptions
         )[animationId] = liveAnimation
             ? storedOptionsFrom(liveAnimation)
-            : structuredClone(defaultStoredAnimationOptions);
+            : {
+                  ...structuredClone(defaultStoredAnimationOptions),
+                  animationOptions: { ...defaultAnimationOptions, ...authored },
+              };
     }
 
     return (

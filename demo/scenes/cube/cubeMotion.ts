@@ -18,6 +18,23 @@ export const CUBE_ANIMATION_NAMES = {
     Hover: "Hover",
 } as const;
 
+/**
+ * Each channel's authored options where they differ from the demo's defaults
+ * (`defaultAnimationOptions`: 5 s, `alternate`, `ease-in-out`).
+ *
+ * FORTY-SIXTH E1 (J10) — the spin turns ONE way at a steady pace. As a
+ * pendulum (`alternate` on `ease-in-out`) the die slowed to a full stop at its
+ * start pose every 5 s and turned back, which reads as a hitch. Its keyframes
+ * are whole turns (360° about X, one turn about Y, 360° about Z), so a
+ * `normal` linear loop ends where it began and the die tumbles at 72°/s about
+ * Y, never stopping. The bob and the Matrix channel keep `alternate`: they are
+ * back-and-forth by nature. (Should he prefer the pendulum, this entry is the
+ * one line that returns to it.)
+ */
+export const CUBE_AUTHORED_OPTIONS: Readonly<Record<string, Readonly<Record<string, string>>>> = {
+    [CUBE_ANIMATION_NAMES.Rotations]: { direction: "normal", timingFunction: "linear" },
+};
+
 /** The custom property the Rotations channel's `100%` frame reads through
  *  `var(--rotationX)` — the cube's authored demonstration of `var()` in
  *  keyframes. Every spin element (the scene's `.cube`, the dock miniature's

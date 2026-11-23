@@ -8,6 +8,8 @@
  * frame, so it holds what the previous frame painted.
  *
  *   6. The die is parked from its first frame: no identity frame, no sweep.
+ *   8. The spin turns one way (his answer pending; the design's recommendation):
+ *      over 12 s the Y speed never changes sign.
  *
  * Cells: a desk (1440x900, 1x CPU) and a phone (390x844, touch, 4x CPU).
  *
@@ -77,6 +79,21 @@ const CELLS = {
 
 const PARKED = "rotate3d(-1, 1, 0, 30deg)";
 
+/** The spin's Y angle (turns) of a logged frame, or NaN. */
+const yTurns = (spin) => Number(/rotateY\(([-\d.e]+)turn\)/.exec(spin ?? "")?.[1] ?? NaN);
+/** The per-frame Y steps (turns), unwrapped across a loop's seam. */
+const ySteps = (frames) => {
+    const out = [];
+    for (let i = 1; i < frames.length; i++) {
+        const a = yTurns(frames[i - 1].spin);
+        const b = yTurns(frames[i].spin);
+        if (!Number.isFinite(a) || !Number.isFinite(b)) continue;
+        const d = b - a;
+        out.push({ t: frames[i].t, dt: frames[i].t - frames[i - 1].t, d: d - Math.round(d) });
+    }
+    return out;
+};
+
 for (const [cell, { use, cpu }] of Object.entries(CELLS)) {
     test.describe(`${cell} (${cpu}x CPU)`, () => {
         test.use(use);
@@ -101,6 +118,20 @@ for (const [cell, { use, cpu }] of Object.entries(CELLS)) {
                 const off = frames.filter((f) => f.graph !== PARKED).map((f) => `${Math.round(f.t)} ms: "${f.graph}"`);
                 expect(off, `${route}: frames off the parked attitude`).toEqual([]);
             }
+        });
+
+        test("8. the spin turns one way: over 12 s its Y speed never changes sign", async ({ page }) => {
+            test.setTimeout(90_000);
+            await page.goto(at("/cube"));
+            await page.waitForFunction(() => window.__kf.frames.filter((f) => f.spin).length > 30, null, { timeout: 30_000 });
+            const t0 = await page.evaluate(() => performance.now());
+            await page.waitForFunction((from) => performance.now() - from > 12_000, t0, { timeout: 40_000, polling: 500 });
+            const frames = await page.evaluate((from) => window.__kf.frames.filter((f) => f.t >= from && f.spin), t0);
+            const steps = ySteps(frames);
+            expect(steps.length).toBeGreaterThan(100);
+            const forward = steps.filter((s) => s.d > 1e-6).length;
+            const back = steps.filter((s) => s.d < -1e-6).length;
+            expect(Math.min(forward, back), `forward ${forward}, back ${back}`).toBe(0);
         });
     });
 }
