@@ -161,11 +161,18 @@ export function useSceneMachineShellBinding(opts: {
     let readyWaiter: { id: string; resolve: () => void } | null = null;
     let held: { id: string; playback: ScenePlayback | null } | null = null;
 
+    // FORTY-SIXTH E1 (J3, J4) — the landing starts the loop by gathering its
+    // speed (`easeIn`: the clock's rate rises 0 → 1 over 250 ms, the walk the
+    // hand's release already takes), in the frame the swap lands. A resume
+    // cut from still to full speed in one frame (0 to 80°/s on a return).
     function land() {
         const h = held;
         held = null;
         if (!h?.playback) return;
-        if (h.id === currentSceneId.value && machine.status.value === "playing") h.playback.resume();
+        const stillHere = () => h.id === currentSceneId.value && machine.status.value === "playing";
+        if (!stillHere()) return;
+        if (h.playback.easeIn) h.playback.easeIn(stillHere);
+        else h.playback.resume();
     }
 
     function whenSceneReady(id: string): Promise<() => void> {

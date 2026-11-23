@@ -8,6 +8,11 @@
  * frame, so it holds what the previous frame painted.
  *
  *   6. The die is parked from its first frame: no identity frame, no sweep.
+ *   7. Every start of the spin is eased, and starts as the swap lands (Home
+ *      then Play; Easing then back to the cube): the speed gathers over the
+ *      250 ms ramp from the swap's end (never a jump from still to full
+ *      speed, never a start held past the landing), and once at speed it
+ *      neither holds nor jumps back.
  *   8. The spin turns one way (his answer pending; the design's recommendation):
  *      over 12 s the Y speed never changes sign.
  *   9. No other scene's chunk is evaluated while the cube spins: the idle warm
@@ -120,6 +125,85 @@ for (const [cell, { use, cpu }] of Object.entries(CELLS)) {
                 const off = frames.filter((f) => f.graph !== PARKED).map((f) => `${Math.round(f.t)} ms: "${f.graph}"`);
                 expect(off, `${route}: frames off the parked attitude`).toEqual([]);
             }
+        });
+
+        /** The spin's start after the last swap: its Y angle (turns, unwrapped)
+         *  against the frame clock, from 200 ms before the swap's end. */
+        const startAfterSwap = async (page) => {
+            await page.waitForFunction(() => window.__kf.marks.some((m) => m.n === "scene-swap:total"), null, { timeout: 30_000 });
+            const t0 = await page.evaluate(() => performance.now());
+            await page.waitForFunction((from) => performance.now() - from > 2800, t0, { timeout: 30_000, polling: 250 });
+            const { frames, end } = await page.evaluate(() => {
+                const total = window.__kf.marks.filter((m) => m.n === "scene-swap:total").at(-1);
+                return { end: total.s + total.d, frames: window.__kf.frames.filter((f) => f.spin) };
+            });
+            const rows = frames.filter((f) => f.t >= end - 200);
+            const steps = ySteps(rows);
+            let y = 0;
+            const track = [{ t: rows[0].t, y: 0 }, ...steps.map((st) => ({ t: st.t, y: (y += st.d) }))];
+            return { end, track };
+        };
+
+        /** y at time t (linear between rows; held past either end). */
+        const yAt = (track, t) => {
+            const i = track.findIndex((p) => p.t >= t);
+            if (i < 0) return track.at(-1).y;
+            if (i === 0) return track[0].y;
+            const a = track[i - 1];
+            const b = track[i];
+            return a.y + ((b.y - a.y) * (t - a.t)) / (b.t - a.t);
+        };
+
+        /**
+         * The start's shape, read as the die's travel against the swap's end
+         * (travel over a span is robust to which frame a value lands in; a
+         * per-frame speed is not, the painted value trailing its tick by a
+         * frame or not):
+         *   - full speed v: the mean over 2 s, once well past the ramp;
+         *   - eased: over the first 125 ms it covers well under what full
+         *     speed covers (a 250 ms smoothstep: 0.19; a cut to full speed: 1);
+         *   - prompt: by 300 ms it has covered a fifth of full speed's travel
+         *     (the ramp: 0.58; a start held 200 ms past the landing: 0.04);
+         *   - steady after the ramp: every 200 ms covers between half and one
+         *     and a half of full speed's (a hold, or a jump back, is not).
+         */
+        const expectEasedStart = ({ end, track }) => {
+            const travel = (from, to) => yAt(track, to) - yAt(track, from);
+            const v = travel(end + 500, end + 2500) / 2000;
+            expect(v, "full speed (turns per ms)").toBeGreaterThan(0);
+            const eased = travel(end, end + 125) / (v * 125);
+            const prompt = travel(end, end + 300) / (v * 300);
+            expect.soft(eased, "share of full speed's travel in the first 125 ms").toBeLessThan(0.5);
+            expect.soft(prompt, "share of full speed's travel in the first 300 ms").toBeGreaterThan(0.2);
+            const off = [];
+            for (let t = end + 300; t + 200 <= end + 2300; t += 100) {
+                const k = travel(t, t + 200) / (v * 200);
+                if (k < 0.5 || k > 1.5) off.push(`${Math.round(t - end)} ms after the landing: ${k.toFixed(2)} of full speed`);
+            }
+            expect.soft(off, "200 ms spans off full speed after the ramp").toEqual([]);
+        };
+
+        test("7. every start of the spin is eased, and starts as the swap lands", async ({ page }) => {
+            test.setTimeout(120_000);
+            // Home, then Play.
+            await page.goto(at("/"));
+            await page.waitForFunction(() => window.__kf.frames.filter((f) => f.graph !== null).length > 60, null, { timeout: 30_000 });
+            await page.waitForTimeout(1500);
+            const play = page.locator('[aria-label="Play animation"]').first();
+            if (cell === "phone") await play.tap();
+            else await play.click();
+            await page.waitForFunction(() => location.hash.startsWith("#/cube"), null, { timeout: 20_000 });
+            expectEasedStart(await startAfterSwap(page));
+
+            // Away to Easing, and back to the cube (a return restores it playing).
+            await page.evaluate(() => (location.hash = "#/easing"));
+            await page.waitForSelector(".gallery-header", { timeout: 30_000 });
+            await page.waitForTimeout(1500);
+            await page.evaluate(() => {
+                window.__kf.marks = [];
+                location.hash = "#/cube";
+            });
+            expectEasedStart(await startAfterSwap(page));
         });
 
         test("8. the spin turns one way: over 12 s its Y speed never changes sign", async ({ page }) => {

@@ -2,14 +2,15 @@ import { markRaw, shallowRef, watch } from "vue";
 import type { Ref } from "vue";
 import type { CubeSkin } from "@state";
 import { kfEngine } from "@kf-engine";
-import { getStoredAnimationOptions } from "@state";
+import { getStoredAnimationOptions, walkGroupClock, EASE_IN_MS } from "@state";
 import { useSceneVisibilityPause } from "@composables/scene-runtime/useSceneVisibilityPause";
 import { CUBE_SCENE_ID } from "./cubeKeys";
 import type { Matrix3dCall } from "./matrix-editor/transformMath";
 import { CUBE_ANIMATION_NAMES, CUBE_AUTHORED_OPTIONS, cubeSpinKeyframes } from "./cubeMotion";
 
-/** The die's way back to speed when a hand lets it go (`easeBack`), in ms. */
-const EASE_BACK_MS = 250;
+/** The die's way back to speed when a hand lets it go (`easeBack`), in ms:
+ *  the one ramp every start of the spin takes. */
+const EASE_BACK_MS = EASE_IN_MS;
 
 /** The cube's per-channel paint targets (KF.W13U.w — one element per
  *  transform owner). The stage's attitude (`.graph`) is not one: it is parked
@@ -153,46 +154,12 @@ export function useCubeDemo(
 
     // The way back to speed after a yield: the die stood still under the hand,
     // and the spin and the bob must not jump from still to full speed in one
-    // frame (the motion law: nothing changes instantly). Over EASE_BACK_MS the
-    // group's clock is walked from where it stopped at a rate that rises from
-    // 0 to 1 on a smoothstep (rate 3u² − 2u³, so the time covered is
-    // EASE_BACK_MS · (u³ − u⁴/2)), its children kept in phase by the group
-    // seek; at the end the rate is 1 and the group resumes from where the walk
-    // left it, so speed carries on without a step. The group stays paused
-    // throughout; a Pause pressed (`keepGoing`), a Reset, or anything that
-    // resumes it meanwhile ends the walk where it stands.
-    function easeBack(done: () => void, keepGoing: () => boolean): () => void {
-        const group = animationGroup.value;
-        const children = Object.values(group.animations).map((entry) => entry.animation);
-        const from = Math.max(0, ...children.map((child) => group.elapsedOf(child)));
-        const covered = (u: number) => EASE_BACK_MS * (u ** 3 - u ** 4 / 2);
-        let start: number | null = null;
-        let last = 0;
-        let cancelled = false;
-        let frame = requestAnimationFrame(function step(now: number) {
-            frame = 0;
-            if (cancelled) return;
-            if (!keepGoing() || !group.started || !group.paused) return done();
-            start ??= last = now;
-            const u = Math.min(1, (now - start) / EASE_BACK_MS);
-            group.seek(from + covered(u)).render();
-            if (u < 1) {
-                last = now;
-                frame = requestAnimationFrame(step);
-                return;
-            }
-            // At full speed. A resumed group's first frame shows the instant it
-            // was paused at, so seat that instant one frame on (at rate 1):
-            // the first resumed frame then moves on by a frame, never holds.
-            group.seek(from + covered(1) + (now - last));
-            done();
-        });
-        return () => {
-            cancelled = true;
-            if (frame) cancelAnimationFrame(frame);
-            frame = 0;
-        };
-    }
+    // frame (the motion law: nothing changes instantly). The group's clock is
+    // walked up to speed (`walkGroupClock`, the one ramp every start of the
+    // spin takes: the swap's landing too), and the group resumes from where
+    // the walk left it, so speed carries on without a step.
+    const easeBack = (done: () => void, keepGoing: () => boolean): (() => void) =>
+        walkGroupClock(animationGroup.value, { ms: EASE_BACK_MS, shape: "rise" }, done, keepGoing);
 
     // B-3: pause the cube's engine draw loop while the tab is hidden, and while
     // a hand holds the die (the die holds still under it; the page's frames

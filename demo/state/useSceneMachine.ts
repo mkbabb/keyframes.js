@@ -182,10 +182,28 @@ export const useSceneMachine = createGlobalState(() => {
             case "PLAY":
                 // KFA-226 — a PLAY during a scrub records the intent; the
                 // scrub's release (SCRUB_END) is what re-arms the loop.
-                if (changed && !state.scrubbing) adapter?.resume();
+                // FORTY-SIXTH E1 — and a start gathers its speed: the loop's
+                // clock is walked up to speed while the scene still means to
+                // play (a Pause meanwhile ends the walk where it stands).
+                if (changed && !state.scrubbing) {
+                    const scene = state.context.activeScene;
+                    if (adapter?.easeIn) {
+                        adapter.easeIn(
+                            () =>
+                                machine.value.status === "playing" &&
+                                !machine.value.scrubbing &&
+                                machine.value.context.activeScene === scene,
+                        );
+                    } else adapter?.resume();
+                }
                 break;
             case "PAUSE":
-                if (changed) adapter?.suspend();
+                // FORTY-SIXTH E1 — a stop is eased too: the loop comes to rest
+                // over a short ramp instead of freezing in one frame.
+                if (changed) {
+                    if (adapter?.easeOut) adapter.easeOut();
+                    else adapter?.suspend();
+                }
                 break;
             case "RESUME":
                 if (changed && state.status === "playing" && !state.scrubbing) {

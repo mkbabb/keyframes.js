@@ -326,6 +326,19 @@ export interface ScenePlayback {
     suspend(): void;
     /** Restart the scene's loop. */
     resume(): void;
+    /**
+     * FORTY-SIXTH E1 (J3, J4) — restart the loop by GATHERING speed, never by
+     * jumping to it: the clock's rate rises 0 → 1 over a short ramp, then the
+     * loop runs on. `keepGoing` is read each frame; when it fails the walk ends
+     * where it stands. Optional: a scene without one resumes at once.
+     */
+    easeIn?(keepGoing: () => boolean): void;
+    /**
+     * Bring the loop to rest by the same ramp in reverse (rate 1 → 0, shorter:
+     * an exit is quicker than an entrance). The scene reads paused at once.
+     * Optional: a scene without one suspends at once.
+     */
+    easeOut?(): void;
     /** True iff the scene's loop is currently driving motion. */
     isPlaying(): boolean;
     /**

@@ -74,6 +74,9 @@ export {
     createGroupAdapter,
     createRafAdapter,
     restoreGroupPlaybackState,
+    walkGroupClock,
+    EASE_IN_MS,
+    EASE_OUT_MS,
 } from "./scenePlaybackAdapters";
 
 export { getAnimationSuperKey } from "./storeUtils";

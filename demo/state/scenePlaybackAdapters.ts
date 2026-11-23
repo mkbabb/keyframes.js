@@ -27,6 +27,70 @@ import type {
     ScenePlayback,
 } from "./sceneMachine";
 
+// ── The clock walks: a start and a stop of a group, eased ────────────────────
+
+/** A loop gathering its speed (a start), in ms. */
+export const EASE_IN_MS = 250;
+/** A loop coming to rest (a stop): about six tenths of the start. */
+export const EASE_OUT_MS = 150;
+
+/**
+ * Walk a PAUSED group's clock forward at a rate that rises 0 → 1 (`rise`) or
+ * falls 1 → 0 (`fall`) on a smoothstep over `ms`, its children kept in phase by
+ * the group seek. A rise ends at rate 1, one frame on, and calls `done` (the
+ * caller resumes the loop, which then carries the speed on without a step); a
+ * fall ends at rest. The group stays paused throughout; when `keepGoing()`
+ * fails, or the group is resumed or stopped meanwhile, the walk ends where it
+ * stands (a rise calls `done`). Returns the walk's cancel.
+ *
+ * Rate r(u) = 3u² − 2u³ (rise) or 1 − (3u² − 2u³) (fall); the clock it covers
+ * is ms·(u³ − u⁴/2) or ms·(u − u³ + u⁴/2).
+ */
+export function walkGroupClock(
+    group: AnimationGroup<any>,
+    { ms, shape }: { ms: number; shape: "rise" | "fall" },
+    done: () => void,
+    keepGoing: () => boolean = () => true,
+): () => void {
+    const children = Object.values(group.animations).map((entry) => entry.animation);
+    const from = Math.max(0, ...children.map((child) => group.elapsedOf(child)));
+    const covered = (u: number) =>
+        ms * (shape === "rise" ? u ** 3 - u ** 4 / 2 : u - u ** 3 + u ** 4 / 2);
+    // The walk's clock starts at the frame it is asked in (the swap's
+    // landing, the hand's release), on the frames' own clock, so the first
+    // frame after it already moves: a start taken at the first frame's own
+    // time held one more frame still. Without a document timeline, the first
+    // frame's time.
+    const asked = document.timeline?.currentTime;
+    let start: number | null = typeof asked === "number" ? asked : null;
+    let last = start ?? 0;
+    let cancelled = false;
+    let frame = requestAnimationFrame(function step(now: number) {
+        frame = 0;
+        if (cancelled) return;
+        if (!keepGoing() || !group.started || !group.paused) return shape === "rise" ? done() : undefined;
+        if (start === null || start > now) start = last = now;
+        const u = Math.min(1, (now - start) / ms);
+        group.seek(from + covered(u)).render();
+        if (u < 1) {
+            last = now;
+            frame = requestAnimationFrame(step);
+            return;
+        }
+        if (shape === "fall") return done();
+        // At full speed. A resumed group's first frame shows the instant it
+        // was paused at, so seat that instant one frame on (at rate 1): the
+        // first resumed frame then moves on by a frame, never holds.
+        group.seek(from + covered(1) + Math.max(0, now - last));
+        done();
+    });
+    return () => {
+        cancelled = true;
+        if (frame) cancelAnimationFrame(frame);
+        frame = 0;
+    };
+}
+
 // ── The AnimationGroup adapter ───────────────────────────────────────────────
 
 /**
@@ -37,6 +101,12 @@ import type {
 export function createGroupAdapter(
     getGroup: () => AnimationGroup<any>,
 ): ScenePlayback {
+    // The walk in flight (an eased start or stop); any other verb ends it.
+    let walk: (() => void) | null = null;
+    const endWalk = () => {
+        walk?.();
+        walk = null;
+    };
     return {
         snapshot(): PlaybackSnapshot {
             const group = getGroup();
@@ -61,6 +131,7 @@ export function createGroupAdapter(
         },
 
         restore(snap: PlaybackSnapshot): void {
+            endWalk();
             const group = getGroup();
             // S.A0 — the QUEUED fresh-play intent (the amiga cold-race): a PLAY
             // that lands while the scene chunk is still LOADING is recorded by
@@ -84,6 +155,7 @@ export function createGroupAdapter(
         },
 
         suspend(): void {
+            endWalk();
             const group = getGroup();
             // Stop the draw loop without rewinding (genuine suspend — the
             // snapshot already captured the clock). `pause()` is idempotent and
@@ -93,9 +165,33 @@ export function createGroupAdapter(
         },
 
         resume(): void {
+            endWalk();
             const group = getGroup();
             if (!group.started) group.play();          // START a fresh group (the P0 cure)
             else if (group.paused) group.resume();     // un-pause a started one (the extant behavior)
+        },
+
+        easeIn(keepGoing: () => boolean): void {
+            endWalk();
+            const group = getGroup();
+            if (!group.started || !group.paused) {
+                if (!group.started) group.play();
+                return;
+            }
+            walk = walkGroupClock(group, { ms: EASE_IN_MS, shape: "rise" }, () => {
+                walk = null;
+                if (keepGoing() && group.started && group.paused) group.resume();
+            }, keepGoing);
+        },
+
+        easeOut(): void {
+            endWalk();
+            const group = getGroup();
+            if (!group.started || group.paused) return;
+            group.pause();
+            walk = walkGroupClock(group, { ms: EASE_OUT_MS, shape: "fall" }, () => {
+                walk = null;
+            });
         },
 
         isPlaying(): boolean {
@@ -104,6 +200,7 @@ export function createGroupAdapter(
         },
 
         reset(): void {
+            endWalk();
             // KFA-39 — `stop()` rewinds every child to its initial frame and
             // halts the draw loop: the group's born state.
             getGroup().stop();
