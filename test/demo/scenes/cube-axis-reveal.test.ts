@@ -131,9 +131,9 @@ describe("the Z stroke, frame-stamped (KF-AX-4 · #57 · KF-AX-5)", () => {
         expect(z.direction[2]).toBeCloseTo(-1, 12);
     });
 
-    it("the degeneracy is TRANSIENT, and the PRM arm never shows it", () => {
-        // The sweep runs identity → GRAPH_ATTITUDE; the PRM arm writes the
-        // settled attitude inline with no sweep, so it starts already legible.
+    it("the degeneracy is never shown: the stage is parked from its first render", () => {
+        // FORTY-SIXTH E1 (J2) — no sweep runs from identity: the stage's
+        // template binds GRAPH_ATTITUDE, so it starts already legible.
         expect(project("z", MOUNT_T0).extent).toBeLessThan(1e-9);
         expect(project("z", GRAPH_ATTITUDE).extent).toBeGreaterThan(0.1);
         // KF-AX-5's design decision, asserted as a property rather than a style:

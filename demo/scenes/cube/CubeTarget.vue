@@ -21,9 +21,13 @@
              face 1 as a sliver or a quad across the stage at fixed
              orientations (CubeTarget.css `.graph-camera`). -->
         <div class="graph-camera grid items-center justify-center justify-items-center">
+            <!-- FORTY-SIXTH E1 (J1, J2) — the stage is parked at its attitude
+                 from the first render, so the die is never painted flat and
+                 face-on, and no intro sweep turns it into place. -->
             <div
                 ref="graphEl"
                 class="graph preserve-3d grid items-center justify-center justify-items-center"
+                :style="{ transform: GRAPH_ATTITUDE_CSS }"
             >
                 <OrbitalDrag
                     ref="orbitalRef"
@@ -192,6 +196,10 @@ import DiePips from "./dice/DiePips.vue";
 import { DIE_FACES, valueColor, valueInk } from "./dice/pips";
 import "./dice/dice.css";
 import { CUBE_SPIN_VARS } from "./cubeMotion";
+import { graphAttitudeCss } from "./graphAttitude";
+
+/** The stage's parked attitude, painted from the first render (J1). */
+const GRAPH_ATTITUDE_CSS = graphAttitudeCss();
 import {
     numberValue,
     transformCall,

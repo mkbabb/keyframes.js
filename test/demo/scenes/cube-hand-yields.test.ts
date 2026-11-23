@@ -98,14 +98,14 @@ describe("the playing cube yields to a hand on the die", () => {
         const held = ref(false);
         const playing = ref(true);
         const [demo, app] = withSetup(() =>
-            useCubeDemo(ref(createMatrix()), ref(createMatrix()), ref("crayon"), { settle: false, held, playing }),
+            useCubeDemo(ref(createMatrix()), ref(createMatrix()), ref("crayon"), { held, playing }),
         );
         const graphEl = el(document.body, "graph");
         const bobEl = el(graphEl, "cube-bob");
         const poseEl = el(bobEl, "cube-pose");
         const cubeEl = el(poseEl, "cube");
         cubeEl.style.setProperty("--rotationX", "360deg");
-        demo.setTargets({ cubeEl, bobEl, poseEl, graphEl });
+        demo.setTargets({ cubeEl, bobEl, poseEl });
         return { demo, app, held, playing, cubeEl, group: demo.animationGroup.value };
     };
 

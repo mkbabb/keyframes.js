@@ -126,8 +126,7 @@ const FADE_MS = 200;
 const reducedMotion = () => window.matchMedia?.("(prefers-reduced-motion: reduce)").matches === true;
 const nextFrame = () => new Promise<void>((r) => requestAnimationFrame(() => r()));
 
-// Paused on load: the die rests at its opening attitude (no settle sweep, no
-// spin) until Play. `started` is the group's own (true from the first Play
+// Paused on load: the die rests at its opening attitude (no spin) until Play. `started` is the group's own (true from the first Play
 // until a Reset), so the Matrix channel's pre-start painter and the running
 // group never both write the pose (KFA-2).
 const playing = ref(false);
@@ -139,7 +138,6 @@ const { matrix3dStart, matrix3dEnd, transformSliderValues } = useTransformState(
 // A hand on the die: the group yields while it holds (useCubeDemo).
 const held = ref(false);
 const { animationGroup, setTargets } = useCubeDemo(matrix3dStart, matrix3dEnd, skin, {
-    settle: false,
     held,
     playing,
 });
@@ -310,13 +308,12 @@ const moveSheet = ({ t, s }: { t: { x: number; y: number }; s: number }) => {
 
 onMounted(() => {
     const target = cubeTargetRef.value;
-    if (!target?.cubeEl || !target.bobEl || !target.poseEl || !target.graphEl) return;
+    if (!target?.cubeEl || !target.bobEl || !target.poseEl) return;
     poseElRef.value = target.poseEl;
     setTargets({
         cubeEl: target.cubeEl,
         bobEl: target.bobEl,
         poseEl: target.poseEl,
-        graphEl: target.graphEl,
     });
 });
 

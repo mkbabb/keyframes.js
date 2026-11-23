@@ -5,40 +5,32 @@ import { kfEngine } from "@kf-engine";
 import { getStoredAnimationOptions } from "@state";
 import { useSceneVisibilityPause } from "@composables/scene-runtime/useSceneVisibilityPause";
 import { CUBE_SCENE_ID } from "./cubeKeys";
-import {
-    numberValue,
-    transformCall,
-    type Matrix3dCall,
-} from "./matrix-editor/transformMath";
+import type { Matrix3dCall } from "./matrix-editor/transformMath";
 import { CUBE_ANIMATION_NAMES, cubeSpinKeyframes } from "./cubeMotion";
-import { GRAPH_ATTITUDE, graphAttitudeCss } from "./graphAttitude";
 
 /** The die's way back to speed when a hand lets it go (`easeBack`), in ms. */
 const EASE_BACK_MS = 250;
 
 /** The cube's per-channel paint targets (KF.W13U.w — one element per
- *  transform owner) plus the graph the attitude settle writes. */
+ *  transform owner). The stage's attitude (`.graph`) is not one: it is parked
+ *  by the template from the first paint (CubeTarget, GRAPH_ATTITUDE). */
 export interface CubeTargets {
     cubeEl: HTMLElement;
     bobEl: HTMLElement;
     poseEl: HTMLElement;
-    graphEl: HTMLElement;
 }
 
 export function useCubeDemo(
     matrix3dStart: Ref<Matrix3dCall>,
     matrix3dEnd: Ref<Matrix3dCall>,
     skin: Readonly<Ref<CubeSkin>>,
-    /** `settle: false` (the embed slice, which holds still until Play): the
-     *  graph lands on its opening attitude at once, as under reduced motion.
-     *  `held`: true while a hand holds the die (CubeTarget's `hold`), and
+    /** `held`: true while a hand holds the die (CubeTarget's `hold`), and
      *  `playing`, the scene's own play state (a Pause pressed while the hand
      *  held the die is kept at its release). */
     {
-        settle = true,
         held,
         playing,
-    }: { settle?: boolean; held?: Readonly<Ref<boolean>>; playing?: Readonly<Ref<boolean>> } = {},
+    }: { held?: Readonly<Ref<boolean>>; playing?: Readonly<Ref<boolean>> } = {},
 ) {
     // HEAVY surface from the warmed engine (kfEngine(), L.W8 S1 dogfood inversion)
     // — synchronous, since the warm resolves before any scene mounts. `presets`
@@ -135,35 +127,16 @@ export function useCubeDemo(
     // `setTargets` below never re-derives it.
     animationGroup.value.singleTarget = false;
 
-    // T.A3 — ONE settle-motion language. The former `easeInBounce` intro jittered
-    // BACKWARDS at the start (a bounce-IN) and ran the engine 700ms on mount with
-    // several overshoot sign-changes; the scene's one settle easing is
-    // `ease-out-back` (~650ms) — the same landing the roll egg wears — so the die
-    // eases into its opening attitude with a single, gentle overshoot. PRM snaps
-    // to attitude (the engine's reduced-motion gate).
-    const changeGraphPerspectiveAnim = new CSSKeyframesAnimation({
-        duration: 650,
-        timingFunction: "ease-out-back",
-    }).fromVars([
-        {
-            transform: transformCall(
-                "rotate3d",
-                numberValue(0),
-                numberValue(0),
-                numberValue(0),
-                numberValue(0, "deg"),
-            ),
-        },
-        {
-            transform: transformCall(
-                "rotate3d",
-                numberValue(GRAPH_ATTITUDE.axis[0]),
-                numberValue(GRAPH_ATTITUDE.axis[1]),
-                numberValue(GRAPH_ATTITUDE.axis[2]),
-                numberValue(GRAPH_ATTITUDE.angleDeg, "deg"),
-            ),
-        },
-    ]);
+    // FORTY-SIXTH E1 (J1, J2) — the die arrives parked. It used to arrive flat
+    // and face-on (the stage at identity) and twist 30° into its attitude by a
+    // 650 ms ease-out-back sweep played on the first frame after mount: the
+    // sweep ran under the page's arrival fade and the boot's long frame, so the
+    // visitor met it mid-twist, in steps of 13 to 18° per frame; at identity the
+    // Z axis stroke pointed at the camera and projected as a lavender wedge; and
+    // it replayed on every return to the cube. The stage's attitude is now set by
+    // the template on first render (CubeTarget, GRAPH_ATTITUDE), so the die is
+    // parked in the first frame it is painted and arrives with the page: by its
+    // fade on a load, by the swap's morph inside the app.
 
     // KF.W13U.w (OA-27) — each channel authors a WHOLE `transform`, and a
     // group layer's `replace` op keeps ONE writer per property (README
@@ -171,31 +144,10 @@ export function useCubeDemo(
     // composited to the last writer — the die only bobbed, never spun. Each
     // channel therefore owns its own nested element (CubeTarget's template), so
     // the three transforms compose by nesting: bob · pose · spin.
-    const setTargets = ({ cubeEl, bobEl, poseEl, graphEl }: CubeTargets) => {
+    const setTargets = ({ cubeEl, bobEl, poseEl }: CubeTargets) => {
         rotationAnim.value.setTargets(cubeEl);
         matrixAnim.value.setTargets(poseEl);
         hoverAnim.value.setTargets(bobEl);
-        changeGraphPerspectiveAnim.setTargets(graphEl);
-        // T.A3 — PRM snaps to the opening attitude: under reduced-motion the graph
-        // jumps straight to GRAPH_ATTITUDE with NO eased intro sweep (the house
-        // reduced-motion contract). Otherwise the ease-out-back settle plays.
-        const prefersReduced =
-            typeof window !== "undefined" &&
-            window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-        if (prefersReduced || !settle) {
-            graphEl.style.transform = graphAttitudeCss();
-        } else {
-            // KFA-81 (the settle limb) · KFA-204 — the sweep's clock starts on
-            // the FIRST FRAME, not at mount. Played at mount, its clock ran
-            // through the entry's main-thread stall before the first paint, so
-            // the first painted frames showed the flat identity and the next
-            // jumped to the settle's tail (served: identity ×2, then ~33° in one
-            // 17 ms frame). A frame callback runs after that stall, so the whole
-            // ease-out-back settle plays from its authored identity.
-            requestAnimationFrame(() => {
-                if (graphEl.isConnected) changeGraphPerspectiveAnim.play();
-            });
-        }
     };
 
     // The way back to speed after a yield: the die stood still under the hand,
@@ -259,7 +211,6 @@ export function useCubeDemo(
         rotationAnim,
         hoverAnim,
         animationGroup,
-        changeGraphPerspectiveAnim,
         setTargets,
     };
 }

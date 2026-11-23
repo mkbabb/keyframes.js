@@ -295,11 +295,10 @@ onMounted(() => {
     const cubeEl = target?.cubeEl;
     const bobEl = target?.bobEl;
     const poseEl = target?.poseEl;
-    const graphEl = target?.graphEl;
 
-    if (cubeEl && bobEl && poseEl && graphEl) {
+    if (cubeEl && bobEl && poseEl) {
         poseElRef.value = poseEl;
-        setTargets({ cubeEl, bobEl, poseEl, graphEl });
+        setTargets({ cubeEl, bobEl, poseEl });
     }
 });
 
