@@ -6,6 +6,9 @@
  *   clip, never auto: the controls pane's port and the timing editor's body
  *   (a lone `overflow-y: auto` computes x to auto, and a hair of overflow then
  *   pans the box sideways under a thumb's diagonal).
+ * - The expanded dock's run holds its seats inside its plate at every phone
+ *   width, the theme's seat included; where the run cannot hold the theme
+ *   (under 390 px) the @mbabb menu carries it, and it still flips the theme.
  *
  * Chromium, touch. Local: serves dist/gh-pages (build it first: npm run
  * gh-pages). KF_GESTURE_BASE=https://keyframes.babb.dev runs it against a
@@ -81,3 +84,58 @@ test.describe("a box that scrolls on its block axis never pans sideways", () => 
         }
     });
 });
+
+/** The expanded dock's run against its plate, and the theme's seat. */
+const dockRun = (page) =>
+    page.evaluate(() => {
+        const run = document.querySelector(".dock-layer--full.dock-run");
+        if (!run) return null;
+        const r = run.getBoundingClientRect();
+        const theme = document.querySelector("[data-dock-theme]");
+        const t = theme?.getBoundingClientRect();
+        return { over: run.scrollWidth - run.clientWidth, right: r.right, theme: t && t.width > 0 ? { right: t.right } : null };
+    });
+
+const expandDock = async (page) => {
+    const summary = page.locator(".dock-layer--summary[aria-expanded=false]").first();
+    if (await summary.count()) {
+        await summary.tap();
+        await page.waitForTimeout(900);
+    }
+};
+
+for (const w of [360, 375, 390]) {
+    test.describe(`phone ${w}x780: the dock's run`, () => {
+        test.use({ viewport: { width: w, height: 780 }, deviceScaleFactor: 2, hasTouch: true, isMobile: true });
+
+        for (const scene of ["/cube", "/easing", "/sequence", "/spring"]) {
+            test(`${scene}: every seat inside the plate, none past the run's end`, async ({ page }) => {
+                await load(page, scene);
+                await expandDock(page);
+                const run = await dockRun(page);
+                expect(run).not.toBeNull();
+                expect(run.over).toBeLessThanOrEqual(1);
+                if (run.theme) expect(run.theme.right).toBeLessThanOrEqual(run.right + 0.5);
+            });
+        }
+
+        test("the theme is in reach, in the dock or in the @mbabb menu, and flips it", async ({ page }) => {
+            await load(page, "/cube");
+            await expandDock(page);
+            const run = await dockRun(page);
+            const dark0 = await page.evaluate(() => document.documentElement.classList.contains("dark"));
+            if (run?.theme) {
+                await page.locator("[data-dock-theme]").tap();
+            } else {
+                await page.locator('button[aria-label="@mbabb menu"]').tap();
+                await page.waitForTimeout(500);
+                const row = page.getByRole("menuitemcheckbox", { name: "Dark mode" });
+                await expect(row).toBeVisible();
+                await expect(row).toHaveAttribute("aria-checked", String(dark0));
+                await row.tap();
+            }
+            await page.waitForTimeout(400);
+            expect(await page.evaluate(() => document.documentElement.classList.contains("dark"))).toBe(!dark0);
+        });
+    });
+}
