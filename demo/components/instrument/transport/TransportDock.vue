@@ -447,6 +447,12 @@ defineExpose({ resetIconSpin });
     view-transition-name: match-element;
     view-transition-class: gl-list-item kf-dock-seat;
 }
+/* A seat whose face changes (Play to Pause; @app/dock/dockSwap marks it)
+   trades: its old face out, then its new one in (@styles/dock-swap.css). */
+:root:active-view-transition .dock-vt-group :deep(.glass-dock .dock-persistent > [data-dock-trade]),
+:root:active-view-transition .dock-vt-group :deep(.glass-dock:not([data-morphing]) .dock-layer.is-active > .transport-row > [data-dock-trade]) {
+    view-transition-class: gl-list-item kf-dock-seat kf-dock-trade;
+}
 
 /* TD-35 — the transport's internal rhythm rides the ONE gutter token every
    producer dock control rides (`--dock-layer-gap` scales with --dock-scale), so

@@ -99,7 +99,9 @@ describe("KFA-25 / KFA-26 / KFA-201 — the switch prepares, then captures the r
         });
         (document as unknown as { startViewTransition: unknown }).startViewTransition = startVT;
         // A closing Select's content: reka marks it data-state="closed" and runs its exit.
+        // It is a listbox (reka's SelectContentImpl renders `role: "listbox"` beside the state).
         const closing = document.createElement("div");
+        closing.setAttribute("role", "listbox");
         closing.setAttribute("data-state", "closed");
         document.body.append(closing);
         exitFinish = vi.fn();

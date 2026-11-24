@@ -728,11 +728,13 @@ defineExpose({ openSceneList });
     view-transition-name: match-element;
     view-transition-class: gl-list-item kf-dock-seat;
 }
-/* The scene seat names the page, so it is glass's route label: it glides with
-   the seats, and its word swaps by glass's quick label fade ("Cube" out, "Home"
-   in) instead of the two words standing over each other for the whole glide. */
-:root:active-view-transition .dock-vt-group :deep(.glass-dock:not([data-morphing]) .dock-layer.is-active > .dock-select-trigger) {
-    view-transition-name: gl-route-label;
+/* A seat whose face changes across the swap (the scene seat's "Cube" to
+   "Home"; @app/dock/dockSwap marks it) trades on the seats' clock: its old
+   face out, then its new one in (@styles/dock-swap.css). Glass's route label
+   swapped the two words in 42 ms, out and in together, so a frame caught
+   "Cube" and "Home" drawn over each other: a cut. */
+:root:active-view-transition .dock-vt-group :deep(.glass-dock:not([data-morphing]) .dock-layer.is-active > [data-dock-trade]:not(.dock-run-mark)) {
+    view-transition-class: gl-list-item kf-dock-seat kf-dock-trade;
 }
 
 /* ChromeDock D-5 (co-id: the F4 row of the deleted header fork's record) — ONE

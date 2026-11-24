@@ -15,12 +15,23 @@
  *        tap on the folded transport's Play held sideways; Play with the
  *        dock open on a phone, glass morphing its seats): it is cut to a
  *        capsule that glides from the width it was painted at.
+ *   K-1, frame by frame. The same glide as it is drawn: every frame the page
+ *        draws while the swap runs, its clock neither held nor seeked, so a
+ *        long frame inside the glide is read as the step it makes. No frame
+ *        moves a dock more than two fifths of its travel (the motion canon's
+ *        check, P0a), and the glide takes five frames or more. Home to the
+ *        cube at 1440 (the controls pane's host arrived inside the glide)
+ *        and a first visit of Home from the cube at 1440 and 390 (Home's
+ *        wash came up inside it).
+ *   K-5. Under reduced motion a page change is a fade, never a cut: the new
+ *        page's image fades in over the old one, its opacity rising in steps
+ *        of two fifths or less over five frames or more.
  *   K-4. On a phone a tap on the theme seat opens no tooltip under the dock.
  *
  * Local: serves dist/gh-pages (build it first: npm run gh-pages).
  * KF_GESTURE_BASE=https://keyframes.babb.dev runs it against a deploy.
  */
-import { test, expect } from "@playwright/test";
+import { test, expect, chromium } from "@playwright/test";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -127,6 +138,60 @@ const PAINTED = () => {
         window.__armSwap = () => requestAnimationFrame(look);
     });
 };
+
+/** Every frame the page draws, from `__record()` to `__stop()`: whether a View
+ *  Transition runs, each dock's painted width (`__painted`), and the new
+ *  page image's opacity. */
+const FRAMES = () => {
+    let rows = null;
+    window.__record = () => {
+        const mine = (rows = []);
+        const loop = (t) => {
+            if (rows !== mine) return;
+            const root = document.documentElement;
+            const vt = root.matches(":active-view-transition");
+            const p = window.__painted();
+            // The new page's image, once it stands (its box is laid out).
+            const image = vt ? getComputedStyle(root, "::view-transition-new(root)") : null;
+            mine.push({
+                t,
+                vt,
+                top: p.top?.w ?? null,
+                bottom: p.bottom?.w ?? null,
+                page: image && parseFloat(image.width) > 0 ? Number(image.opacity) : null,
+            });
+            requestAnimationFrame(loop);
+        };
+        requestAnimationFrame(loop);
+    };
+    window.__stop = () => {
+        const out = rows;
+        rows = null;
+        return out;
+    };
+};
+
+/** A dock's painted widths through a swap's frames (two either side of it), with the largest one-frame step as
+ *  a share of its travel and the frames it moved in. */
+function glide(rows, key) {
+    const a = rows.findIndex((r) => r.vt);
+    const b = rows.findLastIndex((r) => r.vt);
+    if (a < 0) return null;
+    const seq = rows.slice(Math.max(0, a - 2), b + 3).filter((r) => r[key] !== null);
+    const ws = seq.map((r) => r[key]);
+    const travel = Math.max(...ws) - Math.min(...ws);
+    let worst = { share: 0, t: 0, dt: 0 };
+    let moves = 0;
+    for (let i = 1; i < seq.length; i++) {
+        const d = Math.abs(seq[i][key] - seq[i - 1][key]);
+        if (d > 0.5) moves++;
+        if (travel > 0 && d / travel > worst.share) worst = { share: d / travel, t: seq[i].t, dt: seq[i].t - seq[i - 1].t };
+    }
+    const trace = seq.map((r) => `${Math.round(r.t)}:${r[key].toFixed(0)}${r.vt ? "" : "L"}`).join(" ");
+    return { travel, worst, moves, trace };
+}
+
+const GPU = ["--use-angle=metal", "--enable-gpu", "--ignore-gpu-blocklist"];
 
 const CELLS = {
     "1440": { viewport: { width: 1440, height: 900 } },
@@ -245,6 +310,110 @@ for (const swap of SWAPS) {
         });
     });
 }
+
+/** The swaps K-1 reads frame by frame: Home to the cube with the dock open at a
+ *  desk (by its address), and a first visit of Home from the cube by the open
+ *  dock's Home seat at a desk and on a phone. */
+const FRAME_SWAPS = [
+    {
+        name: "1440: Home to the cube, the dock open",
+        cell: "1440",
+        start: "/",
+        go: (page) => page.evaluate(() => (location.hash = "#/cube")),
+        landed: () => location.hash.startsWith("#/cube"),
+    },
+    {
+        name: "1440: a first visit of Home, from the cube by the dock's Home seat",
+        cell: "1440",
+        start: "/cube",
+        go: (page) => page.locator("[data-dock-home]").first().click(),
+        landed: () => !location.hash.startsWith("#/cube"),
+    },
+    {
+        name: "390: a first visit of Home, from the cube by the dock's Home seat",
+        cell: "390",
+        start: "/cube",
+        go: (page) => page.locator("[data-dock-home]").first().tap(),
+        landed: () => !location.hash.startsWith("#/cube"),
+    },
+];
+
+test.describe("frame by frame", () => {
+    // A real frame's length needs the GPU (as the probes that found the fault
+    // ran): one browser for these cells, a context per cell, both closed.
+    let gpu = null;
+    test.beforeAll(async () => {
+        gpu = await chromium.launch({ args: GPU });
+    });
+    test.afterAll(async () => {
+        await gpu?.close();
+    });
+
+    for (const swap of FRAME_SWAPS) {
+        test(`K-1. ${swap.name}: no frame moves a dock more than two fifths of its travel`, async () => {
+            const context = await gpu.newContext(CELLS[swap.cell]);
+            try {
+                await context.addInitScript(PAINTED);
+                await context.addInitScript(FRAMES);
+                const page = await context.newPage();
+                await page.goto(at(swap.start));
+                await page.waitForSelector("[data-dock-theme]", { state: "attached", timeout: 20_000 });
+                await page.waitForTimeout(2500);
+                await openDock(page, swap.cell === "390");
+                await page.evaluate(() => window.__record());
+                await swap.go(page);
+                await page.waitForFunction(swap.landed, null, { timeout: 20_000 });
+                // The swap has run its course and a few frames follow.
+                await page.waitForFunction(() => !document.documentElement.matches(":active-view-transition"), null, { timeout: 20_000 });
+                await page.waitForTimeout(300);
+                const rows = await page.evaluate(() => window.__stop());
+                expect(rows.filter((r) => r.vt).length, "frames drawn while the swap ran").toBeGreaterThanOrEqual(5);
+                let moved = 0;
+                for (const key of ["top", "bottom"]) {
+                    const g = glide(rows, key);
+                    if (!g || g.travel < 8) continue;
+                    moved++;
+                    const what = `${key} dock, travel ${g.travel.toFixed(0)} px: ${g.trace}`;
+                    expect(g.worst.share, `${what}; largest step at ${Math.round(g.worst.t)} after a ${Math.round(g.worst.dt)} ms frame`).toBeLessThanOrEqual(0.4);
+                    expect(g.moves, `${what}; frames it moved in`).toBeGreaterThanOrEqual(5);
+                }
+                expect(moved, "docks whose width changed").toBeGreaterThanOrEqual(1);
+            } finally {
+                await context.close();
+            }
+        });
+    }
+});
+
+test.describe("under reduced motion, 390", () => {
+    test.use(CELLS["390"]);
+
+    test("K-5. a page change is a fade of the page, never a cut", async ({ page, context }) => {
+        await context.addInitScript(PAINTED);
+        await context.addInitScript(FRAMES);
+        await page.emulateMedia({ reducedMotion: "reduce" });
+        await page.goto(at("/cube"));
+        await page.waitForSelector("[data-dock-theme]", { state: "attached", timeout: 20_000 });
+        await page.waitForTimeout(2500);
+        expect(await page.evaluate(() => matchMedia("(prefers-reduced-motion: reduce)").matches), "reduced motion asked").toBe(true);
+        await page.evaluate(() => window.__record());
+        await page.evaluate(() => (location.hash = "#/"));
+        await page.waitForFunction(() => !location.hash.startsWith("#/cube"), null, { timeout: 20_000 });
+        await page.waitForFunction(() => !document.documentElement.matches(":active-view-transition"), null, { timeout: 20_000 });
+        await page.waitForTimeout(300);
+        const rows = await page.evaluate(() => window.__stop());
+        // The frames that draw the swap: those with an image of the new page
+        // (a transition's first frame holds the old page while the new one is
+        // made).
+        const fade = rows.filter((r) => r.page !== null).map((r) => r.page);
+        const trace = fade.map((o) => o.toFixed(2)).join(" ");
+        expect(fade.length, `frames of the swap: ${trace}`).toBeGreaterThanOrEqual(5);
+        expect(fade[0], `the new page's first strength: ${trace}`).toBeLessThanOrEqual(0.4);
+        const steps = fade.slice(1).map((o, i) => o - fade[i]);
+        expect(Math.max(...steps.map(Math.abs)), `steps of the new page's strength: ${trace}`).toBeLessThanOrEqual(0.4);
+        expect(1 - fade.at(-1), `the new page's last strength: ${trace}`).toBeLessThanOrEqual(0.4);
+    });
+});
 
 test.describe("on a phone", () => {
     test.use(CELLS["390"]);

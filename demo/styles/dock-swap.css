@@ -16,8 +16,15 @@
      group's width at its own aspect, so the old dock was magnified to the
      new width (1.4x at 1440) and cross-faded with it: two docks.
    - A seat on both pages glides from its old place to its new one at its own
-     size (the group's move). A seat on one page only fades where it stands:
-     out at once, in once the plate has come to it, never outside the plate.
+     size (the group's move), its images drawn at their own size, centred
+     (sized by the group's width, "Rotations" was drawn at half size over "≡"
+     and then popped to full size). A seat on one page only fades where it
+     stands: out at once, in once the plate has come to it, never outside the
+     plate. A seat whose face changes (`data-dock-trade`: the scene seat's
+     "Cube" to "Home", Play to Pause) trades on the same clock: its old face
+     out (gone by 2/5), its new one in from 1/4, so neither is above half
+     strength while the other shows (the canon's P0a, in against out, 4) and
+     the seat is never empty for more than a frame.
    - A dock glass is opening or folding as the page changes (the press's own
      hover or tap opens the folded transport; Play on a phone folds the open
      dock: the root's `data-dock-live`) draws one image, at its own size: its
@@ -30,9 +37,18 @@
      the hold already open (the circle, then the bar) or already folded. So
      one that opens or folds (`data-dock-opens`, `data-dock-folds`) is cut to
      a capsule that glides from the width it was painted at before the hold
-     (`--kf-dock-from-<name>`) to its box. The group's own box can stand at
-     the new width from the start (glass's morph scales the plate), so the
-     cut is the image-pair's, and the halo follows the cut.
+     (`--kf-dock-from-<name>`) to its box, or, as it folds, to the circle
+     glass folds it to (`--kf-dock-to-<name>`); a folding dock's old image
+     trades with the live circle across the glide's middle, so its words are
+     gone before the capsule is a circle. The group's own box can stand at the new width from the start
+     (glass's morph scales the plate), so the cut is the image-pair's, and
+     the halo follows the cut.
+   - The plate's glide (the group's width, or the image-pair's clip) runs on
+     the main thread: Chromium composites neither a group's width nor a
+     clip-path animation (measured: a 300 ms block of the main thread holds
+     both, while a scale runs on). So the site keeps its own long tasks out
+     of the glide: the controls pane's host and Home's wash arrive once the
+     swap has finished (@utils/viewTransition).
 
    This is the site's bridge until glass's seat glide (G3: "a seat change
    glides the width and crosses the seats"); with it, the docks leave the
@@ -40,7 +56,9 @@
    (`--vt-duration`, `--vt-ease`, App.vue), through glass's list-item group. */
 
 ::view-transition-old(.kf-dock),
-::view-transition-new(.kf-dock) {
+::view-transition-new(.kf-dock),
+::view-transition-old(.kf-dock-seat),
+::view-transition-new(.kf-dock-seat) {
     inline-size: auto;
     block-size: auto;
     inset-inline-start: 50%;
@@ -89,6 +107,14 @@ html[data-dock-shrinks~="transport-dock"]::view-transition-new(transport-dock) {
     animation-timing-function: var(--ease-out);
 }
 
+::view-transition-old(.kf-dock-trade) {
+    animation: gl-vt-route-out calc(var(--vt-duration) * 0.4) var(--ease-out) both;
+}
+
+::view-transition-new(.kf-dock-trade) {
+    animation: gl-vt-route-in calc(var(--vt-duration) * 0.75) var(--ease-out) calc(var(--vt-duration) * 0.25) both;
+}
+
 html[data-dock-live~="chrome-dock"]::view-transition-old(chrome-dock),
 html[data-dock-live~="transport-dock"]::view-transition-old(transport-dock) {
     animation: none;
@@ -101,15 +127,44 @@ html[data-dock-live~="transport-dock"]::view-transition-new(transport-dock) {
     opacity: 1;
 }
 
-/* After the live rules, which a fold turns about. */
+/* After the live rules, which a fold turns about: the old image, cut to the
+   capsule folding to glass's circle, trades with the live dock (that circle)
+   across the glide's middle, so the open dock's words go before the capsule
+   is a circle. Held to the end, the circle was its middle seat cut to
+   "@mba" for the glide's last frames, and the live circle then stood in its
+   place between two frames. */
 html[data-dock-folds~="chrome-dock"]::view-transition-old(chrome-dock),
 html[data-dock-folds~="transport-dock"]::view-transition-old(transport-dock) {
-    opacity: 1;
+    animation: kf-dock-fold-out var(--vt-duration) linear both;
 }
 
 html[data-dock-folds~="chrome-dock"]::view-transition-new(chrome-dock),
 html[data-dock-folds~="transport-dock"]::view-transition-new(transport-dock) {
-    opacity: 0;
+    animation: kf-dock-fold-in var(--vt-duration) linear both;
+}
+
+@keyframes kf-dock-fold-out {
+    0%,
+    25% {
+        opacity: 1;
+        animation-timing-function: var(--ease-out);
+    }
+    65%,
+    100% {
+        opacity: 0;
+    }
+}
+
+@keyframes kf-dock-fold-in {
+    0%,
+    30% {
+        opacity: 0;
+        animation-timing-function: var(--ease-out);
+    }
+    70%,
+    100% {
+        opacity: 1;
+    }
 }
 
 html:is([data-dock-opens~="chrome-dock"], [data-dock-folds~="chrome-dock"])::view-transition-group(chrome-dock),
@@ -119,10 +174,12 @@ html:is([data-dock-opens~="transport-dock"], [data-dock-folds~="transport-dock"]
 
 html:is([data-dock-opens~="chrome-dock"], [data-dock-folds~="chrome-dock"])::view-transition-image-pair(chrome-dock) {
     --kf-dock-from: var(--kf-dock-from-chrome-dock);
+    --kf-dock-to: var(--kf-dock-to-chrome-dock, 100%);
 }
 
 html:is([data-dock-opens~="transport-dock"], [data-dock-folds~="transport-dock"])::view-transition-image-pair(transport-dock) {
     --kf-dock-from: var(--kf-dock-from-transport-dock);
+    --kf-dock-to: var(--kf-dock-to-transport-dock, 100%);
 }
 
 html:is([data-dock-opens~="chrome-dock"], [data-dock-folds~="chrome-dock"])::view-transition-image-pair(chrome-dock),
@@ -134,9 +191,12 @@ html:is([data-dock-opens~="transport-dock"], [data-dock-folds~="transport-dock"]
 }
 
 /* From the painted width (a negative inset, when it was wider than the box,
-   reaches past the box) to the box. */
+   reaches past the box) to the box, or to the folded circle. */
 @keyframes kf-dock-glide {
     from {
         clip-path: inset(0 calc((100% - var(--kf-dock-from)) / 2) round 9999px);
+    }
+    to {
+        clip-path: inset(0 calc((100% - var(--kf-dock-to)) / 2) round 9999px);
     }
 }

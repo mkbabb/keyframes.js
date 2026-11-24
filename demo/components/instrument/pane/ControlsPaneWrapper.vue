@@ -95,8 +95,8 @@
                          dies with it). T.B1-β STAGE 1 — the hosts derive from the
                          CHANNEL axis when the scene exposes a facility.
                          owner-1112 (item 6) — `shownControlHosts`: inside a
-                         scene swap the host arrives after the cross-fade's
-                         first frame, fading in (see the script). -->
+                         scene swap the host arrives once the swap has
+                         finished, fading in (see the script). -->
                     <template
                         v-for="host in shownControlHosts"
                         :key="host.animation.id"
@@ -118,7 +118,8 @@
                                       }
                             "
                             :data-fold-key="host.animation.id"
-                            :class="['controls-surface', { 'controls-surface--arriving': hostArrives }]"
+                            class="controls-surface"
+                            @vue:mounted="arrive"
                         >
                             <!-- LP-1 — THE WRITE→RENDER EDGE. `host.layer` and
                                  `host.blendAvailable` are re-read from the engine
@@ -356,6 +357,7 @@ import {
 import { createReusableTemplate, useEventListener, useMediaQuery } from "@vueuse/core";
 import {
     type ComponentPublicInstance,
+    type VNode,
     computed,
     nextTick,
     onBeforeUnmount,
@@ -367,6 +369,7 @@ import {
     watch,
 } from "vue";
 import type { StageReserve, TransportChannel } from "../transport/transportSource";
+import { afterViewTransition, viewTransitionRunning } from "@utils/viewTransition";
 import ChannelControls from "./channel-controls/ChannelControls.vue";
 import RibbonBar from "./RibbonBar.vue";
 import SheetResetButton from "./SheetResetButton.vue";
@@ -534,41 +537,42 @@ const selectedControlHosts = computed(() =>
 );
 
 // owner-1112 (item 6, "page transitions are slow, jittery, and laggy") — THE
-// HOST ARRIVES AFTER THE SWAP'S CAPTURE. The pane is the scene's own (keyed on
-// its store key), so a swap mounts it inside the View Transition's update
-// callback, while the platform holds the page's rendering. The selected
-// channel's host (its sliders, fields, selects and facet) was most of that
-// callback: served, 1440 x 900, GPU, the swap's one long frame fell from
-// 43 ms (median over every scene pair) to 32 ms with the host left out, and
-// the pane's frame (its plate, ribbon and sheet) cost almost nothing. A pane
-// mounted inside a running transition therefore mounts its host two frames
-// later: after the frame whose paint the platform captures as the new state,
-// so it lands in the live new view, early in the cross-fade, fading in (the
-// motion law: a fade, under reduced motion too). Outside a swap (the first
-// load, a panel opening) the host mounts with the pane, as before.
-const swapRunning = (): boolean => {
-    try {
-        return document.documentElement.matches(":active-view-transition");
-    } catch {
-        return false;
-    }
-};
-const hostArrives = swapRunning();
+// HOST ARRIVES AFTER THE SWAP. The pane is the scene's own (keyed on its store
+// key), so a swap mounts it inside the View Transition's update callback,
+// while the platform holds the page's rendering. The selected channel's host
+// (its sliders, fields, selects and facet) was most of that callback (served,
+// 1440 x 900, GPU: the swap's one long frame fell from 43 ms to 32 ms with
+// the host left out; the pane's frame cost almost nothing).
+// FORTY-SIXTH A (K-1) — and it waits for the transition's end, not for two
+// frames: mounted two frames in, it was one task of 55 to 154 ms inside the
+// docks' 210 ms glide (1440 and 844 x 390, every page change into the cube),
+// which the main thread animates, so the plate stood at its old width while
+// the compositor carried its seats past its ends, and the width then landed
+// 79 to 96 % in one frame. A pane mounted inside a running transition mounts
+// its host in the first frame after it, fading in (`arrive`). Outside a swap
+// (the first load, a panel opening) the host mounts with the pane, as before.
+const hostArrives = viewTransitionRunning();
 const hostShown = ref(!hostArrives);
-let arrivalFrame = 0;
+let stopArrival: (() => void) | null = null;
 onMounted(() => {
     if (hostShown.value) return;
-    arrivalFrame = requestAnimationFrame(() => {
-        arrivalFrame = requestAnimationFrame(() => {
-            arrivalFrame = 0;
-            hostShown.value = true;
-        });
+    stopArrival = afterViewTransition(() => {
+        stopArrival = null;
+        hostShown.value = true;
     });
 });
-onBeforeUnmount(() => {
-    if (arrivalFrame) cancelAnimationFrame(arrivalFrame);
-});
+onBeforeUnmount(() => stopArrival?.());
 const shownControlHosts = computed(() => (hostShown.value ? selectedControlHosts.value : []));
+/** A host that arrives after a swap fades in over glass's entrance clock
+ *  (200 ms, ease-out). An animation of its own (WAAPI), not a CSS one:
+ *  glass's reduced-motion reset shortens every CSS animation to 0.01 ms, and
+ *  reduced motion is a fade, never a cut. */
+function arrive(vnode: VNode) {
+    const el = vnode.el as Element | null;
+    if (!hostArrives || typeof el?.animate !== "function") return;
+    const ease = getComputedStyle(el).getPropertyValue("--ease-out").trim() || "ease-out";
+    el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 200, easing: ease });
+}
 
 // X.KF.W13V.s2 — the master-clock channels (Sequence): the Timeline pane's
 // Sequence mode mounts on these instead of a ChannelControls host.

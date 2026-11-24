@@ -361,20 +361,6 @@
     min-block-size: 0;
 }
 
-/* owner-1112 (item 6) — a host mounted after a swap's capture fades in over
-   the cross-fade (ControlsPaneWrapper: `shownControlHosts`). A fade, never a
-   cut, under reduced motion too. */
-.controls-surface--arriving {
-    /* LAST-TEN KF-26 — an entrance: glass's menu/disclosure clock on its
-       entrance curve (200 ms ease-out), not 300 ms on the standard curve. */
-    animation: controls-surface-arrive var(--duration-fast) var(--ease-out) both;
-}
-@keyframes controls-surface-arrive {
-    from {
-        opacity: 0;
-    }
-}
-
 /* The upright phone sheet's first row: Reset and, with two or more channels,
    the channel select, on the pane's one inline inset. (Reset's glyph size is
    SheetResetButton's own.) */

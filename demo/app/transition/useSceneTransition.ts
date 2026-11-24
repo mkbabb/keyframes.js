@@ -52,6 +52,16 @@ import { clearDockSwap, dockWidths, markDockSwap } from "../dock/dockSwap";
  * dogfooding `SpringProgress` cross-dissolve (`useSceneSwap`) UNCHANGED — the
  * dogfood fallback is preserved, not removed.
  *
+ * FORTY-SIXTH A (the motion law: reduced motion is a fade, never a cut) —
+ * under `prefers-reduced-motion: reduce` the swap is still a View Transition,
+ * untyped and with nothing named but the page (App.vue unnames every element
+ * for it): the new page fades in over the old, opacity only, over
+ * REDUCED_FADE_MS (`fadeInPage`). kf's dispatch used to snap there
+ * (`respectReducedMotion`, its default), so the docks, the transport and the
+ * die changed between two frames. The fade is an animation of the new page's
+ * image (WAAPI): glass's reduced-motion sheet sets every View-Transition
+ * pseudo-element's CSS animation to `none`.
+ *
  * a11y MANDATORY: View Transitions morph layout but do not manage focus. On
  * `finished` we route focus to the new scene's host container (`tabindex="-1"`),
  * announcing the context change to keyboard/AT users — an upgrade the spring fade
@@ -112,8 +122,9 @@ export function useSceneTransition(opts: {
         // DOM update the root is marked with the docks that grow or shrink,
         // and the dock-swap look draws the wider plate (@app/dock/dockSwap).
         const docks = dockWidths();
+        const reduced = prefersReducedMotion();
         let land: (() => void) | null = null;
-        const { finished, backend } = viewTransition(async () => {
+        const { ready, finished, backend } = viewTransition(async () => {
             const commit = performance.now();
             const ready = whenSceneReady(id);
             mutate(id);
@@ -121,8 +132,9 @@ export function useSceneTransition(opts: {
             await nextTick();
             markDockSwap(docks);
             performance.measure("scene-swap:commit", { start: commit });
-        }, { types: ["lateral"] });
+        }, { types: reduced ? [] : ["lateral"], respectReducedMotion: false });
         lastSwapBackend.value = backend;
+        if (reduced && backend === "view-transition") void ready.then(fadeInPage);
         finished.finally(() => {
             if (gen === generation) {
                 root.style.removeProperty("--route-direction");
@@ -135,6 +147,32 @@ export function useSceneTransition(opts: {
     }
 
     return { runSceneSwitch, lastSwapBackend, onSceneContent };
+}
+
+/** The reduced-motion swap's one fade: within the canon's band for a surface
+ *  that appears (100 to 200 ms), on glass's entrance curve. */
+const REDUCED_FADE_MS = 160;
+
+function prefersReducedMotion(): boolean {
+    return typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
+/** Under reduced motion: the new page's image fades in over the old one,
+ *  which stands at full strength beneath it, so what both pages share holds
+ *  still and only what changes crosses. */
+function fadeInPage(): void {
+    const root = document.documentElement;
+    const ease = getComputedStyle(root).getPropertyValue("--ease-out").trim() || "ease-out";
+    try {
+        root.animate([{ opacity: 0 }, { opacity: 1 }], {
+            pseudoElement: "::view-transition-new(root)",
+            duration: REDUCED_FADE_MS,
+            easing: ease,
+            fill: "both",
+        });
+    } catch {
+        // An engine without pseudo-element animations: the swap ends at once.
+    }
 }
 
 /** The sign of the move along the dock's scene order (Home first, at 0). */
@@ -157,17 +195,25 @@ export function routeDirection(from: string, to: string): -1 | 0 | 1 {
  * chunk resolves beside it (`Promise.allSettled` in `runSceneSwitch`), so the
  * wait is the list's own fade and no more. An infinite animation is not an
  * exit and is left alone; a paused one cannot hold the swap (it is finished).
+ *
+ * FORTY-SIXTH A ("the press waits") — only a closing overlay's exit holds the
+ * swap: a list, a menu or a dialog (`OVERLAY`). The test was any animation
+ * under `[data-state="closed"]`, and every dock seat is a tooltip's trigger,
+ * which reka marks `data-state="closed"` while its tooltip is shut, so the
+ * pressed seat's own press and hover transitions held every press 150 to
+ * 340 ms before the swap began (served, 1440 and 390, 1x). A tooltip closing
+ * on the press is not waited for either: the lateral swap does not draw the
+ * old page, so its fade runs on in the live page.
  */
+const OVERLAY = '[role="listbox"], [role="menu"], [role="dialog"]';
+
 async function settleClosingOverlays(): Promise<void> {
     await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
     const exits: Promise<unknown>[] = [];
     for (const a of document.getAnimations()) {
         const target = (a.effect as KeyframeEffect | null)?.target;
-        if (
-            target instanceof Element &&
-            target.closest('[data-state="closed"]') !== null &&
-            a.effect?.getComputedTiming().endTime !== Infinity
-        ) {
+        const closing = target instanceof Element ? target.closest('[data-state="closed"]') : null;
+        if (closing?.matches(OVERLAY) && a.effect?.getComputedTiming().endTime !== Infinity) {
             if (a.playState === "paused") a.finish();
             else exits.push(a.finished.catch(() => undefined));
         }

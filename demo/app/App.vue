@@ -530,6 +530,22 @@ const { sceneSwapStyle, onSceneFallback, onSceneResolve } = useSceneSwap(
     --vt-duration: var(--route-lateral-clock);
     --vt-ease: var(--route-lateral-spring);
 }
+/* FORTY-SIXTH A (reduced motion is a fade, never a cut) — under reduced
+   motion a swap is one fade of the page (useSceneTransition), so nothing in
+   it is named: a named element would stand at its new place at once, its two
+   images over each other (glass's reduced-motion sheet sets each group's
+   animation to none). */
+@media (prefers-reduced-motion: reduce) {
+    :global(:root:active-view-transition *) {
+        view-transition-name: none !important;
+    }
+    /* The new page's image waits unseen for its fade, which starts once the
+       transition is ready: without this it stood at full strength in the
+       frame before the fade (read 1, then 0, then rising). */
+    :global(::view-transition-new(root)) {
+        opacity: 0;
+    }
+}
 
 /* X.KF.W13W.m (OA-64) · KF-M1 — below lg the stage sits on the page gutter at
    ONE place: the mobile `.stage-cell` (AnimationControlsGroup.css), whose
