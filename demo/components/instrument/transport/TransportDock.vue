@@ -32,7 +32,7 @@
              pointer (the ChromeDock pair — pointer-events-none host,
              pointer-events-auto child), so the band outside it never
              swallows a press meant for the stage beneath. -->
-        <div class="pointer-events-auto dock-vt-group">
+        <div class="pointer-events-auto dock-vt-group" data-dock-swap="transport-dock">
             <!-- An upright phone's transport is the page's one bottom dock: it
                  never folds (Play, the scene's choices and Controls stay in
                  view), and its Controls seat opens the sheet. -->
@@ -250,6 +250,7 @@
 </template>
 
 <script setup lang="ts">
+import "@styles/dock-swap.css";
 import { useDockTip } from "@composables/useDockTip";
 import { computed, ref, useTemplateRef, watch } from "vue";
 
@@ -427,9 +428,21 @@ defineExpose({ resetIconSpin });
 </script>
 
 <style scoped>
-/* FORTY-SIXTH A (K-1) — the transport is not a View-Transition group either
-   (ChromeDock's note): as one, a page change stretched the old transport's image
-   to the new width and cross-faded two transports. */
+/* KFA-77 · FORTY-SIXTH A (K-1) — the transport crosses a page change as ONE
+   dock, as ChromeDock does (its note; @styles/dock-swap.css holds the look):
+   its own group while a transition runs, and each seat a group of its own, so
+   Home's Play glides to its place at the head of the cube's transport while the
+   plate's capsule grows from the circle to the bar. The seats are the persistent
+   Play and the row's members (the row itself changes width, so it is not one). */
+:root:active-view-transition .dock-vt-group {
+    view-transition-name: transport-dock;
+    view-transition-class: gl-list-item kf-dock;
+}
+:root:active-view-transition .dock-vt-group :deep(.glass-dock:not([data-morphing]) .dock-persistent > *),
+:root:active-view-transition .dock-vt-group :deep(.glass-dock:not([data-morphing]) .dock-layer.is-active > .transport-row > *) {
+    view-transition-name: match-element;
+    view-transition-class: gl-list-item kf-dock-seat;
+}
 
 /* TD-35 — the transport's internal rhythm rides the ONE gutter token every
    producer dock control rides (`--dock-layer-gap` scales with --dock-scale), so

@@ -1,11 +1,16 @@
 /**
  * The site's share of the dock study (owner, FORTY-SIXTH A: "the dock needs a
- * bit of refinement in animations at the begin and end ... hovering the
+ * bit of refinement in animations at the begin and end ... it should not shift
+ * around in flow of the page horizontally in animation ... hovering the
  * darkmode toggle or toggling it should not shift it around").
  *
- *   K-1. A page change (Home to the cube, dock open) paints ONE dock: neither
- *        dock is a View-Transition group, so no stretched image of the old dock
- *        cross-fades with the new one. Logged every frame of the swap.
+ *   K-1. A page change (Home to the cube, dock open) shows ONE dock whose width
+ *        glides: on every frame of the swap each dock's painted width is read
+ *        (its View-Transition group's box while it has one, else the live
+ *        dock, which the root's new image paints as it stands), and a dock
+ *        that changes width passes through widths between its old and its new
+ *        one, never from one to the other between two frames. While a dock's
+ *        width moves, one plate is painted, never the old dock over the new.
  *   K-4. On a phone a tap on the theme seat opens no tooltip under the dock.
  *
  * Local: serves dist/gh-pages (build it first: npm run gh-pages).
@@ -40,27 +45,51 @@ test.afterAll(async () => {
 const root = () => (REMOTE ? `${base}/` : `${base}/index.html`);
 const at = (hash) => `${root()}#${hash}`;
 
-/** Per frame from document start: whether a View Transition runs, and the
- *  View-Transition pseudo-elements that animate a dock. */
-const LOG = () => {
-    const L = (window.__dock = { frames: [] });
-    const loop = (t) => {
-        L.frames.push({
-            t,
-            vt: document.documentElement.matches(":active-view-transition") ? 1 : 0,
-            dockPseudo: [
-                ...new Set(
-                    document
-                        .getAnimations()
-                        .map((a) => a.effect?.pseudoElement ?? "")
-                        .filter((p) => /dock/.test(p)),
-                ),
-            ],
-            plates: document.querySelectorAll(".dock-plate").length,
-        });
-        requestAnimationFrame(loop);
+/** Each dock's painted width: its View-Transition group's animated box while
+ *  it is a group (with the opacities of its two plate images), else the live
+ *  dock, which the root's new image paints as it stands. */
+const PAINTED = () => {
+    // Read when asked: the init script runs before the document has its root.
+    const html = () => document.documentElement;
+    const read = (name, sel) => {
+        const root = html();
+        const group = getComputedStyle(root, `::view-transition-group(${name})`);
+        const w = parseFloat(group.width);
+        if (root.matches(":active-view-transition") && Number.isFinite(w) && w > 0) {
+            const o = (k) => Number(getComputedStyle(root, `::view-transition-${k}(${name})`).opacity);
+            return { w, group: 1, old: o("old"), new: o("new") };
+        }
+        const live = document.querySelector(sel);
+        return live ? { w: live.getBoundingClientRect().width, group: 0 } : null;
     };
-    requestAnimationFrame(loop);
+    window.__painted = () => ({
+        top: read("chrome-dock", '[data-dock-tether="top"] .glass-dock'),
+        bottom: read("transport-dock", '[data-dock-swap="transport-dock"] .glass-dock'),
+    });
+    // The swap, read at fixed points of its clock: once its animations run,
+    // they are held, set to 0, 1/4, 1/2, 3/4 and the end of their run, the
+    // docks read at each, and let go where they were. A headless machine
+    // paints a swap's frames 50 to 130 ms apart, so reading frames as they
+    // come can miss the glide; reading its clock cannot.
+    window.__swap = new Promise((done) => {
+        const look = () => {
+            const anims = document.getAnimations().filter((a) => a.effect?.pseudoElement?.startsWith("::view-transition"));
+            if (!html().matches(":active-view-transition") || !anims.length) return requestAnimationFrame(look);
+            const at = anims.map((a) => a.currentTime);
+            const end = Math.max(...anims.map((a) => a.effect.getComputedTiming().endTime));
+            anims.forEach((a) => a.pause());
+            const points = [0, 0.25, 0.5, 0.75, 1].map((f) => {
+                anims.forEach((a) => (a.currentTime = f * end));
+                return { f, ...window.__painted() };
+            });
+            anims.forEach((a, i) => {
+                a.currentTime = at[i];
+                a.play();
+            });
+            done(points);
+        };
+        window.__armSwap = () => requestAnimationFrame(look);
+    });
 };
 
 const CELLS = {
@@ -79,29 +108,79 @@ async function openDock(page, touch) {
     await page.waitForTimeout(700);
 }
 
-for (const [cell, use] of Object.entries(CELLS)) {
-    test.describe(`at ${cell}`, () => {
-        test.use(use);
+/** The page changes K-1 films: the dock open at a desk (Home to the cube, the
+ *  pointer on the dock), the dock open on a phone (the cube to Home by its Home
+ *  seat), and Home's Play on a phone with the dock folded (the transport grows
+ *  from Play's circle to the bar). */
+const SWAPS = [
+    {
+        name: "1440: Home to the cube, the dock open",
+        cell: "1440",
+        start: "/",
+        open: true,
+        go: (page) => page.evaluate(() => (location.hash = "#/cube")),
+        landed: () => location.hash.startsWith("#/cube"),
+    },
+    {
+        name: "390: the cube to Home by the dock's Home seat",
+        cell: "390",
+        start: "/cube",
+        open: true,
+        go: (page) => page.locator("[data-dock-home]").first().tap(),
+        landed: () => !location.hash.startsWith("#/cube"),
+    },
+    {
+        name: "390: Home's Play, the dock folded",
+        cell: "390",
+        start: "/",
+        open: false,
+        go: (page) => page.locator('[aria-label="Play animation"]').first().tap(),
+        landed: () => location.hash.startsWith("#/cube"),
+    },
+];
 
-        test("K-1. a page change paints one dock: no dock is a View-Transition group", async ({ page, context }) => {
-            await context.addInitScript(LOG);
-            await page.goto(at("/"));
-            await page.waitForSelector(".hero-band", { timeout: 20_000 });
-            await page.waitForTimeout(1500);
-            await openDock(page, cell === "390");
-            const from = await page.evaluate(() => performance.now());
-            // Home to the cube, the dock open: Home's Play on a phone, the
-            // address on a desk (the pointer stays on the dock).
-            if (cell === "390") await page.locator('[aria-label="Play animation"]').first().tap();
-            else await page.evaluate(() => (location.hash = "#/cube"));
-            await page.waitForFunction(() => location.hash.startsWith("#/cube"), null, { timeout: 20_000 });
-            await page.waitForTimeout(2000);
-            const frames = await page.evaluate((t0) => window.__dock.frames.filter((f) => f.t >= t0), from);
-            // The swap ran as a View Transition...
-            expect(frames.some((f) => f.vt), "a View Transition ran").toBe(true);
-            // ...and on no frame of it did a dock ride it as its own group.
-            const grouped = frames.filter((f) => f.dockPseudo.length).map((f) => `${Math.round(f.t)} ms: ${f.dockPseudo.join(", ")}`);
-            expect(grouped).toEqual([]);
+for (const swap of SWAPS) {
+    test.describe(swap.name, () => {
+        test.use(CELLS[swap.cell]);
+
+        test("K-1. a page change shows one dock per band, whose width glides", async ({ page, context }) => {
+            await context.addInitScript(PAINTED);
+            await page.goto(at(swap.start));
+            await page.waitForSelector("[data-dock-theme]", { state: "attached", timeout: 20_000 });
+            await page.waitForTimeout(2500);
+            if (swap.open) await openDock(page, swap.cell === "390");
+            const before = await page.evaluate(() => window.__painted());
+            await page.evaluate(() => window.__armSwap());
+            await swap.go(page);
+            const points = await page.evaluate(() => window.__swap);
+            await page.waitForFunction(swap.landed, null, { timeout: 20_000 });
+            let moved = 0;
+            for (const key of ["top", "bottom"]) {
+                // From where it stood to where the swap leaves it (an open
+                // dock may fold after that, by glass's own motion).
+                if (!before[key] || !points[4][key]) continue;
+                const from = before[key].w;
+                const to = points[4][key].w;
+                if (Math.abs(to - from) < 8) continue;
+                moved++;
+                const trace = `${key} dock ${from.toFixed(0)} to ${to.toFixed(0)}: ${points.map((p) => `${p.f}:${p[key].w.toFixed(0)}${p[key].group ? "g" : ""}`).join(" ")}`;
+                // It starts where it stood...
+                expect(Math.abs(points[0][key].w - from), trace).toBeLessThan(2);
+                // ...and at a quarter, half and three quarters of the swap's
+                // clock it is painted at widths between, in order: a glide,
+                // never the old width and then the new one between two frames.
+                const mid = points.slice(1, 4).map((p) => p[key].w);
+                const lo = Math.min(from, to) + 2;
+                const hi = Math.max(from, to) - 2;
+                expect(mid.every((w) => w > lo && w < hi), trace).toBe(true);
+                expect(mid.every((w, i) => i === 0 || Math.sign(w - mid[i - 1]) === Math.sign(to - from)), trace).toBe(true);
+                // While it moves, one plate is painted (one of its two plate
+                // images at 0), never the old dock over the new.
+                const two = points.slice(1, 4).filter((p) => p[key].group && Math.min(p[key].old, p[key].new) > 0.02);
+                expect(two.map((p) => `${p.f}: old ${p[key].old} new ${p[key].new}`), `${key} dock: two plates`).toEqual([]);
+            }
+            // These pages differ in their docks' seats.
+            expect(moved, "docks whose width changed").toBeGreaterThanOrEqual(1);
         });
     });
 }

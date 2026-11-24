@@ -1,0 +1,77 @@
+/* FORTY-SIXTH A (K-1) — a page change shows ONE dock, whose width glides.
+
+   Each dock (ChromeDock's `chrome-dock`, the transport's `transport-dock`) is a
+   View-Transition group while a swap runs, and each of its seats is a group of
+   its own (`view-transition-name: match-element`, class `kf-dock-seat`; the
+   docks' own styles name them). So the dock's image holds the plate alone.
+
+   - A dock that grows or shrinks (the root's `data-dock-grows` /
+     `data-dock-shrinks`, @app/dock/dockSwap) draws one plate image, the
+     wider, at its own size, cut to the group's capsule while the group's box
+     glides from the old width to the new: the capsule's cut of a uniform
+     plate is the plate at every width between. The cut would take the
+     plate's halo off, so the group carries it.
+   - Every other dock image is drawn at its own size, centred, and the two
+     cross-fade: a dock whose width holds, and one that is opening or folding
+     (its seats are in its image then, and the live fold is its new image).
+     The UA's default sized each image by the group's width at its own
+     aspect, so the old dock was magnified to the new width (1.4x at 1440)
+     and cross-faded with it: two docks.
+   - A seat on both pages glides from its old place to its new one at its own
+     size (the group's move). A seat on one page only fades where it stands:
+     out at once, in once the plate has come to it, never outside the plate.
+
+   This is the site's bridge until glass's seat glide (G3: "a seat change
+   glides the width and crosses the seats"); with it, the docks leave the
+   transition and this file goes. Clocks: the route's lateral clock and spring
+   (`--vt-duration`, `--vt-ease`, App.vue), through glass's list-item group. */
+
+::view-transition-old(.kf-dock),
+::view-transition-new(.kf-dock) {
+    inline-size: auto;
+    block-size: auto;
+    inset-inline-start: 50%;
+    inset-block-start: 50%;
+    transform: translate(-50%, -50%);
+}
+
+html:is([data-dock-grows~="chrome-dock"], [data-dock-shrinks~="chrome-dock"])::view-transition-group(chrome-dock),
+html:is([data-dock-grows~="transport-dock"], [data-dock-shrinks~="transport-dock"])::view-transition-group(transport-dock) {
+    border-radius: var(--radius-stadium, 9999px);
+    box-shadow: var(--shadow-dock);
+}
+
+html:is([data-dock-grows~="chrome-dock"], [data-dock-shrinks~="chrome-dock"])::view-transition-image-pair(chrome-dock),
+html:is([data-dock-grows~="transport-dock"], [data-dock-shrinks~="transport-dock"])::view-transition-image-pair(transport-dock) {
+    overflow: clip;
+    border-radius: var(--radius-stadium, 9999px);
+}
+
+html[data-dock-grows~="chrome-dock"]::view-transition-new(chrome-dock),
+html[data-dock-shrinks~="chrome-dock"]::view-transition-old(chrome-dock),
+html[data-dock-grows~="transport-dock"]::view-transition-new(transport-dock),
+html[data-dock-shrinks~="transport-dock"]::view-transition-old(transport-dock) {
+    animation: none;
+    opacity: 1;
+}
+
+html[data-dock-grows~="chrome-dock"]::view-transition-old(chrome-dock),
+html[data-dock-shrinks~="chrome-dock"]::view-transition-new(chrome-dock),
+html[data-dock-grows~="transport-dock"]::view-transition-old(transport-dock),
+html[data-dock-shrinks~="transport-dock"]::view-transition-new(transport-dock) {
+    animation: none;
+    opacity: 0;
+}
+
+::view-transition-old(.kf-dock-seat):only-child {
+    animation-name: gl-vt-route-out;
+    animation-duration: calc(var(--vt-duration) * 0.4);
+    animation-timing-function: var(--ease-out);
+}
+
+::view-transition-new(.kf-dock-seat):only-child {
+    animation-name: gl-vt-route-in;
+    animation-delay: calc(var(--vt-duration) * 0.4);
+    animation-duration: calc(var(--vt-duration) * 0.6);
+    animation-timing-function: var(--ease-out);
+}

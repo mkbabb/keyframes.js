@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import "@styles/dock-swap.css";
 import { useDockTip } from "@composables/useDockTip";
 import { computed, inject, nextTick, ref, watch, useTemplateRef, type Component } from "vue";
 import { CONTROLS_PANE_HOVER_KEY } from "@components/instrument/transport/injectionKeys";
@@ -438,7 +439,7 @@ defineExpose({ openSceneList });
         class="fixed left-0 right-0 z-dock flex items-center justify-center pointer-events-none"
         style="top: var(--dock-top-anchor);"
     >
-        <div class="pointer-events-auto dock-vt-group">
+        <div class="pointer-events-auto dock-vt-group" data-dock-swap="chrome-dock">
             <!-- G.W12.S2: the :always-expanded="isMobile" occlusion-dodge mask is
                  REMOVED — glass-ui's rebuilt dock owns the no-occlusion
                  contract; the occlusion gate re-runs mask-free as the lock. The
@@ -705,14 +706,33 @@ defineExpose({ openSceneList });
 </template>
 
 <style scoped>
-/* FORTY-SIXTH A (K-1) — the dock is NOT a View-Transition group. As its own
-   group (KFA-77) a page change painted two docks at once: the UA sizes the old
-   and new images by width, so the old dock was stretched to the new one's width
-   (1.4x at 1440, 317 to 445 px; 1.57x at 390), "@mbabb", the gear and the scene
-   seat each doubled while the two cross-faded. Out of the transition the dock
-   is in the page's new image from the swap's first frame: one dock, its seats
-   where they stand. A change of seats is a one-frame width change until glass's
-   seat glide (11.2.0, G3) lands; that glide is the cure, not a stretched image. */
+/* KFA-77 · FORTY-SIXTH A (K-1) — a page change shows ONE dock whose width
+   glides (@styles/dock-swap.css holds the look). The dock is its own
+   View-Transition group, so its width moves on the route's lateral clock
+   (glass's list-item group) instead of changing between two frames inside the
+   root, which glass's lateral route does not animate. Each seat of the face
+   showing is a group of its own (`match-element`: the same element on both
+   pages glides; a seat on one page fades), so the dock's image is the plate
+   alone, drawn at its size and cut to the gliding capsule: never the old dock
+   magnified to the new width over the new one. Named only while a transition
+   runs (X-DS pass 4, KF-C4-03): a standing name makes the group a backdrop root,
+   and the plate then blurred nothing behind the dock. Not while the dock
+   morphs: glass's open and fold clip the seats, and a seat's own group would
+   escape that clip. Until glass's seat glide (G3) lands. */
+:root:active-view-transition .dock-vt-group {
+    view-transition-name: chrome-dock;
+    view-transition-class: gl-list-item kf-dock;
+}
+:root:active-view-transition .dock-vt-group :deep(.glass-dock:not([data-morphing]) .dock-layer.is-active > :not(.dock-run-mark)) {
+    view-transition-name: match-element;
+    view-transition-class: gl-list-item kf-dock-seat;
+}
+/* The scene seat names the page, so it is glass's route label: it glides with
+   the seats, and its word swaps by glass's quick label fade ("Cube" out, "Home"
+   in) instead of the two words standing over each other for the whole glide. */
+:root:active-view-transition .dock-vt-group :deep(.glass-dock:not([data-morphing]) .dock-layer.is-active > .dock-select-trigger) {
+    view-transition-name: gl-route-label;
+}
 
 /* ChromeDock D-5 (co-id: the F4 row of the deleted header fork's record) — ONE
    glyph rung in the dock row, and it is the DOCK's own.
