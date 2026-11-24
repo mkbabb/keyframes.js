@@ -219,7 +219,11 @@
    and no transform property at all (the rule is phone-scoped). An upright
    phone's sheet has no resting reserve: the stage is laid out for the band
    above the opened sheet (no lift, no fit), and the glide only carries the
-   die there from where it stood, at the size it stood (useStageSlide). */
+   die there from where it stood, at the size it stood. A card, which fills
+   the band, is not carried: the band's foot (this cell's block-end padding)
+   walks to its new place (on the sheet's own arrival spring as it comes, on
+   this dock spring as it goes), so the card re-lays out over the walk, never
+   in one frame (useStageSlide). */
 @media (max-width: 1023px) {
     .stage-glide {
         translate: calc(-0.5 * var(--stage-sheet-lift-inline, 0px))
@@ -232,7 +236,8 @@
 }
 @media (max-width: 1023px) and (prefers-reduced-motion: reduce) {
     /* Under reduced motion the glide stands still; where the stage is laid
-       out anew for the opened sheet it fades in there (useStageSlide). */
+       out anew for the opened sheet it fades out where it stood and in
+       there (useStageSlide). */
     .stage-glide {
         transition: none;
     }
@@ -240,8 +245,8 @@
 /* LAST-TEN KF-18 — on the desktop, when the pane opens or closes,
    useStageSlide sets the cell's old offset as a translate and lets it go, so
    the stage slides to its new place on glass's dock spring (the rail's extent
-   rung). At rest the cell carries no transform. Reduced motion: it fades in at
-   its new place. */
+   rung). At rest the cell carries no transform. Reduced motion: it fades out
+   where it stood and in at its new place. */
 @media (min-width: 1024px) {
     .stage-cell {
         transition: translate var(--spring-dock-duration) var(--spring-dock);

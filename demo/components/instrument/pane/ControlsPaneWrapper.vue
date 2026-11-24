@@ -953,9 +953,13 @@ const onParkedHeaderPress = (e: MouseEvent) => {
 // motion + rest; the body just needs `overflow-y-auto` at the open detent). The
 // desktop path keeps the `isPanelTransitionDone` latch (the max-height
 // transitionend gate) — the two dispatch on the layout mode.
+// An upright sheet put away while scrolled fades with its body where it stood:
+// the port stays a scroller through the fade (an `overflow: clip` box is none,
+// so its offset went to the top in the fade's first frame) and rests at its
+// top once the plate is out of sight (`endFade`).
 const paneScrollable = computed(() =>
     isMobileLayout.value
-        ? props.storedControls.isControlsPanelOpen
+        ? props.storedControls.isControlsPanelOpen || sheetFading.value
         : isPanelTransitionDone.value && props.storedControls.isControlsPanelOpen,
 );
 
