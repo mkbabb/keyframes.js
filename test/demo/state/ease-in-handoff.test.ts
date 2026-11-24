@@ -19,6 +19,8 @@ import { createGroupAdapter, EASE_IN_MS } from "../../../demo/state/scenePlaybac
 
 /** 120 Hz, the rate the films ran at. */
 const FRAME = 25 / 3;
+/** The same mean rate with the jitter a real frame clock has. */
+const UNEVEN = [6, 32 / 3];
 
 beforeAll(async () => {
     await warmKfEngine();
@@ -41,8 +43,8 @@ const spinGroup = () => {
 describe("an eased start hands the loop on without a held frame", () => {
     let queue: FrameRequestCallback[];
     let now: number;
-    const frame = () => {
-        now += FRAME;
+    const frame = (dt: number) => {
+        now += dt;
         const due = queue;
         queue = [];
         for (const cb of due) cb(now);
@@ -62,33 +64,48 @@ describe("an eased start hands the loop on without a held frame", () => {
         vi.unstubAllGlobals();
     });
 
-    it("every frame from the ramp's last fifth to the loop's tenth frame moves the clock on", () => {
+    /** Play, pause, ease back in; every frame's interval and painted clock. */
+    const easeInOn = (intervals: number[]) => {
         const { group, painted } = spinGroup();
+        const dt = (i: number) => intervals[i % intervals.length]!;
         group.play();
-        for (let i = 0; i < 30; i++) frame();
+        for (let i = 0; i < 30; i++) frame(dt(i));
         group.pause();
-        frame();
+        frame(FRAME);
 
-        const adapter = createGroupAdapter(() => group);
-        adapter.easeIn?.(() => true);
+        createGroupAdapter(() => group).easeIn?.(() => true);
         const askedAt = now;
-        const drawn: Array<{ at: number; t: number }> = [];
+        const drawn: Array<{ at: number; dt: number; t: number }> = [];
         for (let i = 0; i < Math.ceil(EASE_IN_MS / FRAME) + 12; i++) {
-            frame();
-            drawn.push({ at: now - askedAt, t: painted() });
+            frame(dt(i));
+            drawn.push({ at: now - askedAt, dt: dt(i), t: painted() });
         }
-
         expect(group.paused).toBe(false);
+        group.stop();
         // Rate r(u) = 3u² − 2u³ is at least 0.9 from u = 0.8 on.
         const from = drawn.findIndex(({ at }) => at >= 0.8 * EASE_IN_MS);
-        const steps = drawn.slice(from).map(({ at, t }, k, all) =>
-            k === 0 ? null : { at, step: t - all[k - 1]!.t },
-        ).filter((s): s is { at: number; step: number } => s !== null);
+        const steps = drawn.slice(from + 1).map(({ at, dt, t }, k) => ({
+            at,
+            dt,
+            step: t - drawn[from + k]!.t,
+        }));
         expect(steps.length).toBeGreaterThan(10);
-        for (const { at, step } of steps) {
+        return steps;
+    };
+
+    it("every frame from the ramp's last fifth to the loop's tenth frame moves the clock on", () => {
+        for (const { at, step } of easeInOn([FRAME])) {
             expect(step, `the clock's step in the frame at +${at.toFixed(1)} ms`).toBeGreaterThan(0.75 * FRAME);
             expect(step, `the clock's step in the frame at +${at.toFixed(1)} ms`).toBeLessThan(1.25 * FRAME);
         }
-        group.stop();
+    });
+
+    it("on an uneven frame clock, each frame moves on by its own interval at the rate", () => {
+        for (const { at, dt, step } of easeInOn(UNEVEN)) {
+            const label = `the clock's step in the ${dt.toFixed(1)} ms frame at +${at.toFixed(1)} ms`;
+            expect(step / dt, label).toBeGreaterThan(0.85);
+            if (at > EASE_IN_MS + 2 * Math.max(...UNEVEN)) expect(step, label).toBeCloseTo(dt, 6);
+            else expect(step / dt, label).toBeLessThanOrEqual(1 + 1e-9);
+        }
     });
 });

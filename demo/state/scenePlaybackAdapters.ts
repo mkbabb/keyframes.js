@@ -37,11 +37,12 @@ export const EASE_OUT_MS = 150;
 /**
  * Walk a PAUSED group's clock forward at a rate that rises 0 → 1 (`rise`) or
  * falls 1 → 0 (`fall`) on a smoothstep over `ms`, its children kept in phase by
- * the group seek. A rise ends at rate 1, one frame on, and calls `done` (the
- * caller resumes the loop, which then carries the speed on without a step); a
- * fall ends at rest. The group stays paused throughout; when `keepGoing()`
- * fails, or the group is resumed or stopped meanwhile, the walk ends where it
- * stands (a rise calls `done`). Returns the walk's cancel.
+ * the group seek. A rise ends at rate 1 and calls `done` (the caller resumes
+ * the loop, which takes the clock over on that same frame and carries the
+ * speed on without a step); a fall ends at rest. The group stays paused
+ * throughout; when `keepGoing()` fails, or the group is resumed or stopped
+ * meanwhile, the walk ends where it stands (a rise calls `done`). Returns the
+ * walk's cancel.
  *
  * Rate r(u) = 3u² − 2u³ (rise) or 1 − (3u² − 2u³) (fall); the clock it covers
  * is ms·(u³ − u⁴/2) or ms·(u − u³ + u⁴/2).
@@ -63,13 +64,12 @@ export function walkGroupClock(
     // frame's time.
     const asked = document.timeline?.currentTime;
     let start: number | null = typeof asked === "number" ? asked : null;
-    let last = start ?? 0;
     let cancelled = false;
     let frame = requestAnimationFrame(function step(now: number) {
         frame = 0;
         if (cancelled) return;
         if (!keepGoing() || !group.started || !group.paused) return shape === "rise" ? done() : undefined;
-        if (start === null || start > now) start = last = now;
+        if (start === null || start > now) start = now;
         const u = Math.min(1, (now - start) / ms);
         // A rise past its end already runs at rate 1: the frame that ends it
         // draws the time past the end too. Clamped to the end, that frame
@@ -77,16 +77,17 @@ export function walkGroupClock(
         const past = shape === "rise" ? Math.max(0, now - start - ms) : 0;
         group.seek(from + covered(u) + past).render();
         if (u < 1) {
-            last = now;
             frame = requestAnimationFrame(step);
             return;
         }
         if (shape === "fall") return done();
-        // At full speed. A resumed group's first frame shows the instant it
-        // was paused at, so seat that instant one frame on (at rate 1): the
-        // first resumed frame then moves on by a frame, never holds.
-        group.seek(from + covered(1) + past + Math.max(0, now - last));
+        // At full speed: `done` resumes the loop. A resume re-bases the clock
+        // on the loop's next frame and shows this instant again there (a held
+        // frame); a seat guessed one frame on is off by the next frame's
+        // jitter. The re-base is taken on this frame instead, so the loop's
+        // next frame moves on by exactly its own interval.
         done();
+        if (group.started && !group.paused) void group.advanceTo(now);
     });
     return () => {
         cancelled = true;
