@@ -327,25 +327,30 @@ test.describe("upright phone 390x844: the opened sheet", () => {
                 if (!reset) return null;
                 const r = reset.getBoundingClientRect();
                 const mid = (r.top + r.bottom) / 2;
-                const controls = [...sheet.querySelectorAll('button, [role="slider"], [role="combobox"], input, .labeled-field')]
+                // The section it closes: easing's facet, or the Stagger layer.
+                const section = reset.closest('.easing-sidebar, [data-slot="configurator-layer"]') ?? sheet;
+                const controls = [...section.querySelectorAll('button, [role="slider"], [role="combobox"], input, .labeled-field')]
                     .filter((e) => e !== reset && !reset.contains(e) && !e.closest('[data-slot="dialog-close"]') && e.getAttribute("data-slot") !== "dialog-close")
-                    .map((e) => e.getBoundingClientRect())
-                    .filter((b) => b.width > 0 && b.height > 0);
+                    .map((e) => ({ e, b: e.getBoundingClientRect() }))
+                    .filter(({ b }) => b.width > 0 && b.height > 0);
+                const name = ({ e, b }) => `${e.tagName.toLowerCase()} ${e.getAttribute("aria-label") ?? e.className} ${Math.round(b.top)}-${Math.round(b.bottom)}`;
                 const actions = sheet.querySelector('[data-slot="configurator-layer-actions"]');
                 return {
+                    section: section === sheet ? null : section.className || section.getAttribute("data-slot"),
                     word: reset.textContent.trim(),
                     resets: sheet.querySelectorAll('button[aria-label="Reset animation"]').length,
-                    beside: controls.filter((b) => b.top <= mid && b.bottom >= mid).length,
-                    below: controls.filter((b) => b.top > r.top + 1).length,
+                    beside: controls.filter(({ b }) => b.top <= mid && b.bottom >= mid).map(name),
+                    below: controls.filter(({ b }) => b.top > r.top + 1).map(name),
                     inHeader: actions ? actions.contains(reset) : false,
                     headerResets: actions ? actions.querySelectorAll('button[aria-label^="Reset"]').length : 0,
                 };
             });
             expect(seat).not.toBeNull();
+            expect(seat.section).not.toBeNull();
             expect(seat.resets).toBe(1);
             expect(seat.word).toBe("Reset");
-            expect(seat.beside).toBe(0);
-            expect(seat.below).toBe(0);
+            expect(seat.beside).toEqual([]);
+            expect(seat.below).toEqual([]);
             expect(seat.inHeader).toBe(false);
             expect(seat.headerResets).toBeLessThanOrEqual(1);
         });
