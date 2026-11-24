@@ -190,6 +190,14 @@ for (const w of [360, 375, 390]) {
                 const row = page.getByRole("menuitemcheckbox", { name: "Dark mode" });
                 await expect(row).toBeVisible();
                 await expect(row).toHaveAttribute("aria-checked", String(dark0));
+                // The row's check (glass's indicator) stands clear of its label.
+                const clear = await row.evaluate((el) => {
+                    const mark = el.querySelector(".menu__indicator")?.getBoundingClientRect();
+                    const label = [...el.querySelectorAll("span")].find((e) => e.textContent.trim() === "Dark mode")?.getBoundingClientRect();
+                    return mark && label ? label.left - mark.right : null;
+                });
+                expect(clear).not.toBeNull();
+                expect(clear).toBeGreaterThanOrEqual(0);
                 await row.tap();
             }
             await page.waitForTimeout(400);

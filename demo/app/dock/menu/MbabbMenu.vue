@@ -100,14 +100,19 @@
                  its plate at 360, the theme reached only by a sideways pan).
                  There the seat leaves the run (ChromeDock's THEME_IN_MENU rule)
                  and stands here, until glass's theme seat beside the dock. -->
+            <!-- The row keeps glass's leading inset, where its check stands (the
+                 skin rows' anatomy: the mark, the glyph's seat, the label). -->
             <DropdownMenuCheckboxItem
                 v-if="themeInMenu"
                 text-value="Dark mode"
-                class="gap-2.5 px-1.5 py-1"
+                class="gap-2.5 pr-1.5 py-1 cursor-pointer"
                 :model-value="isDark"
                 @update:model-value="(on: boolean) => on !== isDark && toggleDark()"
             >
-                <span class="flex-1 min-w-0 text-small text-foreground">Dark mode</span>
+                <span class="w-7 shrink-0 flex justify-center"><Moon class="w-5 h-5" aria-hidden="true" /></span>
+                <div class="flex-1 min-w-0">
+                    <span class="text-small text-foreground">Dark mode</span>
+                </div>
             </DropdownMenuCheckboxItem>
 
             <DropdownMenuSeparator />
@@ -335,7 +340,7 @@ import { useGlobalDark } from "@mkbabb/glass-ui/dark";
 import { useOptionalDockContext } from "@mkbabb/glass-ui/dock";
 import { DockTrigger } from "@mkbabb/glass-ui/dock-trigger";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@mkbabb/glass-ui/tooltip";
-import { Box, ExternalLink, Keyboard, Share2, Trash } from "@lucide/vue";
+import { Box, ExternalLink, Keyboard, Moon, Share2, Trash } from "@lucide/vue";
 import { registerShortcut } from "@mkbabb/glass-ui/keyboard";
 import KeyboardShortcutsModal from "./KeyboardShortcutsModal.vue";
 import { getStoredAnimationGroupControlOptions, resetAllStores } from "@state";
