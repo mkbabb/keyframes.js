@@ -33,6 +33,8 @@ import type {
 export const EASE_IN_MS = 250;
 /** A loop coming to rest (a stop): about six tenths of the start. */
 export const EASE_OUT_MS = 150;
+/** One frame at 60 Hz: the most of a walk its first drawn frame covers. */
+const ONE_FRAME_MS = 1000 / 60;
 
 /**
  * Walk a PAUSED group's clock forward at a rate that rises 0 → 1 (`rise`) or
@@ -53,28 +55,37 @@ export function walkGroupClock(
     done: () => void,
     keepGoing: () => boolean = () => true,
 ): () => void {
-    const children = Object.values(group.animations).map((entry) => entry.animation);
-    const from = Math.max(0, ...children.map((child) => group.elapsedOf(child)));
-    const covered = (u: number) =>
-        ms * (shape === "rise" ? u ** 3 - u ** 4 / 2 : u - u ** 3 + u ** 4 / 2);
+    const from = groupClock(group);
+    const covered = (u: number) => walkCovered(ms, shape, u);
     // The walk's clock starts at the frame it is asked in (the swap's
     // landing, the hand's release), on the frames' own clock, so the first
     // frame after it already moves: a start taken at the first frame's own
     // time held one more frame still. Without a document timeline, the first
     // frame's time.
+    //
+    // A stall does not eat the ramp. A page change's update holds the frames
+    // while it runs (150 ms at 4x CPU), and a stop asked in it then came to
+    // rest in the first frame drawn after. So the first frame covers at most
+    // one frame of the walk, and a stop's later frames at most two each: the
+    // ramp is drawn, frame by frame, whatever the frames' pace. (A start keeps
+    // the frames' own clock past its first frame: the loop it hands on to does.)
     const asked = document.timeline?.currentTime;
-    let start: number | null = typeof asked === "number" ? asked : null;
+    const start: number | null = typeof asked === "number" ? asked : null;
+    const maxStep = shape === "fall" ? 2 * ONE_FRAME_MS : Infinity;
+    let walked = 0;
+    let last: number | null = null;
     let cancelled = false;
     let frame = requestAnimationFrame(function step(now: number) {
         frame = 0;
         if (cancelled) return;
         if (!keepGoing() || !group.started || !group.paused) return shape === "rise" ? done() : undefined;
-        if (start === null || start > now) start = now;
-        const u = Math.min(1, (now - start) / ms);
+        walked += last === null ? Math.min(ONE_FRAME_MS, Math.max(0, now - (start ?? now))) : Math.min(maxStep, now - last);
+        last = now;
+        const u = Math.min(1, walked / ms);
         // A rise past its end already runs at rate 1: the frame that ends it
         // draws the time past the end too. Clamped to the end, that frame
         // stood still (the last ramp frame sits within a frame of it).
-        const past = shape === "rise" ? Math.max(0, now - start - ms) : 0;
+        const past = shape === "rise" ? Math.max(0, walked - ms) : 0;
         group.seek(from + covered(u) + past).render();
         if (u < 1) {
             frame = requestAnimationFrame(step);
@@ -96,6 +107,18 @@ export function walkGroupClock(
     };
 }
 
+/** The clock a walk of `ms` has covered at `u` (0..1) of its length. */
+function walkCovered(ms: number, shape: "rise" | "fall", u: number): number {
+    return ms * (shape === "rise" ? u ** 3 - u ** 4 / 2 : u - u ** 3 + u ** 4 / 2);
+}
+
+/** A group's one master clock: the furthest of its children's elapsed times
+ *  (the clock a walk starts from and the group seek seats every child at). */
+function groupClock(group: AnimationGroup<any>): number {
+    const children = Object.values(group.animations).map((entry) => entry.animation);
+    return Math.max(0, ...children.map((child) => group.elapsedOf(child)));
+}
+
 // ── The AnimationGroup adapter ───────────────────────────────────────────────
 
 /**
@@ -112,7 +135,7 @@ export function createGroupAdapter(
         walk?.();
         walk = null;
     };
-    return {
+    const adapter: ScenePlayback = {
         snapshot(): PlaybackSnapshot {
             const group = getGroup();
             const animations: Record<string, AnimationPlaybackSnapshot> = {};
@@ -199,6 +222,24 @@ export function createGroupAdapter(
             });
         },
 
+        leave(): PlaybackSnapshot {
+            // The snapshot keeps the play intent as it stands (a re-entry
+            // restores it), and its clocks are where the eased stop brings the
+            // loop to rest, so a return restores the pose the page last showed.
+            const snap = adapter.snapshot();
+            const group = getGroup();
+            if (!group.started || group.paused) {
+                adapter.suspend();
+                return snap;
+            }
+            adapter.easeOut!();
+            const from = groupClock(group);
+            group.seek(from + walkCovered(EASE_OUT_MS, "fall", 1));
+            const rest = adapter.snapshot().animations;
+            group.seek(from);
+            return { ...snap, animations: rest };
+        },
+
         isPlaying(): boolean {
             const group = getGroup();
             return group.started && group.playing();
@@ -211,6 +252,7 @@ export function createGroupAdapter(
             getGroup().stop();
         },
     };
+    return adapter;
 }
 
 /**

@@ -347,8 +347,12 @@ export function useSceneMachineShellBinding(opts: {
     // loop BEFORE the new one starts (genuine suspend, no orphan rAF); the writer
     // projects the new active scene onto the URL. No hand-poked codec.
     function switchScene(id: string) {
-        if (!sceneMap.has(id)) return;
-        machine.dispatch({ type: "NAVIGATE", to: id });
+        const to = sceneMap.get(id);
+        if (!to) return;
+        // Home is the cube's own page (one superKey, one mounted scene): the
+        // leaving loop stays in view, so it comes to rest by the eased stop.
+        const stays = to.superKey === sceneMap.get(currentSceneId.value)?.superKey;
+        machine.dispatch({ type: "NAVIGATE", to: id, stays });
     }
 
     // ── Tab-visibility fold (S5/S9.d) — TAB_HIDDEN/TAB_SHOWN ──────────────────

@@ -71,7 +71,17 @@ export interface SceneContext {
 // ── The events (S1 + the folded TAB_HIDDEN/TAB_SHOWN) ─────────────────────────
 
 export type SceneEvent =
-    | { type: "NAVIGATE"; to: SceneId }
+    | {
+          type: "NAVIGATE";
+          to: SceneId;
+          /**
+           * The leaving scene stays on the page (Home is the cube's own page,
+           * one mounted scene): its loop comes to rest by the eased stop
+           * (`ScenePlayback.leave`) in view, where a scene that unmounts is
+           * stopped at once.
+           */
+          stays?: boolean;
+      }
     | { type: "SCENE_READY" }
     | { type: "PLAY" }
     | { type: "PAUSE" }
@@ -339,6 +349,14 @@ export interface ScenePlayback {
      * Optional: a scene without one suspends at once.
      */
     easeOut?(): void;
+    /**
+     * A LEAVE that stays in view (NAVIGATE `stays`: the cube for Home): bring
+     * the loop to rest by the eased stop (`easeOut`) and return the snapshot of
+     * where it comes to rest, with the play intent it had, so a return restores
+     * the pose the page last showed. The spin stopped in one frame there (72 to
+     * 0°/s). Optional: a scene without one is snapshotted and suspended at once.
+     */
+    leave?(): PlaybackSnapshot;
     /** True iff the scene's loop is currently driving motion. */
     isPlaying(): boolean;
     /**

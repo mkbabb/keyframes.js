@@ -31,6 +31,7 @@ import {
     transition,
     HOME_SCENE_ID,
     type MachineState,
+    type PlaybackSnapshot,
     type SceneEvent,
     type SceneId,
     type ScenePlayback,
@@ -110,7 +111,7 @@ export const useSceneMachine = createGlobalState(() => {
                 event.to !== prev.context.activeScene) ||
             event.type === "SUSPEND";
         if (leaving) {
-            prev = captureActive(prev);
+            prev = captureActive(prev, event.type === "NAVIGATE" && event.stays === true);
         }
 
         // ── KFA-69: a scrub records the scene's live clocks ──
@@ -141,12 +142,19 @@ export const useSceneMachine = createGlobalState(() => {
      * captured truth (not the stale pre-capture context). Pure w.r.t. the store
      * — it does NOT write `machine`; the writer does.
      */
-    function captureActive(state: MachineState): MachineState {
+    function captureActive(state: MachineState, stays = false): MachineState {
         const adapter = adapters.get(state.context.activeScene);
         if (!adapter) return state;
-        const snap = adapter.snapshot();
-        // Stop the loop NOW (before any new scene starts).
-        adapter.suspend();
+        // Stop the loop NOW (before any new scene starts). A scene that stays
+        // in view (the cube under Home) comes to rest by the eased stop
+        // (FORTY-SIXTH E1: Pause's 150 ms ramp, never in one frame); one that
+        // unmounts is stopped at once (the swap shows its last frame).
+        let snap: PlaybackSnapshot;
+        if (stays && adapter.leave) snap = adapter.leave();
+        else {
+            snap = adapter.snapshot();
+            adapter.suspend();
+        }
         return {
             status: state.status,
             context: {

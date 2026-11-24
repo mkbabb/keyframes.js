@@ -17,6 +17,10 @@
  *      over 12 s the Y speed never changes sign.
  *   9. No other scene's chunk is evaluated while the cube spins: the idle warm
  *      fetches the chunks (they arrive) and evaluates none of them.
+ *  10. Leaving the cube for Home (one scene, the die stays in view), the spin
+ *      comes to rest by the eased stop: after the leave it turns on over
+ *      several frames, covering about half its 150 ms ramp at full speed,
+ *      then stands; never full speed to still between two frames.
  *
  * Cells: a desk (1440x900, 1x CPU) and a phone (390x844, touch, 4x CPU).
  *
@@ -239,6 +243,43 @@ for (const [cell, { use, cpu }] of Object.entries(CELLS)) {
             expect(got.loaf, "long frames running another scene's module").toEqual([]);
             expect(got.applied, "another scene's stylesheet applied").toEqual([]);
             expect(got.fetched.length, "scene chunks fetched at idle").toBeGreaterThan(3);
+        });
+
+        test("10. leaving the cube for Home, the spin comes to rest by the eased stop", async ({ page }) => {
+            await page.goto(at("/cube"));
+            await page.waitForFunction(() => window.__kf.frames.filter((f) => f.spin).length > 30, null, { timeout: 30_000 });
+            await page.waitForTimeout(2500);
+            const t0 = await page.evaluate(() => {
+                window.__kf.marks = [];
+                return performance.now();
+            });
+            await page.evaluate(() => (location.hash = "#/"));
+            await page.waitForSelector(".hero-band", { timeout: 20_000 });
+            await page.waitForTimeout(1500);
+            const { frames, commit } = await page.evaluate((from) => ({
+                frames: window.__kf.frames.filter((f) => f.t >= from - 1200 && f.spin),
+                // The leave is dispatched as the swap's update starts.
+                commit: window.__kf.marks.find((m) => m.n === "scene-swap:commit")?.s ?? null,
+            }), t0);
+            expect(commit, "the swap's update ran").not.toBeNull();
+            const steps = ySteps(frames);
+            // Full speed over the second before the leave (turns per ms).
+            const was = steps.filter((s) => s.t <= t0 && s.t > t0 - 1000);
+            const full = Math.abs(was.reduce((a, s) => a + s.d, 0)) / was.reduce((a, s) => a + s.dt, 0);
+            expect(full, "full speed before the leave (turns/ms)").toBeGreaterThan(0);
+            // From the last frame drawn before the leave: the travel after it
+            // and the frames that carry it. An eased stop covers half its
+            // 150 ms ramp at full speed, over several frames; a stop in one
+            // frame covers next to nothing, in one frame at most.
+            const after = steps.filter((s) => s.t > commit);
+            const moving = after.filter((s) => Math.abs(s.d) > 0.02 * full * s.dt);
+            const travel = Math.abs(after.reduce((a, s) => a + s.d, 0)) / full;
+            const trace = after.slice(0, 14).map((s) => `${Math.round(s.t)}:${(Math.abs(s.d) / full).toFixed(1)}ms`).join(" ");
+            expect(travel, `ms of full speed covered after the leave: ${trace}`).toBeGreaterThan(0.5 * 75);
+            expect(travel, `ms of full speed covered after the leave: ${trace}`).toBeLessThan(2 * 75);
+            expect(moving.length, `frames that move after the leave: ${trace}`).toBeGreaterThanOrEqual(3);
+            // And it comes to rest on Home.
+            expect(after.slice(-5).every((s) => Math.abs(s.d) < 1e-6), `at rest: ${trace}`).toBe(true);
         });
     });
 }
