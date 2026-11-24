@@ -34,8 +34,10 @@
                     :scroll-owner="owner"
                     :frame="orbitFrame"
                     :bounds="orbitBounds"
+                    subject=".cube"
                     @pressed-keys="onPressedKeys"
                     @frame="(pose) => emit('orbitFrame', pose)"
+                    @hold="(held) => emit('hold', held)"
                 >
                     <div
                         ref="rollEl"
@@ -221,6 +223,8 @@ const transform = defineModel<TransformState>("transform", { required: true });
 const emit = defineEmits<{
     /** The orbit's pan (px) and zoom, every frame they change and at rest. */
     (e: "orbitFrame", pose: { t: { x: number; y: number }; s: number }): void;
+    /** A hand holds the die itself, not a tap and not beside it (the orbit's `hold`). */
+    (e: "hold", held: boolean): void;
 }>();
 
 const cubeEl = useTemplateRef<HTMLElement>("cubeEl");

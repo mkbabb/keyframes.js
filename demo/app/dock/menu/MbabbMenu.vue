@@ -95,6 +95,26 @@
                 <DropdownMenuShortcut aria-hidden="true">?</DropdownMenuShortcut>
             </DropdownMenuItem>
 
+            <!-- The theme, where the dock's run cannot hold its seat (a phone
+                 under 390 px wide: the run, the theme last, ran 23 to 26 px past
+                 its plate at 360, the theme reached only by a sideways pan).
+                 There the seat leaves the run (ChromeDock's THEME_IN_MENU rule)
+                 and stands here, until glass's theme seat beside the dock. -->
+            <!-- The row keeps glass's leading inset, where its check stands (the
+                 skin rows' anatomy: the mark, the glyph's seat, the label). -->
+            <DropdownMenuCheckboxItem
+                v-if="themeInMenu"
+                text-value="Dark mode"
+                class="gap-2.5 pr-1.5 py-1 cursor-pointer"
+                :model-value="isDark"
+                @update:model-value="(on: boolean) => on !== isDark && toggleDark()"
+            >
+                <span class="w-7 shrink-0 flex justify-center"><Moon class="w-5 h-5" aria-hidden="true" /></span>
+                <div class="flex-1 min-w-0">
+                    <span class="text-small text-foreground">Dark mode</span>
+                </div>
+            </DropdownMenuCheckboxItem>
+
             <DropdownMenuSeparator />
 
             <!-- X.KF.W13X.dock · A2-KE-L2-17 — the brand rows (ppmycota, the
@@ -315,11 +335,12 @@ import SharePopover from "./SharePopover.vue";
 import { Avatar, AvatarFallback, AvatarImage } from "@mkbabb/glass-ui";
 import { Button } from "@mkbabb/glass-ui/button";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@mkbabb/glass-ui/dialog";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuShortcut } from "@mkbabb/glass-ui/menu";
+import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuShortcut } from "@mkbabb/glass-ui/menu";
+import { useGlobalDark } from "@mkbabb/glass-ui/dark";
 import { useOptionalDockContext } from "@mkbabb/glass-ui/dock";
 import { DockTrigger } from "@mkbabb/glass-ui/dock-trigger";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@mkbabb/glass-ui/tooltip";
-import { Box, ExternalLink, Keyboard, Share2, Trash } from "@lucide/vue";
+import { Box, ExternalLink, Keyboard, Moon, Share2, Trash } from "@lucide/vue";
 import { registerShortcut } from "@mkbabb/glass-ui/keyboard";
 import KeyboardShortcutsModal from "./KeyboardShortcutsModal.vue";
 import { getStoredAnimationGroupControlOptions, resetAllStores } from "@state";
@@ -410,6 +431,10 @@ function setCubeSkin(value: unknown): void {
 // A2-KE-L2-17 — the short layout (see the template), the controls pane's own query.
 const isShortLayout = useMediaQuery("(max-width: 1023px) and (max-height: 500px)");
 const coarsePointer = useMediaQuery("(pointer: coarse)");
+/** The theme stands in this menu where the dock's run cannot hold its seat
+ *  (ChromeDock.vue, THEME_IN_MENU: the same width). */
+const themeInMenu = useMediaQuery("(max-width: 389px)");
+const { isDark, toggleDark } = useGlobalDark();
 
 // T.C2 — "Clear all & reload" RELOCATED from the transport dock into the @mbabb
 // settings menu (a destructive storage reset is a settings action, not transport

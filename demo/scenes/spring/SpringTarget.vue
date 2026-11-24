@@ -82,8 +82,10 @@
                      apart at 1440, so the partner read as an orphan. The row
                      may wrap at a narrow card; it never spreads. -->
                 <!-- owner-1112 (item 8) — the readouts sit in one glass Chip, the
-                     stage readout's container in every scene (Square's x/y). -->
-                <Chip size="md" class="w-fit items-baseline gap-x-5 self-start">
+                     stage readout's container in every scene (Square's x/y).
+                     Where one row cannot hold them they stack in it (see
+                     `.spring-readouts` below). -->
+                <Chip size="md" class="spring-readouts w-fit items-baseline gap-x-5 self-start">
                     <div class="stage-readout" data-readout="primary">
                         <span>{{ sweepLeads ? "sweep" : "position" }}</span>
                         <span>{{
@@ -1147,6 +1149,23 @@ const onKeydown = (e: KeyboardEvent) => {
     }
     .spring-header :deep(.stage-readout) {
         white-space: nowrap;
+    }
+}
+/* THE READOUTS STACK WHERE ONE ROW CANNOT HOLD THEM (the sideways-scroll
+   census, K-1). A glass Chip is one row that does not wrap, and position and
+   velocity side by side need about 302 px (312 with a two-digit velocity): the
+   chip ran 10 px past the header at 390 and 32 to 40 px at 360, where the
+   card's clip cut the velocity short. Under a 356 px stage (the header's
+   2 x 1.25rem plate inset plus that worst row) the two readouts stand one above
+   the other in the same chip, each whole; at 414 and up, and on every short or
+   desk stage, they keep their one row. The rule reads the stage's own size,
+   never the live value, so the header does not change shape while the spring
+   moves. */
+@container stage (inline-size < 22.25rem) {
+    .spring-header :deep(.spring-readouts) {
+        flex-direction: column;
+        align-items: flex-start;
+        row-gap: 0.375rem;
     }
 }
 /* KFA-40 · UIA-KF-094 — one legend line; each tag keeps its name and ζ on one

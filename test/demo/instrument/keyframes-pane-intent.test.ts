@@ -9,7 +9,8 @@
  *
  * The witness: setting the composable up arms no idle callback and no timer,
  * and the flag stays false until the Keyframes surface is the selected one;
- * a deep link that lands on Keyframes mounts at once.
+ * a deep link that lands on Keyframes mounts at once; a parked phone pane
+ * (P2f) mounts it only once the pane is shown.
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { effectScope, nextTick, ref } from "vue";
@@ -36,6 +37,26 @@ describe("the Keyframes pane warms on intent, never at idle", () => {
             expect(idle).not.toHaveBeenCalled();
             expect(warmed.value).toBe(false);
             storedControls.selectedControl = "keyframes";
+            await nextTick();
+            expect(warmed.value).toBe(true);
+        } finally {
+            scope.stop();
+        }
+    });
+
+    // P2f — an upright phone's pane is mounted ahead of the Controls press and
+    // parks unseen while the sheet is shut. With the Keyframes surface
+    // remembered, the editor waits for the sheet to show it.
+    it("a parked pane on the Keyframes surface mounts no editor until it is shown", async () => {
+        const storedControls = getStoredAnimationGroupControlOptions("kf-pane-intent-c");
+        storedControls.selectedControl = "keyframes";
+        const warmed = ref(false);
+        const shown = ref(false);
+        const scope = effectScope();
+        scope.run(() => useKeyframesPaneReveal({ storedControls, keyframesPaneEl: ref(null), keyframesWarmed: warmed, shown }));
+        try {
+            expect(warmed.value).toBe(false);
+            shown.value = true;
             await nextTick();
             expect(warmed.value).toBe(true);
         } finally {

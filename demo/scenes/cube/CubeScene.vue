@@ -21,6 +21,7 @@
             :skin="cubeSkin"
             :faces="faces"
             v-model:transform="transformSliderValues"
+            @hold="(on: boolean) => (held = on)"
         />
         <DicePair v-if="dice === 2" :skin="cubeSkin" />
     </div>
@@ -103,10 +104,14 @@ const {
     resetMatrix,
 } = useTransformState(isStarted, poseElRef, useCubeTransform().value);
 
+// A hand holding the die (CubeTarget's `hold`; never a tap, a press beside it or the wheel): the
+// group yields while it holds (useCubeDemo).
+const held = ref(false);
 const { animationGroup, setTargets } = useCubeDemo(
     matrix3dStart,
     matrix3dEnd,
     cubeSkin,
+    { held, playing: isPlaying },
 );
 
 // ── KF-URL — the cube's view in the URL (urlState.ts) ────────────────────────

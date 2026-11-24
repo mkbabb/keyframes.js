@@ -42,6 +42,7 @@
                 bare
                 v-model:transform="transformSliderValues"
                 @orbit-frame="moveSheet"
+                @hold="(on: boolean) => (held = on)"
             />
             <DicePair
                 v-if="pairShown"
@@ -135,8 +136,13 @@ const started = ref(false);
 const cubeTargetRef = useTemplateRef<InstanceType<typeof CubeTarget>>("cubeTargetRef");
 const poseElRef = ref<HTMLElement | undefined>();
 const { matrix3dStart, matrix3dEnd, transformSliderValues } = useTransformState(started, poseElRef);
+// A hand holding the die (CubeTarget's `hold`; never a tap, a press beside it or the wheel): the
+// group yields while it holds (useCubeDemo).
+const held = ref(false);
 const { animationGroup, setTargets } = useCubeDemo(matrix3dStart, matrix3dEnd, skin, {
     settle: false,
+    held,
+    playing,
 });
 const storedControls = getStoredAnimationGroupControlOptions(CUBE_SCENE_ID);
 

@@ -23,14 +23,14 @@
                  its duration. The editor sits on the BARE surface: the pane's
                  Card is the one plate, so no second tinted card nests inside it
                  (the same one-frame rule as the Sequence stage, `.sq`). -->
-            <!-- An upright phone's sheet holds this one section, under the
-                 sheet's own first row: a title row there only takes height
-                 from the curve, so the fields stand on the section's inset
-                 without it. -->
+            <!-- A phone's sheet (upright, and the landscape side sheet) holds
+                 this one section, under the sheet's own first row: a title row
+                 there only takes height from the curve, so the fields stand on
+                 the section's inset without it. -->
             <component
-                :is="uprightPhone ? 'div' : ConfiguratorLayer"
+                :is="phone ? 'div' : ConfiguratorLayer"
                 v-bind="
-                    uprightPhone
+                    phone
                         ? { class: 'flex flex-col px-(--configurator-pad-inline) pb-2' }
                         : { label: 'Easing', defaultOpen: true, bodyClass: 'flex flex-col' }
                 "
@@ -125,6 +125,11 @@
                     />
                     <output class="param-value" aria-hidden="true">{{ demo.duration.value }} ms</output>
                 </div>
+                <!-- On an upright phone with one channel the sheet's Reset (to
+                     the start) is a labelled row of its own at the section's
+                     foot (owner, 23 Nov), so it is met after the curve and the
+                     duration it restarts (useSheetReset.ts). -->
+                <SheetResetButton v-if="sheetReset.shown.value" labelled @reset="sheetReset.reset()" />
             </component>
         </div>
     </div>
@@ -152,12 +157,15 @@ import {
     type SeatTruth,
 } from "@composables/useEasingPickerSeat";
 import type { EasingDemoContext } from "./easingKeys";
+import SheetResetButton from "@components/instrument/pane/SheetResetButton.vue";
+import { useSheetReset } from "@components/instrument/pane/composables/useSheetReset";
 
-/** An upright phone: the sheet's first row heads this section. */
-const uprightPhone = useMediaQuery("(max-width: 1023px) and (min-height: 501px)");
+/** A phone (upright, or the landscape side sheet): the sheet's first row heads this section. */
+const phone = useMediaQuery("(max-width: 1023px)");
 
 const props = defineProps<{ demo: EasingDemoContext }>();
 const demo = props.demo;
+const sheetReset = useSheetReset();
 
 // ── Where the truth lives: the demo context (the scene's ONE authoring seam) ──
 // glass-ui's bezier catalogue is value.js `bezierPresets` (30 keys); the demo's
@@ -310,6 +318,29 @@ watch(
    one row gap of air (its `scroll-padding-block-end`, 0.5rem): 25.5rem, and
    28.5rem where the narrow pane wraps. Served at 1440x900: plot 215 px (was
    183), the surface's scroll range 0. */
+/* THE CURVE IS WHOLE IN A PHONE'S SHEET (owner, 23 Nov: the curve drawn
+   smaller on a phone). The plot was a square as wide as the sheet (294 to
+   324 px), so at OPEN, where an upright sheet takes 0.36 of the height, it
+   was cut by 78 to 150 px at 360x780, 390x844, 375x667 and 390x664, and by
+   135 px in the 844x390 side sheet. The plot now takes the room the sheet
+   opens to (`--sheet-room`, ControlsPaneWrapper: the OPEN rung upright, the
+   band between the docks in landscape) less what the sheet keeps around the
+   pane's port there, so it stands whole in the port: upright, the grip row
+   and the section's inset above it (4.0625rem), the sheet's foot inset under
+   it (1.3125rem) and glass's 1rem end fade, under which a row reads as more
+   below; in the side sheet, whose grip row sits lower and whose pane clips
+   rather than scrolls, 4.8125rem above, 2.0625rem under and a quarter-rem of
+   air. The sheet stays at its third; the rows under the plot scroll. */
+@media (max-width: 1023px) and (min-height: 501px) {
+    .easing-sidebar {
+        --picker-cap: max(7rem, calc(var(--sheet-room, 100dvh) - 6.375rem));
+    }
+}
+@media (max-width: 1023px) and (max-height: 500px) {
+    .easing-sidebar {
+        --picker-cap: max(6rem, calc(var(--sheet-room, 100dvh) - 7.125rem));
+    }
+}
 @media (min-width: 1024px) {
     .easing-sidebar {
         --picker-cap: max(8rem, calc(var(--rail-block, 100dvh) - 25.5rem));

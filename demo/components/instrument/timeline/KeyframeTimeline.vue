@@ -497,6 +497,7 @@ import TimelineTrack from "./components/TimelineTrack.vue";
 import { createPreviewSubject, fitPreviewSubject } from "./utils/timelineEngine";
 import type { TransportClock } from "./timelineTypes";
 import { useRafFn, useResizeObserver } from "@vueuse/core";
+import { usePaneShown } from "../pane/composables/usePaneShown";
 import type { InputAnimationOptions } from "@mkbabb/keyframes.js";
 
 const props = defineProps<{
@@ -551,12 +552,19 @@ const {
 // normalized time into the timeline's engine through the same `scrub` a drag
 // uses, so the playhead and the painted preview are one position with the
 // scene. A paused or unstarted clock leaves the timeline where the user put it.
-useRafFn(() => {
-    const clock = props.clock;
-    if (!clock || !clock.started || clock.paused || !animation.value) return;
-    const duration = clock.options.duration;
-    if (duration > 0) scrub(clock.t / duration);
-});
+// P2f — a parked pane (an upright phone's sheet shut) runs no frame of this
+// mirror; it starts again, from the clock's present time, when the pane shows.
+const mirror = useRafFn(
+    () => {
+        const clock = props.clock;
+        if (!clock || !clock.started || clock.paused || !animation.value) return;
+        const duration = clock.options.duration;
+        if (duration > 0) scrub(clock.t / duration);
+    },
+    { immediate: false },
+);
+const paneShown = usePaneShown();
+watch(paneShown, (shown) => (shown ? mirror.resume() : mirror.pause()), { immediate: true });
 
 const previewStage = useTemplateRef<HTMLElement>("previewStage");
 const previewSubject = shallowRef<HTMLElement | null>(null);

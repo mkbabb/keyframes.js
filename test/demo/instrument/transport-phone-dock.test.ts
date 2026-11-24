@@ -139,6 +139,7 @@ function mountAt(
     controlsSeat: boolean,
     onToggle: () => void = () => {},
     startScreen = false,
+    onWarm: () => void = () => {},
 ) {
     viewport = { w, h: h0 };
     return mount(
@@ -155,6 +156,7 @@ function mountAt(
                             getScrubT: () => playhead,
                             scrubTo: (f: number) => scrubbed.push(f),
                             onToggleControls: onToggle,
+                            onWarmControls: onWarm,
                         }),
                 }),
         }),
@@ -177,6 +179,25 @@ describe("the phone's one bottom dock", () => {
         (s as HTMLButtonElement).click();
         expect(toggled).toBe(1);
         w.unmount();
+    });
+
+    // P2f — the pane mounts, unseen, as the hand or the focus reaches for the
+    // seat (about 100 ms ahead of the click), so the press never waits on it.
+    it("an upright phone: a hand or the focus reaching for the Controls seat says so before the press", async () => {
+        let warmed = 0;
+        let toggled = 0;
+        const w = mountAt(390, 844, true, () => toggled++, false, () => warmed++);
+        try {
+            const s = seat(w) as HTMLButtonElement;
+            for (const type of ["pointerenter", "pointerdown"]) {
+                s.dispatchEvent(new Event(type, { bubbles: type !== "pointerenter" }));
+            }
+            s.dispatchEvent(new FocusEvent("focusin", { bubbles: true }));
+            expect(warmed).toBe(3);
+            expect(toggled).toBe(0);
+        } finally {
+            w.unmount();
+        }
     });
 
     it("an upright phone: the dock holds the page's one scrub, named Time, at the selected channel's playhead", () => {

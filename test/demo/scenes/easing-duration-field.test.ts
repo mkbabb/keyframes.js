@@ -14,7 +14,7 @@
  * and asserts the field root carries no undeclared attribute.
  */
 import { describe, expect, it } from "vitest";
-import { computed, createApp, nextTick, ref } from "vue";
+import { computed, createApp, defineComponent, h, nextTick, provide, ref } from "vue";
 
 const { default: EasingSidebar } = await import(
     "../../../demo/scenes/easing/EasingSidebar.vue"
@@ -89,6 +89,85 @@ describe("the upright phone's sheet holds the curve section without a title row"
             const desk = await mountAt(1440, 900);
             expect(desk.host.querySelector("[data-slot=configurator-layer-trigger]")?.textContent).toMatch(/Easing/);
             expect(desk.host.querySelectorAll(".labeled-field")).toHaveLength(1);
+            desk.done();
+        } finally {
+            if (saved) Object.defineProperty(window, "matchMedia", saved);
+            else delete (window as { matchMedia?: unknown }).matchMedia;
+        }
+    }, 30_000);
+});
+
+// On an upright phone with one channel the sheet's Reset is a labelled row of
+// its own at the section's foot (owner, 23 Nov): the curve, its rule, the
+// duration, then Reset, in the DOM's order, so focus and a screen reader meet
+// them as the eye does. Born red: Reset shared the duration row, which led the
+// facet above the curve, glyph only.
+describe("the upright phone's Reset is a labelled row at the section's foot", () => {
+    const at = (w: number, h: number) => (query: string) => {
+        let ok = true;
+        for (const [, kind, axis, px] of query.matchAll(/\((max|min)-(width|height): (\d+)px\)/g)) {
+            const v = axis === "height" ? h : w;
+            ok &&= kind === "max" ? v <= Number(px) : v >= Number(px);
+        }
+        return { matches: ok, media: query, addEventListener: () => {}, removeEventListener: () => {}, addListener: () => {}, removeListener: () => {}, onchange: null, dispatchEvent: () => false };
+    };
+    const mountWith = async (w: number, ht: number, inRow: boolean) => {
+        Object.defineProperty(window, "matchMedia", { configurable: true, value: at(w, ht) });
+        const demo = {
+            currentEasingName: ref("ease-in"),
+            bezierControlPoints: ref<[number, number, number, number]>([0.42, 0, 1, 1]),
+            stepOptions: ref({ steps: 4, jumpTerm: "jump-end" as const }),
+            duration: ref(1500),
+            isBezierEditable: computed(() => true),
+            isSteps: computed(() => false),
+            selectEasing: () => {},
+            updateBezierPoints: () => {},
+        };
+        const { SHEET_RESET_KEY, provideSheetReset } = await import(
+            "../../../demo/components/instrument/pane/composables/useSheetReset"
+        );
+        const { TooltipProvider } = await import("@mkbabb/glass-ui/tooltip");
+        const host = document.createElement("div");
+        document.body.appendChild(host);
+        const app = createApp(
+            defineComponent({
+                setup() {
+                    provide(SHEET_RESET_KEY, provideSheetReset(ref(inRow), () => {}).api);
+                    // The facet reads only these fields of the demo context (as the cases above).
+                    return () => h(TooltipProvider, null, { default: () => h(EasingSidebar as any, { demo }) });
+                },
+            }),
+        );
+        app.mount(host);
+        await nextTick();
+        await nextTick();
+        return { host, done: () => { app.unmount(); host.remove(); } };
+    };
+    const before = (a: Element | null, b: Element | null) =>
+        !!a && !!b && (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0;
+
+    it("at 390x844 the curve, the duration, then Reset with its word; elsewhere no Reset", async () => {
+        const saved = Object.getOwnPropertyDescriptor(window, "matchMedia");
+        try {
+            const phone = await mountWith(390, 844, true);
+            const reset = phone.host.querySelector('button[aria-label="Reset animation"]');
+            const duration = phone.host.querySelector(".labeled-field");
+            const curve = phone.host.querySelector('[aria-label="Easing curve editor"]');
+            expect(reset).not.toBeNull();
+            expect(curve).not.toBeNull();
+            expect(reset!.textContent?.trim()).toBe("Reset");
+            expect(before(curve, duration)).toBe(true);
+            expect(before(duration, reset)).toBe(true);
+            expect(phone.host.querySelectorAll(".labeled-field")).toHaveLength(1);
+            // A row of its own: the duration's row does not hold it, and nothing follows it.
+            expect(duration!.closest(".param-row")?.contains(reset)).toBe(false);
+            expect(reset!.nextElementSibling).toBeNull();
+            phone.done();
+
+            const desk = await mountWith(1440, 900, false);
+            const deskCurve = desk.host.querySelector('[aria-label="Easing curve editor"]');
+            expect(desk.host.querySelector('button[aria-label="Reset animation"]')).toBeNull();
+            expect(before(deskCurve, desk.host.querySelector(".labeled-field"))).toBe(true);
             desk.done();
         } finally {
             if (saved) Object.defineProperty(window, "matchMedia", saved);

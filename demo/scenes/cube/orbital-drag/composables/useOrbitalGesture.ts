@@ -1,6 +1,6 @@
 // SERVED MODEL: claude-opus-5-5
 import { useEventListener } from "@vueuse/core";
-import { ref } from "vue";
+import { onScopeDispose, ref } from "vue";
 import {
     angularVelocityFromSamples,
     applyScreenDelta,
@@ -84,6 +84,9 @@ export interface OrbitalGestureParams {
     onSettle?: (at: Vec2) => void;
     /** Reduced motion: the bounds are hard walls (no rubber band). */
     reducedMotion?: () => boolean;
+    /** Did this press land on the subject itself (the die as it is painted),
+     *  not on the stage beside it? Only such a press can hold it (`isHeld`). */
+    onSubject?: (event: PointerEvent) => boolean;
 }
 
 /** The arcball radius' floor (px). */
@@ -116,6 +119,14 @@ export const NOTCH_MAX_RAD = (40 * Math.PI) / 180;
 /** Page mode: a touch drag turns the die only once it has gone this far
  *  (px), mostly sideways; a mostly vertical one is the host's scroll. */
 export const PAGE_TOUCH_SLOP_PX = 10;
+/** A press on the subject holds it (`isHeld`) once it is a hand and not a
+ *  tap: once it has moved this far from where it landed (px, useDoubleTap's
+ *  tap slop) ... */
+export const HOLD_SLOP_PX = 12;
+/** ... or stayed down this long (ms). A tap on the die, the tap that puts the
+ *  phone's sheet away among them, is down and up sooner, so it never stops
+ *  the spin. */
+export const HOLD_AFTER_MS = 150;
 /**
  * THE FOLLOWERS (follower.ts). Every stepped input moves a target and the die
  * follows it on the critically damped spring, by its exact step on the
@@ -158,6 +169,29 @@ export const LEAD_FRAMES = 0;
  *  there, and the hand would step. One sample back, every frame falls between
  *  two real samples and moves; a mouse keeps its 4 ms. */
 export const TOUCH_BACK_MAX_MS = 20;
+/** In a stream, one sample back is counted from when a sample is seen, not
+ *  from its own time. While a touch's samples come at a digitiser's pace
+ *  (TOUCH_STREAM_MS apart or closer) and reach the page late (the median age
+ *  of the gesture's last four moves at the first frame that saw each, every
+ *  finger's, once two are seen), it is shown that much further back, less the RESAMPLE_BACK_MS
+ *  every hand is shown back, and at most this much more (ms). Counted from
+ *  their own time alone, on a page whose touches arrive about 23 ms late, a
+ *  frame's instant reached each sample just as it landed: the frame that saw
+ *  it showed the whole step and the frames until the next sample held the die.
+ *  A hand moving in sparser steps is shown as before. */
+export const TOUCH_LATE_MAX_MS = TOUCH_BACK_MAX_MS;
+/** A touch or a pen's shown instant moves on at most this many times the
+ *  frame's own interval in one frame while its samples come at a digitiser's
+ *  pace (TOUCH_STREAM_MS apart or closer). A sample that reaches a busy page
+ *  late, after its frames held the die at the sample before, is caught up over
+ *  the next frames and never shown whole in one: under load a phone's touches
+ *  land about 22 ms apart and 13 to 19 ms late against 8.3 ms frames. A hand
+ *  whose samples are further apart is a slow hand moving in steps, and its
+ *  newest sample is reached as before (one sample back, at most 20 ms). */
+export const TOUCH_CATCH_UP = 2;
+/** The hand's events (every finger's, a joining or lifting finger's
+ *  included) come at least this often while it streams (ms). */
+export const TOUCH_STREAM_MS = 2 * TOUCH_BACK_MAX_MS;
 /** A lead returns (through its follower) once the hand has sent nothing for
  *  this many of its own sample intervals, or frames, whichever is longer. */
 const STOP_INTERVALS = 1.5;
@@ -257,6 +291,7 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
         onGestureEnd,
         onSettle,
         reducedMotion,
+        onSubject,
     } = params;
 
     /** A real sample of one pointer (client px, its event's own time). */
@@ -279,8 +314,31 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
         seenAge: number | null;
         /** The hand time the frame last showed for this pointer. */
         shownT: number;
+        /** Where it landed, if that was on the subject (null beside it). */
+        onSubject: { x: number; y: number } | null;
     };
     const pointers = new Map<number, Hand>();
+    /** The gesture's last few event times (every finger's), for its cadence. */
+    const stamps: number[] = [];
+    const stamp = (t: number) => {
+        if (stamps.length > 0 && stamps[stamps.length - 1]! >= t) return;
+        stamps.push(t);
+        if (stamps.length > 4) stamps.shift();
+    };
+    /** The ages the gesture's last four moves had at the first frame that saw each (ms, every finger's). */
+    const seenAges: number[] = [];
+    /** How much later than its own time the stream is seen: their median (the lower of the middle two) less
+     *  RESAMPLE_BACK_MS (ms), 0 before two moves are seen. */
+    const lateness = (): number => {
+        if (seenAges.length < 2) return 0;
+        const a = [...seenAges].sort((x, y) => x - y);
+        return Math.min(TOUCH_LATE_MAX_MS, Math.max(0, a[(a.length - 1) >> 1]! - RESAMPLE_BACK_MS));
+    };
+    /** The gesture's event cadence: the median of its last three gaps (ms), Infinity with fewer than two events. */
+    const streamGap = (): number => {
+        const gaps = stamps.slice(1).map((t, i) => t - stamps[i]!).sort((x, y) => x - y);
+        return gaps.length ? gaps[gaps.length >> 1]! : Infinity;
+    };
     const newHand = (x: number, y: number, t: number, kind: string): Hand => ({
         x,
         y,
@@ -291,8 +349,22 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
         lead: createFollower(2, LEAD_OMEGA),
         seenAge: null,
         shownT: t,
+        onSubject: null,
     });
     const isActive = ref(false);
+    /** A hand holds the subject: a finger, the mouse or a pen that landed on
+     *  the die itself is still down and is a hand, not a tap (it has moved
+     *  HOLD_SLOP_PX or stayed down HOLD_AFTER_MS). A press beside the die, a tap
+     *  or a click on it, and the wheel never hold it. */
+    const isHeld = ref(false);
+    let holdTimer: ReturnType<typeof setTimeout> | undefined;
+    const hold = (on: boolean) => {
+        clearTimeout(holdTimer);
+        holdTimer = undefined;
+        isHeld.value = on;
+    };
+    /** Is a pointer that landed on the subject still down? */
+    const onSubjectDown = () => [...pointers.values()].some((h) => h.onSubject !== null);
 
     const pressedKeys = ref<PressedKeys>({
         x: false,
@@ -574,11 +646,19 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
         if (pointers.size === 0) {
             onGestureStart();
             dropOwed();
+            stamps.length = 0;
+            seenAges.length = 0;
             // A middle (1) or right (2) mouse button pans, as Shift-drag does.
             buttonPan = event.pointerType === "mouse" && (event.button === 1 || event.button === 2);
         }
-        pointers.set(event.pointerId, newHand(event.clientX, event.clientY, event.timeStamp, event.pointerType));
+        const hand = newHand(event.clientX, event.clientY, event.timeStamp, event.pointerType);
+        pointers.set(event.pointerId, hand);
+        stamp(event.timeStamp);
         isActive.value = true;
+        if (onSubject?.(event)) {
+            hand.onSubject = { x: event.clientX, y: event.clientY };
+            if (!isHeld.value && holdTimer === undefined) holdTimer = setTimeout(() => hold(onSubjectDown()), HOLD_AFTER_MS);
+        }
         // The stage takes the keyboard on a mouse or pen press (the arrows turn
         // the die); preventDefault above withholds the browser's own focus.
         if (event.pointerType !== "touch") surfaceRef()?.focus({ preventScroll: true });
@@ -633,6 +713,8 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
         const last = moves[moves.length - 1]!;
         p.x = last.clientX;
         p.y = last.clientY;
+        // A press on the die that moves is a hand on it, tap or not.
+        if (p.onSubject && !isHeld.value && Math.hypot(p.x - p.onSubject.x, p.y - p.onSubject.y) >= HOLD_SLOP_PX) hold(true);
         // Page mode, and beside the die (pan-y): a one-finger drag is the die's
         // only once it is horizontal. Until then the browser may still take it
         // as the page's scroll (a pointercancel), and the die must not have moved.
@@ -654,6 +736,7 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
             if (tr.length > 0 && tr[tr.length - 1]!.t >= t) tr.pop();
             tr.push({ t, x: p.x, y: p.y });
             while (tr.length > 3 && t - tr[0]!.t > 100) tr.shift();
+            stamp(t);
             if (!applyMode(p)) return;
             pushSample(t);
         }
@@ -682,10 +765,10 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
      *  · once the hand has stopped, that lead returns on its follower (no step).
      * Returns the point and whether the lead is still returning.
      */
-    /** A hand's sample interval: the median of its last three (ms), at most TOUCH_BACK_MAX_MS. */
+    /** A hand's sample interval: the median of its last three (ms); 0 with fewer than two samples. */
     const sampleGap = (tr: HandSample[]): number => {
         const gaps = tr.slice(-4).map((p, i, a) => (i ? p.t - a[i - 1]!.t : NaN)).filter((g) => g > 0).sort((x, y) => x - y);
-        return gaps.length ? Math.min(TOUCH_BACK_MAX_MS, gaps[gaps.length >> 1]!) : 0;
+        return gaps.length ? gaps[gaps.length >> 1]! : 0;
     };
 
     const handPoint = (h: Hand, now: number, tStar: number, back = false): { x: number; y: number; settling: boolean } => {
@@ -754,6 +837,10 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
      */
     const handAt = (now: number): "settling" | "shown" | "idle" => {
         if (pointers.size === 0 || !anchored()) return "idle";
+        // This frame's own interval (the hand's clock may move on at most TOUCH_CATCH_UP of it): the loop idles
+        // between a hand's samples, so the time since the hand was last shown may span frames that held it; one
+        // frame is at most the interval measured before them.
+        const dt = lastHandFrame >= 0 && now > lastHandFrame ? Math.min(now - lastHandFrame, frameMs) : frameMs;
         if (lastHandFrame >= 0 && now - lastHandFrame > 2 && now - lastHandFrame < 34) frameMs = now - lastHandFrame;
         lastHandFrame = now;
         const tStar = now - RESAMPLE_BACK_MS;
@@ -765,9 +852,23 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
             const h = pointers.get(id);
             if (!h) continue;
             // A touch one sample back (a frame's instant is never before its newest sample's; a clock that says
-            // otherwise, as a test's may, keeps the plain instant).
-            const back = h.predicts && tStar >= (h.trail[h.trail.length - 1]?.t ?? Infinity) - 12 ? sampleGap(h.trail) : 0;
-            const at = handPoint(h, now, back ? Math.max(h.shownT, tStar - back) : tStar, back > 0);
+            // otherwise, as a test's may, keeps the plain instant), counted from when its samples are seen.
+            const newest = h.trail[h.trail.length - 1];
+            if (newest && h.seenAge === null) {
+                h.seenAge = now - newest.t;
+                // A move's age (a re-anchor's single kept sample is no move).
+                if (h.trail.length > 1) {
+                    seenAges.push(h.seenAge);
+                    if (seenAges.length > 4) seenAges.shift();
+                }
+            }
+            const gap = h.predicts && tStar >= (newest?.t ?? Infinity) - 12 ? sampleGap(h.trail) : 0;
+            const stream = streamGap() <= TOUCH_STREAM_MS;
+            const back = gap > 0 ? Math.min(TOUCH_BACK_MAX_MS, gap) + (stream ? lateness() : 0) : 0;
+            // Never back; and in a stream, never more than TOUCH_CATCH_UP frames of the hand's time in one frame (a
+            // frame that held at the newest sample is caught up over the next frames once the next sample lands).
+            const reach = stream ? h.shownT + TOUCH_CATCH_UP * dt : Infinity;
+            const at = handPoint(h, now, back ? Math.max(h.shownT, Math.min(tStar - back, reach)) : tStar, back > 0);
             settling ||= at.settling;
             real.push([h, h.x, h.y]);
             if (h.x !== at.x || h.y !== at.y) same = false;
@@ -839,6 +940,7 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
         leaveFrom();
         pointers.delete(event.pointerId);
         releaseCapture(event);
+        if (!onSubjectDown()) hold(false);
         if (pointers.size > 0) {
             // 2 → 1 re-anchors the arcball at the finger that stayed (no jump).
             anchor();
@@ -862,6 +964,7 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
         if (!pointers.has(event.pointerId)) return;
         // iOS cancels mid-pinch: the remaining state is untrustworthy.
         pointers.clear();
+        hold(false);
         releaseCapture(event);
         mode = "idle";
         buttonPan = false;
@@ -1180,9 +1283,11 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
     useEventListener(ownerDoc, "pointermove", onPointerMove);
     useEventListener(ownerDoc, "pointerup", onPointerUp);
     useEventListener(ownerDoc, "pointercancel", onPointerCancel);
+    onScopeDispose(() => clearTimeout(holdTimer));
 
     return {
         isActive,
+        isHeld,
         pressedKeys,
         pointers,
         onPointerDown,

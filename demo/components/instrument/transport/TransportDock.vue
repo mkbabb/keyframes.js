@@ -218,7 +218,10 @@
                          controls sheet (on a desk the pane is a rail, opened
                          from the top dock). It wears the sheet's own glyph, a
                          panel at the foot: the sliders glyph is the Controls
-                         surface's, which the top dock's surfaces seat shows. -->
+                         surface's, which the top dock's surfaces seat shows.
+                         A hand or the focus reaching for it warms the pane
+                         (`warmControls`): the pane mounts, unseen, ahead of
+                         the press. -->
                     <template v-if="phoneDock && controlsSeat">
                         <DockSeparator />
                         <Tooltip>
@@ -228,6 +231,9 @@
                                     aria-label="Controls"
                                     :aria-expanded="storedControls.isControlsPanelOpen === true"
                                     data-controls-seat
+                                    @pointerenter="emit('warmControls')"
+                                    @pointerdown="emit('warmControls')"
+                                    @focusin="emit('warmControls')"
                                     @click="emit('toggleControls')"
                                 >
                                     <PanelBottom class="icon-lg" />
@@ -352,6 +358,8 @@ const emit = defineEmits<{
     (e: "reset", all: boolean): void;
     (e: "selectAnimation", name: string): void;
     (e: "toggleControls"): void;
+    /** A hand or the focus reaches for the Controls seat, ahead of its press. */
+    (e: "warmControls"): void;
     (e: "scrubStart"): void;
     (e: "scrubEnd"): void;
 }>();

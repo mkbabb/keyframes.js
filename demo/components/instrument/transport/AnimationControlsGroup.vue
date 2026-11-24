@@ -41,6 +41,7 @@
              and the transport dock stay mounted across every swap. -->
         <ControlsPaneWrapper
             v-if="hasControlSurfaces"
+            ref="paneWrapper"
             :key="superKey ?? ''"
             :animation-group="animationGroup"
             :blend-available="animationGroup.singleTarget"
@@ -128,6 +129,7 @@
             :get-scrub-t="getActiveT"
             :scrub-to="scrubActive"
             @toggle-controls="onToggleControls"
+            @warm-controls="paneWrapper?.warmPane()"
             @scrub-start="onScrubStart"
             @scrub-end="onScrubEnd"
         />
@@ -326,6 +328,10 @@ const transportDockRef = useTemplateRef<InstanceType<typeof TransportDock>>("tra
 
 /** The phone's Controls seat: a press opens the sheet (an entry in history,
  *  so Back closes it) or closes it. */
+// P2f — the Controls seat's intent (a hand or the focus reaching for it)
+// mounts the scene's pane, unseen, ahead of the press (ControlsPaneWrapper
+// `warmPane`; an upright phone only).
+const paneWrapper = useTemplateRef<InstanceType<typeof ControlsPaneWrapper>>("paneWrapper");
 const onToggleControls = (): void => {
     const open = storedControls.value.isControlsPanelOpen !== true;
     if (open) markSheetPress();
@@ -348,8 +354,8 @@ const stageGlideEl = useTemplateRef<HTMLElement>("stageGlideEl");
 const stageReserve = shallowRef<StageReserve>(NO_STAGE_RESERVE);
 // LAST-TEN KF-18 — on the desktop the cell slides to its new place on a
 // transform when the pane opens or closes; on an upright phone the glide
-// carries the die when the stage is laid out for the opened sheet
-// (useStageSlide).
+// carries the die when the stage is laid out for the opened sheet, and a
+// card's band walks there with the sheet (useStageSlide).
 useStageSlide(
     () => stageCellEl.value,
     () => storedControls.value.isControlsPanelOpen,

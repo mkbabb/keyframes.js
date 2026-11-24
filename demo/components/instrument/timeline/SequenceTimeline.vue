@@ -68,6 +68,11 @@
                     </Button>
                 </template>
                 <SequenceLanes :source="source" />
+                <!-- On an upright phone with this one channel the sheet's Reset
+                     (to the start) is a labelled row of its own at the section's
+                     foot (owner, 23 Nov), so the header keeps one back glyph, the
+                     stagger's own reset (useSheetReset.ts). -->
+                <SheetResetButton v-if="sheetReset.shown.value" labelled @reset="sheetReset.reset()" />
             </ConfiguratorLayer>
         </div>
     </div>
@@ -78,7 +83,10 @@ import { Button, Separator } from "@mkbabb/glass-ui";
 import { ConfiguratorLayer } from "@mkbabb/glass-ui/configurator";
 import { RotateCcw } from "@lucide/vue";
 import SequenceLanes from "./components/SequenceLanes.vue";
+import SheetResetButton from "../pane/SheetResetButton.vue";
+import { useSheetReset } from "../pane/composables/useSheetReset";
 import type { SequenceTimelineSource } from "@composables/scene-facility/sequenceTimeline";
 
 const { source } = defineProps<{ source: SequenceTimelineSource }>();
+const sheetReset = useSheetReset();
 </script>

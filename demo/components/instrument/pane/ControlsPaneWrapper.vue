@@ -48,7 +48,9 @@
              its own JS fallback): the phone sheet's body here, and the desktop
              rail's surface scroller below. The local copy (`useScrollFade`, its
              `.scroll-fade-*` classes, and the CSS timeline rules that stood in
-             for it) is deleted. -->
+             for it) is deleted. It scrolls on its block axis only: a lone
+             `overflow-y-auto` computes x to auto too, so a hair of overflow
+             would pan the pane sideways under a thumb's diagonal. -->
         <component
             :is="isMobileLayout ? FadingScroll : 'div'"
             ref="paneEl"
@@ -57,7 +59,7 @@
             @mouseleave="paneMouseLeave"
             :class="[
                 'controls-pane group/controls min-w-0',
-                paneScrollable ? 'overflow-y-auto' : 'overflow-clip',
+                paneScrollable ? 'overflow-x-hidden overflow-y-auto' : 'overflow-clip',
             ]"
         >
             <div class="controls-content h-full flex flex-col">
@@ -269,16 +271,11 @@
                  dock leaves out at rest, so its scrub keeps its length: Reset
                  (to the start) and, where the scene has two or more channels,
                  the channel the controls edit. A landscape phone's transport
-                 keeps both. -->
-            <div v-if="!isShortLayout" class="sheet-head-row">
-                <Tooltip>
-                    <TooltipTrigger as-child>
-                        <Button emphasis="quiet" icon-only aria-label="Reset animation" @click="emit('reset')">
-                            <SkipBack class="sheet-head-glyph" aria-hidden="true" />
-                        </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Reset animation</TooltipContent>
-                </Tooltip>
+                 keeps both. With one channel the section the sheet holds
+                 carries Reset on a labelled row at its foot (useSheetReset.ts),
+                 and this row gives way. -->
+            <div v-if="!isShortLayout && !resetCarried()" class="sheet-head-row">
+                <SheetResetButton @reset="emit('reset')" />
                 <Select
                     v-if="channelNames.length > 1"
                     :model-value="storedControls.selectedAnimation ?? ''"
@@ -296,9 +293,21 @@
                     </SelectContent>
                 </Select>
             </div>
-            <ReusePaneBody />
+            <!-- An upright phone's pane is not born with the sheet: it is
+                 mounted when the visitor reaches for the Controls seat (or by
+                 the press, when nothing came first), parked unseen, and
+                 carried into this slot when the sheet opens and back to its
+                 park when it closes (the Teleport below), so no later press
+                 waits on the pane's mount. `display: contents`: the pane is the
+                 sheet region's body row, as if it stood here itself. -->
+            <div v-if="!isShortLayout" ref="paneSlot" class="sheet-pane-slot"></div>
+            <ReusePaneBody v-else />
         </SheetContent>
     </Dialog>
+    <div v-if="uprightPhone && paneWarm" ref="panePark" class="sheet-pane-park" hidden></div>
+    <Teleport v-if="paneHome" :to="paneHome">
+        <ReusePaneBody />
+    </Teleport>
 
     <!-- ── DESKTOP (≥ 1024px): the naked rail column ──────────────────────────
          T.B4 (OD-5, VERDICT #7): the surrounding pane is GONE — the rail is a
@@ -336,7 +345,6 @@ import { Card } from "@mkbabb/glass-ui/card";
 import { Dialog, DialogTitle } from "@mkbabb/glass-ui/dialog";
 import { FadingScroll } from "@mkbabb/glass-ui/fading-scroll";
 import { SheetContent } from "@mkbabb/glass-ui/sheet";
-import { Button } from "@mkbabb/glass-ui/button";
 import {
     Select,
     SelectContent,
@@ -345,8 +353,6 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@mkbabb/glass-ui/select";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@mkbabb/glass-ui/tooltip";
-import { SkipBack } from "@lucide/vue";
 import { createReusableTemplate, useEventListener, useMediaQuery } from "@vueuse/core";
 import {
     type ComponentPublicInstance,
@@ -363,6 +369,9 @@ import {
 import type { StageReserve, TransportChannel } from "../transport/transportSource";
 import ChannelControls from "./channel-controls/ChannelControls.vue";
 import RibbonBar from "./RibbonBar.vue";
+import SheetResetButton from "./SheetResetButton.vue";
+import { SHEET_RESET_KEY, provideSheetReset } from "./composables/useSheetReset";
+import { PANE_SHOWN_KEY } from "./composables/usePaneShown";
 import SequenceTimeline from "../timeline/SequenceTimeline.vue";
 import { useControlsLayout } from "./composables/useControlsLayout";
 import { useStageReserve } from "./composables/useStageReserve";
@@ -668,10 +677,18 @@ const sheetLeaving = computed(
 // The band the sheet lives in: above the transport, below the top dock. The
 // bottom sheet's FULL rung is capped at it; the side sheet spans it.
 const fullBand = "calc(100dvh - var(--stage-top-inset) - var(--stage-bottom-inset))";
+// `--sheet-room`: the sheet's block size where it opens (an upright phone's
+// OPEN rung; the landscape side sheet's band between the docks), for a
+// surface that sizes its subject to stand whole in it (EasingSidebar's plot).
 const sheetStyle = computed(() =>
     isShortLayout.value
-        ? { top: "var(--stage-top-inset)", bottom: "var(--stage-bottom-inset)", height: "auto" }
-        : { bottom: "var(--stage-bottom-inset)", maxBlockSize: fullBand },
+        ? {
+              top: "var(--stage-top-inset)",
+              bottom: "var(--stage-bottom-inset)",
+              height: "auto",
+              "--sheet-room": "calc(100dvh - var(--stage-top-inset) - var(--stage-bottom-inset))",
+          }
+        : { bottom: "var(--stage-bottom-inset)", maxBlockSize: fullBand, "--sheet-room": `calc(${OPEN_SNAP.value} * 100dvh)` },
 );
 
 // The store open-fact ↔ the Sheet's active rung. Closed ⇒ PEEK; open ⇒ OPEN,
@@ -841,21 +858,51 @@ const onSheetOutside = (e: Event): void => {
     }
 };
 
-// X-DS r9 pass 7 (KF-C7-01) — A PARKED PEEK'S TITLE ROW RAISES THE SHEET.
-// The peek shows one row of the pane: the surface's ConfiguratorLayer header
-// (its title and the up-chevron). Live in a parked sheet, that header folded
-// the layer's body hidden under the peek's clip (403 -> 57 px at 390x844)
-// while the sheet stayed at PEEK, so the one obvious control in the peek did
-// nothing the user could see, and a second tap unfolded it again. While the
-// bottom sheet is parked, a press on a layer header (pointer or key: both
-// arrive as `click`) is taken here, in the capture phase before the layer's
-// own toggle, and raises the sheet to OPEN: the same open fact the drag and
-// the grip key write. The up-chevron then says what the press does. Once the
-// sheet is OPEN or FULL the header is the layer's own collapse again. The
-// side sheet (a short landscape phone) rests as the rail, its body in view,
-// so its headers keep their own toggle. (The sheet's position is glass's:
-// since 10.1.1 (G-1) `SheetContent` carries the `fixed` utility, curing the
-// SHEET-POSITION row held on O-87/O-88; nothing here overrides it.)
+// ── With one channel, Reset is a labelled row at the section's foot ──
+const { api: sheetResetSeat, carried: resetCarried } = provideSheetReset(
+    computed(() => isMobileLayout.value && !isShortLayout.value && channelNames.value.length < 2),
+    () => emit("reset"),
+);
+provide(SHEET_RESET_KEY, sheetResetSeat);
+
+// ── P2f — the upright phone's pane, mounted on intent and parked ────────
+// The first Controls press used to mount the whole pane inside its own frame
+// (a 140 to 190 ms task on a 4x phone before the sheet's first frame). On an
+// upright phone the pane is now mounted when the visitor reaches for the
+// Controls seat (its pointerenter, pointerdown or focus, about 100 ms ahead of
+// the click; AnimationControlsGroup relays it to `warmPane`), or by the press
+// itself when nothing came first. It is never mounted at idle: the pane is the
+// scene's own, so an idle mount would land after every load and every scene
+// change, for a pane nobody opened (the reason T.G9 dropped the editor's idle
+// warm). Once mounted it is carried (not remounted) into the sheet's slot
+// while the sheet shows, and back to a hidden park when it has gone; parked,
+// it reads nothing per frame (`paneShown`, usePaneShown.ts). The landscape
+// rail and the desktop column keep the pane where they always had it.
+const uprightPhone = computed(() => isMobileLayout.value && !isShortLayout.value && showSheet.value);
+const paneWarm = shallowRef(false);
+const paneSlot = useTemplateRef<HTMLElement>("paneSlot");
+const panePark = useTemplateRef<HTMLElement>("panePark");
+/** Where the pane stands: the open sheet's slot, else its park; none until warm. */
+const paneHome = computed<HTMLElement | null>(() =>
+    uprightPhone.value && paneWarm.value ? (paneSlot.value ?? panePark.value ?? null) : null,
+);
+/** The visitor reaches for the Controls seat: mount the pane, unseen, ahead of the press. */
+const warmPane = (): void => {
+    if (uprightPhone.value) paneWarm.value = true;
+};
+// A press that nothing came before mounts the pane with the sheet, as before.
+watch(
+    () => props.storedControls.isControlsPanelOpen,
+    (open) => {
+        if (open) warmPane();
+    },
+    { immediate: true },
+);
+/** The pane can be seen: in the sheet's slot on an upright phone; elsewhere always. */
+const paneShown = computed(() => !uprightPhone.value || (paneHome.value !== null && paneHome.value === paneSlot.value));
+provide(PANE_SHOWN_KEY, paneShown);
+defineExpose({ warmPane });
+
 // ── KF-M1 — the visible-stage reserve (D-2 · D-3 · D-28) ──────────────
 // The sheet is portalled to <body>, so it is found by its own class.
 const sheetEl = () => document.querySelector<HTMLElement>(".controls-drawer-content");
@@ -875,6 +922,21 @@ useStageReserve({
     publish: (r) => emit("stageReserve", r),
 });
 
+// X-DS r9 pass 7 (KF-C7-01) — A PARKED PEEK'S TITLE ROW RAISES THE SHEET.
+// The peek shows one row of the pane: the surface's ConfiguratorLayer header
+// (its title and the up-chevron). Live in a parked sheet, that header folded
+// the layer's body hidden under the peek's clip (403 -> 57 px at 390x844)
+// while the sheet stayed at PEEK, so the one obvious control in the peek did
+// nothing the user could see, and a second tap unfolded it again. While the
+// bottom sheet is parked, a press on a layer header (pointer or key: both
+// arrive as `click`) is taken here, in the capture phase before the layer's
+// own toggle, and raises the sheet to OPEN: the same open fact the drag and
+// the grip key write. The up-chevron then says what the press does. Once the
+// sheet is OPEN or FULL the header is the layer's own collapse again. The
+// side sheet (a short landscape phone) rests as the rail, its body in view,
+// so its headers keep their own toggle. (The sheet's position is glass's:
+// since 10.1.1 (G-1) `SheetContent` carries the `fixed` utility, curing the
+// SHEET-POSITION row held on O-87/O-88; nothing here overrides it.)
 const onParkedHeaderPress = (e: MouseEvent) => {
     if (props.storedControls.isControlsPanelOpen || sheetSide.value !== "bottom") return;
     const sheet = e.currentTarget;
@@ -891,9 +953,13 @@ const onParkedHeaderPress = (e: MouseEvent) => {
 // motion + rest; the body just needs `overflow-y-auto` at the open detent). The
 // desktop path keeps the `isPanelTransitionDone` latch (the max-height
 // transitionend gate) — the two dispatch on the layout mode.
+// An upright sheet put away while scrolled fades with its body where it stood:
+// the port stays a scroller through the fade (an `overflow: clip` box is none,
+// so its offset went to the top in the fade's first frame) and rests at its
+// top once the plate is out of sight (`endFade`).
 const paneScrollable = computed(() =>
     isMobileLayout.value
-        ? props.storedControls.isControlsPanelOpen
+        ? props.storedControls.isControlsPanelOpen || sheetFading.value
         : isPanelTransitionDone.value && props.storedControls.isControlsPanelOpen,
 );
 
@@ -954,6 +1020,19 @@ watch(
 <style scoped src="./ControlsPaneWrapper.css"></style>
 
 <style>
+/* P2d — on an upright phone a pane's section titles ("Stagger", "Physics")
+   stand one rung down the type scale, glass's subheading (about 20 px) in
+   place of its heading (about 26 px): the sheet is a short band under the
+   stage, and its title is a label for the rows under it, not a page heading.
+   Glass's own token, set on the sheet (theming, not a reshape). */
+.controls-drawer-content[data-side="bottom"] {
+    --configurator-section-size: var(--type-subheading);
+}
+/* The upright phone's pane slot (portalled with the sheet, so unscoped): no box
+   of its own; the pane carried into it is the sheet region's body row. */
+.sheet-pane-slot {
+    display: contents;
+}
 /* The upright phone sheet (portalled, so unscoped): on its way out it holds
    opacity 0 until glass removes it, and takes no press (the fade itself is the
    wrapper's Web Animation). */

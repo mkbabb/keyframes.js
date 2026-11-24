@@ -65,6 +65,11 @@
     .controls-drawer-content .controls-pane {
         grid-row: 2;
         touch-action: pan-y;
+        /* P2f — on an upright phone the pane stands in the sheet's slot
+           (`display: contents`), so it is no longer a direct child of glass's
+           detented region and misses the region's child rule; its scroll stays
+           contained, as the region's own children's is. */
+        overscroll-behavior: contain;
     }
     /* X.KF.W13W.m (OA-64) — no inline padding of its own: the Sheet region
        already insets by glass's `--space-family` and the surfaces' scroller by
@@ -371,16 +376,12 @@
 }
 
 /* The upright phone sheet's first row: Reset and, with two or more channels,
-   the channel select, on the pane's one inline inset. The glyph takes half
-   its seat, as the site's other glyphs do. */
+   the channel select, on the pane's one inline inset. (Reset's glyph size is
+   SheetResetButton's own.) */
 .sheet-head-row {
     display: flex;
     align-items: center;
     gap: 0.5rem;
     padding-inline: var(--configurator-pad-inline);
     padding-block-end: 0.5rem;
-}
-.sheet-head-glyph {
-    width: calc(var(--control-h-md) / 2);
-    height: calc(var(--control-h-md) / 2);
 }

@@ -15,10 +15,24 @@
  *   motion it arrives and leaves by a short fade, never a cut.
  * - The die's side reaches the screen's width over 2.2 at 390x844 at rest;
  *   the folded top dock is a circle (square within 1 px).
+ * - Opened, the controls (the sheet and the dock band under it) take less
+ *   than half the height at 390x844, 375x667 and 390x664, on every scene.
+ * - A shut sheet on the Keyframes surface fetches no editor chunk; the
+ *   Controls press does.
+ * - A sheet put away while scrolled fades with its body where it stood, and
+ *   opens again at its top.
+ * - A card on the stage (easing, sequence, spring) makes room for the sheet
+ *   by motion, open and close: its height walks between its two rests over
+ *   several frames and at least 150 ms, never in one frame, and no 60 Hz
+ *   frame carries more than two fifths of the travel. Under reduced motion it
+ *   fades out at the size it stood and in at its new one: it is already
+ *   fading before it changes, and under half strength in the first frame it
+ *   has changed.
  *
- * Chromium, touch, 4x CPU throttle. Local: serves dist/gh-pages (build it
- * first: npm run gh-pages). KF_GESTURE_BASE=https://keyframes.babb.dev runs it
- * against a deploy.
+ * Chromium, touch, 4x CPU throttle (the card's cells at full speed, where
+ * a loaded machine still shows a walk's frames). Local: serves dist/gh-pages
+ * (build it first: npm run gh-pages). KF_GESTURE_BASE=https://keyframes.babb.dev
+ * runs it against a deploy.
  */
 import { test, expect } from "@playwright/test";
 import fs from "node:fs";
@@ -296,6 +310,337 @@ test.describe("upright phone 390x844: the die and the folded dock", () => {
         });
         expect(plate).not.toBeNull();
         expect(Math.abs(plate.w - plate.h)).toBeLessThanOrEqual(1);
+    });
+});
+
+test.describe("upright phone 390x844: the opened sheet", () => {
+    test.use({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, hasTouch: true, isMobile: true, colorScheme: "dark" });
+
+    const openSheet = async (page, scene) => {
+        await page.goto(at(scene));
+        await page.waitForSelector(".scene-host", { timeout: 30_000 });
+        await page.waitForTimeout(2000);
+        await page.locator('button[aria-label="Controls"]').tap();
+        await page.waitForTimeout(1500);
+    };
+
+    // On a one-channel scene (easing, sequence) Reset (to the start) is a
+    // labelled row of its own at the foot of the section the sheet holds
+    // (owner, 23 Nov), so the section's header keeps one back glyph: on
+    // sequence, the stagger's own reset.
+    for (const scene of ["/easing", "/sequence"]) {
+        test(`${scene}: Reset is a labelled row of its own at the section's foot`, async ({ page }) => {
+            await openSheet(page, scene);
+            const seat = await page.evaluate(() => {
+                const sheet = document.querySelector(".controls-drawer-content");
+                const reset = sheet?.querySelector('button[aria-label="Reset animation"]');
+                if (!reset) return null;
+                const r = reset.getBoundingClientRect();
+                const mid = (r.top + r.bottom) / 2;
+                // The section it closes: easing's facet, or the Stagger layer.
+                const section = reset.closest('.easing-sidebar, [data-slot="configurator-layer"]') ?? sheet;
+                const controls = [...section.querySelectorAll('button, [role="slider"], [role="combobox"], input, .labeled-field')]
+                    .filter((e) => e !== reset && !reset.contains(e) && !e.closest('[data-slot="dialog-close"]') && e.getAttribute("data-slot") !== "dialog-close")
+                    .map((e) => ({ e, b: e.getBoundingClientRect() }))
+                    .filter(({ b }) => b.width > 0 && b.height > 0);
+                const name = ({ e, b }) => `${e.tagName.toLowerCase()} ${e.getAttribute("aria-label") ?? e.className} ${Math.round(b.top)}-${Math.round(b.bottom)}`;
+                const actions = sheet.querySelector('[data-slot="configurator-layer-actions"]');
+                return {
+                    section: section === sheet ? null : section.className || section.getAttribute("data-slot"),
+                    word: reset.textContent.trim(),
+                    resets: sheet.querySelectorAll('button[aria-label="Reset animation"]').length,
+                    beside: controls.filter(({ b }) => b.top <= mid && b.bottom >= mid).map(name),
+                    below: controls.filter(({ b }) => b.top > r.top + 1).map(name),
+                    inHeader: actions ? actions.contains(reset) : false,
+                    headerResets: actions ? actions.querySelectorAll('button[aria-label^="Reset"]').length : 0,
+                };
+            });
+            expect(seat).not.toBeNull();
+            expect(seat.section).not.toBeNull();
+            expect(seat.resets).toBe(1);
+            expect(seat.word).toBe("Reset");
+            expect(seat.beside).toEqual([]);
+            expect(seat.below).toEqual([]);
+            expect(seat.inHeader).toBe(false);
+            expect(seat.headerResets).toBeLessThanOrEqual(1);
+        });
+    }
+
+    // On a scene with two or more channels (cube) Reset shares the sheet's
+    // head row with the channel select, glyph only.
+    for (const scene of ["/cube"]) {
+        test(`${scene}: Reset shares its row with another control`, async ({ page }) => {
+            await openSheet(page, scene);
+            const row = await page.evaluate(() => {
+                const sheet = document.querySelector(".controls-drawer-content");
+                const reset = sheet?.querySelector('button[aria-label="Reset animation"]');
+                if (!reset) return null;
+                const r = reset.getBoundingClientRect();
+                const mid = (r.top + r.bottom) / 2;
+                // A control is a button, a slider, a select or a field; a
+                // labelled field (glass's LabeledSlider: its label over its bar,
+                // as easing's duration stands) counts whole, since its bar lies
+                // below the row's middle.
+                const others = [...sheet.querySelectorAll('button, [role="slider"], [role="combobox"], input, .labeled-field')]
+                    .filter((e) => e !== reset && !e.closest('[data-slot="dialog-close"]') && e.getAttribute("data-slot") !== "dialog-close")
+                    .map((e) => e.getBoundingClientRect())
+                    .filter((b) => b.width > 0 && b.top <= mid && b.bottom >= mid);
+                return { others: others.length };
+            });
+            expect(row).not.toBeNull();
+            expect(row.others).toBeGreaterThan(0);
+        });
+
+        // Reset's glyph takes half its seat, as the site's other glyphs do,
+        // wherever the sheet seats it (glass's own Button glyph is smaller).
+        test(`${scene}: Reset's glyph takes half its seat`, async ({ page }) => {
+            await openSheet(page, scene);
+            const size = await page.evaluate(() => {
+                const reset = document.querySelector('.controls-drawer-content button[aria-label="Reset animation"]');
+                const glyph = reset?.querySelector("svg");
+                if (!reset || !glyph) return null;
+                return { seat: reset.getBoundingClientRect().height, glyph: glyph.getBoundingClientRect().width };
+            });
+            expect(size).not.toBeNull();
+            expect(Math.abs(size.glyph - size.seat / 2)).toBeLessThanOrEqual(1);
+        });
+    }
+
+    // Put away while scrolled, the sheet fades with its body where it stood:
+    // the body does not go back to its top inside the fading plate. Opened
+    // again, it starts at its top.
+    for (const scene of ["/cube", "/easing"]) {
+        test(`${scene}: a sheet put away while scrolled fades with its body where it stood`, async ({ page }) => {
+            await openSheet(page, scene);
+            const PORT = ".controls-drawer-content .controls-pane";
+            const scrolled = await page.evaluate((sel) => {
+                const port = document.querySelector(sel);
+                port.scrollTop = 120;
+                return port.scrollTop;
+            }, PORT);
+            expect(scrolled, "the body scrolls").toBeGreaterThan(40);
+            await page.waitForTimeout(300);
+            await page.evaluate((sel) => {
+                window.__port = [];
+                const tick = () => {
+                    const s = document.querySelector(".controls-drawer-content");
+                    const port = document.querySelector(sel);
+                    const b = s?.getBoundingClientRect();
+                    window.__port.push(b && b.height > 0 && port ? { o: Number(getComputedStyle(s).opacity), y: port.scrollTop } : null);
+                    if (window.__port.length < 120) requestAnimationFrame(tick);
+                };
+                requestAnimationFrame(tick);
+            }, PORT);
+            await page.waitForTimeout(50);
+            await page.locator('.controls-drawer-content [data-slot="dialog-close"]').tap();
+            await page.waitForTimeout(1500);
+            const f = await page.evaluate(() => window.__port);
+            const shown = f.filter((x) => x !== null && x.o > 0.05);
+            expect(shown.some((x) => x.o < 0.95), "frames in the fade").toBe(true);
+            for (const x of shown) expect(Math.abs(x.y - scrolled), `the body's offset at opacity ${x.o}`).toBeLessThanOrEqual(1);
+            expect(await sheetTop(page)).toBeNull();
+            await page.locator('button[aria-label="Controls"]').tap();
+            await page.waitForTimeout(1500);
+            expect(await page.evaluate((sel) => document.querySelector(sel)?.scrollTop, PORT)).toBe(0);
+        });
+    }
+});
+
+// On a phone the easing curve is drawn small enough to stand whole in the
+// sheet (owner, 23 Nov): the plot and both handles inside the sheet's visible
+// box and its scroll port, upright at OPEN (the sheet still a third of the
+// height) and in the landscape side sheet at rest.
+for (const vp of [
+    { w: 390, h: 844 },
+    { w: 375, h: 667 },
+    { w: 390, h: 664 },
+    { w: 360, h: 780 },
+    { w: 844, h: 390 },
+]) {
+    const upright = vp.h > vp.w;
+    test.describe(`phone ${vp.w}x${vp.h}: the easing curve in the sheet`, () => {
+        test.use({ viewport: { width: vp.w, height: vp.h }, deviceScaleFactor: 2, hasTouch: true, isMobile: true, colorScheme: "dark" });
+
+        test(`/easing: the plot and both handles are whole ${upright ? "at OPEN" : "in the side sheet"}`, async ({ page }) => {
+            await page.goto(at("/easing"));
+            await page.waitForSelector(".scene-host", { timeout: 30_000 });
+            await page.waitForTimeout(2000);
+            if (upright) {
+                await page.locator('button[aria-label="Controls"]').tap();
+                await page.waitForTimeout(1500);
+            }
+            const fit = await page.evaluate(() => {
+                const sheet = document.querySelector(".controls-drawer-content");
+                const plot = sheet?.querySelector('[data-slot="easing-handles"]');
+                if (!sheet || !plot) return null;
+                const s = sheet.getBoundingClientRect();
+                const port = sheet.querySelector(".controls-pane");
+                const p = port ? port.getBoundingClientRect() : s;
+                const box = { top: Math.max(0, s.top, p.top), bottom: Math.min(innerHeight, s.bottom, p.bottom) };
+                const pb = plot.getBoundingClientRect();
+                const handles = [...plot.querySelectorAll('[role="slider"]')].map((h) => h.getBoundingClientRect());
+                return {
+                    box,
+                    sheetShare: s.height / innerHeight,
+                    items: [pb, ...handles].map((b) => ({ top: b.top, bottom: b.bottom })),
+                    handles: handles.length,
+                };
+            });
+            expect(fit).not.toBeNull();
+            expect(fit.handles).toBe(2);
+            for (const b of fit.items) {
+                expect(b.top).toBeGreaterThanOrEqual(fit.box.top - 0.5);
+                expect(b.bottom).toBeLessThanOrEqual(fit.box.bottom + 0.5);
+            }
+            // Upright, the sheet itself stays at its third.
+            if (upright) expect(fit.sheetShare).toBeLessThanOrEqual(0.37);
+        });
+    });
+}
+
+// The controls never take half of an upright phone, open or shut: the opened
+// sheet and the dock band under it end at the screen's foot, so the sheet's top
+// edge stands at half the height or lower. 390x664 is a 390-wide phone in
+// Safari with its bars shown; 375x667 the smallest phone in use.
+for (const vp of [
+    { w: 390, h: 844 },
+    { w: 375, h: 667 },
+    { w: 390, h: 664 },
+]) {
+    test.describe(`upright phone ${vp.w}x${vp.h}: the opened sheet leaves the stage the larger part`, () => {
+        test.use({ viewport: { width: vp.w, height: vp.h }, deviceScaleFactor: 2, hasTouch: true, isMobile: true, colorScheme: "dark" });
+
+        for (const scene of ["/cube", "/easing", "/sequence", "/spring"]) {
+            test(`${scene}: the controls take less than half the height`, async ({ page }) => {
+                await page.goto(at(scene));
+                await page.waitForSelector(".scene-host", { timeout: 30_000 });
+                await page.waitForTimeout(2000);
+                await page.locator('button[aria-label="Controls"]').tap();
+                await page.waitForTimeout(1500);
+                const top = await sheetTop(page);
+                expect(top).not.toBeNull();
+                expect(vp.h - top).toBeLessThanOrEqual(vp.h / 2);
+            });
+        }
+    });
+}
+
+// A card fills the stage's band from the band's top. The opened sheet takes
+// the band's lower part, so the card is laid out again for the band above it
+// (659 to 355 px at 390x844). That change is walked, never cut: the card's
+// lower edge travels with the sheet in and out, and what it holds gives up or
+// takes back its height over the walk. Reduced motion: out at the old size,
+// in at the new.
+test.describe("upright phone 390x844: a card on the stage makes room for the sheet by motion", () => {
+    test.use({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, hasTouch: true, isMobile: true, colorScheme: "dark" });
+
+    const CARD = ".stage-glide :is(.easing-target, .seq-target, .spring-target)";
+
+    /** Each frame from now on: its time, the card's height, the glide's opacity. */
+    const sample = (page) =>
+        page.evaluate((sel) => {
+            window.__card = [];
+            const t0 = performance.now();
+            const tick = (now) => {
+                const card = document.querySelector(sel);
+                const glide = document.querySelector(".stage-glide");
+                if (card && glide) {
+                    window.__card.push({
+                        t: now - t0,
+                        h: card.getBoundingClientRect().height,
+                        o: Number(getComputedStyle(glide).opacity),
+                    });
+                }
+                if (now - t0 < 1500) requestAnimationFrame(tick);
+            };
+            requestAnimationFrame(tick);
+        }, CARD);
+
+    /** The card's change between its first and last frames: the frames
+     *  strictly between the two rests, how long it ran (from the last frame
+     *  at the first rest to the first at the second), and the largest share
+     *  of the travel one 60 Hz frame carried. */
+    const walkOf = (f) => {
+        const h0 = f[0].h;
+        const h1 = f.at(-1).h;
+        const travel = Math.abs(h1 - h0);
+        const first = f.findIndex((x) => Math.abs(x.h - h0) > 1);
+        let landed = f.length - 1;
+        while (landed > 0 && Math.abs(f[landed - 1].h - h1) <= 1) landed--;
+        const between = f.filter((x) => Math.abs(x.h - h0) > 1 && Math.abs(x.h - h1) > 1).length;
+        let step = 0;
+        for (let i = 1; i < f.length; i++) {
+            const dt = f[i].t - f[i - 1].t;
+            if (dt <= 20) step = Math.max(step, Math.abs(f[i].h - f[i - 1].h) / travel);
+        }
+        return { h0, h1, travel, first, between, span: first > 0 ? f[landed].t - f[first - 1].t : 0, step };
+    };
+
+    for (const scene of ["/easing", "/sequence", "/spring"]) {
+        for (const reduced of [false, true]) {
+            test(`${scene}: the card's foot travels with the sheet, in and out${reduced ? " (reduced motion: a fade)" : ""}`, async ({ page }) => {
+                // At full speed, so a loaded machine still shows the walk's
+                // frames (at 4x and a load of 20 its frames ran 75 to 130 ms).
+                if (reduced) await page.emulateMedia({ reducedMotion: "reduce" });
+                await page.goto(at(scene));
+                await page.waitForSelector(CARD, { timeout: 30_000 });
+                await page.waitForTimeout(2500);
+                const seat = page.locator('button[aria-label="Controls"]');
+                const acts = [
+                    ["open", () => seat.tap()],
+                    ["close", () => page.locator('.controls-drawer-content [data-slot="dialog-close"]').tap()],
+                ];
+                for (const [how, act] of acts) {
+                    await sample(page);
+                    await page.waitForTimeout(50);
+                    await act();
+                    await page.waitForTimeout(1700);
+                    const f = await page.evaluate(() => window.__card);
+                    const w = walkOf(f);
+                    const name = `${how}: ${Math.round(w.h0)} to ${Math.round(w.h1)} px`;
+                    // The band above the opened sheet is a good deal shorter.
+                    expect(w.travel, `${name}: the card makes room`).toBeGreaterThan(100);
+                    expect(w.first, `${name}: the card held its rest before the press`).toBeGreaterThan(0);
+                    if (reduced) {
+                        // The old size goes out by a fade before the change ...
+                        const out = f.slice(0, w.first).filter((x) => x.o > 0.02 && x.o < 0.98).length;
+                        expect(out, `${name}: frames fading out before the change`).toBeGreaterThanOrEqual(1);
+                        // ... and the new one arrives under a fade: under half
+                        // strength in the first frame it has changed, then rising.
+                        expect(f[w.first].o, `${name}: the first changed frame's opacity`).toBeLessThan(0.5);
+                        const fading = f.slice(w.first).filter((x) => x.o > 0.02 && x.o < 0.98).length;
+                        expect(fading, `${name}: frames in the fade`).toBeGreaterThanOrEqual(2);
+                        continue;
+                    }
+                    expect(w.between, `${name}: frames between the two rests`).toBeGreaterThanOrEqual(3);
+                    expect(w.span, `${name}: how long the change runs (ms)`).toBeGreaterThanOrEqual(150);
+                    expect(w.step, `${name}: the largest share of the travel in one 60 Hz frame`).toBeLessThanOrEqual(0.4);
+                }
+                await expect(seat).toHaveAttribute("aria-expanded", "false");
+            });
+        }
+    }
+});
+
+// A shut sheet loads nothing of the editor: with the Keyframes surface named
+// (a link, or the remembered pick), the code editor's chunk is fetched only
+// once the Controls press shows the pane, never at rest.
+test.describe("upright phone 390x844: a shut sheet loads no editor", () => {
+    test.use({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, hasTouch: true, isMobile: true, colorScheme: "dark" });
+
+    test("/cube on the Keyframes surface: no editor chunk at rest; the press fetches it", async ({ page }) => {
+        const editor = [];
+        page.on("request", (r) => {
+            if (/vendor-monaco/.test(r.url())) editor.push(r.url());
+        });
+        await page.goto(at("/cube?pane=keyframes"));
+        await page.waitForSelector(".cube", { timeout: 30_000 });
+        await page.waitForTimeout(4000);
+        expect(await sheetTop(page)).toBeNull();
+        expect(editor).toHaveLength(0);
+        await page.locator('button[aria-label="Controls"]').tap();
+        await page.waitForTimeout(3000);
+        expect(editor.length).toBeGreaterThan(0);
     });
 });
 
