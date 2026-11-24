@@ -19,10 +19,18 @@
  *   than half the height at 390x844, 375x667 and 390x664, on every scene.
  * - A shut sheet on the Keyframes surface fetches no editor chunk; the
  *   Controls press does.
+ * - A card on the stage (easing, sequence, spring) makes room for the sheet
+ *   by motion, open and close: its height walks between its two rests over
+ *   several frames and at least 150 ms, never in one frame, and no 60 Hz
+ *   frame carries more than two fifths of the travel. Under reduced motion it
+ *   fades out at the size it stood and in at its new one: it is already
+ *   fading before it changes, and under half strength in the first frame it
+ *   has changed.
  *
- * Chromium, touch, 4x CPU throttle. Local: serves dist/gh-pages (build it
- * first: npm run gh-pages). KF_GESTURE_BASE=https://keyframes.babb.dev runs it
- * against a deploy.
+ * Chromium, touch, 4x CPU throttle (the card's cells at full speed, where
+ * a loaded machine still shows a walk's frames). Local: serves dist/gh-pages
+ * (build it first: npm run gh-pages). KF_GESTURE_BASE=https://keyframes.babb.dev
+ * runs it against a deploy.
  */
 import { test, expect } from "@playwright/test";
 import fs from "node:fs";
@@ -475,6 +483,103 @@ for (const vp of [
         }
     });
 }
+
+// A card fills the stage's band from the band's top. The opened sheet takes
+// the band's lower part, so the card is laid out again for the band above it
+// (659 to 355 px at 390x844). That change is walked, never cut: the card's
+// lower edge travels with the sheet in and out, and what it holds gives up or
+// takes back its height over the walk. Reduced motion: out at the old size,
+// in at the new.
+test.describe("upright phone 390x844: a card on the stage makes room for the sheet by motion", () => {
+    test.use({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, hasTouch: true, isMobile: true, colorScheme: "dark" });
+
+    const CARD = ".stage-glide :is(.easing-target, .seq-target, .spring-target)";
+
+    /** Each frame from now on: its time, the card's height, the glide's opacity. */
+    const sample = (page) =>
+        page.evaluate((sel) => {
+            window.__card = [];
+            const t0 = performance.now();
+            const tick = (now) => {
+                const card = document.querySelector(sel);
+                const glide = document.querySelector(".stage-glide");
+                if (card && glide) {
+                    window.__card.push({
+                        t: now - t0,
+                        h: card.getBoundingClientRect().height,
+                        o: Number(getComputedStyle(glide).opacity),
+                    });
+                }
+                if (now - t0 < 1500) requestAnimationFrame(tick);
+            };
+            requestAnimationFrame(tick);
+        }, CARD);
+
+    /** The card's change between its first and last frames: the frames
+     *  strictly between the two rests, how long it ran (from the last frame
+     *  at the first rest to the first at the second), and the largest share
+     *  of the travel one 60 Hz frame carried. */
+    const walkOf = (f) => {
+        const h0 = f[0].h;
+        const h1 = f.at(-1).h;
+        const travel = Math.abs(h1 - h0);
+        const first = f.findIndex((x) => Math.abs(x.h - h0) > 1);
+        let landed = f.length - 1;
+        while (landed > 0 && Math.abs(f[landed - 1].h - h1) <= 1) landed--;
+        const between = f.filter((x) => Math.abs(x.h - h0) > 1 && Math.abs(x.h - h1) > 1).length;
+        let step = 0;
+        for (let i = 1; i < f.length; i++) {
+            const dt = f[i].t - f[i - 1].t;
+            if (dt <= 20) step = Math.max(step, Math.abs(f[i].h - f[i - 1].h) / travel);
+        }
+        return { h0, h1, travel, first, between, span: first > 0 ? f[landed].t - f[first - 1].t : 0, step };
+    };
+
+    for (const scene of ["/easing", "/sequence", "/spring"]) {
+        for (const reduced of [false, true]) {
+            test(`${scene}: the card's foot travels with the sheet, in and out${reduced ? " (reduced motion: a fade)" : ""}`, async ({ page }) => {
+                // At full speed, so a loaded machine still shows the walk's
+                // frames (at 4x and a load of 20 its frames ran 75 to 130 ms).
+                if (reduced) await page.emulateMedia({ reducedMotion: "reduce" });
+                await page.goto(at(scene));
+                await page.waitForSelector(CARD, { timeout: 30_000 });
+                await page.waitForTimeout(2500);
+                const seat = page.locator('button[aria-label="Controls"]');
+                const acts = [
+                    ["open", () => seat.tap()],
+                    ["close", () => page.locator('.controls-drawer-content [data-slot="dialog-close"]').tap()],
+                ];
+                for (const [how, act] of acts) {
+                    await sample(page);
+                    await page.waitForTimeout(50);
+                    await act();
+                    await page.waitForTimeout(1700);
+                    const f = await page.evaluate(() => window.__card);
+                    const w = walkOf(f);
+                    const name = `${how}: ${Math.round(w.h0)} to ${Math.round(w.h1)} px`;
+                    // The band above the opened sheet is a good deal shorter.
+                    expect(w.travel, `${name}: the card makes room`).toBeGreaterThan(100);
+                    expect(w.first, `${name}: the card held its rest before the press`).toBeGreaterThan(0);
+                    if (reduced) {
+                        // The old size goes out by a fade before the change ...
+                        const out = f.slice(0, w.first).filter((x) => x.o > 0.02 && x.o < 0.98).length;
+                        expect(out, `${name}: frames fading out before the change`).toBeGreaterThanOrEqual(1);
+                        // ... and the new one arrives under a fade: under half
+                        // strength in the first frame it has changed, then rising.
+                        expect(f[w.first].o, `${name}: the first changed frame's opacity`).toBeLessThan(0.5);
+                        const fading = f.slice(w.first).filter((x) => x.o > 0.02 && x.o < 0.98).length;
+                        expect(fading, `${name}: frames in the fade`).toBeGreaterThanOrEqual(2);
+                        continue;
+                    }
+                    expect(w.between, `${name}: frames between the two rests`).toBeGreaterThanOrEqual(3);
+                    expect(w.span, `${name}: how long the change runs (ms)`).toBeGreaterThanOrEqual(150);
+                    expect(w.step, `${name}: the largest share of the travel in one 60 Hz frame`).toBeLessThanOrEqual(0.4);
+                }
+                await expect(seat).toHaveAttribute("aria-expanded", "false");
+            });
+        }
+    }
+});
 
 // A shut sheet loads nothing of the editor: with the Keyframes surface named
 // (a link, or the remembered pick), the code editor's chunk is fetched only

@@ -354,8 +354,8 @@ const stageGlideEl = useTemplateRef<HTMLElement>("stageGlideEl");
 const stageReserve = shallowRef<StageReserve>(NO_STAGE_RESERVE);
 // LAST-TEN KF-18 — on the desktop the cell slides to its new place on a
 // transform when the pane opens or closes; on an upright phone the glide
-// carries the die when the stage is laid out for the opened sheet
-// (useStageSlide).
+// carries the die when the stage is laid out for the opened sheet, and a
+// card's band walks there with the sheet (useStageSlide).
 useStageSlide(
     () => stageCellEl.value,
     () => storedControls.value.isControlsPanelOpen,
