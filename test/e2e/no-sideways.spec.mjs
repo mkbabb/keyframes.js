@@ -6,6 +6,9 @@
  *   clip, never auto: the controls pane's port and the timing editor's body
  *   (a lone `overflow-y: auto` computes x to auto, and a hair of overflow then
  *   pans the box sideways under a thumb's diagonal).
+ * - Spring's readout chip stays inside its stage header at every phone width,
+ *   each readout whole: where one row cannot hold position and velocity they
+ *   stack in the chip; at the landscape phone and the desk they keep one row.
  * - The expanded dock's run holds its seats inside its plate at every phone
  *   width, the theme's seat included; where the run cannot hold the theme
  *   (under 390 px) the @mbabb menu carries it, and it still flips the theme.
@@ -84,6 +87,61 @@ test.describe("a box that scrolls on its block axis never pans sideways", () => 
         }
     });
 });
+
+/** Spring's readout chip against its stage header. */
+const springChip = (page) =>
+    page.evaluate(() => {
+        const header = document.querySelector("[data-scene-stage-header]");
+        const chip = header?.querySelector(".glass-chip");
+        if (!chip) return null;
+        const h = header.getBoundingClientRect();
+        const c = chip.getBoundingClientRect();
+        const readouts = [...chip.querySelectorAll(".stage-readout")].map((e) => {
+            const b = e.getBoundingClientRect();
+            const v = e.lastElementChild.getBoundingClientRect();
+            return { left: b.left, right: b.right, top: b.top, bottom: b.bottom, valueRight: v.right };
+        });
+        return { header: { right: h.right }, chip: { right: c.right, sw: chip.scrollWidth, cw: chip.clientWidth }, readouts };
+    });
+
+for (const [w, h] of [
+    [360, 780],
+    [375, 667],
+    [390, 844],
+    [414, 896],
+]) {
+    test.describe(`phone ${w}x${h}: Spring's readouts`, () => {
+        test.use({ viewport: { width: w, height: h }, deviceScaleFactor: 2, hasTouch: true, isMobile: true });
+
+        test("the chip stays inside the stage header, each readout whole", async ({ page }) => {
+            await load(page, "/spring");
+            const m = await springChip(page);
+            expect(m).not.toBeNull();
+            expect(m.readouts.length).toBe(2);
+            expect(m.chip.right).toBeLessThanOrEqual(m.header.right + 0.5);
+            expect(m.chip.sw).toBeLessThanOrEqual(m.chip.cw + 1);
+            for (const r of m.readouts) expect(r.valueRight).toBeLessThanOrEqual(m.chip.right + 0.5);
+        });
+    });
+}
+
+for (const [label, use] of [
+    ["landscape phone 844x390", { viewport: { width: 844, height: 390 }, deviceScaleFactor: 2, hasTouch: true, isMobile: true }],
+    ["desk 1440", { viewport: { width: 1440, height: 900 } }],
+]) {
+    test.describe(`${label}: Spring's readouts`, () => {
+        test.use(use);
+
+        test("position and velocity keep their one row", async ({ page }) => {
+            await load(page, "/spring");
+            const m = await springChip(page);
+            expect(m).not.toBeNull();
+            const [a, b] = m.readouts;
+            expect(b.left).toBeGreaterThan(a.right);
+            expect(b.top).toBeLessThan(a.bottom);
+        });
+    });
+}
 
 /** The expanded dock's run against its plate, and the theme's seat. */
 const dockRun = (page) =>
