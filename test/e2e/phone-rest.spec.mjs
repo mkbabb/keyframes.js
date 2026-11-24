@@ -314,9 +314,46 @@ test.describe("upright phone 390x844: the opened sheet", () => {
         await page.waitForTimeout(1500);
     };
 
-    // P2d: Reset (to the start) never stands alone on a row: on one-channel
-    // scenes it heads the surface's own first row.
-    for (const scene of ["/easing", "/sequence", "/cube"]) {
+    // On a one-channel scene (easing, sequence) Reset (to the start) is a
+    // labelled row of its own at the foot of the section the sheet holds
+    // (owner, 23 Nov), so the section's header keeps one back glyph: on
+    // sequence, the stagger's own reset.
+    for (const scene of ["/easing", "/sequence"]) {
+        test(`${scene}: Reset is a labelled row of its own at the section's foot`, async ({ page }) => {
+            await openSheet(page, scene);
+            const seat = await page.evaluate(() => {
+                const sheet = document.querySelector(".controls-drawer-content");
+                const reset = sheet?.querySelector('button[aria-label="Reset animation"]');
+                if (!reset) return null;
+                const r = reset.getBoundingClientRect();
+                const mid = (r.top + r.bottom) / 2;
+                const controls = [...sheet.querySelectorAll('button, [role="slider"], [role="combobox"], input, .labeled-field')]
+                    .filter((e) => e !== reset && !reset.contains(e) && !e.closest('[data-slot="dialog-close"]') && e.getAttribute("data-slot") !== "dialog-close")
+                    .map((e) => e.getBoundingClientRect())
+                    .filter((b) => b.width > 0 && b.height > 0);
+                const actions = sheet.querySelector('[data-slot="configurator-layer-actions"]');
+                return {
+                    word: reset.textContent.trim(),
+                    resets: sheet.querySelectorAll('button[aria-label="Reset animation"]').length,
+                    beside: controls.filter((b) => b.top <= mid && b.bottom >= mid).length,
+                    below: controls.filter((b) => b.top > r.top + 1).length,
+                    inHeader: actions ? actions.contains(reset) : false,
+                    headerResets: actions ? actions.querySelectorAll('button[aria-label^="Reset"]').length : 0,
+                };
+            });
+            expect(seat).not.toBeNull();
+            expect(seat.resets).toBe(1);
+            expect(seat.word).toBe("Reset");
+            expect(seat.beside).toBe(0);
+            expect(seat.below).toBe(0);
+            expect(seat.inHeader).toBe(false);
+            expect(seat.headerResets).toBeLessThanOrEqual(1);
+        });
+    }
+
+    // On a scene with two or more channels (cube) Reset shares the sheet's
+    // head row with the channel select, glyph only.
+    for (const scene of ["/cube"]) {
         test(`${scene}: Reset shares its row with another control`, async ({ page }) => {
             await openSheet(page, scene);
             const row = await page.evaluate(() => {

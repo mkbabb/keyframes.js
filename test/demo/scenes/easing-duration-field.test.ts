@@ -97,12 +97,12 @@ describe("the upright phone's sheet holds the curve section without a title row"
     }, 30_000);
 });
 
-// P2d · WCAG 2.4.3 — on an upright phone with one channel the sheet's Reset
-// shares the duration row, and that row leads the facet: Reset, the duration,
-// its rule, then the curve. The order is the DOM's, so focus and a screen
-// reader meet them as the eye does (CSS `order` moved only the paint: focus
-// and VoiceOver read the curve, the rule, Reset, then the duration).
-describe("the upright phone's lead row comes first in the DOM, as it is seen", () => {
+// On an upright phone with one channel the sheet's Reset is a labelled row of
+// its own at the section's foot (owner, 23 Nov): the curve, its rule, the
+// duration, then Reset, in the DOM's order, so focus and a screen reader meet
+// them as the eye does. Born red: Reset shared the duration row, which led the
+// facet above the curve, glyph only.
+describe("the upright phone's Reset is a labelled row at the section's foot", () => {
     const at = (w: number, h: number) => (query: string) => {
         let ok = true;
         for (const [, kind, axis, px] of query.matchAll(/\((max|min)-(width|height): (\d+)px\)/g)) {
@@ -146,7 +146,7 @@ describe("the upright phone's lead row comes first in the DOM, as it is seen", (
     const before = (a: Element | null, b: Element | null) =>
         !!a && !!b && (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0;
 
-    it("at 390x844 Reset, then the duration, then the curve; elsewhere the duration closes the section", async () => {
+    it("at 390x844 the curve, the duration, then Reset with its word; elsewhere no Reset", async () => {
         const saved = Object.getOwnPropertyDescriptor(window, "matchMedia");
         try {
             const phone = await mountWith(390, 844, true);
@@ -155,15 +155,13 @@ describe("the upright phone's lead row comes first in the DOM, as it is seen", (
             const curve = phone.host.querySelector('[aria-label="Easing curve editor"]');
             expect(reset).not.toBeNull();
             expect(curve).not.toBeNull();
-            expect(before(reset, duration)).toBe(true);
-            expect(before(duration, curve)).toBe(true);
+            expect(reset!.textContent?.trim()).toBe("Reset");
+            expect(before(curve, duration)).toBe(true);
+            expect(before(duration, reset)).toBe(true);
             expect(phone.host.querySelectorAll(".labeled-field")).toHaveLength(1);
-            // The duration takes the rest of the lead row beside Reset: shrunk to
-            // its content, the slider stood 70 px long under its label and value
-            // drawn over one another (kf45's build at 390x844, before this test).
-            const row = phone.host.querySelector(".sheet-lead-row > .param-row");
-            expect(row?.classList.contains("flex-1")).toBe(true);
-            expect(row?.classList.contains("min-w-0")).toBe(true);
+            // A row of its own: the duration's row does not hold it, and nothing follows it.
+            expect(duration!.closest(".param-row")?.contains(reset)).toBe(false);
+            expect(reset!.nextElementSibling).toBeNull();
             phone.done();
 
             const desk = await mountWith(1440, 900, false);

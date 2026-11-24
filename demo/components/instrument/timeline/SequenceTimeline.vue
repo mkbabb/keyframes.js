@@ -28,10 +28,6 @@
                  seat 20 px above the pane's edge instead of ~8 px. -->
             <ConfiguratorLayer class="rail-fill" label="Stagger" default-open body-class="flex grow flex-col gap-3 pb-5">
                 <template #actions>
-                    <!-- P2d — on an upright phone with this one channel, the
-                         sheet's Reset (to the start) heads this row, so it takes
-                         no row of its own (useSheetReset.ts). -->
-                    <SheetResetButton v-if="sheetReset.shown.value" @reset="sheetReset.reset()" />
                     <!-- X.KF.W13X.dh2 (UIA-KF-098) — THE REEL, homed off the
                          stage: a verb on the items, so it sits with their other
                          verb in this layer's header, in Reset's register (glass
@@ -72,6 +68,11 @@
                     </Button>
                 </template>
                 <SequenceLanes :source="source" />
+                <!-- On an upright phone with this one channel the sheet's Reset
+                     (to the start) is a labelled row of its own at the section's
+                     foot (owner, 23 Nov), so the header keeps one back glyph, the
+                     stagger's own reset (useSheetReset.ts). -->
+                <SheetResetButton v-if="sheetReset.shown.value" labelled @reset="sheetReset.reset()" />
             </ConfiguratorLayer>
         </div>
     </div>

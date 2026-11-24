@@ -1,17 +1,19 @@
 import { inject, onBeforeUnmount, onMounted, shallowRef, type ComputedRef, type InjectionKey, type Ref } from "vue";
 
 /**
- * P2d — the upright phone sheet's Reset, where a row already stands.
+ * The upright phone sheet's Reset (to the start).
  *
- * An upright phone's opened sheet leads with Reset (to the start), the verb the
- * dock leaves out at rest. Where the scene has two or more channels it shares
- * its row with the channel select. Where it has one, a Reset alone took a whole
- * row of a 304 px sheet (easing, sequence). There the surface that heads the
- * sheet carries Reset in its own first row instead (the Stagger header, the
- * easing duration row), and the sheet's head row gives way while it does.
+ * An upright phone's opened sheet offers Reset, the verb the dock leaves out
+ * at rest. Where the scene has two or more channels it shares the sheet's head
+ * row with the channel select. Where it has one (easing, sequence), the
+ * section the sheet holds carries Reset on a labelled row of its own at its
+ * foot (owner, 23 Nov), and the sheet's head row gives way while it does. (It
+ * had stood alone in the head row, then in the section's own header, where on
+ * sequence it stood one seat from the stagger's reset: two back glyphs in one
+ * header.)
  */
 export interface SheetReset {
-    /** A surface's first row should carry Reset (an upright phone, one channel). */
+    /** A surface should carry Reset, at its foot (an upright phone, one channel). */
     inRow: Readonly<Ref<boolean>>;
     reset: () => void;
     /** A surface carries Reset while mounted; returns its release. */
@@ -39,7 +41,7 @@ export function provideSheetReset(inRow: Readonly<Ref<boolean>>, reset: () => vo
     return { api, carried: (): boolean => inRow.value && claims.value > 0 };
 }
 
-/** A surface's side: whether its first row shows Reset, and the verb. */
+/** A surface's side: whether it shows Reset at its foot, and the verb. */
 export function useSheetReset(): { shown: ComputedRef<boolean> | Readonly<Ref<boolean>>; reset: () => void } {
     const seat = inject(SHEET_RESET_KEY, null);
     if (!seat) return { shown: shallowRef(false), reset: () => {} };

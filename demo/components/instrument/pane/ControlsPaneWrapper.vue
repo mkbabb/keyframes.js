@@ -269,9 +269,9 @@
                  dock leaves out at rest, so its scrub keeps its length: Reset
                  (to the start) and, where the scene has two or more channels,
                  the channel the controls edit. A landscape phone's transport
-                 keeps both. With one channel the surface heading the sheet
-                 carries Reset in its own first row (useSheetReset.ts), and this
-                 row gives way: Reset alone never takes a row. -->
+                 keeps both. With one channel the section the sheet holds
+                 carries Reset on a labelled row at its foot (useSheetReset.ts),
+                 and this row gives way. -->
             <div v-if="!isShortLayout && !resetCarried()" class="sheet-head-row">
                 <SheetResetButton @reset="emit('reset')" />
                 <Select
@@ -848,7 +848,7 @@ const onSheetOutside = (e: Event): void => {
     }
 };
 
-// ── P2d — with one channel, Reset rides the heading surface's first row ──
+// ── With one channel, Reset is a labelled row at the section's foot ──
 const { api: sheetResetSeat, carried: resetCarried } = provideSheetReset(
     computed(() => isMobileLayout.value && !isShortLayout.value && channelNames.value.length < 2),
     () => emit("reset"),
