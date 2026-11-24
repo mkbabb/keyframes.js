@@ -11,15 +11,28 @@
      glides from the old width to the new: the capsule's cut of a uniform
      plate is the plate at every width between. The cut would take the
      plate's halo off, so the group carries it.
-   - Every other dock image is drawn at its own size, centred, and the two
-     cross-fade: a dock whose width holds, and one that is opening or folding
-     (its seats are in its image then, and the live fold is its new image).
-     The UA's default sized each image by the group's width at its own
-     aspect, so the old dock was magnified to the new width (1.4x at 1440)
-     and cross-faded with it: two docks.
+   - A dock whose width holds draws its two images at their own size,
+     centred, and they cross-fade. The UA's default sized each image by the
+     group's width at its own aspect, so the old dock was magnified to the
+     new width (1.4x at 1440) and cross-faded with it: two docks.
    - A seat on both pages glides from its old place to its new one at its own
      size (the group's move). A seat on one page only fades where it stands:
      out at once, in once the plate has come to it, never outside the plate.
+   - A dock glass is opening or folding as the page changes (the press's own
+     hover or tap opens the folded transport; Play on a phone folds the open
+     dock: the root's `data-dock-live`) draws one image, at its own size: its
+     live one (glass's morph its tween) or, as it folds, its old one. Its old
+     seats fade where they stand, as any seat that leaves (its seats are not
+     groups while it morphs: glass's morph clips them). Cross-faded, the old
+     circle stood in the middle of the opening bar for the whole clock.
+   - The page holds its last frame while the swap's update runs, and glass's
+     morph runs on behind it: drawn as it then stands, the dock came out of
+     the hold already open (the circle, then the bar) or already folded. So
+     one that opens or folds (`data-dock-opens`, `data-dock-folds`) is cut to
+     a capsule that glides from the width it was painted at before the hold
+     (`--kf-dock-from-<name>`) to its box. The group's own box can stand at
+     the new width from the start (glass's morph scales the plate), so the
+     cut is the image-pair's, and the halo follows the cut.
 
    This is the site's bridge until glass's seat glide (G3: "a seat change
    glides the width and crosses the seats"); with it, the docks leave the
@@ -74,4 +87,56 @@ html[data-dock-shrinks~="transport-dock"]::view-transition-new(transport-dock) {
     animation-delay: calc(var(--vt-duration) * 0.4);
     animation-duration: calc(var(--vt-duration) * 0.6);
     animation-timing-function: var(--ease-out);
+}
+
+html[data-dock-live~="chrome-dock"]::view-transition-old(chrome-dock),
+html[data-dock-live~="transport-dock"]::view-transition-old(transport-dock) {
+    animation: none;
+    opacity: 0;
+}
+
+html[data-dock-live~="chrome-dock"]::view-transition-new(chrome-dock),
+html[data-dock-live~="transport-dock"]::view-transition-new(transport-dock) {
+    animation: none;
+    opacity: 1;
+}
+
+/* After the live rules, which a fold turns about. */
+html[data-dock-folds~="chrome-dock"]::view-transition-old(chrome-dock),
+html[data-dock-folds~="transport-dock"]::view-transition-old(transport-dock) {
+    opacity: 1;
+}
+
+html[data-dock-folds~="chrome-dock"]::view-transition-new(chrome-dock),
+html[data-dock-folds~="transport-dock"]::view-transition-new(transport-dock) {
+    opacity: 0;
+}
+
+html:is([data-dock-opens~="chrome-dock"], [data-dock-folds~="chrome-dock"])::view-transition-group(chrome-dock),
+html:is([data-dock-opens~="transport-dock"], [data-dock-folds~="transport-dock"])::view-transition-group(transport-dock) {
+    filter: drop-shadow(var(--shadow-dock));
+}
+
+html:is([data-dock-opens~="chrome-dock"], [data-dock-folds~="chrome-dock"])::view-transition-image-pair(chrome-dock) {
+    --kf-dock-from: var(--kf-dock-from-chrome-dock);
+}
+
+html:is([data-dock-opens~="transport-dock"], [data-dock-folds~="transport-dock"])::view-transition-image-pair(transport-dock) {
+    --kf-dock-from: var(--kf-dock-from-transport-dock);
+}
+
+html:is([data-dock-opens~="chrome-dock"], [data-dock-folds~="chrome-dock"])::view-transition-image-pair(chrome-dock),
+html:is([data-dock-opens~="transport-dock"], [data-dock-folds~="transport-dock"])::view-transition-image-pair(transport-dock) {
+    /* A finite radius: the stadium token (`calc(infinity * 1px)`) rounds a
+       border but leaves an inset's corners square. */
+    clip-path: inset(0 round 9999px);
+    animation: kf-dock-glide var(--vt-duration) var(--vt-ease) both;
+}
+
+/* From the painted width (a negative inset, when it was wider than the box,
+   reaches past the box) to the box. */
+@keyframes kf-dock-glide {
+    from {
+        clip-path: inset(0 calc((100% - var(--kf-dock-from)) / 2) round 9999px);
+    }
 }

@@ -716,9 +716,10 @@ defineExpose({ openSceneList });
    alone, drawn at its size and cut to the gliding capsule: never the old dock
    magnified to the new width over the new one. Named only while a transition
    runs (X-DS pass 4, KF-C4-03): a standing name makes the group a backdrop root,
-   and the plate then blurred nothing behind the dock. Not while the dock
-   morphs: glass's open and fold clip the seats, and a seat's own group would
-   escape that clip. Until glass's seat glide (G3) lands. */
+   and the plate then blurred nothing behind the dock. While glass opens or
+   folds the dock its seats are not groups (glass's morph clips them, and a
+   group would escape the clip): the dock-swap look draws that dock live.
+   Until glass's seat glide (G3) lands. */
 :root:active-view-transition .dock-vt-group {
     view-transition-name: chrome-dock;
     view-transition-class: gl-list-item kf-dock;

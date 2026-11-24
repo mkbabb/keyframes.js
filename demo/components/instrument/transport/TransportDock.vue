@@ -433,12 +433,16 @@ defineExpose({ resetIconSpin });
    its own group while a transition runs, and each seat a group of its own, so
    Home's Play glides to its place at the head of the cube's transport while the
    plate's capsule grows from the circle to the bar. The seats are the persistent
-   Play and the row's members (the row itself changes width, so it is not one). */
+   Play and the row's members (the row itself changes width, so it is not one).
+   While glass opens the folded transport (the press's own hover or tap, as
+   the page changes), the row's members are not groups (glass's morph clips
+   them) and the dock-swap look draws the dock live; Play, outside that clip,
+   still glides from the circle's centre to the bar's head. */
 :root:active-view-transition .dock-vt-group {
     view-transition-name: transport-dock;
     view-transition-class: gl-list-item kf-dock;
 }
-:root:active-view-transition .dock-vt-group :deep(.glass-dock:not([data-morphing]) .dock-persistent > *),
+:root:active-view-transition .dock-vt-group :deep(.glass-dock .dock-persistent > *),
 :root:active-view-transition .dock-vt-group :deep(.glass-dock:not([data-morphing]) .dock-layer.is-active > .transport-row > *) {
     view-transition-name: match-element;
     view-transition-class: gl-list-item kf-dock-seat;

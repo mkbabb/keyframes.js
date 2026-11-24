@@ -11,6 +11,10 @@
  *        that changes width passes through widths between its old and its new
  *        one, never from one to the other between two frames. While a dock's
  *        width moves, one plate is painted, never the old dock over the new.
+ *        So too a dock glass is opening or folding as the page changes (a
+ *        tap on the folded transport's Play held sideways; Play with the
+ *        dock open on a phone, glass morphing its seats): it is cut to a
+ *        capsule that glides from the width it was painted at.
  *   K-4. On a phone a tap on the theme seat opens no tooltip under the dock.
  *
  * Local: serves dist/gh-pages (build it first: npm run gh-pages).
@@ -46,18 +50,50 @@ const root = () => (REMOTE ? `${base}/` : `${base}/index.html`);
 const at = (hash) => `${root()}#${hash}`;
 
 /** Each dock's painted width: its View-Transition group's animated box while
- *  it is a group (with the opacities of its two plate images), else the live
- *  dock, which the root's new image paints as it stands. */
+ *  it is a group (with the opacities of its two plate images), less the cut
+ *  of a dock that opens as the page changes (the image-pair's `clip-path`
+ *  inset, its sides), else the live dock, which the root's new image paints
+ *  as it stands. */
 const PAINTED = () => {
     // Read when asked: the init script runs before the document has its root.
     const html = () => document.documentElement;
+    // A length of the inset (`12px`, `25%`, `calc(25% - 15px)`) against `box`.
+    const length = (text, box) => {
+        let sum = 0;
+        for (const [, sign, n, unit] of text.replace(/calc\(|\)/g, "").matchAll(/([+-]?)\s*(-?[\d.]+)(%|px)/g)) {
+            sum += (sign === "-" ? -1 : 1) * (unit === "%" ? (Number(n) * box) / 100 : Number(n));
+        }
+        return sum;
+    };
+    // The sides the image-pair's inset cuts from each edge, across.
+    const cut = (clip, box) => {
+        const inner = /^inset\((.*?)(?:\sround\s.*)?\)$/.exec(clip)?.[1];
+        if (!inner) return 0;
+        const parts = [];
+        let depth = 0;
+        let word = "";
+        for (const ch of inner) {
+            depth += ch === "(" ? 1 : ch === ")" ? -1 : 0;
+            if (ch === " " && depth === 0) {
+                if (word) parts.push(word);
+                word = "";
+            } else word += ch;
+        }
+        if (word) parts.push(word);
+        return length(parts[1] ?? parts[0], box);
+    };
     const read = (name, sel) => {
         const root = html();
         const group = getComputedStyle(root, `::view-transition-group(${name})`);
         const w = parseFloat(group.width);
         if (root.matches(":active-view-transition") && Number.isFinite(w) && w > 0) {
             const o = (k) => Number(getComputedStyle(root, `::view-transition-${k}(${name})`).opacity);
-            return { w, group: 1, old: o("old"), new: o("new") };
+            const pair = getComputedStyle(root, `::view-transition-image-pair(${name})`);
+            const sides = pair.clipPath && pair.clipPath !== "none" ? cut(pair.clipPath, w) : 0;
+            // An opening or folding dock's glide starts at the width the swap
+            // read it at.
+            const at = parseFloat(getComputedStyle(root).getPropertyValue(`--kf-dock-from-${name}`));
+            return { w: w - 2 * sides, group: 1, old: o("old"), new: o("new"), ...(Number.isFinite(at) ? { at } : {}) };
         }
         const live = document.querySelector(sel);
         return live ? { w: live.getBoundingClientRect().width, group: 0 } : null;
@@ -95,6 +131,7 @@ const PAINTED = () => {
 const CELLS = {
     "1440": { viewport: { width: 1440, height: 900 } },
     "390": { viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, hasTouch: true, isMobile: true },
+    "844x390": { viewport: { width: 844, height: 390 }, deviceScaleFactor: 2, hasTouch: true, isMobile: true },
 };
 
 /** Open the main dock as a hand does: a hover on a desk, a tap on a phone. */
@@ -110,8 +147,11 @@ async function openDock(page, touch) {
 
 /** The page changes K-1 films: the dock open at a desk (Home to the cube, the
  *  pointer on the dock), the dock open on a phone (the cube to Home by its Home
- *  seat), and Home's Play on a phone with the dock folded (the transport grows
- *  from Play's circle to the bar). */
+ *  seat), Home's Play on a phone with the dock folded (the transport grows
+ *  from Play's circle to the bar), the same with the dock open (glass morphs
+ *  it from Home's seats to the cube's as the page changes), and Home's Play
+ *  on a phone held sideways, where the tap has glass opening the folded
+ *  transport as the page changes. */
 const SWAPS = [
     {
         name: "1440: Home to the cube, the dock open",
@@ -132,6 +172,22 @@ const SWAPS = [
     {
         name: "390: Home's Play, the dock folded",
         cell: "390",
+        start: "/",
+        open: false,
+        go: (page) => page.locator('[aria-label="Play animation"]').first().tap(),
+        landed: () => location.hash.startsWith("#/cube"),
+    },
+    {
+        name: "390: Home's Play with the dock open, glass morphing it",
+        cell: "390",
+        start: "/",
+        open: true,
+        go: (page) => page.locator('[aria-label="Play animation"]').first().tap(),
+        landed: () => location.hash.startsWith("#/cube"),
+    },
+    {
+        name: "844x390: Home's Play, the tap opening the folded transport",
+        cell: "844x390",
         start: "/",
         open: false,
         go: (page) => page.locator('[aria-label="Play animation"]').first().tap(),
@@ -164,14 +220,19 @@ for (const swap of SWAPS) {
                 if (Math.abs(to - from) < 8) continue;
                 moved++;
                 const trace = `${key} dock ${from.toFixed(0)} to ${to.toFixed(0)}: ${points.map((p) => `${p.f}:${p[key].w.toFixed(0)}${p[key].group ? "g" : ""}`).join(" ")}`;
-                // It starts where it stood...
-                expect(Math.abs(points[0][key].w - from), trace).toBeLessThan(2);
+                // It starts where it stood: for a dock glass is opening or
+                // folding, where it stood when the swap read it, glass's morph
+                // no more than a quarter on from the press (the hold then
+                // shows that width)...
+                const start = points[0][key].at ?? from;
+                if (points[0][key].at !== undefined) expect(Math.abs(start - from), `${trace}; read at ${start.toFixed(0)}`).toBeLessThan(0.25 * Math.abs(to - from));
+                expect(Math.abs(points[0][key].w - start), trace).toBeLessThan(2);
                 // ...and at a quarter, half and three quarters of the swap's
                 // clock it is painted at widths between, in order: a glide,
                 // never the old width and then the new one between two frames.
                 const mid = points.slice(1, 4).map((p) => p[key].w);
-                const lo = Math.min(from, to) + 2;
-                const hi = Math.max(from, to) - 2;
+                const lo = Math.min(start, to) + 2;
+                const hi = Math.max(start, to) - 2;
                 expect(mid.every((w) => w > lo && w < hi), trace).toBe(true);
                 expect(mid.every((w, i) => i === 0 || Math.sign(w - mid[i - 1]) === Math.sign(to - from)), trace).toBe(true);
                 // While it moves, one plate is painted (one of its two plate
