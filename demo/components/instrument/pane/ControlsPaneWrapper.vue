@@ -48,7 +48,9 @@
              its own JS fallback): the phone sheet's body here, and the desktop
              rail's surface scroller below. The local copy (`useScrollFade`, its
              `.scroll-fade-*` classes, and the CSS timeline rules that stood in
-             for it) is deleted. -->
+             for it) is deleted. It scrolls on its block axis only: a lone
+             `overflow-y-auto` computes x to auto too, so a hair of overflow
+             would pan the pane sideways under a thumb's diagonal. -->
         <component
             :is="isMobileLayout ? FadingScroll : 'div'"
             ref="paneEl"
@@ -57,7 +59,7 @@
             @mouseleave="paneMouseLeave"
             :class="[
                 'controls-pane group/controls min-w-0',
-                paneScrollable ? 'overflow-y-auto' : 'overflow-clip',
+                paneScrollable ? 'overflow-x-hidden overflow-y-auto' : 'overflow-clip',
             ]"
         >
             <div class="controls-content h-full flex flex-col">
