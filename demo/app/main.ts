@@ -33,6 +33,15 @@ import "@styles/fonts.css";
 import { warmKfEngine } from "@kf-engine";
 import { warmScene } from "./scene/scenes";
 
+// FORTY-SIXTH E — the address is the page: nothing of the view is kept in
+// browser storage any more. A returning visitor's records from before are
+// removed once. (Remove this line one release on.)
+for (const key of ["keyframes-js-scene-machine", "animation-groups-options-store", "animation-groups-control-options-store"]) {
+    try {
+        localStorage.removeItem(key);
+    } catch {}
+}
+
 const app = createApp(App);
 app.use(router);
 

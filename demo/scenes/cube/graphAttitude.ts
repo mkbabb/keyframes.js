@@ -21,11 +21,11 @@ export type GraphAttitude = Readonly<{
 }>;
 
 /**
- * #56 — THE STAGE ATTITUDE, single-sourced. `.graph` is parked here on mount,
- * and it is an ANCESTOR of `.cube`: everything the die's own model computes
- * lands in this frame, not the room's. Its consumers read it — the scene's
- * eased intro keyframe, its PRM snap (`useCubeDemo`), and the axis-reveal
- * geometry's frame stamp —
+ * #56 — THE STAGE ATTITUDE, single-sourced. `.graph` is parked here from its
+ * first render (CubeTarget's template), and it is an ANCESTOR of `.cube`:
+ * everything the die's own model computes lands in this frame, not the room's.
+ * Its consumers read it — the stage's template and the axis-reveal geometry's
+ * frame stamp —
  * so it is authored ONCE and never re-spelled. It lives in its own module so
  * nothing that only wants a frame has to load the engine.
  */
@@ -34,7 +34,7 @@ export const GRAPH_ATTITUDE: GraphAttitude = {
     angleDeg: 30,
 };
 
-/** The attitude as CSS authors it — the PRM arm writes this string directly. */
+/** The attitude as CSS authors it — the stage's template binds this string. */
 export const graphAttitudeCss = (attitude: GraphAttitude = GRAPH_ATTITUDE) =>
     `rotate3d(${attitude.axis[0]}, ${attitude.axis[1]}, ${attitude.axis[2]}, ${attitude.angleDeg}deg)`;
 

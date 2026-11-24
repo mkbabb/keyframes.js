@@ -67,11 +67,8 @@ export function useAnimationGroupActions(
         getGroup().stop();
         syncPlayState(false);
         getStoredControls().selectedAnimation = null;
-        // resetAllStores() now also wipes the scene-machine persist key, so the
-        // active-scene fact resets to HOME_SCENE_ID on reload. The old raw
-        // `localStorage.setItem("keyframes-js-active-scene", "home")` write is
-        // DELETED — the machine owns that fact (H.W1); the legacy key is read by
-        // nobody.
+        // The view resets and the address drops the scene's keys, so the
+        // reload opens the scene at its defaults (the address is the page).
         resetAllStores();
         window.location.reload();
     };

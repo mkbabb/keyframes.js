@@ -1,23 +1,21 @@
 /**
- * X.KF.W13T.e2 · G-KFW13T-6's persistence limb (ESC-e-1, GRANTED at COHESION
- * §0ar) — the easing ball preview's hide toggle survives a reload.
+ * X.KF.W13T.e2 · G-KFW13T-6, turned round by FORTY-SIXTH E (the address is the
+ * page) — the easing ball preview's hide toggle lives in the scene's bucket of
+ * the control-options store, in memory, beside `isControlsPanelOpen` and cube's
+ * `cubeSkin`; across a reload it travels in the address (`ball=0`,
+ * useSceneUrlState), never in browser storage.
  *
- * The scene's view state lives in its bucket of the control-options store
- * (`animation-groups-control-options-store` in localStorage, keyed by the
- * registry `SceneId`), beside `isControlsPanelOpen` and cube's `cubeSkin`. The
- * toggle's state is the bucket's `ballPreview` field, read by `EasingScene`
- * through `getStoredAnimationGroupControlOptions(EASING_SCENE_ID)`.
- *
- * Two limbs, the two halves of a reload: (1) READ — a bucket persisted as
- * `hidden` before the store is first touched (the state a reload boots into)
- * mounts the ribbon pressed with the preview ABSENT; (2) WRITE — each press
- * lands in the persisted bucket. Drives the REAL `EasingScene` over the REAL
+ * Two limbs: (1) READ — a bucket an older build left in localStorage as
+ * `hidden` is never read: the ribbon mounts with the preview SHOWN; (2) WRITE —
+ * a press writes nothing to storage, and the next mount in the same page reads
+ * the bucket the press set. Drives the REAL `EasingScene` over the REAL
  * `useEasingDemo`, the REAL store and the REAL `PlaybackRibbon` (its producer
  * Slider real, from the clean `/slider` subpath). Stubbed at their own seams:
  * the glass-ui root barrel's `Button` (the keyframes.js-import wall; the
  * `playback-ribbon-contract` precedent), the `AnimationVisualizer` twin, and
  * the scene's `EasingTarget` / `EasingSidebar` (not this witness's subject).
- * Born RED at the pre-cure bytes (the toggle's state was scene-held).
+ * Born RED at the pre-cure bytes (the toggle's state was scene-held), and RED
+ * again on the storage-backed store (it restored the old bucket).
  */
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { defineComponent, h, nextTick, ref } from "vue";
@@ -76,15 +74,14 @@ class NoopResizeObserver {
 
 // The page's Storage. Node (>= 25) defines its own global `localStorage`
 // accessor, which reads `undefined` without `--localstorage-file` and shadows
-// the jsdom window's; the store's `useStorage` would then persist nowhere. The
-// jsdom window's own Storage is installed as the global the page would see,
-// before any module creates the (lazily created) store.
+// the jsdom window's. The jsdom window's own Storage is installed as the global
+// the page would see, before any module creates the (lazily created) store.
 const { jsdom } = globalThis as unknown as { jsdom: { window: { localStorage: Storage } } };
 vi.stubGlobal("localStorage", jsdom.window.localStorage);
 
 beforeAll(async () => {
     vi.stubGlobal("ResizeObserver", NoopResizeObserver);
-    // The reload's boot state: the bucket persisted with the preview hidden,
+    // An older build's record: the bucket stored with the preview hidden,
     // written BEFORE any module touches the (lazily created) store.
     window.localStorage.setItem(
         STORE_KEY,
@@ -148,31 +145,29 @@ const persisted = () =>
         SCENE
     ]?.ballPreview;
 
-describe("G-KFW13T-6 — the preview toggle is persisted with the scene's view state", () => {
-    it("(read) a bucket persisted as hidden boots the ribbon pressed, the preview absent", async () => {
+describe("G-KFW13T-6 · FORTY-SIXTH E — the preview toggle is the scene's view state, in memory", () => {
+    it("(read) a bucket left in storage is never read: the ribbon boots with the preview shown", async () => {
         const wrapper = mountScene();
         await settle();
         const toggle = toggleOf(document.body);
         expect(toggle).not.toBeNull();
-        // X-DS pass 1, C1 (KF-C1-03) — pressed = shown, so a hidden boot reads unpressed.
-        expect(toggle!.getAttribute("aria-pressed")).toBe("false");
-        expect(previewOf(document.body)).toBeNull();
+        // X-DS pass 1, C1 (KF-C1-03) — pressed = shown.
+        expect(toggle!.getAttribute("aria-pressed")).toBe("true");
+        expect(previewOf(document.body)).not.toBeNull();
         wrapper.unmount();
     });
 
-    it("(write) each press lands in the persisted bucket, and the next mount reads it", async () => {
+    it("(write) a press writes nothing to storage, and the next mount in the page reads it", async () => {
+        window.localStorage.removeItem(STORE_KEY);
         let wrapper = mountScene();
         await settle();
         const root = document.body;
         toggleOf(root)!.click();
         await settle();
-        expect(toggleOf(root)!.getAttribute("aria-pressed")).toBe("true");
-        expect(previewOf(root)).not.toBeNull();
-        expect(persisted()).toBe("shown");
-
-        toggleOf(root)!.click();
-        await settle();
-        expect(persisted()).toBe("hidden");
+        expect(toggleOf(root)!.getAttribute("aria-pressed")).toBe("false");
+        expect(previewOf(root)).toBeNull();
+        expect(persisted()).toBeUndefined();
+        expect(Object.keys(window.localStorage)).toEqual([]);
         wrapper.unmount();
 
         wrapper = mountScene();

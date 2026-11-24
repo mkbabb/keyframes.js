@@ -197,7 +197,14 @@ const machine = vi.hoisted(() => ({
     perScene: { value: {} as Record<string, { playing: boolean }> },
     dispatch: () => {},
 }));
-vi.mock("@state", () => ({ HOME_SCENE_ID: "home", useSceneMachine: () => machine }));
+// Each channel's options (FORTY-SIXTH E2, `o.<Channel>`): stored as authored,
+// so a channel's options key has nothing to write.
+vi.mock("@state", () => ({
+    HOME_SCENE_ID: "home",
+    useSceneMachine: () => machine,
+    getStoredAnimationOptions: () => ({ animationOptions: { duration: "5s" } }),
+    getAuthoredAnimationOptions: () => ({ duration: "5s" }),
+}));
 
 describe("useSceneUrlState: the controls at a cold load", () => {
     const width0 = window.innerWidth;

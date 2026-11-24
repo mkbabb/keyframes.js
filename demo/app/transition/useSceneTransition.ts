@@ -1,6 +1,7 @@
 import { nextTick, ref, type Ref } from "vue";
 import { viewTransition, type ViewTransitionHandle } from "@mkbabb/keyframes.js";
 import { allScenes, loadScene, prepareScene, warmScenesAtIdle } from "../scene/scenes";
+import { clearDockSwap, dockWidths, markDockSwap } from "../dock/dockSwap";
 
 /**
  * Routes the scene-id mutation through the platform's native View Transitions.
@@ -107,6 +108,10 @@ export function useSceneTransition(opts: {
         performance.measure("scene-swap:prepare", { start });
         const root = document.documentElement;
         root.style.setProperty("--route-direction", String(routeDirection(currentId(), id)));
+        // FORTY-SIXTH A (K-1) — each dock's width before the swap; after its
+        // DOM update the root is marked with the docks that grow or shrink,
+        // and the dock-swap look draws the wider plate (@app/dock/dockSwap).
+        const docks = dockWidths();
         let land: (() => void) | null = null;
         const { finished, backend } = viewTransition(async () => {
             const commit = performance.now();
@@ -114,11 +119,15 @@ export function useSceneTransition(opts: {
             mutate(id);
             land = await ready;
             await nextTick();
+            markDockSwap(docks);
             performance.measure("scene-swap:commit", { start: commit });
         }, { types: ["lateral"] });
         lastSwapBackend.value = backend;
         finished.finally(() => {
-            if (gen === generation) root.style.removeProperty("--route-direction");
+            if (gen === generation) {
+                root.style.removeProperty("--route-direction");
+                clearDockSwap();
+            }
             performance.measure("scene-swap:total", { start });
             sceneHost.value?.focus();
             if (gen === generation) land?.();

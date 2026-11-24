@@ -8,6 +8,7 @@ import {
 } from "@state";
 import type { SceneExposedApi } from "./sceneExposedApi";
 import { flag, oneOf, useUrlState, type UrlKey } from "./urlState";
+import { channelOptionsKey } from "./channelOptionsKey";
 
 /**
  * KF-URL — the view state every scene shares, in the URL (urlState.ts):
@@ -21,6 +22,8 @@ import { flag, oneOf, useUrlState, type UrlKey } from "./urlState";
  *   tl     1 = the timeline expanded                                replace
  *   play   1 / 0 = playing / paused, where it differs from the
  *          scene's entry state (the cube plays, the rest wait)      replace
+ *   o.<Channel>  a channel's options where they differ from what its
+ *          author wrote (channelOptionsKey.ts)                     replace
  *
  * A pick of what is shown (a channel, a surface) is a push; the chrome's own
  * posture (the pane open or lowered, the ball, the timeline) is a replace, so a
@@ -118,7 +121,13 @@ export function useSceneUrlState(opts: {
         } satisfies UrlKey<boolean>,
     ];
 
-    useUrlState(keys, {
+    // FORTY-SIXTH E2 — one options key per painting channel of the scene.
+    const channelKeys = () =>
+        (opts.resolvedScene.value.api?.facility?.channels ?? []).flatMap((c) =>
+            c.animation ? [channelOptionsKey(c.name, c.animation)] : [],
+        );
+
+    useUrlState(() => [...keys, ...channelKeys()], {
         scene: () => (scene() === HOME_SCENE_ID ? null : scene()),
         ready: () =>
             opts.bound.value &&

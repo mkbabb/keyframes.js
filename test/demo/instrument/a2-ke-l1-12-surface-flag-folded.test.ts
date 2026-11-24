@@ -25,12 +25,6 @@ beforeAll(async () => {
 const stored = (selectedControl: string): StoredAnimationGroupControlOptions => ({
     selectedControl,
     selectedAnimation: "fade",
-    keyframeControls: {
-        selectedKeyframesControl: "keyframes",
-        dialogOpen: false,
-        keyframes: "",
-        addKeyframes: "",
-    },
     isTimelineExpanded: false,
     isControlsPanelOpen: true,
 });

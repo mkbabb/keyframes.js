@@ -103,7 +103,7 @@ describe("R-r-2 — the cube's first autoplay frame resolves var(--rotationX)", 
             useCubeDemo(ref(createMatrix()), ref(createMatrix()), ref("crayon")),
         );
         apps.push(demoApp);
-        demo.setTargets({ cubeEl, bobEl, poseEl, graphEl });
+        demo.setTargets({ cubeEl, bobEl, poseEl });
         const group = demo.animationGroup.value;
         const spin = demo.rotationAnim.value;
 

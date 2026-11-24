@@ -9,7 +9,8 @@
  *   UIA-KF-108 a scene row is marked once (the select's dot), not dot + bold
  *
  * The real ChromeDock under a TooltipProvider (as chrome-dock-containment.test.ts);
- * stubs: jsdom's absent ResizeObserver and matchMedia only.
+ * stubs: jsdom's absent ResizeObserver and matchMedia only (matchMedia answers
+ * as a desk's mouse: the seats' tooltips are a hovering pointer's).
  */
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { defineComponent, h, nextTick } from "vue";
@@ -35,7 +36,9 @@ beforeAll(() => {
     (window as unknown as { ResizeObserver?: unknown }).ResizeObserver = NoopResizeObserver;
     if (!window.matchMedia) {
         (window as unknown as { matchMedia: unknown }).matchMedia = (query: string) => ({
-            matches: false,
+            // A desk: a hovering, fine pointer (the seats' tooltips open for
+            // one only, K-4); every other query reads false.
+            matches: query === "(hover: hover) and (pointer: fine)",
             media: query,
             onchange: null,
             addListener() {},

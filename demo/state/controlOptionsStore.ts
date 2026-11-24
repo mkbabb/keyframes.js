@@ -1,11 +1,8 @@
 import type { KeyframesAnimation } from "@mkbabb/keyframes.js";
-import { createGlobalState, useStorage } from "@vueuse/core";
+import { createGlobalState } from "@vueuse/core";
+import { ref } from "vue";
 import { defaultControlSurfaceFor } from "./controlSurfaces";
-import {
-    checkAndResetExpiredStore,
-    gcAndMigrateStoreBuckets,
-    getAnimationSuperKey,
-} from "./storeUtils";
+import { getAnimationSuperKey } from "./storeUtils";
 import type { SceneId } from "./sceneMachine";
 
 /** The cube's skins: the pinned crayon die, the ppmycota brand skin, and
@@ -20,12 +17,6 @@ export type StoredAnimationGroupControlOptions = {
     selectedAnimation: string | null;
     isTimelineExpanded: boolean;
     isControlsPanelOpen: boolean;
-    keyframeControls: {
-        selectedKeyframesControl: string;
-        dialogOpen: boolean;
-        keyframes: string;
-        addKeyframes: string;
-    };
     /** The cube's skin (the `cube` bucket only); absent = `"crayon"`. One
      *  writer (MbabbMenu's radio group), one reader (CubeScene → CubeTarget). */
     cubeSkin?: CubeSkin;
@@ -47,20 +38,13 @@ export type MatrixOptions = {
 };
 
 export type StoredAnimationGroupsControlOptions = {
-    _storeTimestamp?: number;
-    [name: string]: StoredAnimationGroupControlOptions | number | undefined;
+    [name: string]: StoredAnimationGroupControlOptions | undefined;
 };
 
 const defaultStoredAnimationGroupControlOptions: StoredAnimationGroupControlOptions =
     {
         selectedControl: "controls",
         selectedAnimation: "",
-        keyframeControls: {
-            selectedKeyframesControl: "keyframes",
-            dialogOpen: false,
-            keyframes: "",
-            addKeyframes: "",
-        },
         isTimelineExpanded: false,
         isControlsPanelOpen: true,
     };
@@ -95,23 +79,15 @@ const seedOptions = (): StoredAnimationGroupControlOptions => ({
     isControlsPanelOpen: controlsOpenAtRest(),
 });
 
-export const useAnimationGroupsControlOptionsStore = createGlobalState(() => {
-    const store = useStorage<StoredAnimationGroupsControlOptions>(
-        "animation-groups-control-options-store",
-        { _storeTimestamp: Date.now() } as StoredAnimationGroupsControlOptions,
-    );
-    checkAndResetExpiredStore(store, {
-        _storeTimestamp: Date.now(),
-    } as StoredAnimationGroupsControlOptions);
-    return store;
-});
-
-export const applySharedControlState = (patch: object): void => {
-    const entries = Object.entries(patch).filter(([key, value]) =>
-        key !== "_storeTimestamp" && typeof value === "object" && value !== null,
-    );
-    Object.assign(useAnimationGroupsControlOptionsStore().value, Object.fromEntries(entries));
-};
+/**
+ * The scenes' view state (the channel, the surface, the pane, the skin, ...)
+ * for this page's life. It is never written to browser storage: the address
+ * carries the view (`useSceneUrlState`, `CubeScene`), and a bare link opens a
+ * scene at its defaults (owner, FORTY-SIXTH E).
+ */
+export const useAnimationGroupsControlOptionsStore = createGlobalState(() =>
+    ref<StoredAnimationGroupsControlOptions>({}),
+);
 
 export const getStoredAnimationGroupControlOptions = (
     // T.B9 — the ONE keyspace: the store keys by the registry `SceneId` (or an
@@ -137,12 +113,11 @@ export const getStoredAnimationGroupControlOptions = (
         superKey
     ] as StoredAnimationGroupControlOptions;
 
-    // The store owns this one migration/default boundary; consumers only read.
-    // A bucket can arrive PARTIAL — persisted before a member existed (pre-U.B4
-    // `keyframeControls`), or written by a share patch or a probe that sets only
-    // the surface — so every default member is backfilled, not one by name
-    // (X-DS kf pass 3 · KF-C3-15: `isControlsPanelOpen` read `undefined` and
-    // ChromeDock's toggle logic ran on it).
+    // The store owns this one default boundary; consumers only read. A bucket
+    // can arrive PARTIAL (a probe or a test that sets only the surface), so
+    // every default member is backfilled, not one by name (X-DS kf pass 3 ·
+    // KF-C3-15: `isControlsPanelOpen` read `undefined` and ChromeDock's toggle
+    // logic ran on it).
     // `null` is a stored value (no animation selected), so only an ABSENT
     // member is filled.
     const bucket = controls as Record<string, unknown>;
@@ -155,19 +130,5 @@ export const getStoredAnimationGroupControlOptions = (
 
 /** Reset the store to defaults (used by resetAllStores). */
 export const _resetAnimationGroupsControlOptionsStore = () => {
-    const store = useAnimationGroupsControlOptionsStore();
-    store.value = { _storeTimestamp: Date.now() } as StoredAnimationGroupsControlOptions;
-};
-
-/** T.B9 — migrate legacy PascalCase buckets to the registry `SceneId` keyspace
- *  and GC orphans (a pruned scene's bucket). Called at boot beside the machine's
- *  `gcOrphans` over the SAME valid-id set (the one `gcOrphans(validSceneIds,
- *  ...tables)` sweep, spread across the three globalState modules). */
-export const _gcAndMigrateAnimationGroupsControlOptionsStore = (
-    validSceneIds: Iterable<SceneId>,
-) => {
-    gcAndMigrateStoreBuckets(
-        useAnimationGroupsControlOptionsStore(),
-        validSceneIds,
-    );
+    useAnimationGroupsControlOptionsStore().value = {};
 };

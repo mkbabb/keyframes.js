@@ -112,16 +112,22 @@ function stage(patch: Record<string, string | undefined>, history: "push" | "rep
 // opened elsewhere) is written first.
 if (typeof window !== "undefined") window.addEventListener("pagehide", flush);
 
+/** Write any value still resting now (Share copies the address: the link must
+ *  be the view on screen, not the view 160 ms ago). */
+export const flushUrlState = (): void => flush();
+
 /**
- * Bind `keys` to the route's query while `scene` is the route's scene (`null`:
+ * Bind `keySet` to the route's query while `scene` is the route's scene (`null`:
  * whatever scene the route names). On bind the URL wins where it carries a
  * key; where it does not, the live value is written (so the address always
  * shows the view). After that, the state and the URL follow each other.
  */
 export function useUrlState(
-    keys: UrlKey<any>[],
+    keySet: UrlKey<any>[] | (() => UrlKey<any>[]),
     opts: { scene: () => string | null; ready?: () => boolean },
 ): void {
+    // A set that follows the scene (a key per channel) is read afresh each time.
+    const keyList = typeof keySet === "function" ? keySet : () => keySet;
     // A scene mounted without the app's router (a unit harness) binds nothing.
     const own = inject(routerKey, null);
     const route = inject(routeLocationKey, null);
@@ -140,7 +146,7 @@ export function useUrlState(
     /** URL → state, for every key whose URL value differs from the live one. */
     const applyFromUrl = () => {
         const refused: Record<string, string | undefined> = {};
-        for (const k of keys) {
+        for (const k of keyList()) {
             if (pending.has(k.key)) continue; // our own newer value is on its way
             const raw = route.query[k.key];
             const value = typeof raw === "string" ? k.decode(raw) : k.fallback();
@@ -166,7 +172,7 @@ export function useUrlState(
         let push = false;
         const patch: Record<string, string | undefined> = {};
         const pushedKeys: string[] = [];
-        for (const k of keys) {
+        for (const k of keyList()) {
             const w = want(k);
             const raw = route.query[k.key];
             const has = typeof raw === "string" ? raw : undefined;
@@ -198,7 +204,7 @@ export function useUrlState(
             router?.back();
             return;
         }
-        const own = keys.find((k) => k.backOnUndo && pushedKeys.includes(k.key) && patch[k.key] !== undefined);
+        const own = keyList().find((k) => k.backOnUndo && pushedKeys.includes(k.key) && patch[k.key] !== undefined);
         undoableOwed = own ? own.key : null;
         if (!own && keysChanged.some((key) => key === undoable?.key)) undoable = null;
         if (keysChanged.length) stage(patch, push ? "push" : "replace");
@@ -211,7 +217,7 @@ export function useUrlState(
         // (as a replace: binding is not a navigation).
         applyFromUrl();
         const patch: Record<string, string | undefined> = {};
-        for (const k of keys) {
+        for (const k of keyList()) {
             if (typeof route.query[k.key] === "string") continue;
             const w = want(k);
             if (w !== undefined) patch[k.key] = w;
@@ -230,7 +236,7 @@ export function useUrlState(
 
     // Back / Forward, a pasted link, or another binding's write.
     const stopRoute = watch(
-        () => keys.map((k) => route.query[k.key]),
+        () => keyList().map((k) => route.query[k.key]),
         () => {
             // The push a `backOnUndo` key owed has landed: remember its entry.
             if (undoableOwed && typeof route.query[undoableOwed] === "string") {
@@ -245,7 +251,7 @@ export function useUrlState(
 
     // The state moved: the URL follows.
     const stopState = watch(
-        () => keys.map((k) => k.encode(k.get())),
+        () => keyList().map((k) => k.encode(k.get())),
         () => {
             if (bound && active()) writeToUrl();
         },

@@ -1,7 +1,5 @@
 import { createRouter, createWebHashHistory } from "vue-router";
 import type { RouteRecordRaw } from "vue-router";
-import { toast } from "@mkbabb/glass-ui/toast";
-import { restoreStateFromParam } from "@state/hashSharing";
 import { HOME_SCENE_ID } from "@state";
 import { allScenes } from "./scenes";
 
@@ -9,7 +7,7 @@ import { allScenes } from "./scenes";
  * Hash-based router for the keyframes.js demo.
  * Uses hash mode for GitHub Pages compatibility (no server-side routing).
  *
- * URL structure: /#/cube?anim=Matrix&state=eyJvcHRp...
+ * URL structure: /#/cube?anim=Matrix&skin=daraksha (the scene's view, urlState.ts).
  *
  * Each route maps to a scene ID. Actual rendering stays in App.vue via
  * keyed <Suspense> + lazy scene imports — routes just control which scene is active.
@@ -38,45 +36,12 @@ export const router = createRouter({
     routes,
 });
 
-// Intercept ?state= on initial navigation to restore shared state before the
-// first render, matching the timing of the old initFromHash(). The deprecated
-// `next(value)` guard is gone (S5): a guard RETURNS its value (a redirect
-// location object or `true`/undefined), per vue-router 5 — the 14× live
-// `next() is deprecated` flood (CP-LOW-3) dies with it.
-let initialNavDone = false;
-
+// FORTY-SIXTH E — the address carries the view, key by key, so the old
+// `?state=` blob (a dump of the browser-stored options) retired with the
+// stores. A link that still carries one opens its scene, and the blob is
+// dropped from the address (no decode).
 router.beforeEach((to) => {
-    if (!initialNavDone && to.query.state) {
-        initialNavDone = true;
-        const stateParam = to.query.state as string;
-        const result = restoreStateFromParam(stateParam);
-        // UIA-KF-143 (X.KF.W13X.scene) — a deep link's verdict is announced on
-        // the Share popover's own load path (the same copy and tones,
-        // `useShareState`): restored → success; unreadable → the link could not
-        // be read, instead of silently landing on the route scene. The root
-        // Toaster renders the queued toast once it mounts.
-        if (result.restored) {
-            toast({
-                title: "State restored!",
-                tone: "success",
-                duration: 3000,
-                description: "Animation state loaded from shared URL.",
-            });
-        } else {
-            toast({
-                title: "Invalid shared state",
-                tone: "destructive",
-                duration: 3000,
-                description: "This link's shared state could not be read.",
-            });
-        }
-        const { state: _, ...cleanQuery } = to.query;
-        // The ?state= guard RETURNS a redirect LOCATION (not `true`): the
-        // deep-linked state's activeScene WINS (WV-W1-LOW-1). The machine's
-        // first-load seed (useSceneMachineRouter) then reconciles off this URL.
-        const targetName = result.activeScene ?? (to.name as string);
-        return { name: targetName, query: cleanQuery };
-    }
-    initialNavDone = true;
-    return true;
+    if (to.query.state === undefined) return true;
+    const { state: _, ...query } = to.query;
+    return { path: to.path, query, replace: true };
 });

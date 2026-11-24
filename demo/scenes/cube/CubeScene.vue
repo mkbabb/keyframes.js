@@ -63,6 +63,7 @@ import { useCubeTransform } from "./cubeTransformStore";
 import { num, nums, oneOf, useUrlState, type UrlKey } from "@app/scene/urlState";
 import type { OrbitPose } from "./orbital-drag/types";
 import type { Quat } from "./orbital-drag/arcball";
+import { eulerDegreesToQuaternion, quaternionToEulerDegrees } from "./orbital-drag/quaternionEuler";
 import { AUTHORED_MATRIX_END, matrixValues } from "./matrix-editor/transformMath";
 
 const superKey = CUBE_SCENE_ID;
@@ -116,7 +117,8 @@ const { animationGroup, setTargets } = useCubeDemo(
 
 // ── KF-URL — the cube's view in the URL (urlState.ts) ────────────────────────
 //   skin  the die's skin (default crayon)                         push
-//   q     the orbit's attitude, a unit quaternion x,y,z,w         replace
+//   turn  the turn a hand gave the die, x,y,z in whole degrees
+//         (the orbit readout's Y·X·Z order; FORTY-SIXTH F)        replace
 //   z     the zoom (default 1)                                    replace
 //   pan   the pan in px, x,y (default 0,0)                        replace
 //   m     the Matrix editor's edited cells, cell:value,…          replace
@@ -131,7 +133,7 @@ const orbitPose = (patch: Partial<OrbitPose>): OrbitPose => ({
     s: orbit().scale.x,
     ...patch,
 });
-// The orbit keys of one URL change (q, z, pan) make ONE target: the spring
+// The orbit keys of one URL change (turn, z, pan) make ONE target: the spring
 // is retargeted once, with all of them, after the keys of that change apply.
 let orbitTarget: OrbitPose | null = null;
 const goToOrbit = (patch: Partial<OrbitPose>) => {
@@ -146,7 +148,7 @@ const goToOrbit = (patch: Partial<OrbitPose>) => {
     Object.assign(orbitTarget, patch);
 };
 const SKINS = ["crayon", "ppmycota", "daraksha"] as const;
-const quatCodec = nums(3, 4);
+const turnCodec = nums(0, 3);
 const editedCells = (values: readonly number[]) =>
     values.flatMap((v, i) => (Math.abs(v - AUTHORED_MATRIX_END[i]!) > 5e-4 ? [`${i}:${Number(v.toFixed(3))}`] : []));
 useUrlState(
@@ -162,22 +164,20 @@ useUrlState(
             history: "push",
         } satisfies UrlKey<CubeSkin>,
         {
-            key: "q",
+            // The die's attitude as the turn a hand gave it (FORTY-SIXTH F:
+            // "what is the q?"). The orbit's truth is a quaternion; the link
+            // spells it as the readout's Y·X·Z triple in whole degrees, which
+            // reads as what it is and costs at most 0.6° of attitude. At the
+            // pole (x = ±90) only y ∓ z is defined, and the decode builds the
+            // same quaternion. Written only after a turn (home pose = no key).
+            key: "turn",
             get: () => {
-                const q = orbit().quaternion ?? [0, 0, 0, 1];
-                // q and −q are one attitude: spell it with w ≥ 0.
-                return q[3] < 0 ? q.map((x) => -x) : [...q];
+                const e = quaternionToEulerDegrees(orbit().quaternion ?? [0, 0, 0, 1]);
+                return [Math.round(e.x), Math.round(e.y), Math.round(e.z)];
             },
-            set: (q: number[]) => {
-                const n = Math.hypot(...q) || 1;
-                goToOrbit({ q: q.map((x) => x / n) as Quat });
-            },
-            fallback: () => [0, 0, 0, 1],
-            encode: quatCodec.encode,
-            decode: (raw: string) => {
-                const q = quatCodec.decode(raw);
-                return q && Math.abs(Math.hypot(...q) - 1) < 0.01 ? q : undefined;
-            },
+            set: ([x, y, z]: number[]) => goToOrbit({ q: eulerDegreesToQuaternion(x!, y!, z!) }),
+            fallback: () => [0, 0, 0],
+            ...turnCodec,
             history: "replace",
         } satisfies UrlKey<number[]>,
         {
@@ -296,11 +296,10 @@ onMounted(() => {
     const cubeEl = target?.cubeEl;
     const bobEl = target?.bobEl;
     const poseEl = target?.poseEl;
-    const graphEl = target?.graphEl;
 
-    if (cubeEl && bobEl && poseEl && graphEl) {
+    if (cubeEl && bobEl && poseEl) {
         poseElRef.value = poseEl;
-        setTargets({ cubeEl, bobEl, poseEl, graphEl });
+        setTargets({ cubeEl, bobEl, poseEl });
     }
 });
 

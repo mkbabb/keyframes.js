@@ -110,10 +110,10 @@ test("a copied link reopens the same view (spring, easing, sequence)", async ({ 
 });
 
 test("the cube's link carries its turn and zoom, reached on the spring (never a cut)", async ({ page }) => {
-    // 60° about y, zoom 1.4.
+    // 60° about y (the turn key, whole degrees), zoom 1.4.
     const h = (60 * Math.PI) / 360;
     const q = [0, Math.sin(h), 0, Math.cos(h)];
-    await page.goto(at(`/cube?q=${q.map((x) => x.toFixed(3)).join(",")}&z=1.4&play=0`));
+    await page.goto(at(`/cube?turn=0,60,0&z=1.4&play=0`));
     await page.waitForFunction(() => /rotate3d/.test(document.querySelector(".graph > div")?.style.transform ?? ""));
     // Sample the travel: it moves over several frames, not in one.
     const poses = await page.evaluate(
@@ -135,7 +135,7 @@ test("the cube's link carries its turn and zoom, reached on the spring (never a 
     expect(turnDeg(o.q, q)).toBeLessThan(0.5);
     expect(o.s).toBeCloseTo(1.4, 2);
     expect(await page.getByRole("button", { name: "Play animation" }).count()).toBe(1);
-    expect(await query(page)).toMatchObject({ path: "/cube", z: "1.4", play: "0" });
+    expect(await query(page)).toMatchObject({ path: "/cube", turn: "0,60,0", z: "1.4", play: "0" });
 });
 
 test("a turn of the die replaces the entry; a pick pushes one; Back and Forward walk the views", async ({ page }) => {

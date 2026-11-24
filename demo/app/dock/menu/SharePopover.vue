@@ -22,9 +22,8 @@
              surface ends on its anchor's end edge, as the @mbabb menu does on
              the same trigger; `sideOffset` is the host's (the menu's own
              dock-edge offset, so both surfaces open below the dock band).
-             `@interact-outside` carries the demo's own toaster guard: both
-             `loadFromInput` error paths toast AND leave this popover open, and a
-             click on that toast must not dismiss it.
+             `@interact-outside` carries the demo's own toaster guard: a click
+             on a toast must not dismiss this popover.
              X.KF.W13X.overlays · A2-KE-L2-12 — `collision-padding="16"`: at
              phone width the 288px surface landed flush on the viewport's left
              edge (x 0 at 360/390/430); the same 16px the @mbabb menu passes on
@@ -45,10 +44,11 @@
             @close-auto-focus="returnFocus"
             @interact-outside="onInteractOutside"
         >
-            <!-- X.KF.W13X.overlays · UIA-KF-071 — the hierarchy the menu row
-                 promises. The action the row names ("Share": copy the link) is
-                 the dominant, NAMED control on top; a separator; then the import
-                 path as its own labelled field with a labelled Load button.
+            <!-- X.KF.W13X.overlays · UIA-KF-071 — the action the row names
+                 ("Share": copy the link) is the surface's one NAMED control.
+                 FORTY-SIXTH E — the link is the address, so the import path
+                 (a paste field and Load) retired: a link opens in the address
+                 bar.
                  UIA-KF-224 — every control here says what it does in visible
                  text, so no native `title` tooltip is left to stand in for a
                  name (the two icon-only buttons and their titles are gone).
@@ -84,85 +84,39 @@
                         />
                     </template>
                 </LabeledField>
-                <Separator />
-                <!-- SP-4/SP-7/SP-9: the Input is size-driven (`font-mono` alone;
-                     the producer's `--control-text` keeps it >= 16px where iOS
-                     zooms). SP-5/SP-6: `inputmode="url"`, `enterkeyhint="go"`,
-                     `autocomplete="off"`; `type="url"` is deliberately NOT set —
-                     the field accepts a bare base64 param (useShareState.ts).
-                     UIA-KF-142 — a refused load marks the field: the producer's
-                     `invalid` skin, and the reason in the line under it, which
-                     the field names through `aria-describedby` and announces
-                     (polite). The verdict clears on the next edit
-                     (useShareState.ts). No visible label: the placeholder and
-                     Load say what the field is for; the name stays for
-                     assistive tech. -->
-                <div class="grid gap-1.5">
-                    <Input
-                        v-model="loadHashInput"
-                        aria-label="Load from link"
-                        :aria-describedby="loadError !== null ? loadErrorId : undefined"
-                        :invalid="loadError !== null"
-                        placeholder="Paste a share link"
-                        inputmode="url"
-                        enterkeyhint="go"
-                        autocomplete="off"
-                        class="font-mono"
-                        @keydown.enter="onLoad"
-                    />
-                    <p v-if="loadError !== null" :id="loadErrorId" class="text-small text-destructive" aria-live="polite">
-                        {{ loadError }}
-                    </p>
-                </div>
-                <!-- The Load action is DISABLED on an empty field (the empty
-                     submit was a silent return). -->
-                <Button
-                    size="sm"
-                    emphasis="quiet"
-                    :disabled="loadHashInput.trim() === ''"
-                    @click="onLoad"
-                >
-                    <ArrowRight class="icon-md" />
-                    Load
-                </Button>
             </div>
         </PopoverContent>
     </Popover>
 </template>
 
 <script setup lang="ts">
-import { nextTick, ref, useId, useTemplateRef, watch } from "vue";
+import { nextTick, ref, useTemplateRef, watch } from "vue";
 import type { ComponentPublicInstance } from "vue";
 import { PopoverAnchor } from "reka-ui";
-import { ArrowRight, Check, Copy } from "@lucide/vue";
+import { Check, Copy } from "@lucide/vue";
 // SP-18 (W6-I): every glass symbol on its own subpath beside `./forms`.
 import { Button } from "@mkbabb/glass-ui/button";
 import { Popover, PopoverContent } from "@mkbabb/glass-ui/popover";
 import { Input } from "@mkbabb/glass-ui/input";
 import { LabeledField } from "@mkbabb/glass-ui/labeled-field";
-import { Separator } from "@mkbabb/glass-ui/separator";
 import { isInsideToaster } from "@utils/toastGuard";
 import { useShareState } from "./useShareState";
 
-const { anchor, sideOffset = 8, onSceneRestore } = defineProps<{
+const { anchor, sideOffset = 8 } = defineProps<{
     /** The element the surface opens against (MbabbMenu: its @mbabb trigger). */
     anchor?: HTMLElement | undefined;
     /** The gap between the anchor and the surface, px. */
     sideOffset?: number;
-    onSceneRestore?: (sceneId: string) => void;
 }>();
 
 // X.KF.W13X.esc2 · ESC-dock-1 — the open model is the HOST's (`v-model:open`):
-// the host's Share row opens it, and `useShareState` closes it after a copy or
-// a successful load (UIA-KF-070: a completed action dismisses the surface).
+// the host's Share row opens it, and `useShareState` closes it after a copy
+// (UIA-KF-070: a completed action dismisses the surface).
 // The former `defineExpose({ open })` + `done` pair existed so a host could
 // reach into a popover nested in its menu row; the row no longer nests it.
 const open = defineModel<boolean>("open", { default: false });
 
-const { loadHashInput, loadError, copyFallbackUrl, shareState, loadFromInput } = useShareState(
-    onSceneRestore,
-    open,
-);
+const { copyFallbackUrl, shareState } = useShareState(open);
 // UIA-KF-321 — the fallback field takes focus with its whole link selected.
 // The surface's own focus selects the link only once focus has landed on the
 // mounted field (`focus()` is synchronous), never through the field's `@focus`
@@ -194,14 +148,8 @@ const onShare = async () => {
     }
 };
 
-const onLoad = () => {
-    loadFromInput();
-};
-const loadErrorId = useId();
-
 // The menu's Share row copies on its own press (one press for the act) and
-// then opens this surface, which says the link is copied and keeps the load
-// path in reach. Called inside the press's handler, so the write runs in the
+// then opens this surface, which says the link is copied. Called inside the press's handler, so the write runs in the
 // press's own activation. A refusal takes the fallback above (the link,
 // selected, in place of the copy).
 const copied = ref(false);
@@ -231,9 +179,9 @@ const focusPrimary = (event: Event) => {
     (primaryEl.value?.$el as HTMLElement | undefined)?.focus();
 };
 
-// The toaster guard: both `loadFromInput` error paths toast AND leave this
-// popover open, and a click on that toast must not dismiss it. Any other
-// outside interaction dismisses, and focus then stays where the user put it.
+// The toaster guard: a click on a toast must not dismiss this popover. Any
+// other outside interaction dismisses, and focus then stays where the user put
+// it.
 let interactedOutside = false;
 const onInteractOutside = (event: Event) => {
     if (isInsideToaster(event.target)) return event.preventDefault();

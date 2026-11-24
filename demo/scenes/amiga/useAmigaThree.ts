@@ -86,6 +86,25 @@ const ENVELOPE_BELOW = SPHERE_HOME - CONTACT_FLOOR;
 const ENVELOPE_ABOVE = APEX_Y + SPHERE_RADIUS - SPHERE_HOME;
 /** A breath of margin so the ball never kisses the frame edge. */
 const FRAME_MARGIN = 1.04;
+/** The camera's distance from the ball's home on a stage of this aspect: the
+ *  nearest that frames the sweep and the bounce envelope (`frameRoom`). */
+const framedDistance = (aspect: number): number =>
+    FRAME_MARGIN *
+    Math.max(
+        SWEEP_HALF_WIDTH / (aspect * Math.tan(HALF_FOV_RAD)),
+        ENVELOPE_BELOW / FLOOR_REACH,
+        ENVELOPE_ABOVE / CEILING_REACH,
+    );
+/**
+ * FORTY-SIXTH E1 (J9) — the ball's drawn diameter at home on a stage of this
+ * size, in CSS px: what the silhouette stands in for while the room builds
+ * (it was `min(32vmin, 18rem)`, about twice the ball on a desk).
+ */
+export const framedBallDiameter = (width: number, height: number): number => {
+    if (width <= 0 || height <= 0) return 0;
+    const d = framedDistance(width / height);
+    return (height * Math.tan(Math.asin(SPHERE_RADIUS / d))) / Math.tan(HALF_FOV_RAD);
+};
 /**
  * X-DS r4 pass 6 (KF-C25-03) — THE ROOM CLOSES INSIDE THE FRAME AT EVERY
  * WIDTH. The walls stood BOX_SIZE (12 u) tall, a cube, but the camera frames
@@ -590,13 +609,7 @@ export function useAmigaThree(
         if (!camera || !renderer || width === 0 || height === 0) return;
         const aspect = width / height;
         camera.aspect = aspect;
-        const framed =
-            FRAME_MARGIN *
-            Math.max(
-                SWEEP_HALF_WIDTH / (aspect * Math.tan(HALF_FOV_RAD)),
-                ENVELOPE_BELOW / FLOOR_REACH,
-                ENVELOPE_ABOVE / CEILING_REACH,
-            );
+        const framed = framedDistance(aspect);
         // The camera keeps the direction the user orbited it to and takes the
         // framed distance (a resize re-frames; it never leaves the ball small).
         const target = controls?.target ?? homeTarget;
@@ -723,6 +736,16 @@ export function useAmigaThree(
             if (!live()) return;
             failed.value = false;
             renderDirty = true;
+            // FORTY-SIXTH E1 (J9) — a room built at the mount arrives by a
+            // fade under the leaving silhouette (it was drawn whole in one
+            // frame). Its surface has drawn nothing yet, so the fade starts
+            // from the first frame the room draws. A prepared room (an in-app
+            // swap) is whole in the swap's capture and takes no fade.
+            renderer.domElement.animate?.([{ opacity: 0 }, { opacity: 1 }], {
+                duration: 200,
+                easing: "cubic-bezier(0, 0, 0.2, 1)",
+                fill: "backwards",
+            });
             start();
         } catch (error) {
             failed.value = true;

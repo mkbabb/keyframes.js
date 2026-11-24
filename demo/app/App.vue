@@ -34,7 +34,7 @@
         @update-selected-control="onDockSelectControl"
     >
         <template #items>
-            <MbabbMenu :on-scene-restore="runSceneSwitch" :skins="resolvedScene.id === HOME_SCENE_ID || resolvedScene.id === CUBE_SCENE_ID" />
+            <MbabbMenu :skins="resolvedScene.id === HOME_SCENE_ID || resolvedScene.id === CUBE_SCENE_ID" />
         </template>
     </ChromeDock>
 
@@ -57,8 +57,11 @@
              query toggle is gone). Home only; navigating away tears the layer
              down. The subtlety bound lives in HeroAurora
              (HERO_AURORA_OPACITY_CEILING). -->
-        <template v-if="isHome" #backdrop>
-            <HomeBackdrop />
+        <!-- FORTY-SIXTH E1 (J5, J6) — the wash comes and goes by a fade: in
+             by its own entrance (HeroAurora), out over the swap's length
+             while it stays mounted (useBackdropLeave), never in one frame. -->
+        <template #backdrop>
+            <HomeBackdrop v-if="homeBackdropMounted" ref="homeBackdrop" />
         </template>
 
         <template #start-screen>
@@ -143,6 +146,7 @@ import {
     shallowRef,
     useTemplateRef,
     watchEffect,
+    type ComponentPublicInstance,
 } from "vue";
 import {
     ACTIVE_SCENE_KEY,
@@ -188,6 +192,7 @@ import { useStartScreen } from "./scene/useStartScreen";
 import { useSceneSwap } from "./transition/useSceneSwap";
 import { useSceneTransition } from "./transition/useSceneTransition";
 import { scenes, sceneMap, warmScene, homeScene, HomeBackdrop } from "./scene/scenes";
+import { useBackdropLeave } from "./hero/useBackdropLeave";
 // X-DS pass 4 (KF-C4-16) — the Boing room draws its own floor and wall grid,
 // so the shell's graph paper stays off on that one scene: two grids at two
 // pitches interleaved behind the ball as a moiré. The room is the only ground.
@@ -247,6 +252,10 @@ const sceneRef = shallowRef<SceneExposedApi | null>(null);
 // The scene-swap subject: the host the View Transition morphs and the focus
 // target routed to on `transition.finished` (the a11y MANDATORY).
 const sceneHostEl = useTemplateRef<HTMLElement>("sceneHostEl");
+// FORTY-SIXTH E1 (J5) — Home's wash fades out over 240 ms (six tenths of the
+// route's 400 ms arrival), mounted until its fade has finished.
+const homeBackdrop = useTemplateRef<ComponentPublicInstance>("homeBackdrop");
+const homeBackdropMounted = useBackdropLeave(() => isHome.value, () => homeBackdrop.value?.$el, 240);
 const chromeDockRef = useTemplateRef<InstanceType<typeof ChromeDock>>("chromeDockRef");
 
 // Start with an empty AnimationGroup. The active scene's real group is bound
@@ -445,7 +454,7 @@ const {
 // Native View Transitions wrap the (synchronous) scene-id mutation; the no-VT
 // path falls through to the SpringProgress cross-dissolve unchanged, and focus
 // routes to the scene host on `finished` (a11y). Every scene-nav entry (the dock
-// @switch-scene, the SharePopover restore, a URL change) goes through this.
+// @switch-scene, a URL change) goes through this.
 const { runSceneSwitch, lastSwapBackend, onSceneContent } = useSceneTransition({
     mutate: switchScene,
     sceneHost: sceneHostEl,

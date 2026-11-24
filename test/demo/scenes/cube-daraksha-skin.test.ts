@@ -375,7 +375,7 @@ describe("reduced motion — the die hangs straight", () => {
         const w = mountDie("daraksha");
         const node = (sel: string) => w.find(sel).element as HTMLElement;
         const bobEl = node(".cube-bob");
-        demo.setTargets({ cubeEl: node(".cube"), bobEl, poseEl: node(".cube-pose"), graphEl: node(".graph") });
+        demo.setTargets({ cubeEl: node(".cube"), bobEl, poseEl: node(".cube-pose") });
 
         await demo.animationGroup.value.play();
 

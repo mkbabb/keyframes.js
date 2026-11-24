@@ -171,17 +171,14 @@ const { lock } = defineProps<{
          pairwise separation: x^y 81.79deg · y^z 49.11deg · z^x 49.11deg
 
        So in the frame the app actually shows, ORIENTATION IS A REAL REDUNDANT
-       ENCODING for all three — the reveal does not rest on hue alone. At the
-       first frame of the 650 ms intro sweep the stage is still at identity, and
-       there and ONLY there `.z` has screen extent 0.00000: the Z axis points
-       along the view direction, so it projects to a point. That degeneracy is
-       TRANSIENT (it ends with the sweep) and the PRM arm never shows it at all —
-       it snaps straight to GRAPH_ATTITUDE (useCubeDemo.ts:144).
+       ENCODING for all three — the reveal does not rest on hue alone. The stage
+       is parked at GRAPH_ATTITUDE from its first render (FORTY-SIXTH E1: the
+       650 ms intro sweep from identity is gone), so the identity frame, where
+       the Z stroke pointed along the view direction and projected under the
+       camera's perspective as a wedge across the stage (J2), is never shown.
 
-       KF-AX-5's design decision, taken here: `rotateY(90deg)` STAYS. Tilting the
-       Z stroke to keep it legible during the sweep would make it LIE — it would
-       stop being the Z axis. A stroke that is briefly invisible because the axis
-       it names is briefly edge-on is telling the truth about a 3D scene. */
+       KF-AX-5's design decision, taken here: `rotateY(90deg)` STAYS. It is the
+       Z axis; the parked attitude is what makes it legible. */
     &.x {
         --color: var(--axis-x);
         /* KF-AX-29 — the identity rotate is DELIBERATE, and the file was silent

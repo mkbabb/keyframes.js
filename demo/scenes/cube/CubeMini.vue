@@ -24,7 +24,7 @@ import { useLiveMini } from "@composables/useLiveMini";
 import { kfEngine } from "@kf-engine";
 import { getStoredAnimationOptions } from "@state";
 import { CUBE_SCENE_ID } from "./cubeKeys";
-import { CUBE_ANIMATION_NAMES, CUBE_SPIN_VARS, cubeSpinKeyframes } from "./cubeMotion";
+import { CUBE_ANIMATION_NAMES, CUBE_AUTHORED_OPTIONS, CUBE_SPIN_VARS, cubeSpinKeyframes } from "./cubeMotion";
 
 const { live = false } = defineProps<{ live?: boolean }>();
 
@@ -46,7 +46,7 @@ const cubeEl = useTemplateRef<HTMLElement>("cubeEl");
 
 const { CSSKeyframesAnimation, AnimationGroup, presets } = kfEngine();
 const optionsOf = (name: string) => ({
-    ...getStoredAnimationOptions(name, CUBE_SCENE_ID).animationOptions,
+    ...getStoredAnimationOptions(name, CUBE_SCENE_ID, CUBE_AUTHORED_OPTIONS[name]).animationOptions,
 });
 const spin = new CSSKeyframesAnimation(optionsOf(CUBE_ANIMATION_NAMES.Rotations)).fromKeyframes(
     cubeSpinKeyframes(),

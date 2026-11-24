@@ -32,7 +32,7 @@
              pointer (the ChromeDock pair — pointer-events-none host,
              pointer-events-auto child), so the band outside it never
              swallows a press meant for the stage beneath. -->
-        <div class="pointer-events-auto dock-vt-group">
+        <div class="pointer-events-auto dock-vt-group" data-dock-swap="transport-dock">
             <!-- An upright phone's transport is the page's one bottom dock: it
                  never folds (Play, the scene's choices and Controls stay in
                  view), and its Controls seat opens the sheet. -->
@@ -78,7 +78,7 @@
                      scale are gone. The rainbow fill is the scene's identity
                      colour (kept, §0dm); a DockControl accent tone is the glass
                      half (O-59). -->
-                <Tooltip>
+                <Tooltip :disabled="!dockTip">
                     <TooltipTrigger as-child>
                         <DockControl
                             shape="icon"
@@ -202,7 +202,7 @@
                          is what the start screen's copy asks for. -->
                     <template v-if="!startScreen && !sheetHoldsExtras">
                     <DockSeparator />
-                    <Tooltip>
+                    <Tooltip :disabled="!dockTip">
                         <TooltipTrigger as-child>
                             <DockControl shape="icon" aria-label="Reset animation" @click="() => { resetIconSpin(); emit('reset', false); }">
                                 <span ref="resetIconEl" class="inline-flex">
@@ -224,7 +224,7 @@
                          the press. -->
                     <template v-if="phoneDock && controlsSeat">
                         <DockSeparator />
-                        <Tooltip>
+                        <Tooltip :disabled="!dockTip">
                             <TooltipTrigger as-child>
                                 <DockControl
                                     shape="icon"
@@ -250,6 +250,8 @@
 </template>
 
 <script setup lang="ts">
+import "@styles/dock-swap.css";
+import { useDockTip } from "@composables/useDockTip";
 import { computed, ref, useTemplateRef, watch } from "vue";
 
 import {
@@ -285,6 +287,9 @@ import { useIconSpin } from "./composables/useIconSpin";
 import { PLAY_FILL } from "./playFill";
 import TransportScrub from "./TransportScrub.vue";
 import type { StoredAnimationGroupControlOptions } from "@state";
+
+/** The seats' tooltips open for a hovering pointer only, never on a tap (K-4). */
+const dockTip = useDockTip();
 
 const dockRef = useTemplateRef<InstanceType<typeof GlassDock>>("dockRef");
 
@@ -423,20 +428,24 @@ defineExpose({ resetIconSpin });
 </script>
 
 <style scoped>
-/* KFA-77 (X.KF.W13X.scene) — the pill is its own View-Transition group, so a
-   scene swap morphs it from the old width to the new one and its label
-   cross-fades in place, instead of double-exposing inside the root fade at two
-   offsets. A fixed pill paints above the stage, so its group paints above the
-   `scene-subject` group too (KFA-26). One pill per state, so the name is unique. */
-/* X-DS pass 4 (KF-C4-03) — named only while a transition runs: a standing
-   name makes the group a backdrop root, and the dock plate inside it then
-   blurred nothing behind the dock (App.vue's `.scene-host` note). */
+/* KFA-77 · FORTY-SIXTH A (K-1) — the transport crosses a page change as ONE
+   dock, as ChromeDock does (its note; @styles/dock-swap.css holds the look):
+   its own group while a transition runs, and each seat a group of its own, so
+   Home's Play glides to its place at the head of the cube's transport while the
+   plate's capsule grows from the circle to the bar. The seats are the persistent
+   Play and the row's members (the row itself changes width, so it is not one).
+   While glass opens the folded transport (the press's own hover or tap, as
+   the page changes), the row's members are not groups (glass's morph clips
+   them) and the dock-swap look draws the dock live; Play, outside that clip,
+   still glides from the circle's centre to the bar's head. */
 :root:active-view-transition .dock-vt-group {
     view-transition-name: transport-dock;
-    /* LAST-TEN KF-24 — the pill's morph rides glass's list-item group, so it
-       runs on the route's lateral clock (App.vue `--vt-duration`), not the
-       UA's untokened 250 ms `ease`. */
-    view-transition-class: gl-list-item;
+    view-transition-class: gl-list-item kf-dock;
+}
+:root:active-view-transition .dock-vt-group :deep(.glass-dock .dock-persistent > *),
+:root:active-view-transition .dock-vt-group :deep(.glass-dock:not([data-morphing]) .dock-layer.is-active > .transport-row > *) {
+    view-transition-name: match-element;
+    view-transition-class: gl-list-item kf-dock-seat;
 }
 
 /* TD-35 — the transport's internal rhythm rides the ONE gutter token every

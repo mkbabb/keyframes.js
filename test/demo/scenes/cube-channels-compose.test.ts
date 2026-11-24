@@ -46,7 +46,7 @@ describe("KF.W13U.w — the cube's channels compose on their own elements", () =
         const cubeEl = el(poseEl, "cube");
         cubeEl.style.setProperty("--rotationX", "360deg");
 
-        demo.setTargets({ cubeEl, bobEl, poseEl, graphEl });
+        demo.setTargets({ cubeEl, bobEl, poseEl });
         const group = demo.animationGroup.value;
         expect(group.singleTarget).toBe(false);
 

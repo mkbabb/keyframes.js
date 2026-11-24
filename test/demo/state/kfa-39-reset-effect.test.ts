@@ -38,12 +38,6 @@ function makeGroup(): AnimationGroup<any> {
 const storedOptions = (): StoredAnimationGroupControlOptions => ({
     selectedControl: "controls",
     selectedAnimation: "fade",
-    keyframeControls: {
-        selectedKeyframesControl: "keyframes",
-        dialogOpen: false,
-        keyframes: "",
-        addKeyframes: "",
-    },
     isTimelineExpanded: false,
     isControlsPanelOpen: true,
 });

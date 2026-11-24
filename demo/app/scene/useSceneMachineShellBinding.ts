@@ -161,11 +161,18 @@ export function useSceneMachineShellBinding(opts: {
     let readyWaiter: { id: string; resolve: () => void } | null = null;
     let held: { id: string; playback: ScenePlayback | null } | null = null;
 
+    // FORTY-SIXTH E1 (J3, J4) — the landing starts the loop by gathering its
+    // speed (`easeIn`: the clock's rate rises 0 → 1 over 250 ms, the walk the
+    // hand's release already takes), in the frame the swap lands. A resume
+    // cut from still to full speed in one frame (0 to 80°/s on a return).
     function land() {
         const h = held;
         held = null;
         if (!h?.playback) return;
-        if (h.id === currentSceneId.value && machine.status.value === "playing") h.playback.resume();
+        const stillHere = () => h.id === currentSceneId.value && machine.status.value === "playing";
+        if (!stillHere()) return;
+        if (h.playback.easeIn) h.playback.easeIn(stillHere);
+        else h.playback.resume();
     }
 
     function whenSceneReady(id: string): Promise<() => void> {
@@ -340,8 +347,12 @@ export function useSceneMachineShellBinding(opts: {
     // loop BEFORE the new one starts (genuine suspend, no orphan rAF); the writer
     // projects the new active scene onto the URL. No hand-poked codec.
     function switchScene(id: string) {
-        if (!sceneMap.has(id)) return;
-        machine.dispatch({ type: "NAVIGATE", to: id });
+        const to = sceneMap.get(id);
+        if (!to) return;
+        // Home is the cube's own page (one superKey, one mounted scene): the
+        // leaving loop stays in view, so it comes to rest by the eased stop.
+        const stays = to.superKey === sceneMap.get(currentSceneId.value)?.superKey;
+        machine.dispatch({ type: "NAVIGATE", to: id, stays });
     }
 
     // ── Tab-visibility fold (S5/S9.d) — TAB_HIDDEN/TAB_SHOWN ──────────────────

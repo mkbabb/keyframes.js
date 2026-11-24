@@ -170,7 +170,11 @@ describe("X.KF.W13X.r4cube — the cube's playing state and the paused matrix ed
         expect(exposed.facility.group.paused).toBe(true);
         expect(useSceneMachine().status.value).toBe("paused");
         // the paused repaint leaves the group resumable: PLAY picks it back up
+        // (FORTY-SIXTH E1: by gathering its speed over the 250 ms ramp, then
+        // running on)
         useSceneMachine().dispatch({ type: "PLAY" });
+        await nextTick();
+        flush(20);
         await nextTick();
         expect(exposed.facility.group.paused).toBe(false);
         expect(rollClasses()).toContain("playing");

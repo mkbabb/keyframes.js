@@ -12,7 +12,7 @@
              beside the sans 'Home'/scene trigger, not a mono identifier. The
              identifier register stays where the menu names the account as an
              identifier (the "@mbabb · GitHub" row below). -->
-        <Tooltip>
+        <Tooltip :disabled="!dockTip">
             <TooltipTrigger as-child>
                 <DockTrigger ref="mbabbTrigger" for="dropdown" aria-label="@mbabb menu" class="dock-label">@mbabb</DockTrigger>
             </TooltipTrigger>
@@ -278,7 +278,7 @@
 
     <!-- ESC-dock-1 — the share surface, a sibling of the menu it is opened from
          (never nested in a row), anchored to the @mbabb trigger. -->
-    <SharePopover ref="sharePopover" v-model:open="shareOpen" :anchor="mbabbTrigger?.$el" :side-offset="shareOffset" :on-scene-restore="onSceneRestore" />
+    <SharePopover ref="sharePopover" v-model:open="shareOpen" :anchor="mbabbTrigger?.$el" :side-offset="shareOffset" />
     <!-- X.KF.W13U.d · OA-33 — the shortcuts dialog lives with the row that
          opens it and with its `?` shortcut (moved from ChromeDock). -->
     <KeyboardShortcutsModal v-model:open="shortcutsOpen" @close-auto-focus="onShortcutsCloseAutoFocus" />
@@ -315,6 +315,7 @@
 </template>
 
 <script setup lang="ts">
+import { useDockTip } from "@composables/useDockTip";
 // ─────────────────────────────────────────────────────────────────────────────
 // MbabbMenu — the @mbabb dock dropdown (S.D1 · a23 F2 extraction from App.vue).
 //
@@ -348,12 +349,12 @@ import type { CubeSkin } from "@state";
 import { CUBE_SCENE_ID } from "../../../scenes/cube/cubeKeys";
 import { useDockEdgeOffset } from "@composables/dockEdge";
 defineProps<{
-    // Scene restore from a shared URL (passed straight to SharePopover). The shell
-    // owns the real switch (runSceneSwitch); the menu only forwards the id.
-    onSceneRestore: (id: string) => void;
     /** A die is on the stage (the cube, and Home's backdrop): its skins are offered. */
     skins?: boolean;
 }>();
+
+/** The seats' tooltips open for a hovering pointer only, never on a tap (K-4). */
+const dockTip = useDockTip();
 
 // This menu's own open state. It stays a `defineModel` — glass-ui 7.0.0's
 // `DropdownMenu` declares `open`/`defaultOpen` as `{ type: Boolean, default:
@@ -374,7 +375,7 @@ const dock = useOptionalDockContext();
 const shareOpen = ref(false);
 // Share is one press: the row copies the link (inside its own press, so the
 // clipboard write keeps the press's activation) and opens the surface, which
-// says so and keeps "Load from link" in reach.
+// says so.
 const sharePopover = useTemplateRef<{ copyAtOpen: () => Promise<void> }>("sharePopover");
 function onShareRow(): void {
     void sharePopover.value?.copyAtOpen();
@@ -511,12 +512,10 @@ function onConfirmCloseAutoFocus(event: Event): void {
     mbabbTrigger.value?.$el.focus();
 }
 
-// MM-42 (caveat, recorded where the reset is spent): `resetAllStores()` is
-// asymmetric — two stores are ref-reset AND key-removed, the scene machine's
-// persisted key is only removed while its live `useStorage` ref is not reset,
-// and components that captured a bucket hold detached proxies afterwards. It is
-// correct ONLY because the reload below follows it immediately; a caller that
-// resets without reloading inherits that asymmetry.
+// MM-42 (caveat, recorded where the reset is spent): components that captured
+// a bucket hold detached proxies after `resetAllStores()`. It is correct ONLY
+// because the reload below follows it immediately (the address it leaves is
+// the scene's bare route, so the reload opens the scene at its defaults).
 // UIA-KF-138 — the identity row's command: the source, in a new tab, no opener.
 function openSource(): void {
     window.open("https://github.com/mkbabb/keyframes.js", "_blank", "noopener,noreferrer");

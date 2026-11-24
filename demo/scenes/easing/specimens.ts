@@ -30,7 +30,7 @@ export const specimenCurve = (name: string): TimingFunction =>
     SPECIMEN_FNS.get(name) ?? namedEasing(name);
 
 // OD19 residue (value.js COHESION §0gp) — the tiles' plots are static data,
-// built here once, when the scene's chunk evaluates (`warmScenesAtIdle`, or
-// the deep link's boot), so the swap into Easing mounts its catalogue with no
-// curve call. On the real-GPU cell they were ~15 ms of that swap's commit.
+// built here once, when the scene's chunk evaluates (the Scene list's warm on
+// intent, the switch's load, or the deep link's boot; the idle warm only
+// fetches it), so the swap into Easing mounts its catalogue with no curve call. On the real-GPU cell they were ~15 ms of that swap's commit.
 for (const fn of SPECIMEN_FNS.values()) unitEasingPlot(fn);
