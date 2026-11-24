@@ -2,20 +2,20 @@
 /**
  * A hand on the playing die: the scene yields while it holds.
  *
- * On a phone the playing cube scene repainted its transport every frame, and
- * its touches reached the page about 15 ms later than the paused scene's
- * (28.7 ms against 13.2 ms, created to handled). While a finger
- * or the mouse holds the die, the group's own loop now pauses (the die holds
- * still under the hand, and the page's frames carry the hand alone); at the
- * release it plays on from the same instant. Only a loop that was running is
- * paused, only that pause is resumed, and a Pause pressed during the hold is
- * kept.
+ * While a finger, the mouse or a pen holds the die itself (it landed on the
+ * die and has moved, or stayed down past a tap), the group's own loop pauses:
+ * the die holds still under the hand, and at the release it gathers its speed
+ * from the same instant (the orbit's coast throws it with the hand's speed).
+ * Only a loop that was running is paused, only that pause is resumed, and a
+ * Pause pressed during the hold is kept. A tap or a click on the die or beside
+ * it, a drag that starts beside it, and the wheel never hold it (owner, 23 Nov).
  *
- * Born red: the orbit said nothing of a hand, and the group played on under it.
+ * Born red: the orbit said nothing of a hand, and the group played on under
+ * it; then it held for any press on the stage and every wheel stream.
  */
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { mount } from "@vue/test-utils";
-import { nextTick, ref } from "vue";
+import { h, nextTick, ref } from "vue";
 import { withSetup } from "../../support/withSetup";
 import { warmKfEngine } from "../../../demo/kf-engine";
 import { useCubeDemo } from "../../../demo/scenes/cube/useCubeDemo";
@@ -64,29 +64,144 @@ const ptr = (type: string, x: number, y: number, t: number) => {
     return e;
 };
 
-describe("the orbit says when a hand holds the die", () => {
-    it("emits hold true at the first finger down and false at the last one up", async () => {
-        const model = ref<TransformState>(structuredClone(defaultTransformState));
-        const w = mount(OrbitalDrag, {
-            props: {
-                applyTransformToContainer: true,
-                modelValue: model.value,
-                "onUpdate:modelValue": (v: TransformState) => (model.value = v),
-                frame: () => ({ centre: { x: 200, y: 300 }, side: 160, fit: 1, stage: null }),
-            },
-            attachTo: document.body,
-        });
-        await nextTick();
-        const surface = w.element as HTMLElement;
-        surface.dispatchEvent(ptr("pointerdown", 200, 300, 10));
-        await nextTick();
-        document.dispatchEvent(ptr("pointermove", 220, 300, 26));
-        await frames(2);
-        document.dispatchEvent(ptr("pointerup", 220, 300, 200));
-        await nextTick();
-        expect(w.emitted("hold")).toEqual([[true], [false]]);
-        w.unmount();
+/** The orbit alone, its subject a 160 px die at the stage's centre (`.cube`, the
+ *  selector CubeTarget names), the stage around it the container. */
+const mountOrbit = () => {
+    const model = ref<TransformState>(structuredClone(defaultTransformState));
+    const w = mount(OrbitalDrag, {
+        props: {
+            applyTransformToContainer: true,
+            modelValue: model.value,
+            "onUpdate:modelValue": (v: TransformState) => (model.value = v),
+            frame: () => ({ centre: { x: 200, y: 300 }, side: 160, fit: 1, stage: null }),
+            subject: ".cube",
+        },
+        slots: { default: () => h("div", { class: "cube" }, [h("div", { class: "cube-side front" })]) },
+        attachTo: document.body,
     });
+    const stage = w.element as HTMLElement;
+    const face = stage.querySelector<HTMLElement>(".cube-side")!;
+    return { w, stage, face };
+};
+
+/** Fake timers for the hold's tap window (the frames are the stubbed queue's). */
+const withTimers = async (run: () => Promise<void>) => {
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+    try {
+        await run();
+    } finally {
+        vi.useRealTimers();
+    }
+};
+
+const mousePtr = (type: string, x: number, y: number, t: number) => {
+    const e = new PointerEvent(type, { clientX: x, clientY: y, pointerId: 1, pointerType: "mouse", button: 0, bubbles: true });
+    Object.defineProperty(e, "timeStamp", { value: t });
+    return e;
+};
+
+// Owner, 23 Nov: only a finger or a drag ON the die stops its spin; a tap or a
+// click beside it, the tap that puts the phone's sheet away, and the wheel over
+// the stage leave it spinning. Born red: the orbit held for any press on the
+// stage, a tap or a click included, and for every wheel stream.
+describe("the orbit holds the die only for a hand on the die itself", () => {
+    it("a finger that lands on the die and drags holds it from the drag, until it is up", () =>
+        withTimers(async () => {
+            const { w, face } = mountOrbit();
+            await nextTick();
+            face.dispatchEvent(ptr("pointerdown", 200, 300, 10));
+            await nextTick();
+            expect(w.emitted("hold")).toBeUndefined();
+            document.dispatchEvent(ptr("pointermove", 214, 300, 26));
+            await frames(2);
+            expect(w.emitted("hold")).toEqual([[true]]);
+            document.dispatchEvent(ptr("pointerup", 214, 300, 60));
+            await nextTick();
+            expect(w.emitted("hold")).toEqual([[true], [false]]);
+            w.unmount();
+        }));
+
+    it("a finger that rests on the die holds it once it has stayed past a tap", () =>
+        withTimers(async () => {
+            const { w, face } = mountOrbit();
+            await nextTick();
+            face.dispatchEvent(ptr("pointerdown", 200, 300, 10));
+            vi.advanceTimersByTime(100);
+            await nextTick();
+            expect(w.emitted("hold")).toBeUndefined();
+            vi.advanceTimersByTime(60);
+            await nextTick();
+            expect(w.emitted("hold")).toEqual([[true]]);
+            document.dispatchEvent(ptr("pointerup", 200, 300, 600));
+            await nextTick();
+            expect(w.emitted("hold")).toEqual([[true], [false]]);
+            w.unmount();
+        }));
+
+    it("a tap on the die, the tap that puts the sheet away among them, never holds it", () =>
+        withTimers(async () => {
+            const { w, face } = mountOrbit();
+            await nextTick();
+            face.dispatchEvent(ptr("pointerdown", 200, 300, 10));
+            await nextTick();
+            vi.advanceTimersByTime(90);
+            await nextTick();
+            document.dispatchEvent(ptr("pointerup", 202, 301, 100));
+            vi.advanceTimersByTime(500);
+            await nextTick();
+            expect(w.emitted("hold")).toBeUndefined();
+            w.unmount();
+        }));
+
+    it("a tap, a click, a long press or a drag beside the die never holds it", () =>
+        withTimers(async () => {
+            const { w, stage } = mountOrbit();
+            await nextTick();
+            // A tap beside it.
+            stage.dispatchEvent(ptr("pointerdown", 40, 560, 10));
+            await nextTick();
+            document.dispatchEvent(ptr("pointerup", 40, 560, 60));
+            await nextTick();
+            // A desk click beside it.
+            stage.dispatchEvent(mousePtr("pointerdown", 380, 120, 200));
+            await nextTick();
+            vi.advanceTimersByTime(95);
+            document.dispatchEvent(mousePtr("pointerup", 380, 120, 295));
+            await nextTick();
+            // A press beside it held, then dragged round the die (the rim roll).
+            stage.dispatchEvent(ptr("pointerdown", 40, 300, 400));
+            await nextTick();
+            vi.advanceTimersByTime(400);
+            for (let i = 1; i <= 6; i++) {
+                document.dispatchEvent(ptr("pointermove", 40 + 10 * i, 300 - 12 * i, 800 + 16 * i));
+                await frames(1);
+            }
+            document.dispatchEvent(ptr("pointerup", 100, 228, 920));
+            vi.advanceTimersByTime(500);
+            await nextTick();
+            expect(w.emitted("hold")).toBeUndefined();
+            w.unmount();
+        }));
+
+    it("a wheel stream over the stage, the die included, never holds it", () =>
+        withTimers(async () => {
+            const { w, stage, face } = mountOrbit();
+            await nextTick();
+            const wheel = (on: HTMLElement, t: number) => {
+                const e = new WheelEvent("wheel", { deltaY: 8, clientX: 200, clientY: 300, cancelable: true, bubbles: true });
+                Object.defineProperty(e, "timeStamp", { value: t });
+                on.dispatchEvent(e);
+            };
+            for (let i = 0; i < 6; i++) {
+                wheel(i % 2 ? stage : face, 10 + 8 * i);
+                vi.advanceTimersByTime(8);
+                await nextTick();
+            }
+            vi.advanceTimersByTime(400);
+            await nextTick();
+            expect(w.emitted("hold")).toBeUndefined();
+            w.unmount();
+        }));
 });
 
 describe("the playing cube yields to a hand on the die", () => {
@@ -253,47 +368,5 @@ describe("the playing cube yields to a hand on the die", () => {
         expect(group.playing()).toBe(false);
         expect(group.started).toBe(false);
         app.unmount();
-    });
-});
-
-describe("a wheel stream on the die is a hand on it", () => {
-    it("emits hold true at the stream's first event and false once it has been quiet for 300 ms", async () => {
-        vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
-        try {
-            const model = ref<TransformState>(structuredClone(defaultTransformState));
-            const w = mount(OrbitalDrag, {
-                props: {
-                    applyTransformToContainer: true,
-                    modelValue: model.value,
-                    "onUpdate:modelValue": (v: TransformState) => (model.value = v),
-                    frame: () => ({ centre: { x: 200, y: 300 }, side: 160, fit: 1, stage: null }),
-                },
-                attachTo: document.body,
-            });
-            await nextTick();
-            const surface = w.element as HTMLElement;
-            const wheel = (t: number) => {
-                const e = new WheelEvent("wheel", { deltaY: 8, clientX: 200, clientY: 300, cancelable: true, bubbles: true });
-                Object.defineProperty(e, "timeStamp", { value: t });
-                surface.dispatchEvent(e);
-            };
-            for (let i = 0; i < 6; i++) {
-                wheel(10 + 8 * i);
-                vi.advanceTimersByTime(8);
-            }
-            await nextTick();
-            expect(w.emitted("hold")).toEqual([[true]]);
-            // Still held 250 ms after the last event (its momentum may follow) ...
-            vi.advanceTimersByTime(250);
-            await nextTick();
-            expect(w.emitted("hold")).toEqual([[true]]);
-            // ... and let go once the stream has been quiet for 300 ms.
-            vi.advanceTimersByTime(60);
-            await nextTick();
-            expect(w.emitted("hold")).toEqual([[true], [false]]);
-            w.unmount();
-        } finally {
-            vi.useRealTimers();
-        }
     });
 });

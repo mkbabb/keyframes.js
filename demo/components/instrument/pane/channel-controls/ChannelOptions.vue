@@ -496,9 +496,13 @@ const onEasingPick = (name: string): void => {
 }
 /* UIA-KF-036 · A2-KE-X-6 — the editor's BODY is the scroller, capped so the
    curve never shifts the page (J.W7b STY-2: `dvh`, the real visible height on
-   mobile); the sub-pane header above it is its sibling and never scrolls out. */
+   mobile); the sub-pane header above it is its sibling and never scrolls out.
+   It scrolls on its block axis only: a lone `overflow-y: auto` computes x to
+   auto too, so anything a hair wider than the body would pan it sideways
+   under a thumb's diagonal (the sideways-scroll census). */
 .subpane-body {
     max-height: min(50dvh, 480px);
+    overflow-x: hidden;
     overflow-y: auto;
 }
 /* X-DS pass 6 (KF-C6-03) — THE EDITOR FITS THE RAIL. The picker's plot is a

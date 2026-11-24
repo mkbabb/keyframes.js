@@ -767,4 +767,17 @@ defineExpose({ openSceneList });
     flex-shrink: 0;
 }
 
+/* THEME_IN_MENU — the theme seat leaves the run where the run cannot hold it.
+   The theme toggle is the run's last seat; under 390 px of width the expanded
+   run holds more than its plate (23 to 26 px at 360, on every scene), so the
+   toggle stood past the run's end, reached only by a sideways pan of glass's
+   snap strip with nothing to show it was there (the sideways-scroll census,
+   K-3). There the seat is left out and the @mbabb menu carries the theme
+   (MbabbMenu.vue, the same width), until glass's theme seat stands beside
+   the dock. */
+@media (max-width: 389px) {
+    [data-dock-theme] {
+        display: none;
+    }
+}
 </style>

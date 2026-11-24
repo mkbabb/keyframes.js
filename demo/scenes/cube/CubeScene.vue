@@ -105,7 +105,7 @@ const {
     resetMatrix,
 } = useTransformState(isStarted, poseElRef, useCubeTransform().value);
 
-// A hand on the stage (a press anywhere on it, or a wheel stream over it): the
+// A hand holding the die (CubeTarget's `hold`; never a tap, a press beside it or the wheel): the
 // group yields while it holds (useCubeDemo).
 const held = ref(false);
 const { animationGroup, setTargets } = useCubeDemo(

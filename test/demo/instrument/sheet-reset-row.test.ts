@@ -1,13 +1,16 @@
 /**
- * P2d — an upright phone's opened sheet gives no row to Reset alone.
+ * An upright phone's opened sheet: on a one-channel scene Reset is a labelled
+ * row of its own at the section's foot.
  *
- * The opened sheet leads with Reset (to the start), the verb the dock leaves
- * out at rest. With two or more channels it shares its row with the channel
- * select. With one (sequence, easing) it stood alone on a row of a 304 px
- * sheet; it now heads the surface's own first row (the Stagger header), and
- * the sheet's head row gives way.
+ * The opened sheet offers Reset (to the start), the verb the dock leaves out
+ * at rest. With two or more channels it shares the head row with the channel
+ * select. With one (sequence, easing) it stood alone in a row of a 304 px
+ * sheet, then in the section's own header, where on sequence the header read
+ * Stagger, Reset, Reel, the stagger's own reset: two back glyphs one seat
+ * apart. The owner's ruling (23 Nov): a row of its own, labelled, at the foot
+ * of the section, so the header keeps one back glyph.
  *
- * Born red: on sequence the sheet's first row held Reset and nothing else.
+ * Born red: on sequence Reset headed the Stagger row, glyph only.
  *
  * The glass Sheet and Dialog are stubbed at their seams; the pane wrapper and
  * the Sequence pane are real.
@@ -128,19 +131,28 @@ async function openSequenceSheet(w: number, ht: number) {
     return calls;
 }
 
-describe("P2d — the opened sheet gives no row to Reset alone", () => {
-    it("on a one-channel scene (sequence) Reset heads the Stagger row: one Reset, sharing its row", async () => {
+describe("the opened sheet: on a one-channel scene Reset is a labelled row at the section's foot", () => {
+    it("on sequence: one Reset, its word shown, after the lanes, and the Stagger header holds no Reset", async () => {
         const calls = await openSequenceSheet(390, 844);
         const sheet = document.querySelector('[data-stub="SheetContent"]')!;
         const resets = sheet.querySelectorAll<HTMLButtonElement>('button[aria-label="Reset animation"]');
         expect(resets).toHaveLength(1);
         const reset = resets[0]!;
-        // The row it stands in holds another control (the Reel), and the title.
-        const header = reset.closest('[data-slot="configurator-layer-header"], [data-slot="configurator-layer-trigger"]')?.parentElement ?? reset.parentElement!;
-        const row = reset.closest(".sheet-head-row") ?? header;
-        const others = [...row.querySelectorAll("button")].filter((b) => b !== reset);
-        expect(others.length).toBeGreaterThan(0);
-        expect(row.textContent).toContain("Stagger");
+        // Labelled: its word is on it.
+        expect(reset.textContent?.trim()).toBe("Reset");
+        // Not in the sheet's head row, nor among the section header's verbs ...
+        expect(reset.closest(".sheet-head-row")).toBeNull();
+        const actions = sheet.querySelector('[data-slot="configurator-layer-actions"]');
+        expect(actions).not.toBeNull();
+        expect(actions!.contains(reset)).toBe(false);
+        // ... where the one back glyph is the stagger's own reset.
+        expect(actions!.querySelectorAll('button[aria-label^="Reset"]')).toHaveLength(1);
+        expect(actions!.querySelectorAll('button[aria-label^="Reset the sequence items"]')).toHaveLength(1);
+        // At the foot: after the lanes, and nothing follows it in the section.
+        const lanes = sheet.querySelector(".seq-lane-scrub");
+        expect(lanes).not.toBeNull();
+        expect(lanes!.compareDocumentPosition(reset) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+        expect(reset.nextElementSibling).toBeNull();
         reset.click();
         expect(calls.reset).toBe(1);
     });

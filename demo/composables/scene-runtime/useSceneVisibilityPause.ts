@@ -21,14 +21,14 @@ import { onScopeDispose, watch } from "vue";
  * continuous — the same path `restoreGroupPlaybackState` reuses), so there is no
  * forward jump on return.
  *
- * A hand on the stage is the second reason (`held`): from a press anywhere on
- * the stage (the orbit's surface: on the die or beside it, a tap or a click
- * included) to its release, and through a wheel stream over it until 300 ms
- * after its last event, the scene's own loop yields, so its draw no longer adds
- * to the page's frames. Measured back to back against the build without the
- * yield, with the die held on a 390 phone, the main thread's work per frame
- * falls from 12 to 27 ms to 3 to 6 at 4x CPU, and from 2 to 4 ms to about 1 at
- * full speed (on the desk, from 3 to 5 to under 2). A touch is handled sooner
+ * A hand holding the subject is the second reason (`held`): from the moment a
+ * press on the die itself is a hand and not a tap (it moves, or stays down past
+ * a tap) to its release, the scene's own loop yields, so its draw no longer adds
+ * to the page's frames. A tap or a click, on the die or beside it, a drag that
+ * starts beside it, and the wheel leave the loop playing. Measured back to back
+ * against the build without the yield, with the die held on a 390 phone, the
+ * main thread's work per frame falls from 12 to 27 ms to 3 to 6 at 4x CPU, and
+ * from 2 to 4 ms to about 1 at full speed. A touch is handled sooner
  * only where that work made the frames slip: at 4x the build without the yield
  * sometimes fell to 16 to 22 ms frames and handled a touch 31 to 44 ms after
  * its time, against 16 to 19 here; at full speed, on the desk and in the other

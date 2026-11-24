@@ -48,7 +48,9 @@
              its own JS fallback): the phone sheet's body here, and the desktop
              rail's surface scroller below. The local copy (`useScrollFade`, its
              `.scroll-fade-*` classes, and the CSS timeline rules that stood in
-             for it) is deleted. -->
+             for it) is deleted. It scrolls on its block axis only: a lone
+             `overflow-y-auto` computes x to auto too, so a hair of overflow
+             would pan the pane sideways under a thumb's diagonal. -->
         <component
             :is="isMobileLayout ? FadingScroll : 'div'"
             ref="paneEl"
@@ -57,7 +59,7 @@
             @mouseleave="paneMouseLeave"
             :class="[
                 'controls-pane group/controls min-w-0',
-                paneScrollable ? 'overflow-y-auto' : 'overflow-clip',
+                paneScrollable ? 'overflow-x-hidden overflow-y-auto' : 'overflow-clip',
             ]"
         >
             <div class="controls-content h-full flex flex-col">
@@ -269,9 +271,9 @@
                  dock leaves out at rest, so its scrub keeps its length: Reset
                  (to the start) and, where the scene has two or more channels,
                  the channel the controls edit. A landscape phone's transport
-                 keeps both. With one channel the surface heading the sheet
-                 carries Reset in its own first row (useSheetReset.ts), and this
-                 row gives way: Reset alone never takes a row. -->
+                 keeps both. With one channel the section the sheet holds
+                 carries Reset on a labelled row at its foot (useSheetReset.ts),
+                 and this row gives way. -->
             <div v-if="!isShortLayout && !resetCarried()" class="sheet-head-row">
                 <SheetResetButton @reset="emit('reset')" />
                 <Select
@@ -675,10 +677,18 @@ const sheetLeaving = computed(
 // The band the sheet lives in: above the transport, below the top dock. The
 // bottom sheet's FULL rung is capped at it; the side sheet spans it.
 const fullBand = "calc(100dvh - var(--stage-top-inset) - var(--stage-bottom-inset))";
+// `--sheet-room`: the sheet's block size where it opens (an upright phone's
+// OPEN rung; the landscape side sheet's band between the docks), for a
+// surface that sizes its subject to stand whole in it (EasingSidebar's plot).
 const sheetStyle = computed(() =>
     isShortLayout.value
-        ? { top: "var(--stage-top-inset)", bottom: "var(--stage-bottom-inset)", height: "auto" }
-        : { bottom: "var(--stage-bottom-inset)", maxBlockSize: fullBand },
+        ? {
+              top: "var(--stage-top-inset)",
+              bottom: "var(--stage-bottom-inset)",
+              height: "auto",
+              "--sheet-room": "calc(100dvh - var(--stage-top-inset) - var(--stage-bottom-inset))",
+          }
+        : { bottom: "var(--stage-bottom-inset)", maxBlockSize: fullBand, "--sheet-room": `calc(${OPEN_SNAP.value} * 100dvh)` },
 );
 
 // The store open-fact ↔ the Sheet's active rung. Closed ⇒ PEEK; open ⇒ OPEN,
@@ -848,7 +858,7 @@ const onSheetOutside = (e: Event): void => {
     }
 };
 
-// ── P2d — with one channel, Reset rides the heading surface's first row ──
+// ── With one channel, Reset is a labelled row at the section's foot ──
 const { api: sheetResetSeat, carried: resetCarried } = provideSheetReset(
     computed(() => isMobileLayout.value && !isShortLayout.value && channelNames.value.length < 2),
     () => emit("reset"),
