@@ -59,7 +59,7 @@ export const HERO_AURORA_OPACITY_CEILING = 0.1;
 </script>
 
 <script setup lang="ts">
-import { computed, useTemplateRef } from "vue";
+import { computed, onMounted, useTemplateRef } from "vue";
 import { useEventListener, useMediaQuery, useWindowSize } from "@vueuse/core";
 import { useGlobalDark } from "@mkbabb/glass-ui/dark";
 import type { OklchStop } from "@mkbabb/glass-ui/aurora";
@@ -70,6 +70,20 @@ import {
 } from "@mkbabb/glass-ui/aurora";
 
 const auroraRef = useTemplateRef<InstanceType<typeof Aurora>>("auroraRef");
+
+// FORTY-SIXTH E1 (J6) — the wash arrives by a fade: from opacity 0 to its own
+// rest (whatever glass's ceiling writes inline), over 200 ms. Its chunk resolves
+// after first paint, and it popped in whole in one frame. An animation of the
+// element itself (as its way out, useBackdropLeave), started in the frame it
+// mounts, before that frame paints. Not a CSS animation: glass's reduced-motion
+// reset shortens every CSS animation to 0.01 ms, and the fade is a fade under
+// reduced motion too (the motion law: reduced motion is a fade, never a cut).
+onMounted(() => {
+    const el: Element | undefined = auroraRef.value?.$el;
+    if (typeof el?.animate !== "function") return;
+    const ease = getComputedStyle(el).getPropertyValue("--ease-out").trim() || "ease-out";
+    el.animate([{ opacity: 0, offset: 0 }], { duration: 200, easing: ease, fill: "backwards" });
+});
 
 /** The renderer-status payload, DERIVED from the primitive's own emit
  *  declaration rather than restated: `RendererStatus` reaches no published
@@ -267,23 +281,6 @@ useEventListener(document, "visibilitychange", () => {
 @media (prefers-reduced-transparency: reduce) {
     .hero-aurora {
         display: none;
-    }
-}
-
-/* FORTY-SIXTH E1 (J6) — the wash arrives by a fade. Its chunk resolves after
-   first paint, and the wash popped in whole in one frame (on a phone at 4x, in
-   the same frame as the die's snap). An animation from opacity 0 takes the
-   wash to its own resting value, whatever glass's ceiling writes inline. It is
-   a fade under reduced motion too. (An entrance of Aurora's own is glass's to
-   give every consumer; this is the site's slot.) The way out is App.vue's
-   (useBackdropLeave): the wash stays mounted through its fade. */
-.hero-aurora {
-    animation: hero-aurora-in 200ms var(--ease-out, ease-out) both;
-}
-
-@keyframes hero-aurora-in {
-    from {
-        opacity: 0;
     }
 }
 </style>

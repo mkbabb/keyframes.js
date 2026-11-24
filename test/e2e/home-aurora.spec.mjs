@@ -7,6 +7,9 @@
  *   2. Leaving Home (Play), the wash fades out, still drawn while it fades
  *      (its renderer is torn down only after), over 200 ms or more; it is
  *      never gone in one frame.
+ *   3. Under reduced motion the wash still fades in (reduced motion is a
+ *      fade, never a cut): glass's reduced-motion reset shortens every CSS
+ *      animation to 0.01 ms, and the wash went 0 to its rest in one frame.
  *
  * The wash's painted strength is read every frame from document start (the
  * element's computed opacity, which an animation drives).
@@ -60,7 +63,9 @@ const LOG = () => {
 
 test.use({ viewport: { width: 1440, height: 900 } });
 
-test("1. a cold Home's wash fades in", async ({ page, context }) => {
+/** A cold Home: the wash is never at full strength in the first frame it is
+ *  painted, and climbs through the frames between to its rest. */
+async function coldHomeFadesIn(page, context) {
     await context.addInitScript(LOG);
     await page.goto(at("/"));
     await page.waitForFunction(() => window.__aur.frames.filter((f) => f.o !== null).length > 40, null, { timeout: 30_000 });
@@ -73,6 +78,10 @@ test("1. a cold Home's wash fades in", async ({ page, context }) => {
     // ...and it climbs through the frames between.
     const between = shown.filter((f) => f.o > 0.1 * rest && f.o < 0.9 * rest);
     expect(between.length).toBeGreaterThanOrEqual(2);
+}
+
+test("1. a cold Home's wash fades in", async ({ page, context }) => {
+    await coldHomeFadesIn(page, context);
 });
 
 test("2. leaving Home, the wash fades out while it still draws, never in one frame", async ({ page, context }) => {
@@ -103,4 +112,12 @@ test("2. leaving Home, the wash fades out while it still draws, never in one fra
     const lastFull = frames.slice(0, gone).findLastIndex((f) => f.o >= 0.9 * rest);
     expect(lastFull, "a frame at full strength before the leave").toBeGreaterThanOrEqual(0);
     expect(frames[gone].t - frames[lastFull].t, "ms from full strength to gone").toBeGreaterThanOrEqual(200);
+});
+
+test.describe("under reduced motion", () => {
+    test.use({ reducedMotion: "reduce" });
+
+    test("3. a cold Home's wash still fades in", async ({ page, context }) => {
+        await coldHomeFadesIn(page, context);
+    });
 });
