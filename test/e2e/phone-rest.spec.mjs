@@ -19,6 +19,8 @@
  *   than half the height at 390x844, 375x667 and 390x664, on every scene.
  * - A shut sheet on the Keyframes surface fetches no editor chunk; the
  *   Controls press does.
+ * - A sheet put away while scrolled fades with its body where it stood, and
+ *   opens again at its top.
  * - A card on the stage (easing, sequence, spring) makes room for the sheet
  *   by motion, open and close: its height walks between its two rests over
  *   several frames and at least 150 ms, never in one frame, and no 60 Hz
@@ -401,6 +403,45 @@ test.describe("upright phone 390x844: the opened sheet", () => {
             });
             expect(size).not.toBeNull();
             expect(Math.abs(size.glyph - size.seat / 2)).toBeLessThanOrEqual(1);
+        });
+    }
+
+    // Put away while scrolled, the sheet fades with its body where it stood:
+    // the body does not go back to its top inside the fading plate. Opened
+    // again, it starts at its top.
+    for (const scene of ["/cube", "/easing"]) {
+        test(`${scene}: a sheet put away while scrolled fades with its body where it stood`, async ({ page }) => {
+            await openSheet(page, scene);
+            const PORT = ".controls-drawer-content .controls-pane";
+            const scrolled = await page.evaluate((sel) => {
+                const port = document.querySelector(sel);
+                port.scrollTop = 120;
+                return port.scrollTop;
+            }, PORT);
+            expect(scrolled, "the body scrolls").toBeGreaterThan(40);
+            await page.waitForTimeout(300);
+            await page.evaluate((sel) => {
+                window.__port = [];
+                const tick = () => {
+                    const s = document.querySelector(".controls-drawer-content");
+                    const port = document.querySelector(sel);
+                    const b = s?.getBoundingClientRect();
+                    window.__port.push(b && b.height > 0 && port ? { o: Number(getComputedStyle(s).opacity), y: port.scrollTop } : null);
+                    if (window.__port.length < 120) requestAnimationFrame(tick);
+                };
+                requestAnimationFrame(tick);
+            }, PORT);
+            await page.waitForTimeout(50);
+            await page.locator('.controls-drawer-content [data-slot="dialog-close"]').tap();
+            await page.waitForTimeout(1500);
+            const f = await page.evaluate(() => window.__port);
+            const shown = f.filter((x) => x !== null && x.o > 0.05);
+            expect(shown.some((x) => x.o < 0.95), "frames in the fade").toBe(true);
+            for (const x of shown) expect(Math.abs(x.y - scrolled), `the body's offset at opacity ${x.o}`).toBeLessThanOrEqual(1);
+            expect(await sheetTop(page)).toBeNull();
+            await page.locator('button[aria-label="Controls"]').tap();
+            await page.waitForTimeout(1500);
+            expect(await page.evaluate((sel) => document.querySelector(sel)?.scrollTop, PORT)).toBe(0);
         });
     }
 });
