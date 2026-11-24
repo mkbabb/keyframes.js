@@ -397,6 +397,58 @@ test.describe("upright phone 390x844: the opened sheet", () => {
     }
 });
 
+// On a phone the easing curve is drawn small enough to stand whole in the
+// sheet (owner, 23 Nov): the plot and both handles inside the sheet's visible
+// box and its scroll port, upright at OPEN (the sheet still a third of the
+// height) and in the landscape side sheet at rest.
+for (const vp of [
+    { w: 390, h: 844 },
+    { w: 375, h: 667 },
+    { w: 390, h: 664 },
+    { w: 360, h: 780 },
+    { w: 844, h: 390 },
+]) {
+    const upright = vp.h > vp.w;
+    test.describe(`phone ${vp.w}x${vp.h}: the easing curve in the sheet`, () => {
+        test.use({ viewport: { width: vp.w, height: vp.h }, deviceScaleFactor: 2, hasTouch: true, isMobile: true, colorScheme: "dark" });
+
+        test(`/easing: the plot and both handles are whole ${upright ? "at OPEN" : "in the side sheet"}`, async ({ page }) => {
+            await page.goto(at("/easing"));
+            await page.waitForSelector(".scene-host", { timeout: 30_000 });
+            await page.waitForTimeout(2000);
+            if (upright) {
+                await page.locator('button[aria-label="Controls"]').tap();
+                await page.waitForTimeout(1500);
+            }
+            const fit = await page.evaluate(() => {
+                const sheet = document.querySelector(".controls-drawer-content");
+                const plot = sheet?.querySelector('[data-slot="easing-handles"]');
+                if (!sheet || !plot) return null;
+                const s = sheet.getBoundingClientRect();
+                const port = sheet.querySelector(".controls-pane");
+                const p = port ? port.getBoundingClientRect() : s;
+                const box = { top: Math.max(0, s.top, p.top), bottom: Math.min(innerHeight, s.bottom, p.bottom) };
+                const pb = plot.getBoundingClientRect();
+                const handles = [...plot.querySelectorAll('[role="slider"]')].map((h) => h.getBoundingClientRect());
+                return {
+                    box,
+                    sheetShare: s.height / innerHeight,
+                    items: [pb, ...handles].map((b) => ({ top: b.top, bottom: b.bottom })),
+                    handles: handles.length,
+                };
+            });
+            expect(fit).not.toBeNull();
+            expect(fit.handles).toBe(2);
+            for (const b of fit.items) {
+                expect(b.top).toBeGreaterThanOrEqual(fit.box.top - 0.5);
+                expect(b.bottom).toBeLessThanOrEqual(fit.box.bottom + 0.5);
+            }
+            // Upright, the sheet itself stays at its third.
+            if (upright) expect(fit.sheetShare).toBeLessThanOrEqual(0.37);
+        });
+    });
+}
+
 // The controls never take half of an upright phone, open or shut: the opened
 // sheet and the dock band under it end at the screen's foot, so the sheet's top
 // edge stands at half the height or lower. 390x664 is a 390-wide phone in

@@ -260,13 +260,11 @@
    that one box), centred; the rows under it keep the pane's full measure. A
    host that sets no cap keeps the full measure. glass exposes no plot-size hook
    yet (O-87 rider), so the cap reaches the picker through its data-slot
-   contract: layout only, no paint. Desktop only: the phone sheet has no rail
-   budget. */
-@media (min-width: 1024px) {
-    [data-slot="easing-picker"] > :has(> [data-slot="easing-curve"]) {
-        inline-size: min(100%, var(--picker-cap, 100%));
-        margin-inline: auto;
-    }
+   contract: layout only, no paint. At every width: a phone's host caps the
+   plot to the sheet it stands in (EasingSidebar.vue). */
+[data-slot="easing-picker"] > :has(> [data-slot="easing-curve"]) {
+    inline-size: min(100%, var(--picker-cap, 100%));
+    margin-inline: auto;
 }
 
 /* Mobile work-area cap (< lg). --work-area-max-width goes full-bleed; the height

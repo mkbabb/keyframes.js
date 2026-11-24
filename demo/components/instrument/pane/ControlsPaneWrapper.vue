@@ -675,10 +675,18 @@ const sheetLeaving = computed(
 // The band the sheet lives in: above the transport, below the top dock. The
 // bottom sheet's FULL rung is capped at it; the side sheet spans it.
 const fullBand = "calc(100dvh - var(--stage-top-inset) - var(--stage-bottom-inset))";
+// `--sheet-room`: the sheet's block size where it opens (an upright phone's
+// OPEN rung; the landscape side sheet's band between the docks), for a
+// surface that sizes its subject to stand whole in it (EasingSidebar's plot).
 const sheetStyle = computed(() =>
     isShortLayout.value
-        ? { top: "var(--stage-top-inset)", bottom: "var(--stage-bottom-inset)", height: "auto" }
-        : { bottom: "var(--stage-bottom-inset)", maxBlockSize: fullBand },
+        ? {
+              top: "var(--stage-top-inset)",
+              bottom: "var(--stage-bottom-inset)",
+              height: "auto",
+              "--sheet-room": "calc(100dvh - var(--stage-top-inset) - var(--stage-bottom-inset))",
+          }
+        : { bottom: "var(--stage-bottom-inset)", maxBlockSize: fullBand, "--sheet-room": `calc(${OPEN_SNAP.value} * 100dvh)` },
 );
 
 // The store open-fact ↔ the Sheet's active rung. Closed ⇒ PEEK; open ⇒ OPEN,
