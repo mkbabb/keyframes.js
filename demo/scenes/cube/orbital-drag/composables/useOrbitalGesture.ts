@@ -1,6 +1,6 @@
 // SERVED MODEL: claude-opus-5-5
 import { useEventListener } from "@vueuse/core";
-import { computed, onScopeDispose, ref } from "vue";
+import { onScopeDispose, ref } from "vue";
 import {
     angularVelocityFromSamples,
     applyScreenDelta,
@@ -84,6 +84,9 @@ export interface OrbitalGestureParams {
     onSettle?: (at: Vec2) => void;
     /** Reduced motion: the bounds are hard walls (no rubber band). */
     reducedMotion?: () => boolean;
+    /** Did this press land on the subject itself (the die as it is painted),
+     *  not on the stage beside it? Only such a press can hold it (`isHeld`). */
+    onSubject?: (event: PointerEvent) => boolean;
 }
 
 /** The arcball radius' floor (px). */
@@ -116,6 +119,14 @@ export const NOTCH_MAX_RAD = (40 * Math.PI) / 180;
 /** Page mode: a touch drag turns the die only once it has gone this far
  *  (px), mostly sideways; a mostly vertical one is the host's scroll. */
 export const PAGE_TOUCH_SLOP_PX = 10;
+/** A press on the subject holds it (`isHeld`) once it is a hand and not a
+ *  tap: once it has moved this far from where it landed (px, useDoubleTap's
+ *  tap slop) ... */
+export const HOLD_SLOP_PX = 12;
+/** ... or stayed down this long (ms). A tap on the die, the tap that puts the
+ *  phone's sheet away among them, is down and up sooner, so it never stops
+ *  the spin. */
+export const HOLD_AFTER_MS = 150;
 /**
  * THE FOLLOWERS (follower.ts). Every stepped input moves a target and the die
  * follows it on the critically damped spring, by its exact step on the
@@ -280,6 +291,7 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
         onGestureEnd,
         onSettle,
         reducedMotion,
+        onSubject,
     } = params;
 
     /** A real sample of one pointer (client px, its event's own time). */
@@ -302,6 +314,8 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
         seenAge: number | null;
         /** The hand time the frame last showed for this pointer. */
         shownT: number;
+        /** Where it landed, if that was on the subject (null beside it). */
+        onSubject: { x: number; y: number } | null;
     };
     const pointers = new Map<number, Hand>();
     /** The gesture's last few event times (every finger's), for its cadence. */
@@ -335,24 +349,22 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
         lead: createFollower(2, LEAD_OMEGA),
         seenAge: null,
         shownT: t,
+        onSubject: null,
     });
     const isActive = ref(false);
-    /** A wheel stream the orbit takes is live: from its first event until
-     *  WHEEL_STREAM_GAP_MS after its last (a trackpad's two fingers on the die,
-     *  its momentum included, or a mouse wheel's notches). */
-    const wheeling = ref(false);
-    let wheelQuiet: ReturnType<typeof setTimeout> | undefined;
-    const wheelHeld = () => {
-        wheeling.value = true;
-        clearTimeout(wheelQuiet);
-        wheelQuiet = setTimeout(() => {
-            wheelQuiet = undefined;
-            wheeling.value = false;
-        }, WHEEL_STREAM_GAP_MS);
+    /** A hand holds the subject: a finger, the mouse or a pen that landed on
+     *  the die itself is still down and is a hand, not a tap (it has moved
+     *  HOLD_SLOP_PX or stayed down HOLD_AFTER_MS). A press beside the die, a tap
+     *  or a click on it, and the wheel never hold it. */
+    const isHeld = ref(false);
+    let holdTimer: ReturnType<typeof setTimeout> | undefined;
+    const hold = (on: boolean) => {
+        clearTimeout(holdTimer);
+        holdTimer = undefined;
+        isHeld.value = on;
     };
-    /** A hand is on the stage: a pointer down anywhere on the surface (on the
-     *  die or beside it: a tap or a click counts), or a live wheel stream over it. */
-    const isHeld = computed(() => isActive.value || wheeling.value);
+    /** Is a pointer that landed on the subject still down? */
+    const onSubjectDown = () => [...pointers.values()].some((h) => h.onSubject !== null);
 
     const pressedKeys = ref<PressedKeys>({
         x: false,
@@ -639,9 +651,14 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
             // A middle (1) or right (2) mouse button pans, as Shift-drag does.
             buttonPan = event.pointerType === "mouse" && (event.button === 1 || event.button === 2);
         }
-        pointers.set(event.pointerId, newHand(event.clientX, event.clientY, event.timeStamp, event.pointerType));
+        const hand = newHand(event.clientX, event.clientY, event.timeStamp, event.pointerType);
+        pointers.set(event.pointerId, hand);
         stamp(event.timeStamp);
         isActive.value = true;
+        if (onSubject?.(event)) {
+            hand.onSubject = { x: event.clientX, y: event.clientY };
+            if (!isHeld.value && holdTimer === undefined) holdTimer = setTimeout(() => hold(onSubjectDown()), HOLD_AFTER_MS);
+        }
         // The stage takes the keyboard on a mouse or pen press (the arrows turn
         // the die); preventDefault above withholds the browser's own focus.
         if (event.pointerType !== "touch") surfaceRef()?.focus({ preventScroll: true });
@@ -696,6 +713,8 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
         const last = moves[moves.length - 1]!;
         p.x = last.clientX;
         p.y = last.clientY;
+        // A press on the die that moves is a hand on it, tap or not.
+        if (p.onSubject && !isHeld.value && Math.hypot(p.x - p.onSubject.x, p.y - p.onSubject.y) >= HOLD_SLOP_PX) hold(true);
         // Page mode, and beside the die (pan-y): a one-finger drag is the die's
         // only once it is horizontal. Until then the browser may still take it
         // as the page's scroll (a pointercancel), and the die must not have moved.
@@ -921,6 +940,7 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
         leaveFrom();
         pointers.delete(event.pointerId);
         releaseCapture(event);
+        if (!onSubjectDown()) hold(false);
         if (pointers.size > 0) {
             // 2 → 1 re-anchors the arcball at the finger that stayed (no jump).
             anchor();
@@ -944,6 +964,7 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
         if (!pointers.has(event.pointerId)) return;
         // iOS cancels mid-pinch: the remaining state is untrustworthy.
         pointers.clear();
+        hold(false);
         releaseCapture(event);
         mode = "idle";
         buttonPan = false;
@@ -1121,7 +1142,6 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
         const dy = wheelPx(event, event.deltaY);
         if (Math.abs(dx) < 1e-4 && Math.abs(dy) < 1e-4) return;
         if (pointers.size > 0) return;
-        wheelHeld();
         const major = Math.abs(dy) >= Math.abs(dx) ? dy : dx;
         if (event.timeStamp - streamAt > WHEEL_STREAM_GAP_MS) streamFirst = major;
         streamAt = event.timeStamp;
@@ -1263,7 +1283,7 @@ export function useOrbitalGesture(params: OrbitalGestureParams) {
     useEventListener(ownerDoc, "pointermove", onPointerMove);
     useEventListener(ownerDoc, "pointerup", onPointerUp);
     useEventListener(ownerDoc, "pointercancel", onPointerCancel);
-    onScopeDispose(() => clearTimeout(wheelQuiet));
+    onScopeDispose(() => clearTimeout(holdTimer));
 
     return {
         isActive,

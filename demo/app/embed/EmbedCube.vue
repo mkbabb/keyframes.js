@@ -136,7 +136,7 @@ const started = ref(false);
 const cubeTargetRef = useTemplateRef<InstanceType<typeof CubeTarget>>("cubeTargetRef");
 const poseElRef = ref<HTMLElement | undefined>();
 const { matrix3dStart, matrix3dEnd, transformSliderValues } = useTransformState(started, poseElRef);
-// A hand on the stage (a press anywhere on it, or a wheel stream over it): the
+// A hand holding the die (CubeTarget's `hold`; never a tap, a press beside it or the wheel): the
 // group yields while it holds (useCubeDemo).
 const held = ref(false);
 const { animationGroup, setTargets } = useCubeDemo(matrix3dStart, matrix3dEnd, skin, {

@@ -71,6 +71,10 @@ const props = withDefaults(
         surface?: HTMLElement | null;
         /** Who a vertical scroll over the surface belongs to. */
         scrollOwner?: ScrollOwner;
+        /** The subject as it is painted (a selector inside the container, the
+         *  die's own element): a press on it can hold it (`hold`), a press on
+         *  the stage beside it never does. */
+        subject?: string;
     }>(),
     { inertiaFactor: DEFAULT_INERTIA_FACTOR, surface: null, scrollOwner: "stage" },
 );
@@ -83,10 +87,11 @@ const emit = defineEmits<{
     (e: "scale", scale: TransformState["scale"]): void;
     // P.W5.S3 — the X/Y/Z/modifier latch, whenever it changes.
     (e: "pressedKeys", keys: PressedKeys): void;
-    /** A hand is on the stage (true) or has left it (false): its first finger
-     *  or the mouse down anywhere on the surface (the die or beside it, a tap
-     *  or a click included), its last one up; or a wheel stream over it, from
-     *  its first event until it has been quiet for 300 ms. */
+    /** A hand holds the subject (true) or has let it go (false): a finger,
+     *  the mouse or a pen pressed on the die itself that has moved or stayed
+     *  down past a tap, until its last such pointer is up. A tap or a click
+     *  on the die or beside it, a drag that starts beside it, and the wheel
+     *  never hold it. */
     (e: "hold", held: boolean): void;
 }>();
 
@@ -279,6 +284,10 @@ const gesture = useOrbitalGesture({
         if (!inertia.coasting()) writeModel(true);
     },
     reducedMotion,
+    onSubject: (event) => {
+        const at = event.target;
+        return !!props.subject && at instanceof Element && !!containerRef.value?.contains(at) && at.closest(props.subject) !== null;
+    },
 });
 
 // ── Home: Reset returns the orbit to its load pose on the settle spring ──
@@ -489,7 +498,7 @@ watch(
     },
 );
 
-// A hand on the die, for the scene that plays it (it yields while held).
+// A hand holding the die, for the scene that plays it (it yields while held).
 watch(gesture.isHeld, (held) => emit("hold", held));
 
 // P.W5.S3 — surface the latch to the parent the moment it changes.

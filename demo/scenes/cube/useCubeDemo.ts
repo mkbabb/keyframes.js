@@ -32,7 +32,7 @@ export function useCubeDemo(
     /** `settle: false` (the embed slice, which holds still until Play): the
      *  graph lands on its opening attitude at once, as under reduced motion.
      *  `held`: true while a hand is on the stage (CubeTarget's `hold`: a
-     *  press anywhere on it, or a wheel stream over it), and
+     *  press on the die that is a hand, not a tap; never the wheel), and
      *  `playing`, the scene's own play state (a Pause pressed while the hand
      *  held the die is kept at its release). */
     {
