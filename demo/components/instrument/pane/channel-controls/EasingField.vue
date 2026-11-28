@@ -64,10 +64,21 @@
                     <ChevronDown class="icon-sm shrink-0 opacity-60" aria-hidden="true" />
                 </button>
             </PopoverTrigger>
+            <!-- FIFTY-FIFTH (owner, 23 Nov: "this should be wider and
+                 searchable, too. On desktop and mobile.") — the picker is
+                 42rem at the desk (four tiles across; it drew 352 px and two
+                 small ones), the screen less its gutters on a phone, and
+                 searchable (EasingCatalogue). glass's overlay plate caps its
+                 width at 22rem through `--overlay-inline-cap`; the picker sets
+                 that token, still bounded by the room beside the trigger. On a
+                 touch screen the opening focus does not land in the search
+                 field, so the keyboard does not rise over the curves; a tap in
+                 the field asks for it. -->
             <PopoverContent
                 align="start"
                 aria-label="Easing curves"
-                class="flex w-[min(26rem,calc(100vw-2rem))] max-h-[var(--easing-dropdown-max-h)] flex-col"
+                class="flex w-[min(42rem,calc(100vw-2rem))] [--overlay-inline-cap:min(42rem,var(--reka-popper-available-width,100vw))] max-h-[var(--easing-dropdown-max-h)] flex-col"
+                @open-auto-focus="onOpenFocus"
             >
                 <EasingCatalogue
                     class="min-h-0 flex-1"
@@ -155,6 +166,19 @@ const valueId = useId();
 const CURVE_PLACEHOLDER = "Pick a curve";
 
 const triggerEl = useTemplateRef<HTMLButtonElement>("triggerEl");
+
+/** FIFTY-FIFTH — on a touch screen the picker opens on the chosen curve, not
+ *  in the search field (focusing a field raises the keyboard over the list). */
+const coarse = useMediaQuery("(pointer: coarse)");
+const onOpenFocus = (e: Event) => {
+    if (!coarse.value) return;
+    e.preventDefault();
+    const content = e.currentTarget instanceof HTMLElement ? e.currentTarget : null;
+    const tile =
+        content?.querySelector<HTMLElement>('.specimen-tile[data-state="on"]') ??
+        content?.querySelector<HTMLElement>(".specimen-tile");
+    (tile ?? content)?.focus({ preventScroll: true });
+};
 
 // ── owner-1112 (item 1b) — THE TRIGGER'S GLYPH MORPHS TO THE CHOSEN CURVE ──
 // Every glyph is the same sampled polyline (`generateCurveSVGPath`: n + 1

@@ -39,15 +39,38 @@
         <!-- K6 (value.js §0hz.canon, C-42) — glass's default tabs (the loupe
              pill); where the ten families do not fit one row, glass's own
              responsive Select stands in. -->
-        <SegmentedTabs
-            semantics="toggle"
-            class="catalogue-filter"
-            :options="familyOptions"
-            :model-value="familyPick"
-            :responsive="filterResponsive"
-            aria-label="Filter curves by family"
-            @update:model-value="onFamilyChange"
-        />
+        <!-- FIFTY-FIFTH (owner, 23 Nov: "this should be wider and searchable,
+             too. On desktop and mobile.") — the dropdown picker finds a curve
+             by typing: a part of its name or its family ("bounce", "in-out",
+             "Back"). glass's search field, named by its placeholder and its
+             accessible name; Enter picks the first curve shown. The stage
+             gallery keeps its filter alone: its curves are the page. -->
+        <div class="catalogue-head" :data-searchable="searchable ? '' : undefined">
+            <div v-if="searchable" class="catalogue-search">
+                <Search class="catalogue-search-glyph" aria-hidden="true" />
+                <Input
+                    v-model="queryPick"
+                    type="search"
+                    size="sm"
+                    class="catalogue-search-field"
+                    placeholder="Search curves"
+                    aria-label="Search curves"
+                    autocomplete="off"
+                    enterkeyhint="done"
+                    data-catalogue-search
+                    @keydown.enter.prevent="pickFirstMatch"
+                />
+            </div>
+            <SegmentedTabs
+                semantics="toggle"
+                class="catalogue-filter"
+                :options="familyOptions"
+                :model-value="familyPick"
+                :responsive="filterResponsive"
+                aria-label="Filter curves by family"
+                @update:model-value="onFamilyChange"
+            />
+        </div>
 
         <!-- The divider between the filter and the grid: the underline
              strip's own paper hairline when the strip shows (a second rule
@@ -66,13 +89,20 @@
                 :model-value="modelValue ?? ''"
                 @update:model-value="onTileSelect"
             >
+                <p
+                    v-if="visibleGroups.length === 0"
+                    class="catalogue-empty text-small text-muted-foreground"
+                    role="status"
+                >
+                    No curve matches “{{ query.trim() }}”
+                </p>
                 <section
                     v-for="group in visibleGroups"
                     :key="group.family"
                     class="catalogue-section"
                 >
                     <h3
-                        v-if="family === ALL"
+                        v-if="family === ALL || query.trim()"
                         class="catalogue-family text-subheading"
                     >
                         {{ group.family }}
@@ -182,6 +212,8 @@ import { Separator } from "@mkbabb/glass-ui/separator";
 import { FadingScroll } from "@mkbabb/glass-ui/fading-scroll";
 import { SegmentedTabs, type SegmentedTabOption } from "@mkbabb/glass-ui/tabs";
 import { ToggleGroup, ToggleGroupItem } from "@mkbabb/glass-ui/toggle-group";
+import { Input } from "@mkbabb/glass-ui/input";
+import { Search } from "@lucide/vue";
 import { NumericAnimation, type TimingFunction } from "@mkbabb/keyframes.js";
 import { easeOutCubic } from "@mkbabb/value.js/easing";
 
@@ -574,6 +606,8 @@ onMounted(() => {
 // clear, and the new rows fade in on the menu clock (both on `--ease-out`).
 // A pick mid-fade supersedes the one before it. Under reduced motion it is the
 // same fade (the motion law: a fade, never a cut); nothing moves either way.
+// FIFTY-FIFTH — a search is the same swap: each keystroke's rows land through
+// the fade, and keystrokes inside one fade coalesce into the last.
 let filterSwap = 0;
 let swapping = false;
 const tokenMs = (name: string, fallback: number): number => {
@@ -581,15 +615,13 @@ const tokenMs = (name: string, fallback: number): number => {
     const n = Number.parseFloat(raw);
     return Number.isFinite(n) ? (raw.endsWith("ms") ? n : n * 1000) : fallback;
 };
-const onFamilyChange = async (v: string) => {
-    familyPick.value = v;
-    if (v === family.value && !swapping) return;
+const swapRows = async (apply: () => void) => {
     const group = (drawerEl.value?.$el as HTMLElement | undefined)?.querySelector<HTMLElement>(
         ".specimen-grid-group",
     );
     const swap = ++filterSwap;
     if (!group?.animate) {
-        family.value = v;
+        apply();
         return;
     }
     swapping = true;
@@ -605,7 +637,7 @@ const onFamilyChange = async (v: string) => {
         })
         .finished.catch(() => undefined);
     if (swap !== filterSwap) return;
-    family.value = v;
+    apply();
     await nextTick();
     if (swap !== filterSwap) return;
     swapping = false;
@@ -615,11 +647,60 @@ const onFamilyChange = async (v: string) => {
         easing,
     });
 };
-const visibleGroups = computed(() =>
-    family.value === ALL
-        ? props.groups
-        : props.groups.filter((g) => g.family === family.value),
-);
+const onFamilyChange = async (v: string) => {
+    familyPick.value = v;
+    if (v === family.value && !swapping) return;
+    await swapRows(() => {
+        family.value = v;
+    });
+};
+
+// ── FIFTY-FIFTH — the search (the dropdown picker) ──────────────────────
+/** The dropdown is the picker that searches; the stage gallery does not. */
+const searchable = computed(() => props.density === "menu");
+/** What the field holds (answers each key at once) and what the rows show
+ *  (follows it through the fade). */
+const queryPick = ref("");
+const query = ref("");
+const normal = (v: string) => v.trim().toLowerCase();
+/** A curve matches when every word of the query is a part of its name or of
+ *  its family's ("in out" finds ease-in-out; "back" finds the Back family). */
+const matches = (q: string, familyName: string, name: string): boolean => {
+    const words = normal(q).split(/[\s,]+/).filter(Boolean);
+    const hay = `${name} ${familyName}`.toLowerCase();
+    return words.every((w) => hay.includes(w));
+};
+watch(queryPick, (v) => {
+    if (normal(v) === normal(query.value) && !swapping) return;
+    // The drawer keeps the height it had when the search began, so the
+    // popover does not shrink and grow under the reader's typing; the hold
+    // goes when the field is cleared.
+    const drawer = drawerEl.value?.$el;
+    if (drawer instanceof HTMLElement) {
+        if (normal(v) && !drawer.style.minBlockSize)
+            drawer.style.minBlockSize = `${drawer.offsetHeight}px`;
+        if (!normal(v)) drawer.style.minBlockSize = "";
+    }
+    void swapRows(() => {
+        query.value = v;
+    });
+});
+/** Enter in the field picks the first curve shown. */
+const pickFirstMatch = () => {
+    const first = visibleGroups.value[0]?.items[0];
+    if (first) emit("update:modelValue", first.name);
+};
+const visibleGroups = computed(() => {
+    const byFamily =
+        family.value === ALL
+            ? props.groups
+            : props.groups.filter((g) => g.family === family.value);
+    const q = normal(query.value);
+    if (!q) return byFamily;
+    return byFamily
+        .map((g) => ({ ...g, items: g.items.filter((i) => matches(q, g.family, i.name)) }))
+        .filter((g) => g.items.length > 0);
+});
 // The drawer's rows change with the filter (and its own top with the strip).
 // KF-07 — on a restored drawer the strip settling (fonts, measure) is no
 // reason to move the visitor's rest: only the fold is landed again until the
@@ -695,10 +776,15 @@ let tileSnapshot: TileEntry[] = [];
 const visibleStages = new Set<Element>();
 let io: IntersectionObserver | null = null;
 
+/** FIFTY-FOURTH, the easing cards — the clock's last painted phase: where a ball the clock
+ *  owns stands now (paused or playing). Unclocked, every ball rests at 0. */
+let clockPhase = 0;
+
 const paintTileDots = (phase: number) => {
+    clockPhase = phase;
     for (const { el, stage, plot } of tileSnapshot) {
         if (stage && !visibleStages.has(stage)) continue;
-        el.style.transform = plot.place(phase);
+        el.style.transform = plot.place(ballAt(el.dataset.curve ?? "", phase));
     }
 };
 
@@ -749,69 +835,119 @@ const wirePainter = async () => {
 // at the same time fraction, so the ball moves by the tile's own easing (x is
 // time, y is the curve's value). Leaving fades the trace out and walks the
 // ball calmly home. Nothing appears or vanishes in a frame: the trace starts
-// at zero length and leaves by its ink. On the clocked stage the ball belongs
-// to the sweep clock, so the hover draws the trace alone. Reduced motion: the
-// hover keeps its ink change (CSS) and draws nothing. The tween is the
-// library's own `NumericAnimation` (one rAF loop per moving tile, stopped on
-// leave and on unmount).
-type TraceState = { p: number; draw: number; ink: number };
+// at zero length and leaves by its ink. Reduced motion: the hover keeps its
+// ink change (CSS) and draws nothing. The tween is the library's own
+// `NumericAnimation` (one rAF loop per moving tile, stopped on leave and on
+// unmount).
+//
+// FIFTY-FOURTH, the easing cards (owner, 23 Nov: "hovering, even when not playing, should
+// move the ball, and account for partial, paused, progress, and account for
+// playing when mid hover") — THE HOVER TAKES THE BALL, on the clocked stage
+// too. The stage's balls belonged to the sweep clock, so a hover there drew
+// the trace alone and the ball never moved. Now the hover holds the ball
+// (`w`, its hold: 1 while the pointer is on the tile) from wherever it stands,
+// the clock's paused or partial progress or a ball mid-sweep, and rides it
+// from there to the curve's end; a ball already at the end walks back to the
+// start and draws the whole curve. Leaving hands it back: the hold eases to
+// 0, so the ball glides from the hover's place to where the clock now is,
+// still or moving, and the clock owns it again. Unclocked (the dropdown) the
+// clock's place is the curve's start, so the menu behaves as before.
+type TraceState = { p: number; draw: number; ink: number; w: number };
 const DRAW_MS = 900;
+const REWIND_MS = 300;
 const RETURN_MS = 520;
+/** A ball this close to the curve's end has nothing left to draw: it replays. */
+const AT_END = 0.97;
 const traces = new Map<string, { state: TraceState; tween: NumericAnimation<TraceState> | null }>();
+
+/** Where the ball on `name`'s tile stands: the hover's place, the clock's,
+ *  or between the two while one hands it to the other. */
+function ballAt(name: string, phase: number): number {
+    const s = traces.get(name)?.state;
+    return s ? s.w * s.p + (1 - s.w) * phase : phase;
+}
 
 const paintTrace = (tile: HTMLElement, name: string, s: TraceState) => {
     tile.style.setProperty("--trace-draw", s.draw.toFixed(4));
     tile.style.setProperty("--trace-ink", s.ink.toFixed(4));
-    if (props.clock) return; // the sweep clock owns the ball on the stage
     const carriage = tile.querySelector<HTMLElement>(".tile-carriage");
-    if (carriage) carriage.style.transform = plotFor(name).place(s.p);
+    if (carriage) carriage.style.transform = plotFor(name).place(ballAt(name, clockPhase));
 };
 
 const runTrace = (
     tile: HTMLElement,
     name: string,
-    to: TraceState,
+    frames: TraceState[],
     duration: number,
-    options: { positions?: number[]; mid?: TraceState; ease?: TimingFunction } = {},
+    options: { positions?: number[]; ease?: TimingFunction; release?: boolean } = {},
 ) => {
-    const entry = traces.get(name) ?? { state: { p: 0, draw: 0, ink: 0 }, tween: null };
+    const entry = traces.get(name) ?? { state: frames[0]!, tween: null };
     traces.set(name, entry);
     entry.tween?.stop();
-    const from = { ...entry.state };
-    const frames = options.mid ? [from, options.mid, to] : [from, to];
     const tween = new NumericAnimation<TraceState>(frames, {
         duration,
         positions: options.positions,
         timingFunction: options.ease,
     });
     entry.tween = tween;
-    void tween.play((s) => {
-        entry.state = { ...s };
-        paintTrace(tile, name, entry.state);
-    });
+    void tween
+        .play((s) => {
+            entry.state = { ...s };
+            paintTrace(tile, name, entry.state);
+        })
+        .then(() => {
+            // Handed back whole: the clock owns the ball again.
+            if (options.release && entry.tween === tween && traces.get(name) === entry)
+                traces.delete(name);
+        });
 };
 
 const onTileEnter = (name: string, e: PointerEvent) => {
     if (reducedMotion.value) return;
     const tile = e.currentTarget as HTMLElement;
-    const at = traces.get(name)?.state ?? { p: 0, draw: 0, ink: 0 };
-    // A re-entry mid-return carries on from where the ball is; a fresh hover
-    // starts the trace at zero length (it is invisible there, so nothing cuts).
-    const start = at.ink > 0.01 ? at : { p: at.p, draw: at.p, ink: at.ink };
-    traces.set(name, { state: start, tween: traces.get(name)?.tween ?? null });
-    const remaining = Math.max(0.15, 1 - start.p);
-    runTrace(tile, name, { p: 1, draw: 1, ink: 1 }, DRAW_MS * remaining, {
-        mid: { p: start.p + (1 - start.p) * 0.12, draw: start.draw + (1 - start.draw) * 0.12, ink: 1 },
-        positions: [0, 12, 100],
-    });
+    const at = traces.get(name)?.state;
+    // The hover takes the ball where it is painted now: the clock's place (a
+    // pause, a partial sweep, a ball in flight) or a hand-back under way.
+    const p = ballAt(name, clockPhase);
+    // A re-entry mid-return keeps its trace; a fresh hover starts the trace at
+    // the ball (it is invisible there, so nothing cuts).
+    const fresh = !at || at.ink <= 0.01;
+    if (p >= AT_END) {
+        // Nothing left to draw: the ball walks back to the start, then draws.
+        const start = { p, draw: 0, ink: fresh ? 0 : at!.ink, w: 1 };
+        const total = REWIND_MS + DRAW_MS;
+        runTrace(
+            tile,
+            name,
+            [start, { p: 0, draw: 0, ink: 1, w: 1 }, { p: 1, draw: 1, ink: 1, w: 1 }],
+            total,
+            { positions: [0, (REWIND_MS / total) * 100, 100] },
+        );
+        return;
+    }
+    const start = fresh ? { p, draw: p, ink: 0, w: 1 } : { ...at!, p, w: 1 };
+    const remaining = Math.max(0.15, 1 - p);
+    runTrace(
+        tile,
+        name,
+        [
+            start,
+            { p: p + (1 - p) * 0.12, draw: start.draw + (1 - start.draw) * 0.12, ink: 1, w: 1 },
+            { p: 1, draw: 1, ink: 1, w: 1 },
+        ],
+        DRAW_MS * remaining,
+        { positions: [0, 12, 100] },
+    );
 };
 
 const onTileLeave = (name: string, e: PointerEvent) => {
     const entry = traces.get(name);
     if (!entry || reducedMotion.value) return;
     const tile = e.currentTarget as HTMLElement;
-    runTrace(tile, name, { p: 0, draw: entry.state.draw, ink: 0 }, RETURN_MS, {
+    const from = { ...entry.state };
+    runTrace(tile, name, [from, { p: from.p, draw: from.draw, ink: 0, w: 0 }], RETURN_MS, {
         ease: easeOutCubic,
+        release: true,
     });
 };
 
@@ -885,6 +1021,49 @@ watch(
     }
 }
 
+/* FIFTY-FIFTH — the dropdown's head row: the search field takes the row and
+   the family Select keeps its own width beside it (one row, not two, so the
+   curves keep the height). On the stage the head is no box of its own. */
+.catalogue-head {
+    display: contents;
+}
+.catalogue-head[data-searchable] {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 0;
+}
+.catalogue-search {
+    position: relative;
+    flex: 1 1 10rem;
+    min-width: 0;
+}
+.catalogue-search-glyph {
+    position: absolute;
+    inset-inline-start: 0.75rem;
+    top: 50%;
+    translate: 0 -50%;
+    width: 1rem;
+    height: 1rem;
+    color: var(--muted-foreground);
+    pointer-events: none;
+    z-index: 1;
+}
+.catalogue-search-field {
+    width: 100%;
+    padding-inline-start: 2.25rem;
+}
+/* A field on a phone is set at 16 px (the type floor; iOS zooms a smaller one). */
+@media (pointer: coarse) {
+    .catalogue-search-field {
+        font-size: max(1rem, 16px);
+    }
+}
+.catalogue-empty {
+    padding: 0.75rem 0.25rem;
+}
+
 /* ── 2 · the divider (glass Separator owns its hairline) ── */
 .catalogue-divider {
     flex: none;
@@ -943,8 +1122,10 @@ watch(
     );
     gap: 0.5rem;
 }
+/* FIFTY-FIFTH — the wider dropdown seats larger tiles: four across at the
+   desk (42rem), two on a phone (the half-row floor below). */
 [data-density="menu"] .specimen-grid {
-    --tile-min: 6.75rem;
+    --tile-min: 8rem;
 }
 /* X-DS r7 pass 14 (KF-C14-03) — the stage seats a FAMILY per row. Its track
    count came from the container alone (auto-fill: 4 at the 1440 stage), so the
