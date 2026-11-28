@@ -17,22 +17,26 @@
         :style="seat.containerStyle"
     >
         <div class="panel-content p-0">
-            <!-- X.KF.W13X.sq+dh (§0dz, addendum (e)) — the pane wears glass's
-                 section anatomy (the ConfiguratorLayer the Spring and Sequence
-                 panes wear): one labelled section holding the curve editor and
-                 its duration. The editor sits on the BARE surface: the pane's
-                 Card is the one plate, so no second tinted card nests inside it
-                 (the same one-frame rule as the Sequence stage, `.sq`). -->
+            <!-- X.KF.W13X.sq+dh (§0dz, addendum (e)) — one section holding the
+                 curve editor and its duration (it wore glass's ConfiguratorLayer
+                 until FIFTY-FOURTH, below). The editor sits on the BARE surface:
+                 the pane's Card is the one plate, so no second tinted card nests
+                 inside it (the same one-frame rule as the Sequence stage, `.sq`). -->
             <!-- A phone's sheet (upright, and the landscape side sheet) holds
                  this one section, under the sheet's own first row: a title row
                  there only takes height from the curve, so the fields stand on
-                 the section's inset without it. -->
-            <component
-                :is="phone ? 'div' : ConfiguratorLayer"
-                v-bind="
+                 the section's inset without it.
+                 FIFTY-FOURTH (owner, 23 Nov: "larger editor") — and so does the
+                 desk's rail. Its "Easing" row restated the page (the dock and
+                 the stage say it) over the pane's one section, and its chevron
+                 folded the only thing the pane holds; the plot is bounded by
+                 the rail's height, so the row's 3.5rem goes to the curve
+                 (215 → 270 px at 1440x900). -->
+            <div
+                :class="
                     phone
-                        ? { class: 'flex flex-col px-(--configurator-pad-inline) pb-2' }
-                        : { label: 'Easing', defaultOpen: true, bodyClass: 'flex flex-col' }
+                        ? 'flex flex-col px-(--configurator-pad-inline) pb-2'
+                        : 'easing-section flex flex-col gap-2 px-(--configurator-pad-inline) pt-4 pb-2'
                 "
             >
                 <!-- KF-ES-12 ≡ KF-TFP-1 — the picker sits in the shared
@@ -130,7 +134,7 @@
                      foot (owner, 23 Nov), so it is met after the curve and the
                      duration it restarts (useSheetReset.ts). -->
                 <SheetResetButton v-if="sheetReset.shown.value" labelled @reset="sheetReset.reset()" />
-            </component>
+            </div>
         </div>
     </div>
 </template>
@@ -141,7 +145,6 @@ import { useMediaQuery } from "@vueuse/core";
 import { Separator } from "@mkbabb/glass-ui";
 import { Button } from "@mkbabb/glass-ui/button";
 import { LabeledSlider } from "@mkbabb/glass-ui/labeled-field";
-import { ConfiguratorLayer } from "@mkbabb/glass-ui/configurator";
 import {
     EasingCurve,
     EasingPicker,
@@ -341,13 +344,16 @@ watch(
         --picker-cap: max(6rem, calc(var(--sheet-room, 100dvh) - 7.125rem));
     }
 }
+/* FIFTY-FOURTH ("larger editor") — the desk section has no title row now, so
+   the chrome under the budget is 3.5rem less: 22rem, and 25rem where the
+   narrow pane wraps its rows. */
 @media (min-width: 1024px) {
     .easing-sidebar {
-        --picker-cap: max(8rem, calc(var(--rail-block, 100dvh) - 25.5rem));
+        --picker-cap: max(8rem, calc(var(--rail-block, 100dvh) - 22rem));
     }
     @container (inline-size < 24rem) {
         .easing-sidebar > .panel-content {
-            --picker-cap: max(8rem, calc(var(--rail-block, 100dvh) - 28.5rem));
+            --picker-cap: max(8rem, calc(var(--rail-block, 100dvh) - 25rem));
         }
     }
     .easing-sidebar :deep([data-slot="easing-controls"] > button:has(> code)) {

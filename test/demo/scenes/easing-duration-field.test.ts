@@ -79,7 +79,9 @@ describe("the upright phone's sheet holds the curve section without a title row"
         return { host, done: () => { app.unmount(); host.remove(); } };
     };
 
-    it("at 390x844 no title row; at 1440x900 the titled section stays; both keep the duration field", async () => {
+    // FIFTY-FOURTH ("larger editor") — the desk section drops its title row as
+    // the phone's did, so the plot takes the row's height.
+    it("no title row at 390x844 nor at 1440x900; both keep the duration field", async () => {
         const saved = Object.getOwnPropertyDescriptor(window, "matchMedia");
         try {
             const phone = await mountAt(390, 844);
@@ -87,7 +89,9 @@ describe("the upright phone's sheet holds the curve section without a title row"
             expect(phone.host.querySelectorAll(".labeled-field")).toHaveLength(1);
             phone.done();
             const desk = await mountAt(1440, 900);
-            expect(desk.host.querySelector("[data-slot=configurator-layer-trigger]")?.textContent).toMatch(/Easing/);
+            expect(desk.host.querySelector("[data-slot=configurator-layer-trigger]")).toBeNull();
+            expect(desk.host.querySelector(".configurator-layer")).toBeNull();
+            expect(desk.host.querySelector('[aria-label="Easing curve editor"]')).not.toBeNull();
             expect(desk.host.querySelectorAll(".labeled-field")).toHaveLength(1);
             desk.done();
         } finally {
