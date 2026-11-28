@@ -1,8 +1,9 @@
 /**
  * Hover stability on the Spring page (owner 2026-11-15: "hovering over
  * cards/dashboard items should not shift the main cards or vizzes around").
- * Hovering the spring parameter field cross-fades its caption from the legend
- * to the '(r, ζ) → peak %' readout. Nothing else may change: the heatmap, its
+ * Hovering the Peak overshoot chart cross-fades its caption from the live
+ * reading to the 'ζ → peak %' readout (FIFTY-FOURTH: the chart replaced the
+ * response × damping field). Nothing else may change: the chart, its
  * caption slot and the spring chart keep the same box, to the pixel, before,
  * during (sampled through the cross-fade) and after the hover, at a desktop
  * width and at a phone width.

@@ -1,100 +1,53 @@
 <template>
-    <!-- ── P.W6 S3 — THE SPRING PARAMETER FIELD ──────────────────────────────
-         A (response × damping) field the designer navigates: click, sweep or
-         arrow across it and the live spring takes that (response, ζ). The tint
-         is the EXACT closed-form peak overshoot of the damped harmonic
-         oscillator, `exp(-ζπ / √(1-ζ²))` — a function of ζ ALONE (response sets
-         ω₀ = 2π/response and scales the time axis, never the peak), so the field
-         SAYS so: the tint is painted as horizontal bands, one per damping node,
-         and the legend states what varies with what. The four canonical presets
-         are plotted where they live. KISS: one CSS background + one pointer
-         gesture + one marker — no canvas, no rAF, no object lifecycle.
-
-         X.KF.W11.f — the field decision (kf-SpringHeatmap D-B1 · D-B2 · D-M8 ·
-         D-M1) is written in the wave's evidence BEFORE this file was touched;
-         this header describes what ships, the evidence says why. -->
+    <!-- ── FIFTY-FOURTH (owner, 23 Nov 2026, of Spring's "Peak overshoot"
+         chart: "rediesng this") — PEAK OVERSHOOT AGAINST DAMPING ───────────
+         The figure was a (response × damping) field tinted by the peak
+         overshoot in hard horizontal bands. Its tint varies with damping
+         alone (response sets the tempo, never the peak), so one of its two
+         axes carried nothing, the bands read as a dark slab with a faint
+         violet foot, and four region tags and four names crowded its box.
+         It is now the curve itself: the exact analytic peak overshoot
+         `exp(-ζπ/√(1-ζ²))` drawn over damping ζ, falling to nothing at
+         ζ = 1 and flat beyond. The live spring is a ball ON the curve (the
+         demo's one ball-on-curve idiom: the easing tiles, the dock's easing
+         icon); the four presets are hollow marks on it, named; a press or a
+         drag across the chart sets the damping, the arrow keys step it, and
+         the response stays with its slider above. A change glides the ball
+         along the curve, never across it. -->
     <!-- X-DS pass 15 (KF-C15-01) — the figure is a DISCLOSURE where the rail
-         cannot hold it: the app's one chevron-row idiom (StartingStyleTarget's
-         'compileToEntry() CSS' row), here 'Peak overshoot'. Closed by default
-         where the facet overflows the rail's scroll body, open where it fits.
-         It replaces the C14 margin spacer, which was whitespace in the scroll
-         content at rest AND scrolled (a 90 px void under the presets). -->
-    <!-- The figure's words are its notes and axis ticks: true captions (13 px). -->
+         cannot hold it: the app's one chevron-row idiom, here 'Peak overshoot'.
+         Closed by default where the facet overflows the rail's scroll body,
+         open where it fits. -->
+    <!-- The figure's words are its ticks and one reading: true captions (13 px). -->
     <Collapsible ref="sectionEl" v-model:open="figureOpen" class="spring-heatmap-section grid gap-2" data-type-role="caption">
-        <!-- X.KF.W13V.y (OA-51; DESIGN-NOTE N-5) — ONE title line, and the
-             field's legend beside it (X-DS pass 3; the y axis is named on its
-             own ticks, below).
-             The live (response, ζ) is NOT restated here — the param rows above
-             show it; it stays the field's accessible description (sr-only). -->
         <div class="flex flex-wrap items-baseline justify-between gap-x-2 gap-y-0.5 whitespace-nowrap">
             <CollapsibleTrigger as-child>
-                <!-- X-DS r4 pass 5 (KF-C24-01) — closed, the row is ONE line: the
-                     legend sentence rides the trigger's title and returns with
-                     the figure it keys. -->
                 <Button
                     emphasis="quiet"
                     size="sm"
                     class="button-text-flush"
                     data-figure-title
-                    :title="figureOpen ? undefined : LEGEND"
                 >
                     <ChevronRight class="disclosure-chevron size-4" aria-hidden="true" />
-                    <!-- X-DS r9 pass 17 (KF-C17-04) — the row-label rung: glass
-                         `.label`'s `--control-label` at 500 in the foreground ink,
-                         as the response, damping and time labels; `text-small`
-                         set it one rung above the parameters it explains. The
-                         chevron carries the disclosure. -->
                     <span class="text-[length:var(--control-label)] leading-(--type-leading-small) text-foreground">Peak overshoot</span>
                 </Button>
             </CollapsibleTrigger>
-            <!-- owner-1112 hover law — ONE caption slot holds the legend AND the
-                 hover readout, stacked in a single grid cell (`grid-area: 1/1`)
-                 and cross-faded on glass's motion tokens. Both stay in layout
-                 for as long as the figure is open, so the slot always keeps the
-                 taller one's box: hovering the field moves no box (it used to
-                 swap a two-line legend for a one-line readout, and the field,
-                 the facet and the chart beside it jumped by that line).
-                 X.KF.W13X.spring (UIA-KF-308) — while the pointer hovers the
-                 field, the legend yields to what a click there would write:
-                 '(r, ζ) → peak %'. It reverts on leave. -->
+            <!-- owner-1112 hover law — ONE caption slot holds the live reading
+                 AND the hover reading, stacked in one grid cell and cross-faded,
+                 so hovering the chart moves no box. At rest it reads the live
+                 spring's peak ('smooth · ζ 0.86 → 1 %', quiet ink); a hover
+                 reads what a press there would write, in the foreground ink. -->
             <span
                 v-if="figureOpen"
                 class="spring-heatmap-caption min-w-0"
-                :data-reading="hoverNode ? '' : undefined"
+                :data-reading="hoverZeta !== null ? '' : undefined"
             >
-                <!-- X-DS pass 3 · KF-C3-06 — the legend rides the caption row (it
-                     was the scroller's last row at rest, so the rail's end fade
-                     ate it to ~1.7:1); KF-C3-11 — the ζ axis title went to its
-                     axis, so this slot was free. -->
-                <!-- X-DS r5 pass 5 (KF-C5-02) — the sentence wraps WHOLE under the
-                     swatch where the rail cannot hold the two on one line (the
-                     row is a flex-wrap line, SubPaneHeader's caption rule). At
-                     1280x800 the nowrap sentence ran 27 px past its own box and
-                     the rail cut it mid-word. -->
-                <!-- X-DS r8 pass 10 (KF-C10x-04) — THE SWATCH NEVER STANDS ALONE.
-                     As two flex items the break fell between the swatch and the
-                     sentence, so at 1280x800 a bare 48 px ramp bar held the first
-                     line. The legend is now one text run: the swatch rides the
-                     sentence's first phrase in one unbreakable run, and the line
-                     breaks only after '·'. -->
-                <!-- X-DS r8 pass 11 (KF-C11-02) — a wrap never ends a line on the
-                     separator: '·' opens the tail's nowrap run, so the break falls
-                     before it. A continuation line hangs under the first line's
-                     text, not under the swatch (`.spring-heatmap-legend`). -->
-                <span class="spring-heatmap-legend min-w-0 whitespace-normal text-caption kf-caption text-muted-foreground tabular-nums" title="Peak overshoot varies with damping ζ only; response sets the tempo, not the peak" data-figure-legend>
-                    <!-- X-DS pass 16 (KF-C16-04) — the swatch keys the field's ramp.
-                         r4 pass 5 (KF-C24-01) — so does the sentence: both show only
-                         while the field does. -->
-                    <span class="whitespace-nowrap"><span class="spring-heatmap-swatch" aria-hidden="true"></span>{{ LEGEND_HEAD }}</span>
-                    {{ " " }}<span class="whitespace-nowrap">{{ LEGEND_TAIL }}</span>
-                </span>
-                <!-- The readout keeps the last node it read, so it fades out on
-                     its value instead of emptying first. -->
+                <span class="spring-heatmap-legend text-caption kf-caption text-muted-foreground tabular-nums" data-figure-legend>{{ reading(dampingFraction) }}</span>
                 <span
                     class="spring-heatmap-readout text-caption kf-caption text-foreground tabular-nums"
                     data-heatmap-hover
                     aria-hidden="true"
-                >{{ formatSeconds(readoutNode.r) }} · ζ {{ formatNumber(readoutNode.d) }} → {{ formatNumber(overshoot(readoutNode.d) * 100, 0) }} %</span>
+                >{{ reading(readoutZeta) }}</span>
             </span>
             <span :id="readoutId" class="sr-only">
                 {{ formatSeconds(response) }} / ζ {{ formatNumber(dampingFraction) }}
@@ -103,34 +56,29 @@
 
         <CollapsibleContent>
             <div class="spring-heatmap-plot">
-                <!-- KF-C3-11 — the y axis's title sits ON its axis, read along it
-                     (the x axis's "response (s) →" is seated the same way); the
-                     axis shows its own direction, so no arrow. -->
-                <span class="spring-heatmap-y-title text-caption kf-caption text-muted-foreground" aria-hidden="true">damping ζ</span>
-                <!-- The ζ axis — ticks at their true positions (the top is calm,
-                     the bottom rings). -->
-                <div class="spring-heatmap-zeta text-caption kf-caption text-muted-foreground tabular-nums" aria-hidden="true">
-                    <span v-for="tick in ZETA_TICKS" :key="tick.label" :style="{ top: tick.top }">
-                        {{ tick.label }}
-                    </span>
+                <!-- The overshoot axis: its two ticks at their true heights. -->
+                <div class="spring-heatmap-y text-caption kf-caption text-muted-foreground tabular-nums" aria-hidden="true">
+                    <span v-for="tick in Y_TICKS" :key="tick.label" :style="{ top: tick.top }">{{ tick.label }}</span>
                 </div>
 
-                <!-- The field. `role="application"` keeps the arrow keys with the
-                     widget in screen-reader browse mode; the readout above is its
-                     accessible description, and the live region inside announces
-                     the writes THIS field makes (the sliders announce their own).
-                     The demo-owned `kf-focus-ring` draws the keyboard ring; the
-                     scoped `:focus` arm below draws the SAME ring after a pointer
-                     grants focus, because a widget that swallows the arrow keys
-                     while focused must show that it has focus. -->
+                <!-- The chart is the damping control: a slider over ζ (its value
+                     and what that value means, read out), so the arrow keys,
+                     Page Up / Down, Home and End step it and a press or a drag
+                     sets it. The readout above is its description; the live
+                     region inside announces the writes this chart makes. -->
                 <div
                     ref="fieldEl"
                     class="spring-heatmap kf-focus-ring relative select-none cursor-crosshair rounded-md"
-                    role="application"
+                    role="slider"
                     :aria-label="FIELD_LABEL"
+                    aria-orientation="horizontal"
+                    :aria-valuemin="DAMPING_AXIS.min"
+                    :aria-valuemax="DAMPING_AXIS.max"
+                    :aria-valuenow="dampingFraction"
+                    :aria-valuetext="valueText(dampingFraction)"
                     :aria-describedby="readoutId"
                     tabindex="0"
-                    :style="{ backgroundImage: FIELD_RAMP }"
+                    data-overshoot-chart
                     @pointerdown="onPointerDown"
                     @pointermove="onPointerMove"
                     @pointerup="onPointerRelease"
@@ -141,70 +89,52 @@
                 >
                     <span class="sr-only" aria-live="polite">{{ announced }}</span>
 
-                    <!-- The critical line — the boundary between the two regimes,
-                         drawn at ζ = 1's true y; the regime labels sit ON the
-                         vertical axis they describe, either side of it. -->
-                    <span class="spring-heatmap-critical" :style="{ top: CRITICAL_TOP }" aria-hidden="true">
-                        <span class="spring-heatmap-tag text-caption kf-caption text-muted-foreground">ζ = 1 · critical</span>
-                    </span>
-                    <span class="spring-heatmap-regime spring-heatmap-regime--over text-caption kf-caption text-muted-foreground" aria-hidden="true">
-                        overdamped · no overshoot
-                    </span>
-                    <!-- X-DS pass 10 (KF-C10-05b) — the ringing regime is named IN
-                         its field (right, at the underdamped band's middle), not
-                         under the rule, where it sat beside gentle's pip on ζ = 1
-                         and read as a second name for that dot. -->
-                    <span
-                        class="spring-heatmap-regime spring-heatmap-regime--under text-caption kf-caption text-muted-foreground"
-                        :style="{ top: UNDER_TAG_TOP }"
-                        aria-hidden="true"
-                    >
-                        underdamped · rings
-                    </span>
+                    <!-- The 50 % rule and the baseline; ζ = 1, where the
+                         overshoot ends, as a dashed upright. -->
+                    <span class="spring-heatmap-rule" :style="{ top: HALF_TOP }" aria-hidden="true"></span>
+                    <span class="spring-heatmap-baseline" aria-hidden="true"></span>
+                    <span class="spring-heatmap-critical" :style="{ left: CRITICAL_LEFT }" aria-hidden="true"></span>
 
-                    <!-- The four presets, plotted where they live (the Chips below
-                         stay the ONE preset surface; these are marks, not controls).
-                         X-DS pass 4 (KF-C4-10) — each name sits on the side of its dot
-                         AWAY from the critical line: above for ζ ≥ 1, below for an
-                         underdamped preset, so no name is ever crossed by the rule. -->
+                    <svg class="spring-heatmap-svg" viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true">
+                        <path class="spring-heatmap-area" :d="AREA_D" :style="{ fill: AREA_FILL }" />
+                        <path class="spring-heatmap-curve" :d="CURVE_D" vector-effect="non-scaling-stroke" />
+                    </svg>
+
+                    <!-- The hovered damping: a hairline from the baseline up to
+                         the curve, where a press would put the ball. -->
+                    <span
+                        class="spring-heatmap-guide"
+                        :class="{ 'is-shown': hoverZeta !== null }"
+                        :style="guideStyle"
+                        aria-hidden="true"
+                    ></span>
+
+                    <!-- The four presets on the curve, where the physics puts
+                         them. Each name sits on the side of its mark that the
+                         curve and its neighbours leave clear. -->
                     <span
                         v-for="pip in PRESET_PIPS"
                         :key="pip.name"
                         class="spring-heatmap-pip"
-                        :class="{ 'is-current': pip.name === currentPipName, 'is-under': pip.under }"
+                        :class="[`is-${pip.side}`, { 'is-current': pip.name === currentPipName }]"
                         :style="{ left: pip.left, top: pip.top }"
                         aria-hidden="true"
                     >
                         <span class="text-caption kf-caption">{{ pip.name }}</span>
                     </span>
 
-                    <!-- The lattice cell under the pointer — the node a click would
-                         write, shown before it is written. -->
-                    <span
-                        v-if="hoverCell"
-                        class="spring-heatmap-cell"
-                        :style="hoverCell"
-                        aria-hidden="true"
-                    ></span>
-
-                    <!-- The live marker — the current (response, ζ). An isolated
-                         write glides; a STREAM of writes (a slider drag, a key-repeat,
-                         this field's own sweep) is tracked 1:1, so the tracker never
-                         trails the gesture. -->
+                    <!-- The live spring: a ball on the curve at its damping. -->
                     <span
                         ref="markerEl"
                         class="spring-heatmap-marker"
-                        :class="{ 'is-streaming': streaming }"
                         :style="markerStyle"
                         aria-hidden="true"
                     ></span>
                 </div>
 
-                <!-- The response axis. -->
-                <div class="spring-heatmap-x flex items-baseline justify-between gap-2 text-caption kf-caption text-muted-foreground tabular-nums" aria-hidden="true">
-                    <span>{{ formatSeconds(RESPONSE_AXIS.min) }}</span>
-                    <span>response (s) →</span>
-                    <span>{{ formatSeconds(RESPONSE_AXIS.max) }}</span>
+                <!-- The damping axis: its ticks at their true places, and its name. -->
+                <div class="spring-heatmap-x text-caption kf-caption text-muted-foreground tabular-nums" aria-hidden="true">
+                    <span v-for="tick in X_TICKS" :key="tick.label" :class="tick.cls" :style="{ left: tick.left }">{{ tick.label }}</span>
                 </div>
             </div>
         </CollapsibleContent>
@@ -303,89 +233,103 @@ export function overshoot(zeta: number): number {
 export const OVERSHOOT_MAX = overshoot(DAMPING_AXIS.min);
 export const OVERSHOOT_MAX_PERCENT = Math.round(OVERSHOOT_MAX * 100);
 
-/** The ramp's SCALE — linear in overshoot, normalised to the field's own
- *  maximum: 0 % of the accent at no overshoot, 100 % at the bottom edge. */
-export function rampMix(zeta: number): number {
-    return Math.round((overshoot(zeta) / OVERSHOOT_MAX) * 100);
-}
+/** The chart's overshoot ceiling: a round 60 %, just above the strongest
+ *  ring the damping axis reaches (53 % at ζ 0.2). */
+export const OVERSHOOT_CEILING = 0.6;
 
-/** The damping nodes, TOP → BOTTOM (ζ 1.5 → 0.2): one band each. */
-export function dampingNodesTopDown(): number[] {
-    const n = axisNodes(DAMPING_AXIS);
-    return Array.from({ length: n + 1 }, (_, j) => nodeValue(n - j, DAMPING_AXIS));
-}
+/** Where a damping sits across the chart, 0 → 1. */
+export const chartX = (zeta: number): number => axisFraction(zeta, DAMPING_AXIS);
+/** Where an overshoot sits down the chart, 0 at the top → 1 on the baseline. */
+export const chartY = (peak: number): number => 1 - clamp(peak / OVERSHOOT_CEILING, 0, 1);
 
-// X.KF.W13X.spring (UIA-KF-307) — the ramp mixes into the glass well tint
-// `--surface-tint-4`, never `--background`: the page ground painted a
-// near-black slab on the warm card in dark.
-const accentMix = (mix: number): string =>
-    `color-mix(in oklab, var(--color-progress) ${mix}%, var(--surface-tint-4))`;
-
-/**
- * The field's paint — ONE `linear-gradient` of hard-stopped bands, one per
- * damping node, each spanning ± half a pitch around its node (the end bands are
- * half-height). The band IS the lattice row: the tint under the pointer is the
- * overshoot of the value a click writes. The tokens resolve in the cascade, so
- * a theme flip re-tints for free — nothing to re-bake, no race to lose.
- */
-export function buildFieldRamp(): string {
-    const nodes = dampingNodesTopDown();
-    const n = nodes.length - 1;
-    const boundary = (j: number): number => clamp(((j + 0.5) / n) * 100, 0, 100);
-    const stops = nodes.map((zeta, j) => {
-        const from = j === 0 ? 0 : boundary(j - 1);
-        const to = j === n ? 100 : boundary(j);
-        return `${accentMix(rampMix(zeta))} ${from.toFixed(3)}% ${to.toFixed(3)}%`;
+/** The curve as chart points, one per hundredth of damping (131 points, each
+ *  on the sliders' grid), in the 0 → 1000 square the SVG draws in. */
+export function overshootCurve(): { zeta: number; x: number; y: number }[] {
+    const lo = Math.round(DAMPING_AXIS.min * 100);
+    const hi = Math.round(DAMPING_AXIS.max * 100);
+    return Array.from({ length: hi - lo + 1 }, (_, i) => {
+        const zeta = (lo + i) / 100;
+        return { zeta, x: chartX(zeta) * 1000, y: chartY(overshoot(zeta)) * 1000 };
     });
-    return `linear-gradient(to bottom, ${stops.join(", ")})`;
 }
+export const CURVE_D = overshootCurve()
+    .map((p, i) => `${i ? "L" : "M"} ${p.x.toFixed(2)} ${p.y.toFixed(2)}`)
+    .join(" ");
+/** The curve closed down to the baseline: the overshoot's own area. */
+export const AREA_D = `${CURVE_D} L 1000 1000 L 0 1000 Z`;
 
-export const FIELD_RAMP = buildFieldRamp();
+// X.KF.W13X.spring (UIA-KF-307) — the accent mixes into a surface tint or into
+// nothing, never into `--background`: the page ground painted a near-black
+// slab on the warm card in dark.
+const accentMix = (mix: number): string => `color-mix(in oklab, var(--color-progress) ${mix}%, transparent)`;
+/** The area under the curve: a light wash of the accent, so the amount reads
+ *  as an amount and the curve stays the line that says it. */
+export const AREA_FILL = accentMix(14);
 
-/** The four presets' positions on the field, as CSS percentages. */
-export const PRESET_PIPS = SPRING_PRESETS.map((preset) => ({
-    name: preset.name,
-    left: `${(axisFraction(preset.response, RESPONSE_AXIS) * 100).toFixed(3)}%`,
-    top: `${((1 - axisFraction(preset.dampingFraction, DAMPING_AXIS)) * 100).toFixed(3)}%`,
-    /** Underdamped (ζ < 1): the dot sits below the critical line. */
-    under: preset.dampingFraction < 1,
-}));
+/** The four presets on the curve. A name sits above and after its mark,
+ *  unless the next preset along the curve is closer than 0.2 of damping and
+ *  near its height: then above and centred, leaving the after side clear for
+ *  that neighbour's name (smooth beside gentle). */
+export const PRESET_PIPS = [...SPRING_PRESETS]
+    .sort((a, b) => a.dampingFraction - b.dampingFraction)
+    .map((preset, i, all) => {
+        const next = all[i + 1];
+        const crowded =
+            next !== undefined &&
+            next.dampingFraction - preset.dampingFraction < 0.2 &&
+            Math.abs(overshoot(next.dampingFraction) - overshoot(preset.dampingFraction)) < 0.05;
+        return {
+            name: preset.name,
+            zeta: preset.dampingFraction,
+            left: `${(chartX(preset.dampingFraction) * 100).toFixed(3)}%`,
+            top: `${(chartY(overshoot(preset.dampingFraction)) * 100).toFixed(3)}%`,
+            side: crowded ? ("above" as const) : ("after" as const),
+        };
+    });
 
-/** ζ = 1 — the critical line's y, from the top. */
-export const CRITICAL_TOP = `${((1 - axisFraction(1, DAMPING_AXIS)) * 100).toFixed(3)}%`;
-
-/** X-DS pass 10 (KF-C10-05b) — the ringing regime's tag: the middle of the
- *  underdamped band (between ζ = 1 and the axis floor), a region's centre,
- *  clear of the rule and of gentle's pip on it. */
-export const UNDER_TAG_TOP = `${((1 - axisFraction(1, DAMPING_AXIS) / 2) * 100).toFixed(3)}%`;
-
-const ZETA_TICKS = [
-    { label: formatNumber(DAMPING_AXIS.max), top: "0%" },
-    { label: "1.0", top: CRITICAL_TOP },
-    { label: formatNumber(DAMPING_AXIS.min), top: "100%" },
+export const HALF_TOP = `${(chartY(0.5) * 100).toFixed(3)}%`;
+export const CRITICAL_LEFT = `${(chartX(1) * 100).toFixed(3)}%`;
+const Y_TICKS = [
+    { label: "50 %", top: HALF_TOP },
+    { label: "0", top: "100%" },
+];
+const X_TICKS = [
+    { label: formatNumber(DAMPING_AXIS.min), left: "0%", cls: "is-start" },
+    { label: "damping ζ", left: `${(chartX((DAMPING_AXIS.min + 1) / 2) * 100).toFixed(3)}%`, cls: "is-title" },
+    { label: "1", left: CRITICAL_LEFT, cls: "" },
+    { label: formatNumber(DAMPING_AXIS.max), left: "100%", cls: "is-end" },
 ];
 
-/** The field's legend: the ramp's range and what alone sets it. */
-const LEGEND_HEAD = `0 → ${OVERSHOOT_MAX_PERCENT} % overshoot`;
-const LEGEND_TAIL = "· set by damping alone";
-const LEGEND = `${LEGEND_HEAD} ${LEGEND_TAIL}`;
+/** What a damping means here: its value and its peak, and its preset's name
+ *  where it is one. */
+export function reading(zeta: number): string {
+    const preset = SPRING_PRESETS.find((p) => Math.abs(p.dampingFraction - zeta) < 1e-6);
+    const peak = `ζ ${formatNumber(zeta)} → ${formatNumber(overshoot(zeta) * 100, 0)} %`;
+    return preset ? `${preset.name} · ${peak}` : peak;
+}
+const valueText = (zeta: number): string =>
+    `damping ${formatNumber(zeta)}, ${formatNumber(overshoot(zeta) * 100, 0)} % overshoot`;
 
 const FIELD_LABEL =
-    `Spring parameter field — response ${RESPONSE_AXIS.min} to ${RESPONSE_AXIS.max} s across, ` +
-    `damping ζ ${DAMPING_AXIS.max} at the top to ${DAMPING_AXIS.min} at the bottom. ` +
-    `Click, sweep or use the arrow keys to move by ${LATTICE.pitch}; the sliders above set exact values.`;
+    `Peak overshoot by damping: damping ζ ${DAMPING_AXIS.min} to ${DAMPING_AXIS.max} across, ` +
+    `the overshoot it gives up the chart. Press or drag to set the damping, or use the arrow keys ` +
+    `to move by ${LATTICE.pitch}; the response stays on its slider.`;
 </script>
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, useId, useTemplateRef, watch } from "vue";
+import { useMediaQuery } from "@vueuse/core";
 import { ChevronRight } from "@lucide/vue";
 import { Button } from "@mkbabb/glass-ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@mkbabb/glass-ui/collapsible";
+import { NumericAnimation } from "@mkbabb/keyframes.js";
+import { easeOutCubic } from "@mkbabb/value.js/easing";
 import { landStart } from "@components/instrument/pane/composables/useFoldLanding";
 
 // ── The contract — two models, the same two refs the facet's sliders write
 // through their own declared `@update:model-value`. Instantiable with two
-// numbers; nothing else of the scene is read. ──────────────────────────────────
+// numbers; nothing else of the scene is read. The chart writes the damping
+// only; the response rides along for the readout. ────────────────────────────
 const response = defineModel<number>("response", { required: true });
 const dampingFraction = defineModel<number>("dampingFraction", { required: true });
 
@@ -476,223 +420,220 @@ watch(figureOpen, (open) => {
 });
 const markerEl = useTemplateRef<HTMLElement>("markerEl");
 const readoutId = useId();
+const reducedMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
 
-/** What this field announces after a write it made (the sliders announce theirs). */
+/** What this chart announces after a write it made (the sliders announce theirs). */
 const announced = ref("");
 
-/** Write both params (only the ones that changed) and announce the result. */
-function write(r: number, d: number): void {
-    if (r !== response.value) response.value = r;
+/** Write the damping (when it changed) and announce the result. */
+function write(d: number): void {
     if (d !== dampingFraction.value) dampingFraction.value = d;
-    announced.value = `${formatSeconds(r)}, ζ ${formatNumber(d)}`;
+    announced.value = valueText(d);
 }
 
-// ── The marker — positioned by `transform: translate(<cqw>, <cqh>)` against the
-// field (`container-type: size`); the same content box the pointer reads and the
-// background paints. Compositor-only, so the glide never touches layout. ───────
-const markerStyle = computed(() => {
-    const x = axisFraction(response.value, RESPONSE_AXIS) * 100;
-    const y = (1 - axisFraction(dampingFraction.value, DAMPING_AXIS)) * 100;
-    return { transform: `translate(${x}cqw, ${y}cqh)` };
+// ── The ball — where it is DRAWN (`shown`) follows the live damping. An
+// isolated write glides the drawn damping to the new one, so the ball travels
+// along the curve, never across it; a STREAM of writes (a slider drag, a key
+// repeat, this chart's own drag) is tracked 1:1, so the ball never trails the
+// hand. Placed by `transform: translate(<cqw>, <cqh>)` against the chart's
+// content box (`container-type: size`): compositor-only. Reduced motion: the
+// ball fades out where it stood and in where it lands, never a cut. ──────────
+const GLIDE_MS = 260;
+const shown = ref(dampingFraction.value);
+const glide = new NumericAnimation<{ z: number }>([{ z: 0 }, { z: 1 }], {
+    duration: GLIDE_MS,
+    timingFunction: easeOutCubic,
 });
-
-// ── Streams vs isolated writes (N-SH-3) — a write that lands within one glide
-// of the previous one is part of a gesture (a slider drag, a key-repeat, this
-// field's own sweep) and is tracked 1:1; an isolated write glides. The glide's
-// duration is read ONCE from the marker's own computed style — the token's
-// value, never a duplicated literal. ────────────────────────────────────────────
-// X.KF.W13X.spring (KFA-154) — this field's OWN sweep is a stream from its
-// pointerdown to its release, declared by the gesture rather than inferred from
-// the clock: inferred, the sweep's first write glided (no previous write to be
-// within a glide of), the next switched to 1:1 and the marker jumped ~240 px,
-// and a stall mid-drag could flip it back to a glide.
-const streaming = ref(false);
+let glideRun = 0;
 let gestureStreaming = false;
-let glideMs = 0;
 let lastWriteAt = Number.NEGATIVE_INFINITY;
-// X-DS pass 15 — read when the marker mounts (the figure may open after mount).
-watch(markerEl, (marker) => {
-    if (!marker || glideMs) return;
-    glideMs = (Number.parseFloat(getComputedStyle(marker).transitionDuration) || 0) * 1000;
-}, { immediate: true, flush: "post" });
-watch([response, dampingFraction], () => {
+watch(dampingFraction, (to) => {
     const now = performance.now();
-    streaming.value = gestureStreaming || now - lastWriteAt < glideMs;
+    const stream = gestureStreaming || now - lastWriteAt < GLIDE_MS;
     lastWriteAt = now;
+    glide.stop();
+    const run = ++glideRun;
+    if (stream) {
+        shown.value = to;
+        return;
+    }
+    if (reducedMotion.value) {
+        const marker = markerEl.value;
+        if (!marker?.animate) {
+            shown.value = to;
+            return;
+        }
+        void marker
+            .animate([{ opacity: 1 }, { opacity: 0 }], { duration: 70, fill: "forwards" })
+            .finished.then(() => {
+                if (run !== glideRun) return;
+                shown.value = to;
+                for (const a of marker.getAnimations()) a.cancel();
+                marker.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 110 });
+            })
+            .catch(() => undefined);
+        return;
+    }
+    const from = shown.value;
+    void glide.play(({ z }) => {
+        if (run === glideRun) shown.value = from + (to - from) * z;
+    });
 });
+onBeforeUnmount(() => glide.stop());
 
-// ── ONE coordinate space — the field's CONTENT box: the box `cqw`/`cqh` resolve
-// against, the box the background paints, and (rect + clientLeft/Top, clientWidth/
-// Height) the box the pointer is read in. ──────────────────────────────────────
-function fieldFractions(clientX: number, clientY: number): { fx: number; fy: number } | null {
+const markerStyle = computed(() => ({
+    transform: `translate(${(chartX(shown.value) * 100).toFixed(3)}cqw, ${(chartY(overshoot(shown.value)) * 100).toFixed(3)}cqh)`,
+}));
+
+/** The preset the live damping sits on: its mark is under the ball, its name
+ *  stays (it names the ball's place). */
+const currentPipName = computed(
+    () => SPRING_PRESETS.find((p) => Math.abs(p.dampingFraction - dampingFraction.value) < 1e-6)?.name,
+);
+
+// ── ONE coordinate space — the chart's CONTENT box: the box `cqw`/`cqh`
+// resolve against and (rect + clientLeft, clientWidth) the box the pointer is
+// read in. ─────────────────────────────────────────────────────────────────────
+function chartFraction(clientX: number): number | null {
     const field = fieldEl.value;
     if (!field) return null;
     const w = field.clientWidth;
-    const h = field.clientHeight;
-    if (w <= 0 || h <= 0) return null;
+    if (w <= 0) return null;
     const rect = field.getBoundingClientRect();
-    return {
-        fx: clamp((clientX - rect.left - field.clientLeft) / w, 0, 1),
-        fy: clamp((clientY - rect.top - field.clientTop) / h, 0, 1),
-    };
+    return clamp((clientX - rect.left - field.clientLeft) / w, 0, 1);
 }
 
-/** The lattice node under a field position: (response, ζ), both on nodes. */
-function nodeAt(fx: number, fy: number): { r: number; d: number } {
-    return {
-        r: snapToAxis(fx, RESPONSE_AXIS),
-        d: snapToAxis(1 - fy, DAMPING_AXIS),
-    };
-}
-
-// ── The hover cell — the lattice cell around the node a click would write,
-// clipped at the field's edges. ────────────────────────────────────────────────
-const hoverCell = ref<{ left: string; top: string; width: string; height: string } | null>(null);
-/** UIA-KF-308 — the node under the pointer, read out in the header. */
-const hoverNode = ref<{ r: number; d: number } | null>(null);
-/** The node the caption's readout shows: the hovered one, else the last one
- *  hovered (the readout is fading out), else the live params (never shown). */
-const lastHover = ref<{ r: number; d: number } | null>(null);
-watch(hoverNode, (node) => {
-    if (node) lastHover.value = node;
+// ── The hover — the damping a press would write, shown before it is written. ──
+const hoverZeta = ref<number | null>(null);
+/** The readout keeps the last damping it read, so it fades out on its value. */
+const lastHover = ref<number | null>(null);
+watch(hoverZeta, (z) => {
+    if (z !== null) lastHover.value = z;
 });
-const readoutNode = computed(
-    () => hoverNode.value ?? lastHover.value ?? { r: response.value, d: dampingFraction.value },
-);
-
-/** UIA-KF-308 — the preset the live params sit on: the marker covers its pip,
- *  so that pip's name steps aside rather than print under the marker. */
-const currentPipName = computed(
-    () =>
-        SPRING_PRESETS.find(
-            (p) =>
-                Math.abs(p.response - response.value) < 1e-6 &&
-                Math.abs(p.dampingFraction - dampingFraction.value) < 1e-6,
-        )?.name,
-);
-
-function cellStyle(r: number, d: number) {
-    const cols = axisNodes(RESPONSE_AXIS);
-    const rows = axisNodes(DAMPING_AXIS);
-    const k = nodeIndex(r, RESPONSE_AXIS);
-    const j = rows - nodeIndex(d, DAMPING_AXIS); // from the top
-    const x0 = clamp((k - 0.5) / cols, 0, 1);
-    const x1 = clamp((k + 0.5) / cols, 0, 1);
-    const y0 = clamp((j - 0.5) / rows, 0, 1);
-    const y1 = clamp((j + 0.5) / rows, 0, 1);
+const readoutZeta = computed(() => hoverZeta.value ?? lastHover.value ?? dampingFraction.value);
+const guideStyle = computed(() => {
+    const z = readoutZeta.value;
     return {
-        left: `${(x0 * 100).toFixed(3)}%`,
-        top: `${(y0 * 100).toFixed(3)}%`,
-        width: `${((x1 - x0) * 100).toFixed(3)}%`,
-        height: `${((y1 - y0) * 100).toFixed(3)}%`,
+        left: `${(chartX(z) * 100).toFixed(3)}%`,
+        "--guide-top": `${(chartY(overshoot(z)) * 100).toFixed(3)}%`,
     };
-}
+});
 
-// ── The gesture — one primary pointer, latched by id, captured for the sweep.
-// `touch-action: none` (the scoped block) declares the pan as this gesture, so a
-// touch that begins on the field navigates and never scrolls the panel. ────────
+// ── The gesture — one primary pointer, latched by id, captured for the drag.
+// `touch-action: pan-y` (the scoped block): a vertical swipe over the chart
+// still scrolls the pane; a horizontal one sets the damping. ─────────────────
 let activePointer: number | null = null;
 
-function navigate(e: PointerEvent): void {
-    const f = fieldFractions(e.clientX, e.clientY);
-    if (!f) return;
-    const { r, d } = nodeAt(f.fx, f.fy);
-    hoverCell.value = cellStyle(r, d);
-    hoverNode.value = { r, d };
-    write(r, d);
+function hoverAt(e: PointerEvent): number | null {
+    const f = chartFraction(e.clientX);
+    if (f === null) return null;
+    const d = snapToAxis(f, DAMPING_AXIS);
+    hoverZeta.value = d;
+    return d;
 }
 
 function onPointerDown(e: PointerEvent): void {
     if (e.button !== 0 || !e.isPrimary || activePointer !== null) return;
     activePointer = e.pointerId;
-    fieldEl.value?.setPointerCapture(e.pointerId);
+    fieldEl.value?.setPointerCapture?.(e.pointerId);
     gestureStreaming = true;
-    streaming.value = true;
-    navigate(e);
-    fieldEl.value?.focus();
+    const d = hoverAt(e);
+    if (d !== null) write(d);
+    fieldEl.value?.focus({ preventScroll: true });
 }
 
 function onPointerMove(e: PointerEvent): void {
     if (activePointer !== null) {
-        if (e.pointerId === activePointer) navigate(e);
+        if (e.pointerId !== activePointer) return;
+        const d = hoverAt(e);
+        if (d !== null) write(d);
         return;
     }
-    const f = fieldFractions(e.clientX, e.clientY);
-    if (!f) return;
-    const { r, d } = nodeAt(f.fx, f.fy);
-    hoverCell.value = cellStyle(r, d);
-    hoverNode.value = { r, d };
+    if (e.pointerType !== "touch") hoverAt(e);
 }
 
 function onPointerRelease(e: PointerEvent): void {
     if (e.pointerId !== activePointer) return;
     activePointer = null;
     gestureStreaming = false;
+    if (e.pointerType === "touch") hoverZeta.value = null;
 }
 
 function onPointerLeave(): void {
-    if (activePointer === null) {
-        hoverCell.value = null;
-        hoverNode.value = null;
-    }
+    if (activePointer === null) hoverZeta.value = null;
 }
 
-// ── The keys — a bare arrow steps ONE pitch along one axis and is CLAIMED for
-// that keypress (`preventDefault` + `stopPropagation` — the KF-SS-30 precedent:
-// a widget that has taken a key owns it; the window shortcut registry never
-// checks `defaultPrevented`). A modified arrow is NOT handled: Alt/Meta/Ctrl/
-// Shift+Arrow reach the browser and the registry exactly as from any other
-// element, so history-back, word-nav and the transport's own large scrub keep
-// their meanings. ─────────────────────────────────────────────────────────────
+// ── The keys — the slider's own: a bare arrow steps ONE pitch (right and up
+// add damping), Page Up / Page Down five, Home and End go to the ends. A
+// handled key is CLAIMED for that keypress (`preventDefault` +
+// `stopPropagation` — the KF-SS-30 precedent: a widget that has taken a key
+// owns it). A modified key is NOT handled: Alt/Meta/Ctrl/Shift+Arrow reach the
+// browser and the registry exactly as from any other element. ────────────────
 function onKeydown(e: KeyboardEvent): void {
     if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
-    let r = response.value;
     let d = dampingFraction.value;
+    const steps = (n: number, dir: -1 | 1) => {
+        for (let i = 0; i < n; i++) d = stepOnAxis(d, dir, DAMPING_AXIS);
+    };
     switch (e.key) {
         case "ArrowRight":
-            r = stepOnAxis(r, 1, RESPONSE_AXIS);
+        case "ArrowUp":
+            steps(1, 1);
             break;
         case "ArrowLeft":
-            r = stepOnAxis(r, -1, RESPONSE_AXIS);
-            break;
-        case "ArrowUp":
-            d = stepOnAxis(d, 1, DAMPING_AXIS); // up = more damping, toward the calm top
-            break;
         case "ArrowDown":
-            d = stepOnAxis(d, -1, DAMPING_AXIS);
+            steps(1, -1);
+            break;
+        case "PageUp":
+            steps(5, 1);
+            break;
+        case "PageDown":
+            steps(5, -1);
+            break;
+        case "Home":
+            d = DAMPING_AXIS.min;
+            break;
+        case "End":
+            d = DAMPING_AXIS.max;
             break;
         default:
             return;
     }
     e.preventDefault();
     e.stopPropagation();
-    write(r, d);
+    write(d);
 }
 </script>
 
 <style scoped>
-/* ── The plot: a ζ gutter, the field, the response axis under it. ── */
+/* ── The plot: the overshoot ticks, the chart, the damping axis under it. ── */
 .spring-heatmap-plot {
-    /* X-DS pass 15 (KF-C15-01) — the top ζ tick is centred ON the field's top
-       edge (translateY(-50%)), so half its line rides above the plot; inside
-       the disclosure's content (glass clips it, `overflow: hidden`, for the
-       height motion) that half was cut. The plot holds the overhang itself. */
+    /* The top tick is centred ON its rule (translateY(-50%)); the plot holds
+       the overhang above the chart (glass clips the disclosure's content for
+       its height motion). */
     padding-block-start: calc(var(--type-caption) / 2);
     display: grid;
-    grid-template-columns: auto auto minmax(0, 1fr);
+    grid-template-columns: auto minmax(0, 1fr);
     column-gap: 0.375rem;
-    row-gap: 0.125rem;
+    row-gap: 0.25rem;
 }
 .spring-heatmap-x {
-    grid-column: 3;
+    grid-column: 2;
+    position: relative;
+    block-size: calc(var(--type-caption) * 1.3);
 }
-/* KF-C3-11 — the y-axis title, read bottom-to-top along the ζ ticks. */
-.spring-heatmap-y-title {
-    writing-mode: vertical-rl;
-    rotate: 180deg;
-    align-self: center;
-    line-height: 1;
+.spring-heatmap-x > span {
+    position: absolute;
+    top: 0;
+    line-height: 1.3;
     white-space: nowrap;
+    translate: -50% 0;
+}
+.spring-heatmap-x > .is-start {
+    translate: 0 0;
+}
+.spring-heatmap-x > .is-end {
+    translate: -100% 0;
 }
 /* X.KF.W13X.pc2 (ESC-W13X-pc-1 / PC1i) — the section's one column is the
    rail's width, never its content's min-content. An implicit `auto` track
@@ -751,42 +692,32 @@ function onKeydown(e: KeyboardEvent): void {
     }
 }
 
-/* X.KF.W13V.y (OA-49 "space used by the subject, not by chrome"; R-c-1) — the
-   field's block size is the facet's largest single spend: 12rem keeps every
-   regime tag, pip and the critical line legible while the facet's params,
-   figure and presets share the bounded rail. The tick column mirrors it. */
-.spring-heatmap-zeta {
+/* The overshoot ticks, at their true heights beside the chart. */
+.spring-heatmap-y {
     position: relative;
-    inline-size: 1.5rem;
+    inline-size: 2.25rem;
     block-size: var(--spring-field-block);
 }
-.spring-heatmap-zeta > span {
+.spring-heatmap-y > span {
     position: absolute;
     right: 0;
     transform: translateY(-50%);
     line-height: 1;
+    white-space: nowrap;
 }
 
-/* ── The field ──
-   Its size is a LAYOUT choice, stated as one: the rail's content width by 16rem.
-   Seconds and a dimensionless ratio share no unit, so no aspect is "true" and
-   none is claimed. The tint rides `--color-progress` — the motion accent — mixed
-   into `--background` (the ramp is the inline `background-image`; the colour
-   here is the 0 % band, so the box is painted before the gradient resolves).
-   The boundary is a foreground mix that clears 3:1 against BOTH the field's own
-   0 % fill and the card in both themes (WCAG 1.4.11; the battery is in the
-   wave's evidence). `container-type: size` cannot collapse a box whose block
-   AND inline sizes are definite. `touch-action: none` declares the sweep. */
+/* ── The chart ──
+   Its block size is a share of the rail (above); its width is the rail's.
+   `container-type: size` gives the ball its `cqw`/`cqh` (both sizes are
+   definite). It sits on the pane's own surface: no well, no border, and no
+   page ground. `touch-action: pan-y` keeps a vertical swipe a scroll. */
 .spring-heatmap {
     block-size: var(--spring-field-block);
-    border: 1px solid color-mix(in srgb, var(--foreground) 50%, transparent);
-    /* UIA-KF-307 — the 0 % band is the well tint, not the page ground. */
-    background-color: var(--surface-tint-4);
     container-type: size;
-    touch-action: none;
+    touch-action: pan-y;
 }
 /* Pointer-granted focus is disclosed with the same ring the keyboard gets:
-   this widget swallows the arrow keys while focused, and must say so. */
+   this slider takes the arrow keys while focused, and must say so. */
 .spring-heatmap:focus:not(:focus-visible) {
     box-shadow: var(--focus-ring-shadow);
     outline: none;
@@ -798,117 +729,105 @@ function onKeydown(e: KeyboardEvent): void {
     }
 }
 
-/* ── The critical line and the regime labels — the vertical legend. ── */
-.spring-heatmap-critical {
+.spring-heatmap-svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    pointer-events: none;
+}
+.spring-heatmap-curve {
+    fill: none;
+    stroke: var(--color-progress);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+/* The baseline (0 %), the 50 % rule and the ζ = 1 upright: hairlines in the
+   ink's quiet mixes, the baseline the firmest. */
+.spring-heatmap-baseline,
+.spring-heatmap-rule {
     position: absolute;
     left: 0;
     right: 0;
-    border-top: 1px dashed color-mix(in srgb, var(--foreground) 45%, transparent);
     pointer-events: none;
 }
-/* X-DS pass 4 (KF-C4-10) — the tag stands clear of its rule: bottom-anchored
-   to the line with a descender's clearance (`ζ` descends below the baseline). */
-.spring-heatmap-tag {
-    position: absolute;
-    left: 0.5rem;
-    bottom: 0.375rem;
-    line-height: 1;
-    white-space: nowrap;
+.spring-heatmap-baseline {
+    bottom: 0;
+    border-top: 1px solid color-mix(in srgb, var(--foreground) 40%, transparent);
 }
-/* Top-left names the calm end; the ringing end is named right-aligned at the
-   middle of its band (X-DS pass 10, KF-C10-05b: it was anchored right under
-   the critical line, beside gentle's pip). Each tag labels a REGION, on the
-   side no underdamped preset occupies (their responses sit left of 0.6 s). */
-.spring-heatmap-regime {
+.spring-heatmap-rule {
+    border-top: 1px dotted color-mix(in srgb, var(--foreground) 22%, transparent);
+}
+.spring-heatmap-critical {
     position: absolute;
-    white-space: nowrap;
-    line-height: 1;
+    top: 0;
+    bottom: 0;
+    border-left: 1px dashed color-mix(in srgb, var(--foreground) 30%, transparent);
     pointer-events: none;
-}
-.spring-heatmap-regime--over {
-    top: 0.375rem;
-    left: 0.5rem;
-}
-.spring-heatmap-regime--under {
-    right: 0.5rem;
-    transform: translateY(-50%);
 }
 
-/* ── The preset pips — a hollow dot on the point, the name above it. ── */
+/* The hover's hairline, from the baseline up to the curve. It fades in and
+   out on glass's motion tokens, the readout's clock. */
+.spring-heatmap-guide {
+    position: absolute;
+    top: var(--guide-top, 100%);
+    bottom: 0;
+    border-left: 1px solid color-mix(in srgb, var(--foreground) 45%, transparent);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--duration-fast) var(--ease-standard);
+}
+.spring-heatmap-guide.is-shown {
+    opacity: 1;
+}
+
+/* ── The preset marks — a hollow dot on the curve, the name beside it. ── */
 .spring-heatmap-pip {
     position: absolute;
-    width: 0.4rem;
-    height: 0.4rem;
-    margin: -0.2rem 0 0 -0.2rem;
+    width: 0.45rem;
+    height: 0.45rem;
+    margin: -0.225rem 0 0 -0.225rem;
     border-radius: var(--radius-circle);
     border: 1.5px solid var(--foreground);
-    background: var(--background);
+    background: var(--card, transparent);
     pointer-events: none;
 }
 .spring-heatmap-pip > span {
     position: absolute;
     bottom: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    margin-bottom: 0.375rem;
+    margin-bottom: 0.3rem;
     line-height: 1;
     white-space: nowrap;
     color: var(--foreground);
 }
-.spring-heatmap-pip.is-under > span {
-    bottom: auto;
-    top: 100%;
-    margin-bottom: 0;
-    margin-top: 0.25rem;
+.spring-heatmap-pip.is-after > span {
+    left: 0.15rem;
 }
-/* X-DS pass 10 (KF-C10-05a) — the current preset KEEPS its name, in the
-   foreground ink every pip name wears (UIA-KF-308 hid it, so the selected
-   point was the one unnamed preset). The violet marker (0.9rem) sits on the
-   pip, so the name clears the marker's radius instead of the pip's. */
+.spring-heatmap-pip.is-above > span {
+    left: 50%;
+    translate: -50% 0;
+}
+/* The ball (0.9rem) sits on the current preset's mark: its name clears the
+   ball's radius instead of the mark's. */
 .spring-heatmap-pip.is-current > span {
     margin-bottom: 0.5rem;
 }
-.spring-heatmap-pip.is-current.is-under > span {
-    margin-bottom: 0;
-    margin-top: 0.5rem;
-}
-/* X-DS pass 13 (KF-C13-01) — the names were sized for the 12rem field. At a
-   short field (the 8rem floor binds on laptop rails) the three underdamped
-   names stack down one column into a 40 px cluster, and 'smooth' sat over
-   bouncy's dot as if it named it. Below 10rem only the CURRENT pip keeps its
-   name: the preset tiles above the field already name every preset and its
-   values, and the hollow dots stay as the marks they are. The current name
-   sits BESIDE its marker (the side facing away from the cluster: every other
-   underdamped preset lies left of or below it), so it can never read as the
-   name of the dot under it. The query reads the field's own block size
-   (`container-type: size`), so the rule follows the figure, not the viewport. */
+/* KF-C13-01 — at a short chart (the 8rem floor binds on laptop rails) only
+   the CURRENT preset keeps its name: the preset tiles above already name
+   every preset, and the hollow marks stay as the marks they are. The query
+   reads the chart's own block size. */
 @container (max-height: 10rem) {
     .spring-heatmap-pip:not(.is-current) > span {
         display: none;
     }
-    .spring-heatmap-pip.is-current.is-under > span {
-        top: 50%;
-        left: 100%;
-        transform: translateY(-50%);
-        margin: 0 0 0 0.5rem;
-    }
 }
 
-/* ── The hover cell — the lattice, surfaced. ── */
-.spring-heatmap-cell {
-    position: absolute;
-    outline: 1px solid color-mix(in srgb, var(--foreground) 55%, transparent);
-    outline-offset: -1px;
-    pointer-events: none;
-}
-
-/* ── The marker — a solid dot on the live (response, ζ), ringed in the page
-   ground so it stays legible over the saturated bands (X-DS pass 1, KF-P1-09:
-   the 8px glow is deleted; C1, KF-C1-18: the tinted 1.5px outer ring, the
-   halo's leftover, is deleted too — one disc, one separating edge). Anchored
-   at the field's top-left; `translate(<cqw>, <cqh>)` carries the position and
-   the negative margins centre the 0.9rem dot on it. The glide rides
-   `transform` (compositor-only) and is switched OFF during a stream. ── */
+/* ── The ball — the live spring, ON the curve: the demo's ball (violet,
+   ringed in the card's ground so it stays legible over the curve and its
+   area). Anchored at the chart's top-left; the transform carries it. ── */
 .spring-heatmap-marker {
     position: absolute;
     top: 0;
@@ -918,45 +837,27 @@ function onKeydown(e: KeyboardEvent): void {
     margin-left: -0.45rem;
     margin-top: -0.45rem;
     border-radius: var(--radius-circle);
-    border: 2px solid var(--background);
+    border: 2px solid var(--card, var(--surface-tint-4));
     background: var(--color-progress);
     pointer-events: none;
-    transition: transform var(--duration-fast) var(--ease-standard);
     will-change: transform;
     z-index: var(--z-content);
 }
-.spring-heatmap-marker.is-streaming {
-    transition: none;
-}
 
-@media (prefers-reduced-motion: reduce) {
-    .spring-heatmap-marker {
-        transition: none;
-    }
-}
-
-/* ── The caption slot (owner-1112 hover law) — the legend and the hover
-   readout share ONE grid cell, so the slot is always as tall and as wide as
-   the legend (the readout is the shorter run and never sizes the cell:
-   `inline-size: 0` + `min-inline-size: 100%` keeps it out of the cell's
-   intrinsic size and lets it fill the cell once laid out). Hovering the
-   field cross-fades the two; nothing else changes, so no box moves. Opacity
-   only, on glass's motion tokens. ── */
+/* ── The caption slot (owner-1112 hover law) — the live reading and the
+   hover reading share ONE grid cell and cross-fade; no box moves. ── */
 .spring-heatmap-caption {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     align-items: start;
+    justify-items: end;
 }
 .spring-heatmap-caption > * {
     grid-area: 1 / 1;
+    white-space: nowrap;
     transition: opacity var(--duration-fast) var(--ease-standard);
 }
 .spring-heatmap-readout {
-    inline-size: 0;
-    min-inline-size: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
     opacity: 0;
 }
 .spring-heatmap-caption[data-reading] > .spring-heatmap-legend {
@@ -964,32 +865,5 @@ function onKeydown(e: KeyboardEvent): void {
 }
 .spring-heatmap-caption[data-reading] > .spring-heatmap-readout {
     opacity: 1;
-}
-
-/* KF-C11-02 — the legend's hanging indent: one swatch run (its 3rem plus its
-   0.375rem margin), so a wrapped tail sits under the first line's text. */
-.spring-heatmap-legend {
-    --legend-hang: calc(3rem + 0.375rem);
-    padding-inline-start: var(--legend-hang);
-    text-indent: calc(-1 * var(--legend-hang));
-}
-
-/* ── The legend swatch — the same two colours, the same interpolation space:
-   the exact continuous form of the banded field. ── */
-.spring-heatmap-swatch {
-    display: inline-block;
-    /* KF-C10x-04 — inline at the head of the legend's first run: centred on
-       the text's x-height, the old flex gap (0.375rem) as its own margin. */
-    vertical-align: middle;
-    margin-inline-end: 0.375rem;
-    inline-size: 3rem;
-    block-size: 0.5rem;
-    border-radius: var(--radius-pill, 9999px);
-    border: 1px solid color-mix(in srgb, var(--foreground) 30%, transparent);
-    background: linear-gradient(
-        in oklab to right,
-        color-mix(in oklab, var(--color-progress) 0%, var(--background)),
-        color-mix(in oklab, var(--color-progress) 100%, var(--background))
-    );
 }
 </style>

@@ -16,11 +16,12 @@
  *       axes, for every pointer position. The shipped `HALF_CELL_*` expose
  *       published 0.0275 / 0.0325 while the true worst case was 0.0325 / 0.0375.
  *
- *   (3) D-B2 — the MIX-TABLE SNAPSHOT. The ramp is linear in the exact analytic
- *       overshoot, normalised to the field's own maximum, one band per damping
- *       node; the table is computed from the formula here and frozen, and the
- *       field's own `background-image` carries exactly those bands. The shipped
- *       ramp painted nine of twenty rows pixel-identical to the surface.
+ *   (3) FIFTY-FOURTH (owner, 23 Nov 2026: "rediesng this") — the banded
+ *       (response × damping) field is retired for the chart of peak overshoot
+ *       against damping. Its curve is the exact analytic overshoot, one point
+ *       per hundredth of damping, re-derived here from the formula; the presets
+ *       sit on it where the physics puts them. (D-B2's mix table went with the
+ *       ramp it described.)
  *
  *   (4) SPF-3, re-seated by X.KF.W13V.y (OA-51: "presets … with no sliders
  *       inside them") — the in-tile preset-ball painter is RETIRED with the
@@ -29,10 +30,11 @@
  *       each preset TILE states its physics as text — its name and one line of
  *       its parameters — with no rail, ball or slider inside it.
  *
- *   (5) The contract + the surface — the heatmap mounts on two numbers alone
- *       (L-M-7 / C-M-2 / C-M-3), the legend labels the vertical axis it
- *       describes (D-B1), and the presets are radios in a labelled group
- *       (SPF-4), asserted on the REAL producer component.
+ *   (5) The contract + the surface — the chart mounts on two numbers alone
+ *       (L-M-7 / C-M-2 / C-M-3), is a slider over the damping that labels its
+ *       own axes, writes the damping alone (the response stays on its slider),
+ *       glides its ball along the curve, and the presets are radios in a
+ *       labelled group (SPF-4), asserted on the REAL producer component.
  */
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { mount } from "@vue/test-utils";
@@ -69,18 +71,21 @@ vi.mock("@mkbabb/glass-ui", () => stub.module({ Card: "div", CardContent: "div",
 vi.mock("@mkbabb/glass-ui/labeled-field", () => stub.module({ LabeledSlider: "div" }));
 
 import SpringHeatmap, {
+    AREA_D,
+    CURVE_D,
     DAMPING_AXIS,
-    FIELD_RAMP,
     LATTICE,
+    OVERSHOOT_CEILING,
     OVERSHOOT_MAX,
     PARAM_STEP,
+    PRESET_PIPS,
     RESPONSE_AXIS,
     axisNodes,
-    buildFieldRamp,
-    dampingNodesTopDown,
+    chartX,
+    chartY,
     nodeValue,
     overshoot,
-    rampMix,
+    overshootCurve,
     snapToAxis,
     stepOnAxis,
 } from "../../../demo/scenes/spring/SpringHeatmap.vue";
@@ -174,95 +179,87 @@ describe("X.KF.W11.f (2) — N-SH-4: a click lands within the published toleranc
     });
 });
 
-// ─── (3) D-B2 — the mix table ─────────────────────────────────────────────────
+// ─── (3) FIFTY-FOURTH — the chart is the exact overshoot over damping ────────
+// The field's banded ramp (D-B2) is retired with the field: the owner asked
+// for the "Peak overshoot" chart to be redesigned (23 Nov 2026), and it is now
+// the curve itself. What D-B2 held of the ramp (exact, analytic, one value per
+// damping node, normalised, presets where the physics puts them) is held here
+// of the curve, re-derived from the formula rather than copied.
 
-describe("X.KF.W11.f (3) — D-B2: the ramp's mix table, one band per damping node", () => {
-    it("is linear in the exact overshoot, normalised to the field's own maximum", () => {
-        const nodes = dampingNodesTopDown();
-        expect(nodes).toHaveLength(axisNodes(DAMPING_AXIS) + 1);
-        expect(nodes[0]).toBe(DAMPING_AXIS.max);
-        expect(nodes.at(-1)).toBe(DAMPING_AXIS.min);
-        expect(OVERSHOOT_MAX).toBeCloseTo(Math.exp((-0.2 * Math.PI) / Math.sqrt(1 - 0.04)), 12);
-        const table = nodes.map((zeta) => rampMix(zeta));
-        // the formula, re-executed here rather than copied from the component
-        const expected = nodes.map((zeta) =>
-            Math.round(((zeta >= 1 ? 0 : Math.exp((-zeta * Math.PI) / Math.sqrt(1 - zeta * zeta))) / OVERSHOOT_MAX) * 100),
-        );
-        expect(table).toEqual(expected);
-        // the frozen snapshot — the record's failure was a table of zeros
-        expect(table).toMatchInlineSnapshot(`
-          [
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            1,
-            3,
-            5,
-            9,
-            13,
-            18,
-            24,
-            31,
-            39,
-            48,
-            59,
-            71,
-            84,
-            100,
-          ]
-        `);
-        expect(table.at(-1)).toBe(100);
-        // strictly non-decreasing top → bottom; every underdamped band below ζ≈0.85 distinct from its neighbour
-        for (let j = 1; j < table.length; j++) expect(table[j]!).toBeGreaterThanOrEqual(table[j - 1]!);
-        for (let j = 15; j < table.length; j++) expect(table[j]!).toBeGreaterThan(table[j - 1]!);
-    });
+/** The formula, re-executed here rather than imported from the component. */
+const analytic = (zeta: number): number =>
+    zeta >= 1 ? 0 : Math.exp((-zeta * Math.PI) / Math.sqrt(1 - zeta * zeta));
 
-    it("the field's background carries exactly those bands, in the accent seam", () => {
-        const nodes = dampingNodesTopDown();
-        const ramp = buildFieldRamp();
-        expect(FIELD_RAMP).toBe(ramp);
-        expect(ramp.startsWith("linear-gradient(to bottom, ")).toBe(true);
-        const stops = ramp.slice("linear-gradient(to bottom, ".length, -1).split(", color-mix");
-        expect(stops).toHaveLength(nodes.length);
-        for (const [j, zeta] of nodes.entries()) {
-            expect(stops[j]).toContain(`var(--color-progress) ${rampMix(zeta)}%, var(--surface-tint-4))`);
+describe("FIFTY-FOURTH (3) — the chart draws the exact peak overshoot over damping", () => {
+    it("one point per hundredth of damping, each at the analytic overshoot under a 60 % ceiling", () => {
+        const pts = overshootCurve();
+        expect(pts).toHaveLength(131);
+        expect(pts[0]!.zeta).toBe(DAMPING_AXIS.min);
+        expect(pts.at(-1)!.zeta).toBe(DAMPING_AXIS.max);
+        expect(OVERSHOOT_CEILING).toBe(0.6);
+        expect(OVERSHOOT_MAX).toBeCloseTo(analytic(0.2), 12);
+        expect(OVERSHOOT_MAX).toBeLessThan(OVERSHOOT_CEILING);
+        for (const p of pts) {
+            const x = ((p.zeta - DAMPING_AXIS.min) / (DAMPING_AXIS.max - DAMPING_AXIS.min)) * 1000;
+            const y = (1 - analytic(p.zeta) / 0.6) * 1000;
+            expect(p.x).toBeCloseTo(x, 9);
+            expect(p.y).toBeCloseTo(y, 9);
+            expect(chartX(p.zeta)).toBeCloseTo(x / 1000, 12);
+            expect(chartY(analytic(p.zeta))).toBeCloseTo(y / 1000, 12);
         }
-        // the first band starts at 0 %, the last ends at 100 %, and the ends are half-height
-        expect(stops[0]).toMatch(/ 0\.000% 1\.923%$/);
-        expect(stops.at(-1)).toMatch(/ 98\.077% 100\.000%$/);
+        // Falling while it rings, on the baseline from ζ = 1 on.
+        for (let i = 1; i < pts.length; i++) {
+            expect(pts[i]!.y).toBeGreaterThanOrEqual(pts[i - 1]!.y);
+            if (pts[i]!.zeta < 1) expect(pts[i]!.y).toBeGreaterThan(pts[i - 1]!.y);
+            else expect(pts[i]!.y).toBe(1000);
+        }
     });
 
-    it("the presets sit where the physics puts them: smooth ≈ gentle ≈ 0, snappy and bouncy distinct", () => {
-        const [smooth, snappy, bouncy, gentle] = SPRING_PRESETS.map((p) => rampMix(p.dampingFraction));
-        expect(gentle).toBe(0);
-        expect(smooth).toBeLessThanOrEqual(1);
-        expect(snappy).toBeGreaterThan(smooth! + 5);
-        expect(bouncy).toBeGreaterThan(snappy! + 15);
+    it("the path is that polyline, and its area closes on the baseline", () => {
+        const pts = overshootCurve();
+        const verts = CURVE_D.split(/[ML]/).map((s) => s.trim()).filter(Boolean);
+        expect(verts).toHaveLength(pts.length);
+        for (const [i, v] of verts.entries()) {
+            const [x, y] = v.split(" ").map(Number);
+            expect(x).toBeCloseTo(pts[i]!.x, 1);
+            expect(y).toBeCloseTo(pts[i]!.y, 1);
+        }
+        expect(AREA_D.startsWith(CURVE_D)).toBe(true);
+        expect(AREA_D.endsWith("L 1000 1000 L 0 1000 Z")).toBe(true);
     });
 
-    it("overshoot() is total, and the field's domain never reaches its ζ ≤ 0 arm", () => {
+    it("the presets sit on the curve where the physics puts them: gentle and smooth at the baseline, snappy and bouncy above", () => {
+        expect(PRESET_PIPS.map((p) => p.name)).toEqual(
+            [...SPRING_PRESETS].sort((a, b) => a.dampingFraction - b.dampingFraction).map((p) => p.name),
+        );
+        for (const pip of PRESET_PIPS) {
+            expect(pip.left).toBe(`${(((pip.zeta - 0.2) / 1.3) * 100).toFixed(3)}%`);
+            expect(pip.top).toBe(`${((1 - analytic(pip.zeta) / 0.6) * 100).toFixed(3)}%`);
+        }
+        const peak = Object.fromEntries(SPRING_PRESETS.map((p) => [p.name, analytic(p.dampingFraction) * 100]));
+        expect(peak.gentle).toBe(0);
+        expect(peak.smooth).toBeLessThanOrEqual(1);
+        expect(peak.snappy).toBeGreaterThan(peak.smooth! + 5);
+        expect(peak.bouncy).toBeGreaterThan(peak.snappy! + 10);
+        // smooth's name does not take the side gentle's needs (0.14 apart on the baseline).
+        expect(PRESET_PIPS.find((p) => p.name === "smooth")!.side).toBe("above");
+        expect(PRESET_PIPS.filter((p) => p.name !== "smooth").every((p) => p.side === "after")).toBe(true);
+    });
+
+    it("overshoot() is total, and the chart's domain never reaches its ζ ≤ 0 arm", () => {
         expect(overshoot(1)).toBe(0);
         expect(overshoot(1.5)).toBe(0);
         expect(overshoot(0)).toBe(1);
-        for (const zeta of dampingNodesTopDown()) expect(zeta).toBeGreaterThan(0);
+        for (const { zeta } of overshootCurve()) expect(zeta).toBeGreaterThan(0);
     });
 });
 
-// ─── (5a) the contract and the vertical legend — the heatmap mounts on two numbers ─
+// ─── (5a) the contract and the axes — the chart mounts on two numbers ────────
 
-describe("X.KF.W11.f (5a) — the heatmap mounts on two models and labels its own axes", () => {
+describe("FIFTY-FOURTH (5a) — the chart mounts on two models, labels its axes and sets the damping alone", () => {
     afterEach(() => {
         vi.restoreAllMocks();
+        vi.useRealTimers();
     });
 
     /** A real parent: two refs bound through the two models, the way the facet binds them. */
@@ -289,124 +286,159 @@ describe("X.KF.W11.f (5a) — the heatmap mounts on two models and labels its ow
         return mount(Host, { attachTo: document.body });
     }
 
-    it("instantiates with nothing but two numbers and reads them back in the readout", () => {
+    it("instantiates with nothing but two numbers: a damping slider that reads them back", () => {
         const wrapper = mount(SpringHeatmap, { props: { response: 0.35, dampingFraction: 0.65 } });
         try {
-            const field = wrapper.get('[role="application"]');
+            const field = wrapper.get('[role="slider"]');
             const readout = wrapper.get(`#${field.attributes("aria-describedby")}`);
             expect(readout.text()).toBe("0.35 s / ζ 0.65");
-            expect(field.attributes("aria-label")).toContain("damping ζ 1.5 at the top to 0.2 at the bottom");
+            expect(field.attributes("aria-valuemin")).toBe("0.2");
+            expect(field.attributes("aria-valuemax")).toBe("1.5");
+            expect(field.attributes("aria-valuenow")).toBe("0.65");
+            expect(field.attributes("aria-valuetext")).toBe(
+                `damping 0.65, ${Math.round(analytic(0.65) * 100)} % overshoot`,
+            );
+            expect(field.attributes("aria-label")).toContain("damping ζ 0.2 to 1.5 across");
             expect(field.attributes("aria-label")).toContain(`move by ${LATTICE.pitch}`);
-            expect(field.attributes("style")).toContain("linear-gradient(to bottom");
+            // No banded field any more: the chart paints no gradient of its own.
+            expect(field.attributes("style") ?? "").not.toContain("linear-gradient");
         } finally {
             wrapper.unmount();
         }
     });
 
-    it("D-B1 — the regimes are labelled on the vertical axis, either side of the ζ = 1 line", () => {
+    it("labels its axes and marks ζ = 1; the four presets are plotted on the curve and named; the reading names the live spring", () => {
         const wrapper = mount(SpringHeatmap, { props: { response: 0.5, dampingFraction: 0.86 } });
         try {
             const critical = wrapper.get(".spring-heatmap-critical");
-            const y = (1 - (1 - DAMPING_AXIS.min) / (DAMPING_AXIS.max - DAMPING_AXIS.min)) * 100;
-            expect(critical.attributes("style")).toContain(`top: ${y.toFixed(3)}%`);
-            expect(wrapper.get(".spring-heatmap-regime--over").text()).toContain("overdamped");
-            const under = wrapper.get(".spring-heatmap-regime--under");
-            expect(under.text()).toContain("underdamped");
-            // X-DS pass 10 (KF-C10-05b) — the ringing tag sits IN its field, at
-            // the underdamped band's middle, no longer pinned under the rule
-            // beside gentle's pip on ζ = 1.
-            const mid = (1 - (1 - y / 100) / 2) * 100;
-            expect(under.attributes("style")).toContain(`top: ${mid.toFixed(3)}%`);
-            // the horizontal legend row that mis-labelled the axes is gone
-            expect(wrapper.text()).not.toContain("← underdamped");
-            expect(wrapper.text()).not.toContain("overdamped →");
-            // the ζ ticks read top → bottom 1.5 · 1.0 · 0.2; the x axis reads 0.1 s … 1.2 s
-            expect(wrapper.findAll(".spring-heatmap-zeta > span").map((s) => s.text())).toEqual(["1.5", "1.0", "0.2"]);
-            expect(wrapper.get(".spring-heatmap-x").text()).toContain("0.1 s");
-            expect(wrapper.get(".spring-heatmap-x").text()).toContain("1.2 s");
-            // the legend states the scale and what varies with what
-            // (copy re-seated X.KF.W13V.y — ONE legend line, N-5)
-            expect(wrapper.text()).toContain("0 → 53 % overshoot");
-            expect(wrapper.text()).toContain("set by damping alone");
-            // N-SH-5 — the four presets are plotted and named
+            expect(critical.attributes("style")).toContain(`left: ${(((1 - 0.2) / 1.3) * 100).toFixed(3)}%`);
+            expect(wrapper.findAll(".spring-heatmap-y > span").map((s) => s.text())).toEqual(["50 %", "0"]);
+            expect(wrapper.findAll(".spring-heatmap-x > span").map((s) => s.text())).toEqual([
+                "0.2",
+                "damping ζ",
+                "1",
+                "1.5",
+            ]);
+            expect(wrapper.get(".spring-heatmap-curve").attributes("d")).toBe(CURVE_D);
             const pips = wrapper.findAll(".spring-heatmap-pip");
-            expect(pips.map((p) => p.text())).toEqual(SPRING_PRESETS.map((p) => p.name));
+            expect(pips.map((p) => p.text())).toEqual(PRESET_PIPS.map((p) => p.name));
+            for (const [i, pip] of pips.entries()) {
+                const top = /top: ([\d.]+)%/.exec(pip.attributes("style") ?? "")?.[1];
+                expect(Number(top)).toBeCloseTo(Number.parseFloat(PRESET_PIPS[i]!.top), 3);
+            }
+            // the live spring sits on smooth: its mark is the current one, and the reading names it
+            expect(wrapper.findAll(".spring-heatmap-pip.is-current").map((p) => p.text())).toEqual(["smooth"]);
+            expect(wrapper.get("[data-figure-legend]").text()).toBe(
+                `smooth · ζ 0.86 → ${Math.round(analytic(0.86) * 100)} %`,
+            );
+            // the ball stands on the curve at the live damping
+            const ball = wrapper.get(".spring-heatmap-marker").attributes("style") ?? "";
+            expect(ball).toContain(`translate(${(chartX(0.86) * 100).toFixed(3)}cqw, ${(chartY(analytic(0.86)) * 100).toFixed(3)}cqh)`);
         } finally {
             wrapper.unmount();
         }
     });
 
-    it("a bare arrow steps one pitch and is claimed; a modified arrow is left alone", async () => {
+    it("the slider's keys step the damping and are claimed; a modified arrow is left alone; the response never moves", async () => {
         const wrapper = mountField(0.5, 0.86);
+        const key = async (k: string, init: KeyboardEventInit = {}) => {
+            const e = new KeyboardEvent("keydown", { key: k, bubbles: true, cancelable: true, ...init });
+            const stop = vi.spyOn(e, "stopPropagation");
+            wrapper.get('[role="slider"]').element.dispatchEvent(e);
+            await nextTick();
+            return { e, stop };
+        };
         try {
-            const field = wrapper.get('[role="application"]');
-            const right = new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true, cancelable: true });
-            const stop = vi.spyOn(right, "stopPropagation");
-            field.element.dispatchEvent(right);
-            await nextTick();
-            expect(wrapper.vm.r).toBe(0.55);
-            expect(right.defaultPrevented).toBe(true);
-            expect(stop).toHaveBeenCalledTimes(1);
-
-            const left = new KeyboardEvent("keydown", { key: "ArrowLeft", bubbles: true, cancelable: true });
-            field.element.dispatchEvent(left);
-            await nextTick();
-            expect(wrapper.vm.r).toBe(0.5); // reversible
-
-            const altLeft = new KeyboardEvent("keydown", { key: "ArrowLeft", altKey: true, bubbles: true, cancelable: true });
-            field.element.dispatchEvent(altLeft);
-            await nextTick();
-            expect(wrapper.vm.r).toBe(0.5);
-            expect(altLeft.defaultPrevented).toBe(false);
-
-            const up = new KeyboardEvent("keydown", { key: "ArrowUp", bubbles: true, cancelable: true });
-            field.element.dispatchEvent(up);
-            await nextTick();
+            const right = await key("ArrowRight");
             expect(wrapper.vm.d).toBe(0.91);
-            expect(wrapper.get('[aria-live="polite"]').text()).toBe("0.5 s, ζ 0.91");
+            expect(right.e.defaultPrevented).toBe(true);
+            expect(right.stop).toHaveBeenCalledTimes(1);
+            await key("ArrowLeft");
+            expect(wrapper.vm.d).toBe(0.86); // reversible
+
+            const alt = await key("ArrowLeft", { altKey: true });
+            expect(wrapper.vm.d).toBe(0.86);
+            expect(alt.e.defaultPrevented).toBe(false);
+
+            await key("ArrowUp");
+            expect(wrapper.vm.d).toBe(0.91);
+            await key("ArrowDown");
+            expect(wrapper.vm.d).toBe(0.86);
+            await key("Home");
+            expect(wrapper.vm.d).toBe(DAMPING_AXIS.min);
+            await key("End");
+            expect(wrapper.vm.d).toBe(DAMPING_AXIS.max);
+            await key("PageDown");
+            expect(wrapper.vm.d).toBe(1.25);
+            expect(wrapper.get('[aria-live="polite"]').text()).toBe("damping 1.25, 0 % overshoot");
+            expect(wrapper.vm.r).toBe(0.5);
         } finally {
             wrapper.unmount();
         }
     });
 
-    it("a primary pointer writes the nearest node; a second pointer and a secondary button are refused", async () => {
+    it("a primary pointer writes the nearest damping and sweeps it; the response stays; a second pointer and a secondary button are refused", async () => {
         const wrapper = mountField(0.5, 0.86);
         try {
-            const field = wrapper.get('[role="application"]');
-            const el = field.element as HTMLElement;
-            // jsdom lays nothing out: give the field a 220 × 260 content box at (0, 0)
-            vi.spyOn(el, "clientWidth", "get").mockReturnValue(220);
-            vi.spyOn(el, "clientHeight", "get").mockReturnValue(260);
-            vi.spyOn(el, "getBoundingClientRect").mockReturnValue({ left: 0, top: 0, width: 222, height: 262 } as DOMRect);
+            const el = wrapper.get('[role="slider"]').element as HTMLElement;
+            // jsdom lays nothing out: give the chart a 260 px content box at x 0
+            vi.spyOn(el, "clientWidth", "get").mockReturnValue(260);
+            vi.spyOn(el, "clientHeight", "get").mockReturnValue(160);
+            vi.spyOn(el, "getBoundingClientRect").mockReturnValue({ left: 0, top: 0, width: 260, height: 160 } as DOMRect);
             el.setPointerCapture = () => {};
             el.releasePointerCapture = () => {};
-
             const down = (init: PointerEventInit) =>
                 el.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true, isPrimary: true, button: 0, ...init }));
 
-            // x = 110 px of 220 → f 0.5 → node 11 of 22 → 0.65 s; y = 130 of 260 → f 0.5 → ζ node 13 → 0.85
-            down({ pointerId: 1, clientX: 110, clientY: 130 });
+            // x = 130 of 260 → f 0.5 → node 13 of 26 → ζ 0.85; y plays no part
+            down({ pointerId: 1, clientX: 130, clientY: 150 });
             await nextTick();
-            expect(wrapper.vm.r).toBe(0.65);
             expect(wrapper.vm.d).toBe(0.85);
-            expect(wrapper.find(".spring-heatmap-cell").exists()).toBe(true);
+            expect(wrapper.vm.r).toBe(0.5);
 
-            // a second pointer during the gesture is refused
             down({ pointerId: 2, clientX: 0, clientY: 0 });
             await nextTick();
-            expect(wrapper.vm.r).toBe(0.65);
+            expect(wrapper.vm.d).toBe(0.85);
 
-            // the latched pointer sweeps
-            el.dispatchEvent(new PointerEvent("pointermove", { bubbles: true, pointerId: 1, clientX: 220, clientY: 260 }));
+            el.dispatchEvent(new PointerEvent("pointermove", { bubbles: true, pointerId: 1, clientX: 260, clientY: 0 }));
             await nextTick();
-            expect(wrapper.vm.r).toBe(RESPONSE_AXIS.max);
-            expect(wrapper.vm.d).toBe(DAMPING_AXIS.min);
+            expect(wrapper.vm.d).toBe(DAMPING_AXIS.max);
+            expect(wrapper.vm.r).toBe(0.5);
 
             el.dispatchEvent(new PointerEvent("pointerup", { bubbles: true, pointerId: 1 }));
-            // a secondary button never writes
             down({ pointerId: 3, button: 2, clientX: 0, clientY: 0 });
             await nextTick();
-            expect(wrapper.vm.r).toBe(RESPONSE_AXIS.max);
+            expect(wrapper.vm.d).toBe(DAMPING_AXIS.max);
+        } finally {
+            wrapper.unmount();
+        }
+    });
+
+    it("a change glides the ball ALONG the curve: every frame of the move stands on it", async () => {
+        vi.useFakeTimers({ toFake: ["requestAnimationFrame", "cancelAnimationFrame", "performance"] });
+        const wrapper = mountField(0.5, 0.86);
+        try {
+            const ball = () => {
+                const m = /translate\(([-\d.]+)cqw, ([-\d.]+)cqh\)/.exec(
+                    wrapper.get(".spring-heatmap-marker").attributes("style") ?? "",
+                );
+                return { x: Number(m![1]) / 100, y: Number(m![2]) / 100 };
+            };
+            wrapper.vm.d = 0.45; // an isolated write (a preset pick)
+            await nextTick();
+            const seen: { x: number; y: number }[] = [];
+            for (let i = 0; i < 24; i++) {
+                vi.advanceTimersByTime(16);
+                await nextTick();
+                seen.push(ball());
+            }
+            const between = seen.filter((p) => p.x > chartX(0.45) + 0.01 && p.x < chartX(0.86) - 0.01);
+            expect(between.length).toBeGreaterThanOrEqual(3);
+            for (const p of seen) {
+                const zeta = 0.2 + p.x * 1.3;
+                expect(p.y).toBeCloseTo(1 - analytic(zeta) / 0.6, 2);
+            }
+            expect(seen.at(-1)!.x).toBeCloseTo(chartX(0.45), 3);
         } finally {
             wrapper.unmount();
         }

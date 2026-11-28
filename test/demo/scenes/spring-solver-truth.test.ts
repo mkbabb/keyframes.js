@@ -262,30 +262,36 @@ describe("(10) KFA-40 + UIA-KF-094 + KFA-41 — the derby lanes share the rail's
     });
 });
 
-describe("(11) UIA-KF-308 — the field previews its hover, and the marker's pip name steps aside", () => {
-    it("a hover reads '(r, ζ) → peak %' in the header and reverts on leave; the current preset's pip is marked", async () => {
+describe("(11) UIA-KF-308 (re-seated FIFTY-FOURTH) — the chart previews its hover; the current preset's mark is the ball's", () => {
+    it("a hover reads 'ζ → peak %' in the header and reverts on leave; the hairline shows where; the current preset's pip is marked", async () => {
         const wrapper = mount(SpringHeatmap, { props: { response: 0.5, dampingFraction: 0.86 }, attachTo: document.body });
         try {
-            const el = wrapper.get('[role="application"]').element as HTMLElement;
-            vi.spyOn(el, "clientWidth", "get").mockReturnValue(220);
-            vi.spyOn(el, "clientHeight", "get").mockReturnValue(260);
-            vi.spyOn(el, "getBoundingClientRect").mockReturnValue({ left: 0, top: 0, width: 222, height: 262 } as DOMRect);
-            // no gesture: a bare hover over node (0.65 s, ζ 0.85)
-            el.dispatchEvent(new PointerEvent("pointermove", { bubbles: true, pointerId: 7, clientX: 110, clientY: 130 }));
+            const el = wrapper.get('[role="slider"]').element as HTMLElement;
+            vi.spyOn(el, "clientWidth", "get").mockReturnValue(260);
+            vi.spyOn(el, "clientHeight", "get").mockReturnValue(160);
+            vi.spyOn(el, "getBoundingClientRect").mockReturnValue({ left: 0, top: 0, width: 260, height: 160 } as DOMRect);
+            // no gesture: a bare mouse hover over damping 0.85 (x 130 of 260)
+            el.dispatchEvent(new PointerEvent("pointermove", { bubbles: true, pointerId: 7, pointerType: "mouse", clientX: 130, clientY: 40 }));
             await nextTick();
-            // owner-1112 hover law — the readout and the legend share ONE caption
-            // slot and cross-fade; neither leaves the layout, so no box moves.
+            // owner-1112 hover law — the readout and the live reading share ONE
+            // caption slot and cross-fade; neither leaves the layout, so no box moves.
             const caption = wrapper.get(".spring-heatmap-caption");
             const hover = wrapper.find("[data-heatmap-hover]");
             expect(hover.exists(), "a hover readout").toBe(true);
-            expect(hover.text()).toBe(`0.65 s · ζ 0.85 → ${Math.round(overshoot(0.85) * 100)} %`);
+            expect(hover.text()).toBe(`ζ 0.85 → ${Math.round(overshoot(0.85) * 100)} %`);
             expect(caption.attributes("data-reading"), "the readout is showing").toBeDefined();
-            expect(caption.find("[data-figure-legend]").exists(), "the legend holds its place").toBe(true);
+            expect(caption.find("[data-figure-legend]").exists(), "the live reading holds its place").toBe(true);
+            expect(wrapper.get(".spring-heatmap-guide").classes()).toContain("is-shown");
+            // a hover over a preset's damping names it
+            el.dispatchEvent(new PointerEvent("pointermove", { bubbles: true, pointerId: 7, pointerType: "mouse", clientX: 50, clientY: 40 }));
+            await nextTick();
+            expect(hover.text()).toBe(`bouncy · ζ 0.45 → ${Math.round(overshoot(0.45) * 100)} %`);
             el.dispatchEvent(new PointerEvent("pointerleave", { bubbles: true, pointerId: 7 }));
             await nextTick();
-            expect(caption.attributes("data-reading"), "the legend is back").toBeUndefined();
+            expect(caption.attributes("data-reading"), "the live reading is back").toBeUndefined();
+            expect(wrapper.get(".spring-heatmap-guide").classes()).not.toContain("is-shown");
             expect(caption.find("[data-heatmap-hover]").exists(), "the readout stays in layout").toBe(true);
-            expect(caption.find("[data-heatmap-hover]").text(), "it fades out on its last value").toContain("0.65 s");
+            expect(caption.find("[data-heatmap-hover]").text(), "it fades out on its last value").toContain("ζ 0.45");
             const current = wrapper.findAll(".spring-heatmap-pip.is-current");
             expect(current.map((p) => p.text())).toEqual(["smooth"]);
         } finally {
@@ -294,28 +300,37 @@ describe("(11) UIA-KF-308 — the field previews its hover, and the marker's pip
     });
 });
 
-describe("(12) KFA-154 — the field's own sweep streams from its first write to its release", () => {
-    it("the marker is streaming on the pointerdown's write and stays streaming through a stall", async () => {
+describe("(12) KFA-154 (re-seated FIFTY-FOURTH) — the chart's own drag is tracked 1:1 from its first write to its release", () => {
+    it("the ball stands at each write of the drag at once, through a stall; an isolated write glides", async () => {
         const wrapper = mount(SpringHeatmap, { props: { response: 0.5, dampingFraction: 0.86 }, attachTo: document.body });
         let clock = 5000;
         const nowSpy = vi.spyOn(performance, "now").mockImplementation(() => clock);
         try {
-            const el = wrapper.get('[role="application"]').element as HTMLElement;
-            vi.spyOn(el, "clientWidth", "get").mockReturnValue(220);
-            vi.spyOn(el, "clientHeight", "get").mockReturnValue(260);
-            vi.spyOn(el, "getBoundingClientRect").mockReturnValue({ left: 0, top: 0, width: 222, height: 262 } as DOMRect);
+            const el = wrapper.get('[role="slider"]').element as HTMLElement;
+            vi.spyOn(el, "clientWidth", "get").mockReturnValue(260);
+            vi.spyOn(el, "clientHeight", "get").mockReturnValue(160);
+            vi.spyOn(el, "getBoundingClientRect").mockReturnValue({ left: 0, top: 0, width: 260, height: 160 } as DOMRect);
             el.setPointerCapture = () => {};
             el.releasePointerCapture = () => {};
-            const marker = () => wrapper.get(".spring-heatmap-marker");
-            el.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true, isPrimary: true, button: 0, pointerId: 1, clientX: 110, clientY: 130 }));
-            await wrapper.setProps({ response: 0.65, dampingFraction: 0.85 });
+            const at = (zeta: number) =>
+                `translate(${(((zeta - 0.2) / 1.3) * 100).toFixed(3)}cqw, ${((1 - overshoot(zeta) / 0.6) * 100).toFixed(3)}cqh)`;
+            const marker = () => wrapper.get(".spring-heatmap-marker").attributes("style") ?? "";
+            el.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true, isPrimary: true, button: 0, pointerId: 1, clientX: 130, clientY: 30 }));
+            await wrapper.setProps({ dampingFraction: 0.85 });
             await nextTick();
-            expect(marker().classes(), "the first write of the sweep").toContain("is-streaming");
+            expect(marker(), "the first write of the drag").toContain(at(0.85));
             clock += 5000; // a stall mid-drag
-            el.dispatchEvent(new PointerEvent("pointermove", { bubbles: true, pointerId: 1, clientX: 30, clientY: 30 }));
-            await wrapper.setProps({ response: 0.25, dampingFraction: 1.35 });
+            el.dispatchEvent(new PointerEvent("pointermove", { bubbles: true, pointerId: 1, clientX: 230, clientY: 30 }));
+            await wrapper.setProps({ dampingFraction: 1.35 });
             await nextTick();
-            expect(marker().classes(), "after a stall, still the same sweep").toContain("is-streaming");
+            expect(marker(), "after a stall, still the same drag").toContain(at(1.35));
+            el.dispatchEvent(new PointerEvent("pointerup", { bubbles: true, pointerId: 1 }));
+            clock += 5000;
+            // released, a lone write (a preset, a slider tap) glides: no jump
+            await wrapper.setProps({ dampingFraction: 0.45 });
+            await nextTick();
+            expect(marker()).not.toContain(at(0.45));
+            expect(marker()).toContain(at(1.35));
         } finally {
             nowSpy.mockRestore();
             wrapper.unmount();

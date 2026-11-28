@@ -203,11 +203,12 @@
                     </Tooltip>
                 </ToggleGroup>
                 <Separator />
-                <!-- ── P.W6 S3 — THE PARAMETER FIELD ─────────────────────────────
-                     The (response × damping) surface tinted by the EXACT analytic
-                     peak overshoot `exp(-ζπ/√(1-ζ²))`; clicking, sweeping or arrowing
-                     across it writes the live (response, damping) through the SAME
-                     two refs the rows above write. -->
+                <!-- ── FIFTY-FOURTH — THE PEAK OVERSHOOT CHART ───────────────────
+                     The EXACT analytic peak overshoot `exp(-ζπ/√(1-ζ²))` drawn
+                     over damping, the live spring a ball on the curve; a press,
+                     a drag or the arrow keys write the damping through the SAME
+                     ref the damping row above writes (it replaced P.W6's banded
+                     response × damping field). -->
                 <SpringHeatmap
                     v-model:response="demo.response.value"
                     v-model:damping-fraction="demo.dampingFraction.value"
