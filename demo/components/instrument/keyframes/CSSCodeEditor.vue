@@ -817,21 +817,18 @@ defineExpose({
 </script>
 
 <style scoped>
-/* UIA-KF-176 + UIA-KF-276 (X.KF.W13X.keyframes) — ONE focus language on the
-   pane. Focusing the code drew Monaco's own 1px focusBorder outline (served:
-   rgb(0, 144, 241) light / rgb(0, 127, 212) dark) as a square rectangle on the
-   node that holds the caret, cutting across the card's 16px corners, while
-   every glass control beside it showed the glass ring. The caret's node gives
-   up its outline, and the WELL wears the ring instead: glass's own focus-ring
-   tokens (`--focus-ring-width`, `--focus-ring-color`, the 2px offset of its
-   `.focus-ring:focus-visible`), on the card, so it follows the card's radius.
-   A text entry lights `:focus-visible` on a pointer click too, which is the
-   contract `design-idioms.css`'s cartoon lift already keys on. Forced colors
-   keep the outline (the UA maps its colour to the system ring). */
-.code-well:has(:focus-visible) {
-    outline: var(--focus-ring-width) solid var(--focus-ring-color);
-    outline-offset: 2px;
-}
+/* UIA-KF-176 + UIA-KF-276 (X.KF.W13X.keyframes) — Monaco's own 1px
+   focusBorder outline (a square blue rectangle on the node that holds the
+   caret) stays off.
+   FIFTY-FOURTH, the editor's white bars (owner, 23 Nov: "remove the top and
+   bottom white bars ehre")
+   — and the well wears no ring of its own. The ring it wore while the code
+   had focus (glass's focus-ring colour, 2 px outside the well) ran past the
+   pane's edges, where the pane's scroller clips it, so editing the code drew
+   two light rules, one above the code and one below it, and nothing at its
+   sides. A text editor's focus is its caret and its current line, which
+   Monaco draws; the pane around it keeps the house ring for a keyboard
+   reaching the pane itself ([data-surface-panel], design-idioms.css). */
 
 /* X-DS pass 11 (KF-C11-01) — the well starts on the pane's one inset. The
    wide default gutter (KF-C8-03 cut it to a snippet gutter) had been acting as
