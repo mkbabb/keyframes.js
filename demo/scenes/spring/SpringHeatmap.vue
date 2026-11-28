@@ -447,12 +447,20 @@ const glide = new NumericAnimation<{ z: number }>([{ z: 0 }, { z: 1 }], {
 let glideRun = 0;
 let gestureStreaming = false;
 let lastWriteAt = Number.NEGATIVE_INFINITY;
+/** Reduced motion: where the fading ball lands, while its fade-out runs. A
+ *  write during the fade moves the landing, so the ball comes back once, at
+ *  the latest damping, and is never left faded out. */
+let fadeTo: number | null = null;
 watch(dampingFraction, (to) => {
     const now = performance.now();
     const stream = gestureStreaming || now - lastWriteAt < GLIDE_MS;
     lastWriteAt = now;
     glide.stop();
     const run = ++glideRun;
+    if (fadeTo !== null) {
+        fadeTo = to;
+        return;
+    }
     if (stream) {
         shown.value = to;
         return;
@@ -463,15 +471,18 @@ watch(dampingFraction, (to) => {
             shown.value = to;
             return;
         }
+        fadeTo = to;
         void marker
             .animate([{ opacity: 1 }, { opacity: 0 }], { duration: 70, fill: "forwards" })
-            .finished.then(() => {
-                if (run !== glideRun) return;
-                shown.value = to;
+            .finished.catch(() => undefined)
+            .then(() => {
+                const land = fadeTo;
+                fadeTo = null;
+                if (land === null || markerEl.value !== marker) return;
+                shown.value = land;
                 for (const a of marker.getAnimations()) a.cancel();
                 marker.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 110 });
-            })
-            .catch(() => undefined);
+            });
         return;
     }
     const from = shown.value;

@@ -443,6 +443,66 @@ describe("FIFTY-FOURTH (5a) — the chart mounts on two models, labels its axes 
             wrapper.unmount();
         }
     });
+
+    it("reduced motion: the ball fades out, moves, fades in; a second write inside the fade moves the landing and never leaves it hidden", async () => {
+        vi.useFakeTimers({ toFake: ["requestAnimationFrame", "cancelAnimationFrame", "performance"] });
+        const savedMatch = window.matchMedia;
+        window.matchMedia = ((query: string) => ({
+            matches: /prefers-reduced-motion: reduce/.test(query),
+            media: query,
+            onchange: null,
+            addEventListener() {},
+            removeEventListener() {},
+            addListener() {},
+            removeListener() {},
+            dispatchEvent: () => false,
+        })) as typeof window.matchMedia;
+        const wrapper = mountField(0.5, 0.86);
+        try {
+            const marker = wrapper.get(".spring-heatmap-marker").element as HTMLElement;
+            type Fake = { frames: Keyframe[]; fill?: string; live: boolean; done: () => void };
+            const made: Fake[] = [];
+            marker.animate = ((frames: Keyframe[], opts: KeyframeAnimationOptions) => {
+                let done!: () => void;
+                const finished = new Promise<void>((r) => (done = r));
+                const fake: Fake = { frames, fill: opts.fill as string | undefined, live: true, done };
+                made.push(fake);
+                return { finished, cancel: () => (fake.live = false) } as unknown as Animation;
+            }) as typeof marker.animate;
+            marker.getAnimations = () =>
+                made.filter((f) => f.live).map((f) => ({ cancel: () => (f.live = false) }) as unknown as Animation);
+            const x = () => Number(/translate\(([-\d.]+)cqw/.exec(marker.getAttribute("style") ?? "")![1]) / 100;
+            const placed: number[] = [x()];
+
+            wrapper.vm.d = 0.45; // an isolated write: the fade-out starts, the ball stays
+            await nextTick();
+            expect(made).toHaveLength(1);
+            expect(made[0]!.frames).toEqual([{ opacity: 1 }, { opacity: 0 }]);
+            expect(x()).toBeCloseTo(chartX(0.86), 3);
+
+            vi.advanceTimersByTime(30); // inside the fade: a second write
+            wrapper.vm.d = 1.2;
+            await nextTick();
+            placed.push(x());
+            expect(made, "no second fade-out, no jump").toHaveLength(1);
+            expect(x()).toBeCloseTo(chartX(0.86), 3);
+
+            made[0]!.done(); // the fade-out ends
+            for (let i = 0; i < 4; i++) await Promise.resolve();
+            await nextTick();
+            placed.push(x());
+            expect(x(), "it lands on the latest write").toBeCloseTo(chartX(1.2), 3);
+            expect(made[0]!.live, "the faded-out hold is let go").toBe(false);
+            expect(made).toHaveLength(2);
+            expect(made[1]!.frames).toEqual([{ opacity: 0 }, { opacity: 1 }]);
+            expect(made.filter((f) => f.live && f.fill === "forwards"), "nothing holds it hidden").toHaveLength(0);
+            // it was never drawn at the superseded damping
+            expect(placed.some((p) => Math.abs(p - chartX(0.45)) < 1e-3)).toBe(false);
+        } finally {
+            wrapper.unmount();
+            window.matchMedia = savedMatch;
+        }
+    });
 });
 
 // ─── (4) SPF-3 (re-seated X.KF.W13V.y) — the presets' analytic peaks ────────
