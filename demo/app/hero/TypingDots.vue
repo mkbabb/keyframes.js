@@ -24,13 +24,12 @@
 </template>
 
 <script lang="ts">
-// X.KF.W13X.esc2 · ESC-dock-3 — the ellipsis' motion, exported so the Home
-// miniature (`HomeMini.vue`, Home's dock glyph) plays this same cadence; the
-// setup below reads these, so there is one copy of each number.
-export const TYPING_DOTS_CYCLE_MS = 1200;
+// The ellipsis' motion: one copy of each number, read by the setup below.
+// (Home's dock glyph played this cadence until it became a house, FIFTY-FOURTH.)
+const TYPING_DOTS_CYCLE_MS = 1200;
 const TYPING_DOTS_REST_OPACITY = 0.2;
-export const TYPING_DOTS_TIMING = "steps(4, jump-none)";
-export const typingDotKeyframes = () => ({
+const TYPING_DOTS_TIMING = "steps(4, jump-none)";
+const typingDotKeyframes = () => ({
     "0%": { opacity: TYPING_DOTS_REST_OPACITY },
     "50%": { opacity: 1 },
     "100%": { opacity: TYPING_DOTS_REST_OPACITY },

@@ -84,9 +84,9 @@ export interface SceneDescriptor {
      * rename).
      *
      * Populated per-survivor by each scene (its `*Mini.vue`), and for home by
-     * `HomeMini.vue` (X.KF.W13X.esc2 · ESC-dock-3, UIA-KF-132: the hero's
-     * ellipsis, so Home is no longer the one lucide monochrome glyph among
-     * colour miniatures). REQUIRED on every descriptor, home included, so an
+     * `HomeMini.vue` (a drawn house in the miniatures' violet since FIFTY-FOURTH;
+     * ESC-dock-3, UIA-KF-132, had given it the hero's ellipsis so it was not the
+     * one lucide monochrome glyph among colour miniatures). REQUIRED on every descriptor, home included, so an
      * icon-less descriptor does not typecheck and the dock needs no fallback
      * glyph — the permanent cure for the D8 regression class.
      */

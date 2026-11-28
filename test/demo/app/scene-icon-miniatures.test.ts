@@ -171,10 +171,9 @@ describe("OA-32 — each miniature plays its scene's animation through the engin
         easing: { kind: "keyframes", count: 1 }, // the preview sweep
         spring: { kind: "keyframes", count: 1 }, // the ball chasing its ring (X-DS KF-C10-04)
         sequence: { kind: "sequence", count: 1 }, // the staggered storyboard
-        home: { kind: "keyframes", count: 3 }, // the hero's three ellipsis dots
     };
 
-    for (const [id, Mini] of Object.entries({ ...MINIS, home: HomeMini })) {
+    for (const [id, Mini] of Object.entries(MINIS)) {
         it(`(3) ${id}: live plays ${ENGINE[id]!.count}× ${ENGINE[id]!.kind}, unmount stops; rest plays nothing`, () => {
             const rest = spyPlays();
             const idle = mount(Mini, { props: { live: false }, attachTo: document.body });
@@ -193,6 +192,38 @@ describe("OA-32 — each miniature plays its scene's animation through the engin
             );
         });
     }
+});
+
+describe("FIFTY-FOURTH — Home's icon is a house (owner, 23 Nov: \"home should be a home icon\")", () => {
+    it("is one drawn house, the doorway cut from its fill, in the miniatures' violet; no dots", () => {
+        const wrapper = mount(HomeMini, { props: { live: false }, attachTo: document.body });
+        const paths = wrapper.findAll("svg path");
+        expect(paths).toHaveLength(1);
+        const d = paths[0]!.attributes("d") ?? "";
+        // A closed outline: apex, eaves, walls, and the doorway's notch in the floor.
+        expect(d.startsWith("M12 ")).toBe(true);
+        expect(d.trim().endsWith("Z")).toBe(true);
+        expect((d.match(/Q/g) ?? []).length).toBe(2);
+        expect(wrapper.findAll(".dot")).toHaveLength(0);
+        expect(wrapper.find("svg").attributes("aria-hidden")).toBe("true");
+        wrapper.unmount();
+    });
+
+    it("is a place, not an animation: live or at rest, the engine plays nothing", () => {
+        const { CSSKeyframesAnimation, AnimationGroup } = kfEngine();
+        const plays: string[] = [];
+        for (const proto of [CSSKeyframesAnimation.prototype, AnimationGroup.prototype, Sequence.prototype])
+            vi.spyOn(proto as { play: () => unknown }, "play").mockImplementation(function () {
+                plays.push("play");
+                return Promise.resolve();
+            });
+        for (const live of [false, true]) {
+            const wrapper = mount(HomeMini, { props: { live }, attachTo: document.body });
+            expect(wrapper.find("[data-layer]").exists()).toBe(true);
+            wrapper.unmount();
+        }
+        expect(plays).toEqual([]);
+    });
 });
 
 describe("ESC-dock-3 — on home the dock reads the home descriptor's miniature", () => {

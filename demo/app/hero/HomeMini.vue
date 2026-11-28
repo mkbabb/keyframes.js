@@ -1,72 +1,33 @@
 <script setup lang="ts">
 /**
- * X.KF.W13X.esc2 · ESC-dock-3 (UIA-KF-132; KF-W13.md addendum (g), COHESION
- * §0er) — Home's dock icon: a living miniature in the `<S>Mini.vue` idiom, so
- * Home is no longer the one lucide monochrome stroke among six colour
- * miniatures (the glyph that read as a disabled or other-kind row).
+ * Home's dock icon: a house.
  *
- * Home is the landing, and its own motion is the hero's ellipsis: the three
- * `TypingDots` beside the title. The miniature plays that motion through
- * keyframes.js from the hero's own contract (`TYPING_DOTS_*`,
- * `typingDotKeyframes`, exported by `TypingDots.vue`): one keyframes animation
- * per dot on the hero's cycle and stepped timing, seated by the library's
- * `stagger` at one step quantum (CYCLE / 8), so the dots march left to right
- * on one grid as they do in the title. The inks are the demo's rainbow, the
- * family the Spring and Sequence miniatures draw from. Flat dots, no gloss
- * (X-DS canon, §0ek).
+ * FIFTY-FOURTH (owner, 23 Nov 2026: "home should be a home icon"). Home wore
+ * the hero's three-dot ellipsis (X.KF.W13X.esc2 · ESC-dock-3), which read as
+ * "more", not as a place. It is now the shared map's Home glyph (the house,
+ * the same meaning on every app), drawn the way the scene icons beside it are:
+ * one flat fill in the demo's violet (`--color-progress`, the Easing and
+ * Spring miniatures' ink), no outline glyph, no gloss. The doorway is cut out
+ * of the fill, so the plate behind it shows through in either theme.
  *
- * `live` plays (the dock's chosen scene, i.e. on home); otherwise the icon
- * rests as the whole ellipsis, every dot at full ink (the hero's dimmed rest
- * frame is a beat of its pulse, and a 20 px glyph of three faint dots is the
- * disabled look this row replaces). Reduced motion: the engine's gate snaps.
+ * Home is a place, not an animation, so the house does not play: `live` (the
+ * dock's chosen scene) is accepted like every miniature's and changes nothing.
  */
-import { markRaw, useTemplateRef } from "vue";
-import { stagger } from "@mkbabb/keyframes.js";
-import { useLiveMini } from "@composables/useLiveMini";
-import { kfEngine } from "@kf-engine";
-import {
-    TYPING_DOTS_CYCLE_MS,
-    TYPING_DOTS_TIMING,
-    typingDotKeyframes,
-} from "./TypingDots.vue";
+defineProps<{ live?: boolean }>();
 
-const { live = false } = defineProps<{ live?: boolean }>();
-
-const INKS = ["--rainbow-violet", "--rainbow-blue", "--rainbow-cyan"];
-const COUNT = INKS.length;
-const delays = stagger(COUNT, { each: TYPING_DOTS_CYCLE_MS / 8, from: "first" }).delays(COUNT);
-
-const dotEls = useTemplateRef<HTMLElement[]>("dotEls");
-
-const { CSSKeyframesAnimation } = kfEngine();
-const dots = INKS.map((_, i) =>
-    markRaw(
-        new CSSKeyframesAnimation<{ opacity: number }>({
-            duration: TYPING_DOTS_CYCLE_MS,
-            delay: delays[i] ?? 0,
-            iterationCount: "infinite",
-            timingFunction: TYPING_DOTS_TIMING,
-            respectReducedMotion: true,
-        }).fromKeyframes(typingDotKeyframes()),
-    ),
-);
-
-useLiveMini(dots, () => live, () => {
-    dotEls.value?.forEach((el, i) => dots[i]?.setTargets(el));
-});
+/** A house on a 24-unit square: the roof's eaves overhang the walls, the
+ *  doorway is a notch in the floor line. One closed path, its corners rounded
+ *  by a stroke of the same ink. */
+const HOUSE =
+    "M12 3.2 L21 10.6 L18.8 10.6 L18.8 20.4 L14.6 20.4 L14.6 15.4 " +
+    "Q14.6 13.2 12 13.2 Q9.4 13.2 9.4 15.4 L9.4 20.4 L5.2 20.4 L5.2 10.6 L3 10.6 Z";
 </script>
 
 <template>
-    <span class="scene-mini" :data-live="live ? '' : undefined">
-        <span class="row" data-layer="dots">
-            <span
-                v-for="ink in INKS"
-                :key="ink"
-                ref="dotEls"
-                class="dot"
-                :style="{ background: `var(${ink}, currentColor)` }"
-            />
-        </span>
+    <span class="scene-mini" data-layer="house">
+        <svg class="house" viewBox="0 0 24 24" aria-hidden="true">
+            <path :d="HOUSE" />
+        </svg>
     </span>
 </template>
 
@@ -77,20 +38,16 @@ useLiveMini(dots, () => live, () => {
     overflow: hidden;
     contain: strict;
 }
-/* Three dots on the icon's centre line: each a quarter of the icon, 8 % apart,
-   so the row spans 91 % and each dot carries the weight of the Spring and
-   Sequence miniatures' balls. */
-.row {
+.house {
     position: absolute;
     inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8%;
+    width: 100%;
+    height: 100%;
 }
-.dot {
-    width: 25%;
-    aspect-ratio: 1;
-    border-radius: 50%;
+.house path {
+    fill: var(--color-progress, currentColor);
+    stroke: var(--color-progress, currentColor);
+    stroke-width: 1.4;
+    stroke-linejoin: round;
 }
 </style>
