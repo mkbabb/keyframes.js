@@ -12,6 +12,9 @@
  * - The expanded dock's run holds its seats inside its plate at every phone
  *   width, the theme's seat included; where the run cannot hold the theme
  *   (under 390 px) the @mbabb menu carries it, and it still flips the theme.
+ *   FIFTY-FOURTH (owner, 23 Nov: "theme toggle wraps off screen on mobile"):
+ *   held at the larger phones too (402, 414, 430), where the scene's word
+ *   used to come back and push the theme past the screen's edge.
  *
  * Chromium, touch. Local: serves dist/gh-pages (build it first: npm run
  * gh-pages). KF_GESTURE_BASE=https://keyframes.babb.dev runs it against a
@@ -151,7 +154,7 @@ const dockRun = (page) =>
         const r = run.getBoundingClientRect();
         const theme = document.querySelector("[data-dock-theme]");
         const t = theme?.getBoundingClientRect();
-        return { over: run.scrollWidth - run.clientWidth, right: r.right, theme: t && t.width > 0 ? { right: t.right } : null };
+        return { over: run.scrollWidth - run.clientWidth, right: r.right, vw: innerWidth, theme: t && t.width > 0 ? { right: t.right } : null };
     });
 
 const expandDock = async (page) => {
@@ -162,7 +165,7 @@ const expandDock = async (page) => {
     }
 };
 
-for (const w of [360, 375, 390]) {
+for (const w of [360, 375, 390, 402, 414, 430]) {
     test.describe(`phone ${w}x780: the dock's run`, () => {
         test.use({ viewport: { width: w, height: 780 }, deviceScaleFactor: 2, hasTouch: true, isMobile: true });
 
@@ -174,6 +177,7 @@ for (const w of [360, 375, 390]) {
                 expect(run).not.toBeNull();
                 expect(run.over).toBeLessThanOrEqual(1);
                 if (run.theme) expect(run.theme.right).toBeLessThanOrEqual(run.right + 0.5);
+                if (run.theme) expect(run.theme.right, "the theme seat on screen").toBeLessThanOrEqual(run.vw);
             });
         }
 

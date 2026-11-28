@@ -517,21 +517,29 @@ defineExpose({ openSceneList });
                             v-model:open="sceneSelectOpen"
                             @update:model-value="onScenePick"
                         >
-                            <!-- X.KF.W13X.dock · UIA-KF-237 — below 400 px the word is hidden
+                            <!-- X.KF.W13X.dock · UIA-KF-237 — below 440 px (400 until FIFTY-FOURTH) the word is hidden
                                  (OA-40, below), which took its 24 px line box with it: the
                                  glyph-only trigger fell to 30 px beside the 32 px @mbabb
                                  trigger (served 360/390). It keeps the label's line box
                                  (1lh) inside the producer's own trigger padding, so the two
                                  dock triggers stand one height. -->
-                            <DockTrigger ref="sceneTrigger" for="select" aria-label="Scene" class="dock-label max-[399px]:min-h-[calc(1lh_+_2_*_var(--dock-trigger-padding-block))]">
+                            <DockTrigger ref="sceneTrigger" for="select" aria-label="Scene" class="dock-label max-[439px]:min-h-[calc(1lh_+_2_*_var(--dock-trigger-padding-block))]">
                                 <component :is="currentIcon" :live="scenePlaying" class="dock-glyph" aria-hidden="true" />
                                 <!-- X.KF.W13V.s (OA-40): below 400 px the four
                                      surface items leave no room for the
                                      scene's word beside its glyph, so the word
                                      is visually hidden there (still the
                                      trigger's announced value) and the dock
-                                     stays ONE row at 360. -->
-                                <SelectValue class="max-[399px]:sr-only" />
+                                     stays ONE row at 360.
+                                     FIFTY-FOURTH (owner, 23 Nov: the theme
+                                     toggle wraps off screen on a phone) — with
+                                     the word, the expanded run is 416 px, so
+                                     from 400 to 439 px (iPhone Pro 402, Plus
+                                     and Pro Max 414 to 430) the theme seat
+                                     stood 2 to 20 px past the screen's edge.
+                                     The word leaves under 440, so those phones
+                                     draw the run 390's phones do. -->
+                                <SelectValue class="max-[439px]:sr-only" />
                             </DockTrigger>
                             <SelectContent
                                 :side-offset="sceneListOffset"

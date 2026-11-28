@@ -181,11 +181,14 @@ describe("the @mbabb menu is placed on its trigger", () => {
 });
 
 describe("UIA-KF-237 — the glyph-only scene trigger keeps the label's line box", () => {
-    it("(5) below 400 px (word hidden, OA-40) the Scene trigger's min block-size is one line box inside the producer's trigger padding", () => {
+    // FIFTY-FOURTH — the word leaves below 440 px (was 400): with it the
+    // expanded run is 416 px, so 400 to 439 px phones stood the theme seat
+    // off the screen (no-sideways.spec.mjs holds it at 402, 414, 430).
+    it("(5) below 440 px (word hidden, OA-40) the Scene trigger's min block-size is one line box inside the producer's trigger padding", () => {
         const w = mountDock();
         const scene = w.find('[aria-label="Scene"]');
-        expect(scene.find(".max-\\[399px\\]\\:sr-only").exists()).toBe(true);
-        expect(scene.attributes("class")).toContain("max-[399px]:min-h-[calc(1lh_+_2_*_var(--dock-trigger-padding-block))]");
+        expect(scene.find(".max-\\[439px\\]\\:sr-only").exists()).toBe(true);
+        expect(scene.attributes("class")).toContain("max-[439px]:min-h-[calc(1lh_+_2_*_var(--dock-trigger-padding-block))]");
         w.unmount();
     });
 });
